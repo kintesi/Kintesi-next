@@ -95,7 +95,7 @@ const DEFAULT_SETTINGS: StoreSettings = {
   deliveryFeeInsideDhaka: 60,
   deliveryFeeOutsideDhaka: 120,
   freeShippingThreshold: 5000,
-  authorizedAdmins: ['mnage.faisalsheikh@gmail.com'],
+  authorizedAdmins: ['manage.kintesi@gmail.com'],
   banners: DEFAULT_BANNERS,
 };
 
@@ -130,7 +130,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         return {
           ...DEFAULT_SETTINGS,
           ...parsed,
-          authorizedAdmins: parsed.authorizedAdmins || ['mnage.faisalsheikh@gmail.com'],
+          authorizedAdmins: parsed.authorizedAdmins || ['manage.kintesi@gmail.com'],
           banners: mergedBanners,
         };
       }
@@ -168,7 +168,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
               deliveryFeeInsideDhaka: Number(data.deliveryFeeInsideDhaka ?? data.delivery_fee_inside_dhaka ?? prev.deliveryFeeInsideDhaka),
               deliveryFeeOutsideDhaka: Number(data.deliveryFeeOutsideDhaka ?? data.delivery_fee_outside_dhaka ?? prev.deliveryFeeOutsideDhaka),
               freeShippingThreshold: Number(data.freeShippingThreshold ?? data.free_shipping_threshold ?? prev.freeShippingThreshold),
-              authorizedAdmins: data.authorizedAdmins || data.authorized_admins || prev.authorizedAdmins || ['mnage.faisalsheikh@gmail.com'],
+              authorizedAdmins: data.authorizedAdmins || data.authorized_admins || prev.authorizedAdmins || ['manage.kintesi@gmail.com'],
               banners: remoteBanners ? { ...DEFAULT_BANNERS, ...remoteBanners } : prev.banners,
             };
             localStorage.setItem('kintesi_store_settings', JSON.stringify(merged));
@@ -262,7 +262,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const isAuthorizedAdminEmail = (email?: string | null): boolean => {
     if (!email) return false;
     const lower = email.toLowerCase().trim();
-    if (lower === 'mnage.faisalsheikh@gmail.com') return true;
+    if (lower === 'manage.kintesi@gmail.com') return true;
     return (settings.authorizedAdmins || []).map((e) => e.toLowerCase().trim()).includes(lower);
   };
 

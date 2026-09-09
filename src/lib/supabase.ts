@@ -8,11 +8,11 @@ export const isDatabaseConnected = Boolean(rawUrl && rawKey && !rawUrl.includes(
 const supabaseUrl = rawUrl || 'https://unconnected-project.supabase.co';
 const supabaseAnonKey = rawKey || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.dummy_key';
 
-export const ADMIN_EMAIL = import.meta.env.VITE_ADMIN_EMAIL || 'mnage.faisalsheikh@gmail.com';
+export const ADMIN_EMAIL = import.meta.env.VITE_ADMIN_EMAIL || 'manage.kintesi@gmail.com';
 
 // Built-in Authorized Team Admins (Client Store Owner)
 export const DEFAULT_AUTHORIZED_ADMINS = [
-  'mnage.faisalsheikh@gmail.com',
+  'manage.kintesi@gmail.com',
   'admin@kintesi.com',
   ADMIN_EMAIL,
 ];

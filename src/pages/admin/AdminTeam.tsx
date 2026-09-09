@@ -10,13 +10,13 @@ import { toast } from 'sonner';
 export const AdminTeam: React.FC = () => {
   const { user } = useAuth();
   const { settings, updateSettings } = useSettings();
-  const isMasterOwner = user?.email?.toLowerCase().trim() === 'mnage.faisalsheikh@gmail.com';
+  const isMasterOwner = user?.email?.toLowerCase().trim() === 'manage.kintesi@gmail.com';
 
   const [admins, setAdmins] = useState<UserProfile[]>([
     {
       id: 'owner-admin',
       full_name: 'Store Owner',
-      email: 'mnage.faisalsheikh@gmail.com',
+      email: 'manage.kintesi@gmail.com',
       avatar_url: null,
       role: 'admin',
       created_at: new Date().toISOString(),
@@ -33,7 +33,7 @@ export const AdminTeam: React.FC = () => {
         {
           id: 'owner-admin',
           full_name: 'Store Owner',
-          email: 'mnage.faisalsheikh@gmail.com',
+          email: 'manage.kintesi@gmail.com',
           avatar_url: null,
           role: 'admin',
           created_at: new Date().toISOString(),
@@ -44,7 +44,7 @@ export const AdminTeam: React.FC = () => {
       try {
         const localEmails: string[] = JSON.parse(localStorage.getItem('kintesi_authorized_admins') || '[]');
         localEmails.forEach((em) => {
-          if (em.toLowerCase() !== 'mnage.faisalsheikh@gmail.com') {
+          if (em.toLowerCase() !== 'manage.kintesi@gmail.com') {
             staffList.push({
               id: 'local-' + em,
               full_name: em.split('@')[0],
@@ -87,7 +87,7 @@ export const AdminTeam: React.FC = () => {
     const emailToGrant = newAdminEmail.trim().toLowerCase();
 
     // 1. Save to centralized store settings
-    const existingAdmins = settings.authorizedAdmins || ['mnage.faisalsheikh@gmail.com'];
+    const existingAdmins = settings.authorizedAdmins || ['manage.kintesi@gmail.com'];
     if (!existingAdmins.map((e) => e.toLowerCase()).includes(emailToGrant)) {
       await updateSettings({ authorizedAdmins: [...existingAdmins, emailToGrant] });
     }
@@ -124,14 +124,14 @@ export const AdminTeam: React.FC = () => {
   };
 
   const handleRevokeAdmin = async (admin: UserProfile) => {
-    if (admin.email.toLowerCase() === 'mnage.faisalsheikh@gmail.com') {
+    if (admin.email.toLowerCase() === 'manage.kintesi@gmail.com') {
       toast.error('Cannot remove store owner admin account');
       return;
     }
 
     if (!confirm(`Are you sure you want to revoke admin privileges from ${admin.email}?`)) return;
 
-    const existingAdmins = settings.authorizedAdmins || ['mnage.faisalsheikh@gmail.com'];
+    const existingAdmins = settings.authorizedAdmins || ['manage.kintesi@gmail.com'];
     const updatedList = existingAdmins.filter((e) => e.toLowerCase() !== admin.email.toLowerCase());
     await updateSettings({ authorizedAdmins: updatedList });
 
@@ -158,7 +158,7 @@ export const AdminTeam: React.FC = () => {
           </div>
           <h2 className="text-xl font-bold text-white">Owner Authorization Required</h2>
           <p className="text-xs text-gray-400 leading-relaxed">
-            Only the Store Owner (<b>mnage.faisalsheikh@gmail.com</b>) has permission to manage and authorize staff admins.
+            Only the Store Owner (<b>manage.kintesi@gmail.com</b>) has permission to manage and authorize staff admins.
           </p>
           <Link
             to="/admin"
@@ -207,7 +207,7 @@ export const AdminTeam: React.FC = () => {
             </thead>
             <tbody className="divide-y divide-gray-700/60 text-gray-200">
               {admins.map((adm) => {
-                const isMaster = adm.email.toLowerCase() === 'mnage.faisalsheikh@gmail.com';
+                const isMaster = adm.email.toLowerCase() === 'manage.kintesi@gmail.com';
                 return (
                   <tr key={adm.id || adm.email} className="hover:bg-gray-700/40 transition">
                     <td className="p-4 font-bold text-white flex items-center gap-2.5">

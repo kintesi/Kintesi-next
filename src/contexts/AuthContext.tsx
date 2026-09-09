@@ -223,7 +223,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         session,
         profile,
         isAdmin,
-        isSuperAdmin: user?.email?.toLowerCase().trim() === 'mnage.faisalsheikh@gmail.com',
+        isSuperAdmin: user?.email?.toLowerCase().trim() === 'manage.kintesi@gmail.com',
         isLoading,
         signInWithGoogle,
         signInWithEmail,
