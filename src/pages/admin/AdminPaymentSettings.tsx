@@ -25,7 +25,7 @@ export const AdminPaymentSettings: React.FC = () => {
   // Seller / Vendor Saved Profile State
   const [sellerProfile, setSellerProfile] = useState(() => {
     try {
-      const saved = localStorage.getItem('cartfly_seller_saved_profile');
+      const saved = localStorage.getItem('kintesi_seller_saved_profile');
       if (saved) return JSON.parse(saved);
     } catch {}
     return {
@@ -76,7 +76,7 @@ export const AdminPaymentSettings: React.FC = () => {
       toast.error('Please enter at least your seller name, bKash or bank details before saving.');
       return;
     }
-    localStorage.setItem('cartfly_seller_saved_profile', JSON.stringify(sellerProfile));
+    localStorage.setItem('kintesi_seller_saved_profile', JSON.stringify(sellerProfile));
     toast.success('Your Personal Seller Payment & Bank Profile has been saved! You can now use it across all your products.');
   };
 

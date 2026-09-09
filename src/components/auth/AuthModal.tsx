@@ -69,10 +69,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMo
           </button>
           
           <div className="w-16 h-16 bg-white rounded-2xl p-2 mx-auto mb-3 shadow-lg flex items-center justify-center">
-            <img src="/logo.webp" alt="Cart Fly" className="w-full h-full object-contain" />
+            <img src="/logo.png" alt="Kintesi" className="w-full h-full object-contain" />
           </div>
-          <h2 className="text-2xl font-bold">Welcome to Cart Fly</h2>
-          <p className="text-emerald-100 text-sm mt-1">Your premium shopping destination</p>
+          <h2 className="text-2xl font-bold">Welcome to Kintesi</h2>
+          <p className="text-emerald-100 text-sm mt-1">Your premier online shopping marketplace</p>
         </div>
 
         <div className="p-6 sm:p-8">

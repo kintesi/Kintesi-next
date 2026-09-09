@@ -34,7 +34,7 @@ export const isAdminUser = (email?: string | null): boolean => {
 
   // 2. Check local storage authorized list
   try {
-    const localAdmins: string[] = JSON.parse(localStorage.getItem('cartfly_authorized_admins') || '[]');
+    const localAdmins: string[] = JSON.parse(localStorage.getItem('kintesi_authorized_admins') || '[]');
     if (localAdmins.map(e => e.toLowerCase().trim()).includes(target)) {
       return true;
     }
@@ -42,7 +42,7 @@ export const isAdminUser = (email?: string | null): boolean => {
 
   // 3. Check store settings local cache
   try {
-    const storeSettings = JSON.parse(localStorage.getItem('cartfly_store_settings') || '{}');
+    const storeSettings = JSON.parse(localStorage.getItem('kintesi_store_settings') || '{}');
     if (storeSettings.authorizedAdmins && Array.isArray(storeSettings.authorizedAdmins)) {
       if (storeSettings.authorizedAdmins.map((e: string) => e.toLowerCase().trim()).includes(target)) {
         return true;

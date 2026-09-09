@@ -64,8 +64,8 @@ interface ChatContextType {
 
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
 
-const CHAT_STORAGE_KEY = 'cartfly_live_chat_master_threads';
-const GUEST_ID_KEY = 'cartfly_guest_chat_client_id';
+const CHAT_STORAGE_KEY = 'kintesi_live_chat_master_threads';
+const GUEST_ID_KEY = 'kintesi_guest_chat_client_id';
 
 const generateUUID = () => {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
@@ -102,9 +102,9 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
         id: 'msg-welcome',
         conversationId: activeConversationId,
         sender: 'seller',
-        senderName: 'CartFly Support Agent',
-        senderEmail: 'support@cartfly.com',
-        text: '👋 Assalamu Alaikum! Welcome to CartFly. How can we help you today? Feel free to ask about any product, fitting, delivery or your order!',
+        senderName: 'Kintesi Support Agent',
+        senderEmail: 'support@kintesi.com',
+        text: '👋 Assalamu Alaikum! Welcome to Kintesi (kintesi.com). How can we help you today? Feel free to ask about any product, fitting, delivery or your order!',
         timestamp: new Date().toISOString(),
         read: true,
       },
@@ -261,7 +261,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
         threadMap.set(convId, {
           conversationId: convId,
           customerName: msg.sender === 'customer' ? msg.senderName : (profile?.full_name || 'Customer (' + convId.slice(0, 5) + ')'),
-          customerEmail: msg.sender === 'customer' ? (msg.senderEmail || 'customer@cartfly.com') : 'customer@cartfly.com',
+          customerEmail: msg.sender === 'customer' ? (msg.senderEmail || 'customer@kintesi.com') : 'customer@kintesi.com',
           customerPhone: msg.senderPhone,
           customerAvatar: msg.senderAvatar,
           lastMessage: msg.text,
@@ -318,7 +318,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (!text.trim()) return;
 
     const customerName = profile?.full_name || user?.user_metadata?.full_name || ('Customer ' + activeConversationId.slice(-4));
-    const customerEmail = user?.email || (activeConversationId.startsWith('guest_') ? `${activeConversationId}@guest.cartfly.com` : 'customer@cartfly.com');
+    const customerEmail = user?.email || (activeConversationId.startsWith('guest_') ? `${activeConversationId}@guest.kintesi.com` : 'customer@kintesi.com');
     const msgId = generateUUID();
 
     const customerAvatar =
@@ -395,8 +395,8 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
           id: autoReplyId,
           conversationId: activeConversationId,
           sender: 'seller',
-          senderName: 'CartFly Store Executive',
-          senderEmail: 'support@cartfly.com',
+          senderName: 'Kintesi Store Executive',
+          senderEmail: 'support@kintesi.com',
           text: replyText,
           timestamp: new Date().toISOString(),
           read: isOpen,
@@ -414,8 +414,8 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
             conversation_id: activeConversationId,
             user_id: null,
             sender: 'seller',
-            sender_name: 'CartFly Store Executive',
-            sender_email: 'support@cartfly.com',
+            sender_name: 'Kintesi Store Executive',
+            sender_email: 'support@kintesi.com',
             text: replyText,
             read: isOpen,
           });
@@ -434,7 +434,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
       conversationId: targetConversationId,
       sender: 'seller',
       senderName: profile?.full_name || 'Store Admin',
-      senderEmail: user?.email || 'admin@cartfly.com',
+      senderEmail: user?.email || 'support@kintesi.com',
       text: text.trim(),
       timestamp: new Date().toISOString(),
       read: true,
@@ -454,7 +454,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
         user_id: user?.id || null,
         sender: 'seller',
         sender_name: profile?.full_name || 'Store Admin',
-        sender_email: user?.email || 'admin@cartfly.com',
+        sender_email: user?.email || 'support@kintesi.com',
         text: text.trim(),
         read: true,
       });

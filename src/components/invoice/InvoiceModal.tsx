@@ -43,7 +43,7 @@ export const InvoiceModal: React.FC<InvoiceProps> = ({ order, onClose }) => {
   const sellerPhone = settings?.helplinePhone || '01805930164';
 
   const modalContent = (
-    <div id="cartfly-invoice-portal" className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm print:p-0 print:bg-white print:static print:inset-auto print:z-auto">
+    <div id="kintesi-invoice-portal" className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm print:p-0 print:bg-white print:static print:inset-auto print:z-auto">
       <div className="bg-white rounded-3xl max-w-3xl w-full max-h-[95vh] overflow-y-auto shadow-2xl border border-gray-100 print:shadow-none print:border-none print:max-w-none print:w-full print:rounded-none print:overflow-visible print:max-h-none">
         
         {/* Print / Action Toolbar (Hidden during print) */}
@@ -93,15 +93,15 @@ export const InvoiceModal: React.FC<InvoiceProps> = ({ order, onClose }) => {
           {/* Header */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 border-b-2 border-gray-100 pb-8">
             <div className="flex items-center gap-3.5">
-              <div className="w-14 h-14 rounded-2xl bg-emerald-50 p-2 flex items-center justify-center border border-emerald-100">
-                <img src="/logo.webp" alt="Cart Fly" className="w-full h-full object-contain" />
+              <div className="w-14 h-14 rounded-2xl bg-gray-50 p-2 flex items-center justify-center border border-gray-200">
+                <img src="/logo.png" alt="Kintesi" className="w-full h-full object-contain" />
               </div>
               <div>
                 <h1 className="text-2xl font-black text-gray-900 tracking-tight">
-                  Cart<span className="text-emerald-600">Fly</span>
+                  Kin<span className="text-emerald-600">tesi</span>
                 </h1>
-                <p className="text-xs text-gray-500 font-semibold">All-In-One Mega Store & Marketplace</p>
-                <p className="text-[11px] text-gray-400">Dhaka, Bangladesh • support@cartfly.com • Helpline: {sellerPhone}</p>
+                <p className="text-xs text-gray-500 font-semibold">Premier Online Shopping Marketplace • kintesi.com</p>
+                <p className="text-[11px] text-gray-400">Dhaka, Bangladesh • support@kintesi.com • Helpline: {sellerPhone}</p>
               </div>
             </div>
 
@@ -227,7 +227,7 @@ export const InvoiceModal: React.FC<InvoiceProps> = ({ order, onClose }) => {
             <div className="space-y-2 text-xs text-gray-500 max-w-sm">
               <div className="flex items-center gap-2 text-emerald-800 font-bold bg-emerald-50 p-2.5 rounded-xl border border-emerald-200/80">
                 <ShieldCheck className="w-5 h-5 text-emerald-600 shrink-0" />
-                <span>100% Genuine Certified Quality • Official CartFly Warranty</span>
+                <span>100% Genuine Certified Quality • Official Kintesi Warranty</span>
               </div>
               <p className="text-[11px] leading-relaxed">
                 For returns, exchange, or delivery tracking, contact seller helpline: <strong>{sellerPhone}</strong>.
@@ -262,7 +262,7 @@ export const InvoiceModal: React.FC<InvoiceProps> = ({ order, onClose }) => {
           {/* Footer, Barcode & Official Signature */}
           <div className="border-t-2 border-gray-100 pt-6 flex flex-col sm:flex-row items-center justify-between gap-6 text-[11px] text-gray-500">
             <div className="space-y-1 text-center sm:text-left">
-              <p className="font-bold text-gray-800 text-xs">Thank you for ordering with CartFly Marketplace!</p>
+              <p className="font-bold text-gray-800 text-xs">Thank you for ordering with Kintesi (kintesi.com)!</p>
               <p>This is a computer-generated official receipt. No physical signature required.</p>
             </div>
             

@@ -76,10 +76,10 @@ export const AdminLayout: React.FC = () => {
         {/* Brand */}
         <div className="p-6 border-b border-gray-800 flex items-center gap-3">
           <div className="w-10 h-10 rounded-2xl bg-white p-1 flex items-center justify-center shadow">
-            <img src="/logo.webp" alt="Cart Fly" className="w-full h-full object-contain" />
+            <img src="/logo.png" alt="Kintesi" className="w-full h-full object-contain" />
           </div>
           <div>
-            <h1 className="font-black text-white text-base leading-tight">Cart Fly Admin</h1>
+            <h1 className="font-black text-white text-base leading-tight">Kintesi Admin</h1>
             <span className="text-[10px] bg-emerald-500/20 text-emerald-400 font-bold px-2 py-0.5 rounded-full">
               {isMasterOwner ? 'Master Admin' : 'Admin'}
             </span>

@@ -26,7 +26,7 @@ export const AdminDashboard: React.FC = () => {
         let allOrders: Order[] = orderData || [];
 
         // Check local guest orders as well
-        const local = JSON.parse(localStorage.getItem('cartfly_guest_orders') || '[]');
+        const local = JSON.parse(localStorage.getItem('kintesi_guest_orders') || '[]');
         if (local.length > 0) {
           allOrders = [...allOrders, ...local.filter((l: any) => !allOrders.some((o) => o.order_number === l.order_number))];
         }
@@ -51,7 +51,7 @@ export const AdminDashboard: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-black text-white">Admin Dashboard</h1>
-          <p className="text-xs text-gray-400 mt-1">Live overview of your Cart Fly e-commerce store</p>
+          <p className="text-xs text-gray-400 mt-1">Live overview of your Kintesi (kintesi.com) e-commerce store</p>
         </div>
         <div className="flex gap-2">
           <Link

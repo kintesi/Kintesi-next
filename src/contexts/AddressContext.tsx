@@ -42,7 +42,7 @@ export const AddressProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
         // Fallback local storage
         if (loaded.length === 0) {
-          const key = user ? `cartfly_addresses_${user.id}` : 'cartfly_guest_addresses';
+          const key = user ? `kintesi_addresses_${user.id}` : 'kintesi_guest_addresses';
           const saved = localStorage.getItem(key);
           if (saved) {
             loaded = JSON.parse(saved);
@@ -78,7 +78,7 @@ export const AddressProvider: React.FC<{ children: React.ReactNode }> = ({ child
   // Save to localStorage whenever addresses change
   const persistLocally = (updated: Address[]) => {
     setAddresses(updated);
-    const key = user ? `cartfly_addresses_${user.id}` : 'cartfly_guest_addresses';
+    const key = user ? `kintesi_addresses_${user.id}` : 'kintesi_guest_addresses';
     localStorage.setItem(key, JSON.stringify(updated));
   };
 

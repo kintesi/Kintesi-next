@@ -99,7 +99,7 @@ export const ProductDetailPage: React.FC = () => {
     async function loadProduct() {
       setLoading(true);
       try {
-        const savedCustom: Product[] = JSON.parse(localStorage.getItem('cartfly_custom_products') || '[]');
+        const savedCustom: Product[] = JSON.parse(localStorage.getItem('kintesi_custom_products') || '[]');
         const customMatch = savedCustom.find(
           (p) => (p.slug === slug || p.id === slug) && !p.id?.startsWith('prod-')
         );
@@ -192,7 +192,7 @@ export const ProductDetailPage: React.FC = () => {
         // Load only real customer submitted reviews from storage
         const targetId = data?.id || localProd?.id;
         if (targetId) {
-          const savedCustomReviews = JSON.parse(localStorage.getItem(`cartfly_reviews_${targetId}`) || '[]');
+          const savedCustomReviews = JSON.parse(localStorage.getItem(`kintesi_reviews_${targetId}`) || '[]');
           setReviews(savedCustomReviews);
         } else {
           setReviews([]);
@@ -205,8 +205,8 @@ export const ProductDetailPage: React.FC = () => {
     }
 
     loadProduct();
-    window.addEventListener('cartfly_products_updated', loadProduct);
-    return () => window.removeEventListener('cartfly_products_updated', loadProduct);
+    window.addEventListener('kintesi_products_updated', loadProduct);
+    return () => window.removeEventListener('kintesi_products_updated', loadProduct);
   }, [slug]);
 
   if (loading) {
@@ -302,7 +302,7 @@ export const ProductDetailPage: React.FC = () => {
             <div className="flex items-center justify-between gap-4 mb-2">
               <div className="flex items-center gap-2">
                 <span className="text-xs font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200">
-                  {product.brand || 'Cart Fly'}
+                  {product.brand || 'Kintesi'}
                 </span>
                 {product.sku && (
                   <span className="text-xs font-mono text-gray-500 bg-gray-100 px-2.5 py-1 rounded-full">

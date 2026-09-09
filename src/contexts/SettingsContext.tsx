@@ -54,18 +54,18 @@ export interface StoreSettings {
 
 export const DEFAULT_BANNERS: BannerSettings = {
   showHeroSection: true,
-  heroBadge: 'ALL-IN-ONE MEGA MARKETPLACE • 1-HOUR FAST DISPATCH',
+  heroBadge: 'PREMIER LIFESTYLE & SHOPPING MARKETPLACE • kintesi.com',
   heroTitle: 'Everything You Need for',
-  heroHighlightText: 'Daily Life & Tech',
-  heroSubtitle: 'From fresh daily groceries, skincare, home appliances & designer fashion to flagship smartphones, MacBooks & gaming rigs — delivered to your doorstep.',
-  heroPrimaryBtnText: 'Explore Mega Catalog',
+  heroHighlightText: 'Life, Fashion & Tech',
+  heroSubtitle: 'From authentic designer apparel, sneakers & lifestyle essentials to flagship smartphones, home appliances & gadgets — delivered to your doorstep across Bangladesh.',
+  heroPrimaryBtnText: 'Explore Kintesi Catalog',
   heroPrimaryBtnLink: '/shop',
   heroSecondaryBtnText: 'Fashion Lookbook',
   heroSecondaryBtnLink: '/shop?category=mens-fashion',
 
   spotlightBadge: '🔥 Deal of the Day',
   spotlightTitle: 'Vintage Genuine Leather Biker Jacket',
-  spotlightBrand: 'Cart Fly Atelier',
+  spotlightBrand: 'Kintesi Atelier',
   spotlightImage: 'https://images.unsplash.com/photo-1551028719-00167b16eac5?q=80&w=1000&auto=format&fit=crop',
   spotlightPrice: 18500,
   spotlightDiscountPrice: 14900,
@@ -83,9 +83,9 @@ export const DEFAULT_BANNERS: BannerSettings = {
 };
 
 const DEFAULT_SETTINGS: StoreSettings = {
-  storeName: 'Cart Fly',
-  helplinePhone: '01800-123456',
-  supportEmail: 'support@cartfly.com',
+  storeName: 'Kintesi',
+  helplinePhone: '01800-KINTESI',
+  supportEmail: 'support@kintesi.com',
   bkashNumber: '01800-123456',
   bkashType: 'Merchant',
   nagadNumber: '01700-654321',
@@ -95,7 +95,7 @@ const DEFAULT_SETTINGS: StoreSettings = {
   deliveryFeeInsideDhaka: 60,
   deliveryFeeOutsideDhaka: 120,
   freeShippingThreshold: 5000,
-  authorizedAdmins: ['tamim.hasan2005@gmail.com', 'tamim.dev05@gmail.com'],
+  authorizedAdmins: ['admin@kintesi.com', 'tamim.hasan2005@gmail.com'],
   banners: DEFAULT_BANNERS,
 };
 
@@ -113,7 +113,7 @@ const SettingsContext = createContext<SettingsContextType | undefined>(undefined
 export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [settings, setSettings] = useState<StoreSettings>(() => {
     try {
-      const saved = localStorage.getItem('cartfly_store_settings');
+      const saved = localStorage.getItem('kintesi_store_settings');
       if (saved) {
         const parsed = JSON.parse(saved);
         return {
@@ -160,7 +160,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
               authorizedAdmins: data.authorizedAdmins || data.authorized_admins || prev.authorizedAdmins || ['tamim.hasan2005@gmail.com'],
               banners: remoteBanners ? { ...DEFAULT_BANNERS, ...remoteBanners } : prev.banners,
             };
-            localStorage.setItem('cartfly_store_settings', JSON.stringify(merged));
+            localStorage.setItem('kintesi_store_settings', JSON.stringify(merged));
             return merged;
           });
         }
@@ -174,14 +174,14 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   }, []);
 
   useEffect(() => {
-    localStorage.setItem('cartfly_store_settings', JSON.stringify(settings));
+    localStorage.setItem('kintesi_store_settings', JSON.stringify(settings));
   }, [settings]);
 
   const updateSettings = async (newSettings: Partial<StoreSettings>) => {
     setIsLoading(true);
     const updated = { ...settings, ...newSettings };
     setSettings(updated);
-    localStorage.setItem('cartfly_store_settings', JSON.stringify(updated));
+    localStorage.setItem('kintesi_store_settings', JSON.stringify(updated));
 
     try {
       const dbPayload = {
@@ -217,7 +217,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     const updatedBanners = { ...settings.banners, ...newBanners };
     const updated = { ...settings, banners: updatedBanners };
     setSettings(updated);
-    localStorage.setItem('cartfly_store_settings', JSON.stringify(updated));
+    localStorage.setItem('kintesi_store_settings', JSON.stringify(updated));
 
     try {
       const dbPayload = {

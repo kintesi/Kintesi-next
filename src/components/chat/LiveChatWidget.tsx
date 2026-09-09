@@ -101,14 +101,14 @@ export const LiveChatWidget: React.FC = () => {
             <div className="flex items-center gap-3">
               <div className="relative">
                 <div className="w-10 h-10 rounded-2xl bg-white p-1 flex items-center justify-center shadow-inner">
-                  <img src="/logo.webp" alt="CartFly" className="w-full h-full object-contain" />
+                  <img src="/logo.png" alt="Kintesi" className="w-full h-full object-contain" />
                 </div>
                 <span className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-emerald-500 border-2 border-gray-900 rounded-full" />
               </div>
 
               <div>
                 <h3 className="font-extrabold text-sm flex items-center gap-1.5">
-                  <span>CartFly Seller & Support</span>
+                  <span>Kintesi Seller & Support</span>
                   <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
                 </h3>
                 <p className="text-[10px] text-emerald-400 font-medium flex items-center gap-1">

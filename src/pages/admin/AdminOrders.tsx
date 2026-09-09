@@ -19,7 +19,7 @@ export const AdminOrders: React.FC = () => {
       let all: Order[] = data || [];
 
       // Merge local guest orders
-      const local = JSON.parse(localStorage.getItem('cartfly_guest_orders') || '[]');
+      const local = JSON.parse(localStorage.getItem('kintesi_guest_orders') || '[]');
       if (local.length > 0) {
         all = [...all, ...local.filter((l: any) => !all.some((o) => o.order_number === l.order_number))];
       }
@@ -51,9 +51,9 @@ export const AdminOrders: React.FC = () => {
 
     // Delete from local cache
     try {
-      const local = JSON.parse(localStorage.getItem('cartfly_guest_orders') || '[]');
+      const local = JSON.parse(localStorage.getItem('kintesi_guest_orders') || '[]');
       const updatedLocal = local.filter((o: any) => o.order_number !== orderNumber);
-      localStorage.setItem('cartfly_guest_orders', JSON.stringify(updatedLocal));
+      localStorage.setItem('kintesi_guest_orders', JSON.stringify(updatedLocal));
     } catch {}
 
     setOrders((prev) => prev.filter((o) => o.order_number !== orderNumber));
@@ -75,11 +75,11 @@ export const AdminOrders: React.FC = () => {
     } catch (err: any) {
       console.warn('Status update fallback:', err.message);
       // Update locally
-      const local = JSON.parse(localStorage.getItem('cartfly_guest_orders') || '[]');
+      const local = JSON.parse(localStorage.getItem('kintesi_guest_orders') || '[]');
       const updatedLocal = local.map((o: any) =>
         o.order_number === orderNumber ? { ...o, order_status: newStatus } : o
       );
-      localStorage.setItem('cartfly_guest_orders', JSON.stringify(updatedLocal));
+      localStorage.setItem('kintesi_guest_orders', JSON.stringify(updatedLocal));
       toast.success(`Order #${orderNumber} marked as ${newStatus}`);
     }
 

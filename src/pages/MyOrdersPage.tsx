@@ -39,7 +39,7 @@ export const MyOrdersPage: React.FC = () => {
   const [reviewComment, setReviewComment] = useState('');
   const [reviewedProductIds, setReviewedProductIds] = useState<string[]>(() => {
     try {
-      return JSON.parse(localStorage.getItem('cartfly_reviewed_items') || '[]');
+      return JSON.parse(localStorage.getItem('kintesi_reviewed_items') || '[]');
     } catch {
       return [];
     }
@@ -60,7 +60,7 @@ export const MyOrdersPage: React.FC = () => {
           if (data) fetchedOrders = data;
         }
 
-        const local = JSON.parse(localStorage.getItem('cartfly_guest_orders') || '[]');
+        const local = JSON.parse(localStorage.getItem('kintesi_guest_orders') || '[]');
         if (local.length > 0) {
           const merged = [...fetchedOrders, ...local.filter((l: any) => !fetchedOrders.some((f) => f.order_number === l.order_number))];
           setOrders(merged);
@@ -103,13 +103,13 @@ export const MyOrdersPage: React.FC = () => {
 
     // Save locally and into Supabase
     try {
-      const existingReviews = JSON.parse(localStorage.getItem(`cartfly_reviews_${reviewingItem.productId}`) || '[]');
-      localStorage.setItem(`cartfly_reviews_${reviewingItem.productId}`, JSON.stringify([newReview, ...existingReviews]));
+      const existingReviews = JSON.parse(localStorage.getItem(`kintesi_reviews_${reviewingItem.productId}`) || '[]');
+      localStorage.setItem(`kintesi_reviews_${reviewingItem.productId}`, JSON.stringify([newReview, ...existingReviews]));
     } catch {}
 
     const updatedReviewed = [...reviewedProductIds, reviewingItem.productId];
     setReviewedProductIds(updatedReviewed);
-    localStorage.setItem('cartfly_reviewed_items', JSON.stringify(updatedReviewed));
+    localStorage.setItem('kintesi_reviewed_items', JSON.stringify(updatedReviewed));
 
     toast.success('Thank you! Your verified purchaser review has been published.');
     setIsReviewModalOpen(false);

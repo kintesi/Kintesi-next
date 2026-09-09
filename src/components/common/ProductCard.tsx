@@ -67,7 +67,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
           {/* Brand & Rating */}
           <div className="flex items-center justify-between text-[11px] text-gray-400">
             <span className="uppercase font-bold text-emerald-700 truncate max-w-[100px]">
-              {product.brand || 'Cart Fly'}
+              {product.brand || 'Kintesi'}
             </span>
             <div className="flex items-center gap-0.5 text-amber-500 font-bold">
               <Star className="w-3 h-3 fill-amber-400 text-amber-400" />

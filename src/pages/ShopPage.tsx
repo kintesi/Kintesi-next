@@ -25,7 +25,7 @@ export const ShopPage: React.FC = () => {
   useEffect(() => {
     async function loadData() {
       try {
-        const savedCustom: Product[] = JSON.parse(localStorage.getItem('cartfly_custom_products') || '[]');
+        const savedCustom: Product[] = JSON.parse(localStorage.getItem('kintesi_custom_products') || '[]');
         const { data: catData } = await supabase.from('categories').select('*');
         if (catData && catData.length > 0) setCategories(catData);
 
@@ -40,8 +40,8 @@ export const ShopPage: React.FC = () => {
       }
     }
     loadData();
-    window.addEventListener('cartfly_products_updated', loadData);
-    return () => window.removeEventListener('cartfly_products_updated', loadData);
+    window.addEventListener('kintesi_products_updated', loadData);
+    return () => window.removeEventListener('kintesi_products_updated', loadData);
   }, []);
 
   useEffect(() => {

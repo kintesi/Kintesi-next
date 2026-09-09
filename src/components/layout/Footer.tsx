@@ -58,28 +58,28 @@ export const Footer: React.FC = () => {
           {/* Company Info */}
           <div className="lg:col-span-2 space-y-4">
             <Link to="/" className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-2xl bg-white p-1 flex items-center justify-center">
-                <img src="/logo.webp" alt="Cart Fly" className="w-full h-full object-contain" />
+              <div className="w-10 h-10 rounded-2xl bg-white p-1.5 flex items-center justify-center">
+                <img src="/logo.png" alt="Kintesi" className="w-full h-full object-contain" />
               </div>
               <span className="text-2xl font-extrabold text-white">
-                Cart <span className="text-emerald-500">Fly</span>
+                Kin<span className="text-emerald-500">tesi</span>
               </span>
             </Link>
             <p className="text-xs leading-relaxed text-gray-400 max-w-sm">
-              Cart Fly is your ultimate online tech & gadget marketplace in Bangladesh. Bringing you the newest smartphones, audio gears, laptops and accessories with lightning speed delivery.
+              Kintesi is your trusted online lifestyle, fashion, gadgets and daily shopping marketplace in Bangladesh (kintesi.com). Bringing you 100% authentic quality products with express doorstep delivery.
             </p>
             <div className="space-y-2 text-xs text-gray-400">
               <div className="flex items-center gap-2">
                 <MapPin className="w-4 h-4 text-emerald-400 flex-shrink-0" />
-                <span>Dhaka, Bangladesh</span>
+                <span>Dhaka, Bangladesh • kintesi.com</span>
               </div>
               <div className="flex items-center gap-2">
                 <Phone className="w-4 h-4 text-emerald-400 flex-shrink-0" />
-                <span>+880 1800-CARTFLY</span>
+                <span>+880 1800-KINTESI</span>
               </div>
               <div className="flex items-center gap-2">
                 <Mail className="w-4 h-4 text-emerald-400 flex-shrink-0" />
-                <span>support@cartfly.com</span>
+                <span>support@kintesi.com</span>
               </div>
             </div>
           </div>
@@ -138,7 +138,7 @@ export const Footer: React.FC = () => {
 
       {/* Bottom Bar */}
       <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 pt-8 border-t border-gray-900 flex flex-col sm:flex-row items-center justify-between text-xs text-gray-500 gap-4">
-        <p>© {new Date().getFullYear()} Cart Fly. All rights reserved.</p>
+        <p>© {new Date().getFullYear()} Kintesi (kintesi.com). All rights reserved.</p>
         <p className="flex items-center gap-1">
           Designed with <Heart className="w-3.5 h-3.5 text-rose-500 fill-rose-500" /> for modern e-commerce.
         </p>

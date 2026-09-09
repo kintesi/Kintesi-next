@@ -254,9 +254,9 @@ export const CheckoutPage: React.FC = () => {
       }
 
       // Sync guest local cache
-      const existingOrders = JSON.parse(localStorage.getItem('cartfly_guest_orders') || '[]');
+      const existingOrders = JSON.parse(localStorage.getItem('kintesi_guest_orders') || '[]');
       const savedOrder = { ...orderData, id: orderNumber, created_at: new Date().toISOString() };
-      localStorage.setItem('cartfly_guest_orders', JSON.stringify([savedOrder, ...existingOrders]));
+      localStorage.setItem('kintesi_guest_orders', JSON.stringify([savedOrder, ...existingOrders]));
 
       // Automatically reduce product stock count on sale
       for (const cartItem of cart) {

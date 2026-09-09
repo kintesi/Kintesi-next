@@ -34,7 +34,7 @@ export const AdminLiveChat: React.FC = () => {
   useEffect(() => {
     const loadMaster = () => {
       try {
-        const saved = localStorage.getItem('cartfly_live_chat_master_threads');
+        const saved = localStorage.getItem('kintesi_live_chat_master_threads');
         if (saved) setAllMasterMessages(JSON.parse(saved));
       } catch {}
     };
@@ -61,7 +61,7 @@ export const AdminLiveChat: React.FC = () => {
     setReplyText('');
     
     try {
-      const saved = localStorage.getItem('cartfly_live_chat_master_threads');
+      const saved = localStorage.getItem('kintesi_live_chat_master_threads');
       if (saved) setAllMasterMessages(JSON.parse(saved));
     } catch {}
   };

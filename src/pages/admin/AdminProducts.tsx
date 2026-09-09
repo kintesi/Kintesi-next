@@ -52,7 +52,7 @@ export const AdminProducts: React.FC = () => {
     category_id: 'smartphones-tablets',
     stock: '15',
     sku: '',
-    brand: 'Cart Fly',
+    brand: 'Kintesi',
     warranty: '',
     delivery_note: '',
     allowed_payment_methods: ['cod', 'bkash', 'nagad', 'rocket', 'bank'] as string[],
@@ -111,7 +111,7 @@ export const AdminProducts: React.FC = () => {
       const { data, error } = await supabase.from('products').select('*').order('created_at', { ascending: false });
       const cloudProducts: Product[] = (data || []).filter((p) => p && p.id && !p.id.startsWith('prod-'));
 
-      const savedCustom: Product[] = JSON.parse(localStorage.getItem('cartfly_custom_products') || '[]');
+      const savedCustom: Product[] = JSON.parse(localStorage.getItem('kintesi_custom_products') || '[]');
       const cloudIdSet = new Set(cloudProducts.map((p) => p.id));
       const cloudSlugSet = new Set(cloudProducts.map((p) => p.slug));
 
@@ -122,7 +122,7 @@ export const AdminProducts: React.FC = () => {
       // Cloud database products are primary source of truth
       const merged = [...cloudProducts, ...offlineOnlyProducts];
       setProducts(merged);
-      localStorage.setItem('cartfly_custom_products', JSON.stringify(merged));
+      localStorage.setItem('kintesi_custom_products', JSON.stringify(merged));
 
       const { data: cats } = await supabase.from('categories').select('*');
       if (cats && cats.length > 0) setCategories(cats);
@@ -133,15 +133,15 @@ export const AdminProducts: React.FC = () => {
 
   const handleClearDemoCache = async () => {
     if (window.confirm('Are you sure you want to clear all mock/demo products from local cache?')) {
-      const savedCustom: Product[] = JSON.parse(localStorage.getItem('cartfly_custom_products') || '[]');
+      const savedCustom: Product[] = JSON.parse(localStorage.getItem('kintesi_custom_products') || '[]');
       const cleanCustom = savedCustom.filter((p) => p && p.id && !p.id.startsWith('prod-'));
-      localStorage.setItem('cartfly_custom_products', JSON.stringify(cleanCustom));
+      localStorage.setItem('kintesi_custom_products', JSON.stringify(cleanCustom));
 
       try {
         await supabase.from('products').delete().like('id', 'prod-%');
       } catch (e) {}
 
-      window.dispatchEvent(new Event('cartfly_products_updated'));
+      window.dispatchEvent(new Event('kintesi_products_updated'));
       loadProducts();
       toast.success('Demo cache cleared! Store is ready for real products.');
     }
@@ -149,11 +149,11 @@ export const AdminProducts: React.FC = () => {
 
   useEffect(() => {
     // Auto-clean any mock products on initial load
-    const savedCustom: Product[] = JSON.parse(localStorage.getItem('cartfly_custom_products') || '[]');
+    const savedCustom: Product[] = JSON.parse(localStorage.getItem('kintesi_custom_products') || '[]');
     if (savedCustom.some((p) => p && p.id && p.id.startsWith('prod-'))) {
       const cleanCustom = savedCustom.filter((p) => p && p.id && !p.id.startsWith('prod-'));
-      localStorage.setItem('cartfly_custom_products', JSON.stringify(cleanCustom));
-      window.dispatchEvent(new Event('cartfly_products_updated'));
+      localStorage.setItem('kintesi_custom_products', JSON.stringify(cleanCustom));
+      window.dispatchEvent(new Event('kintesi_products_updated'));
     }
     loadProducts();
   }, []);
@@ -168,8 +168,8 @@ export const AdminProducts: React.FC = () => {
       discount_percent: '',
       category_id: categories[0]?.slug || 'mens-fashion',
       stock: '25',
-      sku: 'CF-' + Math.floor(100000 + Math.random() * 900000),
-      brand: 'Cart Fly',
+      sku: 'KT-' + Math.floor(100000 + Math.random() * 900000),
+      brand: 'Kintesi',
       warranty: '',
       delivery_note: 'অনুগ্রহ করে ডেলিভারি পাওয়ার পর ডেলিভারি ম্যান এর সামনে প্রোডাক্ট খুলে চেক করে টাকা দিবেন। ডেলিভারি ম্যান চলে যাওয়ার পরে আর কোনো অভিযোগ গ্রহণযোগ্য হবে না।',
       allowed_payment_methods: ['cod', 'bkash', 'nagad', 'card'],
@@ -235,8 +235,8 @@ export const AdminProducts: React.FC = () => {
       discount_percent: existingPercent > 0 ? existingPercent.toString() : '',
       category_id: prod.category_id || categories[0]?.slug || 'mens-fashion',
       stock: prod.stock ? prod.stock.toString() : '0',
-      sku: prod.sku || 'CF-' + prod.id.slice(0, 6).toUpperCase(),
-      brand: prod.brand || 'Cart Fly',
+      sku: prod.sku || 'KT-' + prod.id.slice(0, 6).toUpperCase(),
+      brand: prod.brand || 'Kintesi',
       warranty: prod.warranty || '',
       delivery_note: prod.delivery_note || '',
       allowed_payment_methods: prod.allowed_payment_methods && prod.allowed_payment_methods.length > 0
@@ -394,7 +394,7 @@ export const AdminProducts: React.FC = () => {
       category_id: formData.category_id,
       stock: Number(formData.stock),
       images: imageList.length > 0 ? imageList : ['/logo.webp'],
-      brand: formData.brand.trim() || 'Cart Fly',
+      brand: formData.brand.trim() || 'Kintesi',
       sku: formData.sku.trim(),
       warranty: formData.warranty.trim(),
       delivery_note: formData.delivery_note.trim(),
@@ -517,7 +517,7 @@ export const AdminProducts: React.FC = () => {
     }
 
     // Always update local & persistent storage with Cloud ID if available
-    const savedCustom: Product[] = JSON.parse(localStorage.getItem('cartfly_custom_products') || '[]');
+    const savedCustom: Product[] = JSON.parse(localStorage.getItem('kintesi_custom_products') || '[]');
     const targetId = savedCloudProduct?.id || editingProduct?.id || ('local-' + Date.now());
     const completeProduct: Product = {
       id: targetId,
@@ -536,8 +536,8 @@ export const AdminProducts: React.FC = () => {
       updatedCustom = [completeProduct, ...savedCustom];
     }
 
-    localStorage.setItem('cartfly_custom_products', JSON.stringify(updatedCustom));
-    window.dispatchEvent(new Event('cartfly_products_updated'));
+    localStorage.setItem('kintesi_custom_products', JSON.stringify(updatedCustom));
+    window.dispatchEvent(new Event('kintesi_products_updated'));
 
     setProducts((prev) => {
       const idx = prev.findIndex((p) => (editingProduct && p.id === editingProduct.id) || p.slug === slug);
@@ -579,15 +579,15 @@ export const AdminProducts: React.FC = () => {
     }
 
     // 2. Remove permanently from local storage cache
-    const savedCustom: Product[] = JSON.parse(localStorage.getItem('cartfly_custom_products') || '[]');
+    const savedCustom: Product[] = JSON.parse(localStorage.getItem('kintesi_custom_products') || '[]');
     const cleanCustom = savedCustom.filter((p) => p.id !== prod.id && p.slug !== prod.slug);
-    localStorage.setItem('cartfly_custom_products', JSON.stringify(cleanCustom));
+    localStorage.setItem('kintesi_custom_products', JSON.stringify(cleanCustom));
 
     // 3. Update React state immediately
     setProducts((prev) => prev.filter((p) => p.id !== prod.id && p.slug !== prod.slug));
 
     // 4. Notify entire app
-    window.dispatchEvent(new Event('cartfly_products_updated'));
+    window.dispatchEvent(new Event('kintesi_products_updated'));
 
     toast.success(`Product "${prod.title}" permanently deleted!`);
   };
@@ -708,7 +708,7 @@ export const AdminProducts: React.FC = () => {
                         <span className="px-2.5 py-1 bg-emerald-500/10 text-emerald-400 font-bold rounded-lg text-[10px] uppercase block w-max">
                           {prod.category_id.replace('-', ' ')}
                         </span>
-                        <span className="text-[11px] text-gray-400 mt-1 block">{prod.brand || 'Cart Fly'}</span>
+                        <span className="text-[11px] text-gray-400 mt-1 block">{prod.brand || 'Kintesi'}</span>
                       </td>
 
                       <td className="p-4">
@@ -1607,7 +1607,7 @@ export const AdminProducts: React.FC = () => {
                         <button
                           type="button"
                           onClick={() => {
-                            const saved = localStorage.getItem('cartfly_seller_saved_profile');
+                            const saved = localStorage.getItem('kintesi_seller_saved_profile');
                             if (!saved) {
                               toast.info('No saved profile found. Fill in your details below and click "Save As Default Profile" first.');
                               return;
@@ -1663,7 +1663,7 @@ export const AdminProducts: React.FC = () => {
                               seller_bank_routing_number: formData.seller_bank_routing_number.trim(),
                               seller_custom_payment_note: formData.seller_custom_payment_note.trim(),
                             };
-                            localStorage.setItem('cartfly_seller_saved_profile', JSON.stringify(profileData));
+                            localStorage.setItem('kintesi_seller_saved_profile', JSON.stringify(profileData));
                             toast.success('Profile saved! You can now load it on any product with 1-click.');
                           }}
                           className="px-3 py-1 bg-gray-800 hover:bg-gray-700 text-purple-200 border border-purple-500/30 font-bold text-xs rounded-lg transition active:scale-95"

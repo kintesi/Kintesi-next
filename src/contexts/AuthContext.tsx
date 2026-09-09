@@ -51,7 +51,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Fallback local check
       if (!isStaffAdmin) {
         try {
-          const localAdmins: string[] = JSON.parse(localStorage.getItem('cartfly_authorized_admins') || '[]');
+          const localAdmins: string[] = JSON.parse(localStorage.getItem('kintesi_authorized_admins') || '[]');
           if (localAdmins.map((e) => e.toLowerCase().trim()).includes(userEmail)) {
             isStaffAdmin = true;
           }

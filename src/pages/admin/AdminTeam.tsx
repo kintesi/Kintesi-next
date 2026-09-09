@@ -42,7 +42,7 @@ export const AdminTeam: React.FC = () => {
 
       // Load local authorized emails
       try {
-        const localEmails: string[] = JSON.parse(localStorage.getItem('cartfly_authorized_admins') || '[]');
+        const localEmails: string[] = JSON.parse(localStorage.getItem('kintesi_authorized_admins') || '[]');
         localEmails.forEach((em) => {
           if (em.toLowerCase() !== 'tamim.hasan2005@gmail.com') {
             staffList.push({
@@ -94,9 +94,9 @@ export const AdminTeam: React.FC = () => {
 
     // 2. Save to local storage fallback
     try {
-      const existing: string[] = JSON.parse(localStorage.getItem('cartfly_authorized_admins') || '[]');
+      const existing: string[] = JSON.parse(localStorage.getItem('kintesi_authorized_admins') || '[]');
       if (!existing.map((e) => e.toLowerCase()).includes(emailToGrant)) {
-        localStorage.setItem('cartfly_authorized_admins', JSON.stringify([...existing, emailToGrant]));
+        localStorage.setItem('kintesi_authorized_admins', JSON.stringify([...existing, emailToGrant]));
       }
     } catch {}
 
@@ -136,9 +136,9 @@ export const AdminTeam: React.FC = () => {
     await updateSettings({ authorizedAdmins: updatedList });
 
     try {
-      const existing: string[] = JSON.parse(localStorage.getItem('cartfly_authorized_admins') || '[]');
+      const existing: string[] = JSON.parse(localStorage.getItem('kintesi_authorized_admins') || '[]');
       const updated = existing.filter((e) => e.toLowerCase() !== admin.email.toLowerCase());
-      localStorage.setItem('cartfly_authorized_admins', JSON.stringify(updated));
+      localStorage.setItem('kintesi_authorized_admins', JSON.stringify(updated));
     } catch {}
 
     try {

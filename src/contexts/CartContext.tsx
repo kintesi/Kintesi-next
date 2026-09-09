@@ -21,7 +21,7 @@ interface CartContextType {
 }
 
 const AVAILABLE_COUPONS: Coupon[] = [
-  { id: 'c1', code: 'CARTFLY10', discount_percent: 10, max_discount: 1000, min_order_value: 1000, is_active: true },
+  { id: 'c1', code: 'KINTESI10', discount_percent: 10, max_discount: 1000, min_order_value: 1000, is_active: true },
   { id: 'c2', code: 'WELCOME20', discount_percent: 20, max_discount: 2000, min_order_value: 2000, is_active: true },
   { id: 'c3', code: 'EIDSPECIAL', discount_percent: 15, max_discount: 1500, min_order_value: 1500, is_active: true },
 ];
@@ -31,7 +31,7 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [cart, setCart] = useState<CartItem[]>(() => {
     try {
-      const saved = localStorage.getItem('cartfly_cart');
+      const saved = localStorage.getItem('kintesi_cart');
       return saved ? JSON.parse(saved) : [];
     } catch {
       return [];
@@ -41,7 +41,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [appliedCoupon, setAppliedCoupon] = useState<Coupon | null>(() => {
     try {
-      const saved = localStorage.getItem('cartfly_coupon');
+      const saved = localStorage.getItem('kintesi_coupon');
       return saved ? JSON.parse(saved) : null;
     } catch {
       return null;
@@ -49,14 +49,14 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   });
 
   useEffect(() => {
-    localStorage.setItem('cartfly_cart', JSON.stringify(cart));
+    localStorage.setItem('kintesi_cart', JSON.stringify(cart));
   }, [cart]);
 
   useEffect(() => {
     if (appliedCoupon) {
-      localStorage.setItem('cartfly_coupon', JSON.stringify(appliedCoupon));
+      localStorage.setItem('kintesi_coupon', JSON.stringify(appliedCoupon));
     } else {
-      localStorage.removeItem('cartfly_coupon');
+      localStorage.removeItem('kintesi_coupon');
     }
   }, [appliedCoupon]);
 
@@ -116,8 +116,8 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const clearCart = () => {
     setCart([]);
     setAppliedCoupon(null);
-    localStorage.removeItem('cartfly_cart');
-    localStorage.removeItem('cartfly_coupon');
+    localStorage.removeItem('kintesi_cart');
+    localStorage.removeItem('kintesi_coupon');
   };
 
   const subtotal = cart.reduce((acc, item) => {

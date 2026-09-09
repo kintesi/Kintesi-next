@@ -118,7 +118,7 @@ export function matchesProductSearch(product: Product, searchQuery: string): boo
  */
 export function getAllLiveProducts(initialProducts: Product[] = []): Product[] {
   try {
-    const savedCustom: Product[] = JSON.parse(localStorage.getItem('cartfly_custom_products') || '[]');
+    const savedCustom: Product[] = JSON.parse(localStorage.getItem('kintesi_custom_products') || '[]');
     const cleanCustom = savedCustom.filter((p) => p && p.id && !p.id.startsWith('prod-'));
     
     // Combine custom and fallback, prioritizing custom products

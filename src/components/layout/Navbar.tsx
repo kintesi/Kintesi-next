@@ -46,8 +46,8 @@ export const Navbar: React.FC = () => {
       setLiveProducts(getAllLiveProducts(INITIAL_PRODUCTS));
     };
     refreshProducts();
-    window.addEventListener('cartfly_products_updated', refreshProducts);
-    return () => window.removeEventListener('cartfly_products_updated', refreshProducts);
+    window.addEventListener('kintesi_products_updated', refreshProducts);
+    return () => window.removeEventListener('kintesi_products_updated', refreshProducts);
   }, []);
 
   // Smart Search filter using multi-attribute and bilingual synonyms
@@ -84,7 +84,7 @@ export const Navbar: React.FC = () => {
       {/* Slim Top Announcement Bar (Desktop only) */}
       <div className="hidden sm:flex bg-gradient-to-r from-emerald-900 via-emerald-800 to-teal-950 text-white text-[11px] font-semibold py-1 px-4 text-center items-center justify-center gap-2 shadow-xs">
         <Sparkles className="w-3 h-3 animate-pulse text-amber-300" />
-        <span>⚡ All-In-One Mega Store! Use coupon <strong className="text-amber-300 uppercase font-black">CARTFLY10</strong> for 10% OFF + Free Express Delivery</span>
+        <span>⚡ Welcome to Kintesi! Use coupon <strong className="text-amber-300 uppercase font-black">KINTESI10</strong> for 10% OFF + Free Express Delivery • <span className="text-emerald-300">kintesi.com</span></span>
       </div>
 
       <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-gray-100 shadow-xs">
@@ -94,9 +94,9 @@ export const Navbar: React.FC = () => {
           <div className="md:hidden py-2 space-y-2">
             <div className="flex items-center justify-between gap-2">
               <Link to="/" className="flex items-center gap-1.5 flex-shrink-0">
-                <img src="/logo.webp" alt="Cart Fly" className="w-7 h-7 object-contain" />
+                <img src="/logo.png" alt="Kintesi" className="w-8 h-8 object-contain" />
                 <span className="text-lg font-black tracking-tight text-gray-900">
-                  Cart<span className="text-emerald-600">Fly</span>
+                  Kin<span className="text-emerald-600">tesi</span>
                 </span>
               </Link>
 
@@ -143,15 +143,15 @@ export const Navbar: React.FC = () => {
             
             {/* Logo */}
             <Link to="/" className="flex items-center gap-2.5 group flex-shrink-0">
-              <div className="w-9 h-9 rounded-xl bg-emerald-50 p-1 border border-emerald-100 group-hover:scale-105 transition shadow-xs flex items-center justify-center">
-                <img src="/logo.webp" alt="Cart Fly" className="w-full h-full object-contain" />
+              <div className="w-10 h-10 rounded-xl bg-gray-50 p-1 border border-gray-200 group-hover:scale-105 transition shadow-xs flex items-center justify-center">
+                <img src="/logo.png" alt="Kintesi" className="w-full h-full object-contain" />
               </div>
               <div className="flex flex-col">
                 <span className="text-xl font-black tracking-tight text-gray-900 leading-none">
-                  Cart<span className="text-emerald-600">Fly</span>
+                  Kin<span className="text-emerald-600">tesi</span>
                 </span>
                 <span className="text-[9px] text-gray-400 font-bold tracking-wider uppercase mt-0.5">
-                  Mega Store
+                  kintesi.com
                 </span>
               </div>
             </Link>

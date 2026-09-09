@@ -62,7 +62,7 @@ export const HomePage: React.FC = () => {
 
   const [products, setProducts] = useState<Product[]>(() => {
     try {
-      const saved = localStorage.getItem('cartfly_custom_products');
+      const saved = localStorage.getItem('kintesi_custom_products');
       if (saved) {
         const parsed = JSON.parse(saved);
         return parsed.filter((p: any) => p && p.id && !p.id.startsWith('prod-'));
@@ -74,7 +74,7 @@ export const HomePage: React.FC = () => {
   });
   const [categories, setCategories] = useState<Category[]>(() => {
     try {
-      const saved = localStorage.getItem('cartfly_custom_categories');
+      const saved = localStorage.getItem('kintesi_custom_categories');
       return saved ? JSON.parse(saved) : INITIAL_CATEGORIES;
     } catch {
       return INITIAL_CATEGORIES;
@@ -110,7 +110,7 @@ export const HomePage: React.FC = () => {
     async function loadData() {
       try {
         setIsLoadingData(true);
-        const savedCustom: Product[] = JSON.parse(localStorage.getItem('cartfly_custom_products') || '[]');
+        const savedCustom: Product[] = JSON.parse(localStorage.getItem('kintesi_custom_products') || '[]');
         
         // Fetch categories and products concurrently for max speed
         const [catRes, prodRes] = await Promise.all([
@@ -120,7 +120,7 @@ export const HomePage: React.FC = () => {
 
         if (catRes.data && catRes.data.length > 0) {
           setCategories(catRes.data);
-          localStorage.setItem('cartfly_custom_categories', JSON.stringify(catRes.data));
+          localStorage.setItem('kintesi_custom_categories', JSON.stringify(catRes.data));
         }
 
         const merged = [...savedCustom, ...(prodRes.data || [])].filter(
@@ -128,7 +128,7 @@ export const HomePage: React.FC = () => {
         );
         const unique = Array.from(new Map(merged.map((p) => [p.slug || p.id, p])).values());
         setProducts(unique);
-        localStorage.setItem('cartfly_custom_products', JSON.stringify(unique));
+        localStorage.setItem('kintesi_custom_products', JSON.stringify(unique));
       } catch (err) {
         console.warn('Home page data note:', err);
       } finally {
@@ -136,8 +136,8 @@ export const HomePage: React.FC = () => {
       }
     }
     loadData();
-    window.addEventListener('cartfly_products_updated', loadData);
-    return () => window.removeEventListener('cartfly_products_updated', loadData);
+    window.addEventListener('kintesi_products_updated', loadData);
+    return () => window.removeEventListener('kintesi_products_updated', loadData);
   }, []);
 
   const flashSaleProducts = products.filter((p) => p.discount_price && p.discount_price < p.price);

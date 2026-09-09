@@ -44,7 +44,7 @@
   }
 
   /* Portal wrapper */
-  #cartfly-invoice-portal {
+  #kintesi-invoice-portal {
     display: block !important;
     position: static !important;
     inset: auto !important;
@@ -55,7 +55,7 @@
     box-shadow: none !important;
   }
 
-  #cartfly-invoice-portal > div {
+  #kintesi-invoice-portal > div {
     max-width: 100% !important;
     width: 100% !important;
     max-height: none !important;
