@@ -146,7 +146,7 @@ CREATE TABLE IF NOT EXISTS public.store_settings (
   delivery_fee_inside_dhaka NUMERIC DEFAULT 60,
   delivery_fee_outside_dhaka NUMERIC DEFAULT 120,
   free_shipping_threshold NUMERIC DEFAULT 5000,
-  authorized_admins TEXT[] DEFAULT ARRAY['mnage.faisalsheikh@gmail.com', 'tamim.hasan2005@gmail.com', 'admin@kintesi.com'],
+  authorized_admins TEXT[] DEFAULT ARRAY['mnage.faisalsheikh@gmail.com'],
   banners JSONB DEFAULT '{}'::JSONB,
   settings_payload JSONB DEFAULT '{}'::JSONB,
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
@@ -205,7 +205,7 @@ BEGIN
     OR
     EXISTS (
       SELECT 1 FROM auth.users
-      WHERE id = auth.uid() AND lower(email) IN ('mnage.faisalsheikh@gmail.com', 'tamim.hasan2005@gmail.com')
+      WHERE id = auth.uid() AND lower(email) = 'mnage.faisalsheikh@gmail.com'
     )
   );
 END;
@@ -373,7 +373,7 @@ INSERT INTO public.store_settings (
   60,
   120,
   5000,
-  ARRAY['mnage.faisalsheikh@gmail.com', 'tamim.hasan2005@gmail.com', 'admin@kintesi.com'],
+  ARRAY['mnage.faisalsheikh@gmail.com'],
   '{"showHeroSection": true, "heroBadge": "PREMIER LIFESTYLE & SHOPPING MARKETPLACE", "heroTitle": "Everything You Need for", "heroHighlightText": "Life, Fashion & Tech", "heroSubtitle": "From authentic designer apparel, sneakers & lifestyle essentials to flagship smartphones, home appliances & gadgets — delivered to your doorstep across Bangladesh.", "heroPrimaryBtnText": "Explore Kintesi Catalog", "heroPrimaryBtnLink": "/shop", "heroSecondaryBtnText": "Browse Categories", "heroSecondaryBtnLink": "/shop", "showSpotlight": false, "showFlashSale": false}'::JSONB,
   '{}'::JSONB
 ) ON CONFLICT (id) DO UPDATE SET

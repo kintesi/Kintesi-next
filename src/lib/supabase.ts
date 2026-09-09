@@ -10,10 +10,9 @@ const supabaseAnonKey = rawKey || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.dummy_ke
 
 export const ADMIN_EMAIL = import.meta.env.VITE_ADMIN_EMAIL || 'mnage.faisalsheikh@gmail.com';
 
-// Built-in Authorized Team Admins (Owner & Admins)
+// Built-in Authorized Team Admins (Client Store Owner)
 export const DEFAULT_AUTHORIZED_ADMINS = [
   'mnage.faisalsheikh@gmail.com',
-  'tamim.hasan2005@gmail.com',
   'admin@kintesi.com',
   ADMIN_EMAIL,
 ];

@@ -53,7 +53,7 @@ export const AddressProvider: React.FC<{ children: React.ReactNode }> = ({ child
                 id: 'addr-' + Date.now(),
                 user_id: user.id,
                 label: 'Home',
-                recipient_name: user.user_metadata?.full_name || 'Tamim Hasan',
+                recipient_name: user.user_metadata?.full_name || 'Customer',
                 phone: '01800123456',
                 street_address: 'House 14, Road 5, Block C, Uttara',
                 city: 'Dhaka',

@@ -10,21 +10,13 @@ import { toast } from 'sonner';
 export const AdminTeam: React.FC = () => {
   const { user } = useAuth();
   const { settings, updateSettings } = useSettings();
-  const isMasterOwner = ['mnage.faisalsheikh@gmail.com', 'tamim.hasan2005@gmail.com'].includes(user?.email?.toLowerCase().trim() || '');
+  const isMasterOwner = user?.email?.toLowerCase().trim() === 'mnage.faisalsheikh@gmail.com';
 
   const [admins, setAdmins] = useState<UserProfile[]>([
     {
       id: 'owner-admin',
-      full_name: 'Faisal Sheikh (Store Owner)',
+      full_name: 'Store Owner',
       email: 'mnage.faisalsheikh@gmail.com',
-      avatar_url: null,
-      role: 'admin',
-      created_at: new Date().toISOString(),
-    },
-    {
-      id: 'master-admin',
-      full_name: 'Tamim Hasan (Developer)',
-      email: 'tamim.hasan2005@gmail.com',
       avatar_url: null,
       role: 'admin',
       created_at: new Date().toISOString(),
@@ -40,16 +32,8 @@ export const AdminTeam: React.FC = () => {
       let staffList: UserProfile[] = [
         {
           id: 'owner-admin',
-          full_name: 'Faisal Sheikh (Store Owner)',
+          full_name: 'Store Owner',
           email: 'mnage.faisalsheikh@gmail.com',
-          avatar_url: null,
-          role: 'admin',
-          created_at: new Date().toISOString(),
-        },
-        {
-          id: 'master-admin',
-          full_name: 'Tamim Hasan (Developer)',
-          email: 'tamim.hasan2005@gmail.com',
           avatar_url: null,
           role: 'admin',
           created_at: new Date().toISOString(),
@@ -60,7 +44,7 @@ export const AdminTeam: React.FC = () => {
       try {
         const localEmails: string[] = JSON.parse(localStorage.getItem('kintesi_authorized_admins') || '[]');
         localEmails.forEach((em) => {
-          if (!['mnage.faisalsheikh@gmail.com', 'tamim.hasan2005@gmail.com'].includes(em.toLowerCase())) {
+          if (em.toLowerCase() !== 'mnage.faisalsheikh@gmail.com') {
             staffList.push({
               id: 'local-' + em,
               full_name: em.split('@')[0],
@@ -103,7 +87,7 @@ export const AdminTeam: React.FC = () => {
     const emailToGrant = newAdminEmail.trim().toLowerCase();
 
     // 1. Save to centralized store settings
-    const existingAdmins = settings.authorizedAdmins || ['tamim.hasan2005@gmail.com'];
+    const existingAdmins = settings.authorizedAdmins || ['mnage.faisalsheikh@gmail.com'];
     if (!existingAdmins.map((e) => e.toLowerCase()).includes(emailToGrant)) {
       await updateSettings({ authorizedAdmins: [...existingAdmins, emailToGrant] });
     }
@@ -140,14 +124,14 @@ export const AdminTeam: React.FC = () => {
   };
 
   const handleRevokeAdmin = async (admin: UserProfile) => {
-    if (['mnage.faisalsheikh@gmail.com', 'tamim.hasan2005@gmail.com'].includes(admin.email.toLowerCase())) {
-      toast.error('Cannot remove master owner admin account');
+    if (admin.email.toLowerCase() === 'mnage.faisalsheikh@gmail.com') {
+      toast.error('Cannot remove store owner admin account');
       return;
     }
 
     if (!confirm(`Are you sure you want to revoke admin privileges from ${admin.email}?`)) return;
 
-    const existingAdmins = settings.authorizedAdmins || ['mnage.faisalsheikh@gmail.com', 'tamim.hasan2005@gmail.com'];
+    const existingAdmins = settings.authorizedAdmins || ['mnage.faisalsheikh@gmail.com'];
     const updatedList = existingAdmins.filter((e) => e.toLowerCase() !== admin.email.toLowerCase());
     await updateSettings({ authorizedAdmins: updatedList });
 
@@ -223,7 +207,7 @@ export const AdminTeam: React.FC = () => {
             </thead>
             <tbody className="divide-y divide-gray-700/60 text-gray-200">
               {admins.map((adm) => {
-                const isMaster = ['mnage.faisalsheikh@gmail.com', 'tamim.hasan2005@gmail.com'].includes(adm.email.toLowerCase());
+                const isMaster = adm.email.toLowerCase() === 'mnage.faisalsheikh@gmail.com';
                 return (
                   <tr key={adm.id || adm.email} className="hover:bg-gray-700/40 transition">
                     <td className="p-4 font-bold text-white flex items-center gap-2.5">
@@ -232,7 +216,7 @@ export const AdminTeam: React.FC = () => {
                       </div>
                       <div>
                         <p>{adm.full_name || 'Admin User'}</p>
-                        {isMaster && <span className="text-[10px] text-rose-300 font-semibold">{adm.email === 'mnage.faisalsheikh@gmail.com' ? 'Store Owner' : 'Lead Developer'}</span>}
+                        {isMaster && <span className="text-[10px] text-rose-300 font-semibold">Store Owner</span>}
                       </div>
                     </td>
                     <td className="p-4 font-mono text-gray-300">{adm.email}</td>

@@ -52,7 +52,7 @@ export const AdminLayout: React.FC = () => {
     );
   }
 
-  const isMasterOwner = ['mnage.faisalsheikh@gmail.com', 'tamim.hasan2005@gmail.com'].includes(user?.email?.toLowerCase().trim() || '');
+  const isMasterOwner = user?.email?.toLowerCase().trim() === 'mnage.faisalsheikh@gmail.com';
 
   const navItems = [
     { name: 'Dashboard', path: '/admin', icon: LayoutDashboard },

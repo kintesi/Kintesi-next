@@ -414,7 +414,7 @@ export const CheckoutPage: React.FC = () => {
                       required
                       value={name}
                       onChange={(e) => setName(e.target.value)}
-                      placeholder="e.g. Tamim Hasan"
+                      placeholder="e.g. Faisal Sheikh"
                       className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-xs focus:ring-2 focus:ring-emerald-500"
                     />
                   </div>

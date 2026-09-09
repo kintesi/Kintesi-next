@@ -40,7 +40,7 @@ export const InvoiceModal: React.FC<InvoiceProps> = ({ order, onClose }) => {
     if (onClose) onClose();
   };
 
-  const sellerPhone = settings?.helplinePhone || '01805930164';
+  const sellerPhone = settings?.helplinePhone || '01800-KINTESI';
 
   const modalContent = (
     <div id="kintesi-invoice-portal" className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm print:p-0 print:bg-white print:static print:inset-auto print:z-auto">
