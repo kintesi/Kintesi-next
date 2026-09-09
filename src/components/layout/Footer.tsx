@@ -2,8 +2,12 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Mail, Phone, MapPin, Shield, Truck, RotateCcw, Headphones, Heart } from 'lucide-react';
 import { BkashLogo, NagadLogo, RocketLogo, VisaLogo, MastercardLogo } from '../common/PaymentLogos';
+import { useSettings } from '../../contexts/SettingsContext';
 
 export const Footer: React.FC = () => {
+  const { settings } = useSettings();
+  const phone = settings?.helplinePhone?.trim();
+  const email = settings?.supportEmail?.trim();
   return (
     <footer className="bg-gray-950 text-gray-400 pt-16 pb-12 border-t border-gray-800/80">
       {/* Trust Badges */}
@@ -73,14 +77,18 @@ export const Footer: React.FC = () => {
                 <MapPin className="w-4 h-4 text-rose-400 flex-shrink-0" />
                 <span>Dhaka, Bangladesh</span>
               </div>
-              <div className="flex items-center gap-2">
-                <Phone className="w-4 h-4 text-rose-400 flex-shrink-0" />
-                <span>+880 1800-KINTESI</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Mail className="w-4 h-4 text-rose-400 flex-shrink-0" />
-                <span>support@kintesi.com</span>
-              </div>
+              {phone && (
+                <div className="flex items-center gap-2">
+                  <Phone className="w-4 h-4 text-rose-400 flex-shrink-0" />
+                  <span>{phone}</span>
+                </div>
+              )}
+              {email && (
+                <div className="flex items-center gap-2">
+                  <Mail className="w-4 h-4 text-rose-400 flex-shrink-0" />
+                  <span>{email}</span>
+                </div>
+              )}
             </div>
           </div>
 

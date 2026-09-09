@@ -40,7 +40,8 @@ export const InvoiceModal: React.FC<InvoiceProps> = ({ order, onClose }) => {
     if (onClose) onClose();
   };
 
-  const sellerPhone = settings?.helplinePhone || '01800-KINTESI';
+  const sellerPhone = settings?.helplinePhone?.trim() || '';
+  const sellerEmail = settings?.supportEmail?.trim() || '';
 
   const modalContent = (
     <div id="kintesi-invoice-portal" className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm print:p-0 print:bg-white print:static print:inset-auto print:z-auto">
@@ -101,7 +102,15 @@ export const InvoiceModal: React.FC<InvoiceProps> = ({ order, onClose }) => {
                   Kin<span className="text-rose-600">tesi</span>
                 </h1>
                 <p className="text-xs text-gray-500 font-semibold">Premier Online Shopping Marketplace</p>
-                <p className="text-[11px] text-gray-400">Dhaka, Bangladesh • support@kintesi.com • Helpline: {sellerPhone}</p>
+                <p className="text-[11px] text-gray-400">
+                  {[
+                    'Dhaka, Bangladesh',
+                    sellerEmail,
+                    sellerPhone ? `Helpline: ${sellerPhone}` : '',
+                  ]
+                    .filter(Boolean)
+                    .join(' • ')}
+                </p>
               </div>
             </div>
 

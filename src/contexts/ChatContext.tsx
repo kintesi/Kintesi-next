@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useAuth } from './AuthContext';
-import { supabase } from '../lib/supabase';
+import { supabase, ADMIN_EMAIL } from '../lib/supabase';
 import { toast } from 'sonner';
 
 export interface ChatProductContext {
@@ -103,7 +103,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
         conversationId: activeConversationId,
         sender: 'seller',
         senderName: 'Kintesi Support Agent',
-        senderEmail: 'support@kintesi.com',
+        senderEmail: ADMIN_EMAIL,
         text: '👋 Assalamu Alaikum! Welcome to Kintesi. How can we help you today? Feel free to ask about any product, fitting, delivery or your order!',
         timestamp: new Date().toISOString(),
         read: true,
@@ -396,7 +396,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
           conversationId: activeConversationId,
           sender: 'seller',
           senderName: 'Kintesi Store Executive',
-          senderEmail: 'support@kintesi.com',
+          senderEmail: ADMIN_EMAIL,
           text: replyText,
           timestamp: new Date().toISOString(),
           read: isOpen,
@@ -415,7 +415,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
             user_id: null,
             sender: 'seller',
             sender_name: 'Kintesi Store Executive',
-            sender_email: 'support@kintesi.com',
+            sender_email: ADMIN_EMAIL,
             text: replyText,
             read: isOpen,
           });
@@ -434,7 +434,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
       conversationId: targetConversationId,
       sender: 'seller',
       senderName: profile?.full_name || 'Store Admin',
-      senderEmail: user?.email || 'support@kintesi.com',
+      senderEmail: user?.email || ADMIN_EMAIL,
       text: text.trim(),
       timestamp: new Date().toISOString(),
       read: true,
@@ -454,7 +454,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
         user_id: user?.id || null,
         sender: 'seller',
         sender_name: profile?.full_name || 'Store Admin',
-        sender_email: user?.email || 'support@kintesi.com',
+        sender_email: user?.email || ADMIN_EMAIL,
         text: text.trim(),
         read: true,
       });

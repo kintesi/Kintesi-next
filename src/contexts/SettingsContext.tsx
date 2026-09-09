@@ -84,13 +84,13 @@ export const DEFAULT_BANNERS: BannerSettings = {
 
 const DEFAULT_SETTINGS: StoreSettings = {
   storeName: 'Kintesi',
-  helplinePhone: '01800-KINTESI',
-  supportEmail: 'support@kintesi.com',
-  bkashNumber: '01800-123456',
+  helplinePhone: '',
+  supportEmail: '',
+  bkashNumber: '',
   bkashType: 'Merchant',
-  nagadNumber: '01700-654321',
+  nagadNumber: '',
   nagadType: 'Merchant',
-  rocketNumber: '01900-987654',
+  rocketNumber: '',
   rocketType: 'Personal',
   deliveryFeeInsideDhaka: 60,
   deliveryFeeOutsideDhaka: 120,
