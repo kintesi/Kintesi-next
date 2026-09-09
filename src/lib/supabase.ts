@@ -1,14 +1,18 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://gcoxccaaayevlrpshykx.supabase.co';
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdjb3hjY2FhYXlldmxycHNoeWt4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc3NjQ3OTksImV4cCI6MjEwMzM0MDc5OX0.AwjuiYTyJsaNiLJgxqpa_Nl7V6lr3g9madOz5V5FjQQ';
+const rawUrl = import.meta.env.VITE_SUPABASE_URL;
+const rawKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-export const ADMIN_EMAIL = 'tamim.hasan2005@gmail.com';
+export const isDatabaseConnected = Boolean(rawUrl && rawKey && !rawUrl.includes('placeholder'));
+
+const supabaseUrl = rawUrl || 'https://unconnected-project.supabase.co';
+const supabaseAnonKey = rawKey || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.dummy_key';
+
+export const ADMIN_EMAIL = import.meta.env.VITE_ADMIN_EMAIL || 'admin@kintesi.com';
 
 // Built-in Authorized Team Admins
 export const DEFAULT_AUTHORIZED_ADMINS = [
-  'tamim.hasan2005@gmail.com',
-  'tamim.dev05@gmail.com',
+  ADMIN_EMAIL,
 ];
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
