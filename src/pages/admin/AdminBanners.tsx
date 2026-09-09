@@ -17,6 +17,7 @@ import {
   ArrowRight,
   Shirt,
   RefreshCw,
+  Megaphone,
 } from 'lucide-react';
 
 export const AdminBanners: React.FC = () => {
@@ -58,7 +59,7 @@ export const AdminBanners: React.FC = () => {
             <span>Homepage Hero & Banner Customizer</span>
           </h1>
           <p className="text-xs text-gray-400 mt-1">
-            Control all text, images, spotlight products, and flash sale countdown timers on the homepage
+            Control all text, images, spotlight products, top announcement bar, and flash sale countdown timers
           </p>
         </div>
 
@@ -74,6 +75,138 @@ export const AdminBanners: React.FC = () => {
 
       <form onSubmit={handleSubmit} className="space-y-10">
         
+        {/* Top Announcement Bar & Special Offer Broadcast */}
+        <div className="bg-gray-800/80 rounded-3xl border border-gray-700 p-6 sm:p-8 space-y-6 shadow-xl">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-700 pb-4">
+            <div>
+              <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                <Megaphone className="w-5 h-5 text-amber-400" />
+                <span>Top Announcement Bar & Offer Broadcast</span>
+              </h2>
+              <p className="text-xs text-gray-400 mt-0.5">
+                Controls the slim top announcement header visible across the entire store.
+              </p>
+            </div>
+
+            <label className="flex items-center gap-2 cursor-pointer bg-gray-900 px-3 py-1.5 rounded-xl border border-gray-700 text-xs">
+              <input
+                type="checkbox"
+                checked={form.showTopAnnouncement !== false}
+                onChange={(e) => setForm({ ...form, showTopAnnouncement: e.target.checked })}
+                className="accent-amber-500 w-4 h-4 rounded"
+              />
+              <span className="font-bold text-gray-200">Show Top Bar</span>
+            </label>
+          </div>
+
+          <div className="space-y-5 text-xs">
+            {/* Mode status indicator & override toggle */}
+            <div className={`p-4 rounded-2xl border transition-all ${
+              form.isCustomAnnouncement
+                ? 'bg-amber-500/10 border-amber-500/40 text-amber-100'
+                : 'bg-emerald-500/10 border-emerald-500/30 text-emerald-100'
+            }`}>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className={`w-2.5 h-2.5 rounded-full ${form.isCustomAnnouncement ? 'bg-amber-400 animate-ping' : 'bg-emerald-400'}`} />
+                    <span className="font-black text-sm text-white">
+                      {form.isCustomAnnouncement 
+                        ? '🔥 Special Offer Active — Broadcasted to ALL Users' 
+                        : '⚡ Welcome Mode — Visible only 7 Days for New Users'}
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-gray-300 mt-1">
+                    {form.isCustomAnnouncement
+                      ? 'This offer is currently broadcasted to ALL users (both new and existing visitors) across the whole store.'
+                      : 'New visitors see this welcome discount for their first 7 days only. After 7 days, it automatically hides.'}
+                  </p>
+                </div>
+
+                <label className="flex items-center gap-2.5 cursor-pointer bg-gray-900/90 px-4 py-2 rounded-xl border border-gray-600 hover:border-amber-400 text-xs flex-shrink-0 transition">
+                  <input
+                    type="checkbox"
+                    checked={!!form.isCustomAnnouncement}
+                    onChange={(e) => setForm({ ...form, isCustomAnnouncement: e.target.checked })}
+                    className="accent-amber-500 w-4 h-4 rounded"
+                  />
+                  <span className="font-bold text-amber-300">Broadcast to ALL Users (Override 7-Day Limit)</span>
+                </label>
+              </div>
+            </div>
+
+            {/* Announcement text input */}
+            <div>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="block font-bold text-gray-400 uppercase">
+                  Top Announcement Bar Message
+                </label>
+                <span className="text-[11px] text-gray-400">
+                  Highlight with <code className="text-amber-300 bg-gray-900 px-1 py-0.5 rounded font-mono">**TEXT**</code>
+                </span>
+              </div>
+              <input
+                type="text"
+                value={form.topAnnouncementText ?? ''}
+                onChange={(e) => setForm({ ...form, topAnnouncementText: e.target.value })}
+                placeholder="⚡ Welcome to Kintesi! Use coupon KINTESI10 for 10% OFF + Free Express Delivery"
+                className="w-full px-4 py-2.5 bg-gray-900 border border-gray-700 focus:border-amber-500 rounded-xl text-white font-medium"
+              />
+            </div>
+
+            {/* Quick preset buttons */}
+            <div className="flex flex-wrap items-center gap-2 pt-1">
+              <button
+                type="button"
+                onClick={() => {
+                  setForm({
+                    ...form,
+                    topAnnouncementText: '⚡ Welcome to Kintesi! Use coupon KINTESI10 for 10% OFF + Free Express Delivery',
+                    isCustomAnnouncement: false,
+                    showTopAnnouncement: true,
+                  });
+                }}
+                className="px-3 py-1.5 bg-gray-900 hover:bg-gray-700 border border-gray-700 rounded-lg text-gray-300 text-[11px] font-bold transition flex items-center gap-1.5"
+              >
+                <RefreshCw className="w-3 h-3" />
+                Reset to Default 7-Day Welcome Coupon
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setForm({
+                    ...form,
+                    topAnnouncementText: '🔥 EID SPECIAL OFFER! Get Flat 20% OFF on all items using coupon **EID20**',
+                    isCustomAnnouncement: true,
+                    showTopAnnouncement: true,
+                  });
+                }}
+                className="px-3 py-1.5 bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 rounded-lg text-amber-300 text-[11px] font-bold transition flex items-center gap-1.5"
+              >
+                <Sparkles className="w-3 h-3" />
+                Preset: Eid Festival Offer (Broadcast)
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setForm({
+                    ...form,
+                    topAnnouncementText: '🚚 FREE EXPRESS SHIPPING on all orders over ৳1,000 for a limited time!',
+                    isCustomAnnouncement: true,
+                    showTopAnnouncement: true,
+                  });
+                }}
+                className="px-3 py-1.5 bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/40 rounded-lg text-emerald-300 text-[11px] font-bold transition flex items-center gap-1.5"
+              >
+                <Tag className="w-3 h-3" />
+                Preset: Free Shipping Offer (Broadcast)
+              </button>
+            </div>
+          </div>
+        </div>
+
         {/* Section 1: Hero Section Left Details */}
         <div className="bg-gray-800/80 rounded-3xl border border-gray-700 p-6 sm:p-8 space-y-6 shadow-xl">
           <div className="flex items-center justify-between border-b border-gray-700 pb-4">
@@ -389,6 +522,24 @@ export const AdminBanners: React.FC = () => {
               Real-time Rendering
             </span>
           </div>
+
+          {/* Top Announcement Bar Live Preview */}
+          {form.showTopAnnouncement !== false && (
+            <div className="space-y-1.5">
+              <div className="text-[11px] font-bold text-gray-400 uppercase tracking-wider flex items-center justify-between">
+                <span>Top Announcement Bar Preview:</span>
+                <span className={form.isCustomAnnouncement ? 'text-amber-400 font-bold' : 'text-emerald-400 font-bold'}>
+                  {form.isCustomAnnouncement ? '● Active: Broadcasted to ALL Users' : '● Active: Visible only to New Users (7-day window)'}
+                </span>
+              </div>
+              <div className="bg-gradient-to-r from-gray-950 via-rose-950 to-gray-950 text-white text-[11px] font-semibold py-2 px-4 rounded-xl text-center flex items-center justify-center gap-2 border border-rose-900/40 shadow-xs">
+                <Sparkles className="w-3.5 h-3.5 flex-shrink-0 animate-pulse text-amber-300" />
+                <span>
+                  {form.topAnnouncementText || '⚡ Welcome to Kintesi! Use coupon KINTESI10 for 10% OFF + Free Express Delivery'}
+                </span>
+              </div>
+            </div>
+          )}
 
           {/* Flash Sale Banner Live Preview */}
           {form.showFlashSale && (

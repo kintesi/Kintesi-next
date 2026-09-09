@@ -23,11 +23,13 @@ import { INITIAL_PRODUCTS, INITIAL_CATEGORIES } from '../../data/mockData';
 import { formatPrice } from '../../lib/utils';
 import { matchesProductSearch, getAllLiveProducts } from '../../lib/searchUtils';
 import { Product } from '../../types';
+import { useSettings } from '../../contexts/SettingsContext';
 
 export const Navbar: React.FC = () => {
   const { user, profile, isAdmin, isSuperAdmin, signOut } = useAuth();
   const { totalItemCount, setIsCartOpen, subtotal } = useCart();
   const { wishlist } = useWishlist();
+  const { settings } = useSettings();
 
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [isDepartmentMenuOpen, setIsDepartmentMenuOpen] = useState(false);
@@ -35,11 +37,83 @@ export const Navbar: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [showSearchResults, setShowSearchResults] = useState(false);
   const [liveProducts, setLiveProducts] = useState<Product[]>(() => getAllLiveProducts(INITIAL_PRODUCTS));
+  const [showAnnouncement, setShowAnnouncement] = useState(true);
 
   const navigate = useNavigate();
   const searchRef = useRef<HTMLDivElement>(null);
   const profileRef = useRef<HTMLDivElement>(null);
   const deptRef = useRef<HTMLDivElement>(null);
+
+  // Top Announcement 7-Day New User Expiration vs Admin Global Broadcast
+  useEffect(() => {
+    const banners = settings?.banners;
+    if (!banners) return;
+
+    // Explicitly hidden by admin
+    if (banners.showTopAnnouncement === false) {
+      setShowAnnouncement(false);
+      return;
+    }
+
+    // Admin published custom offer/campaign -> Show to 100% of all users
+    if (banners.isCustomAnnouncement) {
+      setShowAnnouncement(true);
+      return;
+    }
+
+    // Default welcome offer: show only for 7 days to new users/visitors
+    try {
+      const KEY = 'kintesi_visitor_first_visit';
+      const stored = localStorage.getItem(KEY);
+      const now = Date.now();
+      if (!stored) {
+        localStorage.setItem(KEY, now.toString());
+        setShowAnnouncement(true);
+      } else {
+        const firstTime = parseInt(stored, 10);
+        if (isNaN(firstTime)) {
+          localStorage.setItem(KEY, now.toString());
+          setShowAnnouncement(true);
+        } else {
+          const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
+          setShowAnnouncement(now - firstTime <= SEVEN_DAYS_MS);
+        }
+      }
+    } catch {
+      setShowAnnouncement(true);
+    }
+  }, [settings?.banners?.showTopAnnouncement, settings?.banners?.isCustomAnnouncement]);
+
+  const renderAnnouncementText = (text?: string) => {
+    const raw = text || '⚡ Welcome to Kintesi! Use coupon KINTESI10 for 10% OFF + Free Express Delivery';
+    if (raw.includes('**')) {
+      const parts = raw.split(/(\*\*.*?\*\*)/g);
+      return parts.map((part, index) => {
+        if (part.startsWith('**') && part.endsWith('**')) {
+          return (
+            <strong key={index} className="text-amber-300 uppercase font-black mx-0.5">
+              {part.slice(2, -2)}
+            </strong>
+          );
+        }
+        return <React.Fragment key={index}>{part}</React.Fragment>;
+      });
+    }
+    if (raw.includes('KINTESI10')) {
+      const parts = raw.split(/(KINTESI10)/g);
+      return parts.map((part, index) => {
+        if (part === 'KINTESI10') {
+          return (
+            <strong key={index} className="text-amber-300 uppercase font-black mx-0.5">
+              KINTESI10
+            </strong>
+          );
+        }
+        return <React.Fragment key={index}>{part}</React.Fragment>;
+      });
+    }
+    return raw;
+  };
 
   useEffect(() => {
     const refreshProducts = () => {
@@ -81,11 +155,15 @@ export const Navbar: React.FC = () => {
 
   return (
     <>
-      {/* Slim Top Announcement Bar (Desktop only) */}
-      <div className="hidden sm:flex bg-gradient-to-r from-gray-950 via-rose-950 to-gray-950 text-white text-[11px] font-semibold py-1.5 px-4 text-center items-center justify-center gap-2 border-b border-rose-900/40 shadow-xs">
-        <Sparkles className="w-3 h-3 animate-pulse text-amber-300" />
-        <span>⚡ Welcome to Kintesi! Use coupon <strong className="text-amber-300 uppercase font-black">KINTESI10</strong> for 10% OFF + Free Express Delivery</span>
-      </div>
+      {/* Top Announcement Bar (7-Day New User Welcome or Admin Broadcast) */}
+      {showAnnouncement && (
+        <div className="flex bg-gradient-to-r from-gray-950 via-rose-950 to-gray-950 text-white text-[10px] sm:text-[11px] font-semibold py-1.5 px-3 sm:px-4 text-center items-center justify-center gap-1.5 sm:gap-2 border-b border-rose-900/40 shadow-xs transition-all">
+          <Sparkles className="w-3 h-3 flex-shrink-0 animate-pulse text-amber-300" />
+          <span className="truncate sm:overflow-visible">
+            {renderAnnouncementText(settings?.banners?.topAnnouncementText)}
+          </span>
+        </div>
+      )}
 
       <header className="sticky top-0 z-40 bg-white border-b border-rose-100 shadow-[0_2px_12px_rgba(225,29,72,0.03)]">
         <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">

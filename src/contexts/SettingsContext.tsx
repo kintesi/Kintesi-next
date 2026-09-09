@@ -3,6 +3,11 @@ import { supabase } from '../lib/supabase';
 import { toast } from 'sonner';
 
 export interface BannerSettings {
+  // Top Announcement Bar
+  showTopAnnouncement?: boolean;
+  topAnnouncementText?: string;
+  isCustomAnnouncement?: boolean;
+
   // Hero Section
   showHeroSection: boolean;
   heroBadge: string;
@@ -53,6 +58,10 @@ export interface StoreSettings {
 }
 
 export const DEFAULT_BANNERS: BannerSettings = {
+  showTopAnnouncement: true,
+  topAnnouncementText: '⚡ Welcome to Kintesi! Use coupon KINTESI10 for 10% OFF + Free Express Delivery',
+  isCustomAnnouncement: false,
+
   showHeroSection: true,
   heroBadge: 'PREMIER LIFESTYLE & SHOPPING MARKETPLACE',
   heroTitle: 'Everything You Need for',
