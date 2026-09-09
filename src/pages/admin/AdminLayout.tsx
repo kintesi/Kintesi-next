@@ -61,7 +61,7 @@ export const AdminLayout: React.FC = () => {
     { name: 'Live Customer Chat', path: '/admin/chat', icon: MessageCircle },
     { name: 'Categories', path: '/admin/categories', icon: Tags },
     { name: 'Hero & Flash Banners', path: '/admin/banners', icon: Sliders },
-    { name: 'Merchant & Payment Settings', path: '/admin/payment-settings', icon: CreditCard },
+    ...(isMasterOwner ? [{ name: 'Merchant & Payment Settings', path: '/admin/payment-settings', icon: CreditCard }] : []),
     ...(isMasterOwner ? [{ name: 'Staff & Team Admins', path: '/admin/team', icon: Users }] : []),
   ];
 

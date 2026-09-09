@@ -149,11 +149,7 @@ export const InvoiceModal: React.FC<InvoiceProps> = ({ order, onClose }) => {
                   TrxID / Ref: <strong className="font-mono text-emerald-800 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">{order.transaction_id}</strong>
                 </p>
               )}
-              {order.seller_payment_snapshot?.seller_name && (
-                <p className="text-[11px] text-purple-900 font-bold">
-                  Seller / Merchant: {order.seller_payment_snapshot.seller_name}
-                </p>
-              )}
+
               <p className="text-xs text-gray-600">
                 Payment Status: <span className="uppercase font-bold px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded-md text-[10px]">{order.payment_status}</span>
               </p>

@@ -196,10 +196,6 @@ export const CheckoutPage: React.FC = () => {
       selectedSize: item.selectedSize,
     }));
 
-    const sellerPaymentConfig = cart.find(
-      (item) => item.product.seller_payment && item.product.seller_payment.use_custom_payment
-    )?.product.seller_payment;
-
     const orderData: any = {
       order_number: orderNumber,
       user_id: user?.id || null,
@@ -218,8 +214,8 @@ export const CheckoutPage: React.FC = () => {
       payment_status: paymentMethod === 'cod' ? 'pending' : 'paid',
       order_status: 'pending',
       transaction_id: trxId.trim() || null,
-      seller_payment_snapshot: sellerPaymentConfig ? { ...sellerPaymentConfig } : {},
-      customer_note: customerNote + (trxId ? ` | TrxID: ${trxId}` : '') + (sellerPaymentConfig?.seller_name ? ` | Seller: ${sellerPaymentConfig.seller_name}` : ''),
+      seller_payment_snapshot: {},
+      customer_note: customerNote + (trxId ? ` | TrxID: ${trxId}` : ''),
     };
 
     try {
@@ -594,20 +590,14 @@ export const CheckoutPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Payment Choice with All Dynamic Merchant / Seller Gateways */}
+          {/* Payment Choice with Central Store Owner Gateway */}
           {(() => {
-            const sellerPaymentConfig = cart.find(
-              (item) => item.product.seller_payment && item.product.seller_payment.use_custom_payment
-            )?.product.seller_payment;
-
-            const activeBkashNumber = sellerPaymentConfig?.bkash_number || settings.bkashNumber;
-            const activeBkashType = sellerPaymentConfig?.bkash_type || settings.bkashType;
-            const activeNagadNumber = sellerPaymentConfig?.nagad_number || settings.nagadNumber;
-            const activeNagadType = sellerPaymentConfig?.nagad_type || settings.nagadType;
-            const activeRocketNumber = sellerPaymentConfig?.rocket_number || settings.rocketNumber;
-            const activeRocketType = sellerPaymentConfig?.rocket_type || settings.rocketType;
-
-            const hasSellerBank = !!(sellerPaymentConfig?.bank_name && sellerPaymentConfig?.bank_account_number);
+            const activeBkashNumber = settings.bkashNumber;
+            const activeBkashType = settings.bkashType;
+            const activeNagadNumber = settings.nagadNumber;
+            const activeNagadType = settings.nagadType;
+            const activeRocketNumber = settings.rocketNumber;
+            const activeRocketType = settings.rocketType;
 
             const allowsCod = cart.every(
               (item) => !item.product.allowed_payment_methods || item.product.allowed_payment_methods.length === 0 || item.product.allowed_payment_methods.includes('cod')
@@ -621,9 +611,7 @@ export const CheckoutPage: React.FC = () => {
             const allowsRocket = cart.every(
               (item) => !item.product.allowed_payment_methods || item.product.allowed_payment_methods.length === 0 || item.product.allowed_payment_methods.includes('rocket') || item.product.allowed_payment_methods.includes('bkash')
             );
-            const allowsBank = cart.every(
-              (item) => !item.product.allowed_payment_methods || item.product.allowed_payment_methods.length === 0 || item.product.allowed_payment_methods.includes('bank') || hasSellerBank
-            );
+            const allowsBank = false;
             const allowsCard = cart.every(
               (item) => !item.product.allowed_payment_methods || item.product.allowed_payment_methods.includes('card')
             );
@@ -635,12 +623,6 @@ export const CheckoutPage: React.FC = () => {
                     <CreditCard className="w-5 h-5 text-emerald-600" />
                     <span>2. Payment Choice</span>
                   </h3>
-                  {sellerPaymentConfig && (
-                    <span className="text-[10px] bg-purple-100 text-purple-800 font-bold px-2.5 py-1 rounded-full border border-purple-200 flex items-center gap-1">
-                      <Landmark className="w-3 h-3" />
-                      <span>{sellerPaymentConfig.seller_name || 'Direct Seller Gateway'}</span>
-                    </span>
-                  )}
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -783,7 +765,7 @@ export const CheckoutPage: React.FC = () => {
                     </div>
                     <div className="mt-3">
                       <h4 className="font-bold text-xs text-gray-900">Direct Bank Transfer</h4>
-                      <p className="text-[10px] text-gray-500 truncate">{sellerPaymentConfig?.bank_name || 'Official Bank Deposit'}</p>
+                      <p className="text-[10px] text-gray-500 truncate">Official Bank Deposit</p>
                     </div>
                   </label>
 
@@ -834,12 +816,6 @@ export const CheckoutPage: React.FC = () => {
                             </h4>
                           </div>
                         </div>
-
-                        {sellerPaymentConfig?.seller_name && (
-                          <span className="text-[11px] font-bold text-gray-700 bg-white/90 px-2.5 py-1 rounded-lg border border-gray-200">
-                            Seller: <strong>{sellerPaymentConfig.seller_name}</strong>
-                          </span>
-                        )}
                       </div>
 
                       {/* Number Display & 1-Click Copy Box */}
@@ -940,59 +916,9 @@ export const CheckoutPage: React.FC = () => {
                       </span>
                     </div>
 
-                    {hasSellerBank ? (
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <div className="bg-white p-3.5 rounded-2xl border border-emerald-200 space-y-1">
-                          <span className="text-[10px] text-gray-400 font-bold uppercase block">Bank Name</span>
-                          <strong className="text-sm text-gray-900 block">{sellerPaymentConfig?.bank_name}</strong>
-                          <span className="text-xs text-gray-600 block">A/C: {sellerPaymentConfig?.bank_account_name}</span>
-                        </div>
-
-                        <div className="bg-white p-3.5 rounded-2xl border-2 border-emerald-300 flex items-center justify-between gap-2">
-                          <div>
-                            <span className="text-[10px] text-gray-400 font-bold uppercase block">Account Number</span>
-                            <span className="font-mono text-base font-black text-emerald-700 tracking-wider select-all">
-                              {sellerPaymentConfig?.bank_account_number}
-                            </span>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => handleCopy(sellerPaymentConfig?.bank_account_number || '', 'Account Number')}
-                            className="px-2.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition flex items-center gap-1 active:scale-95 shrink-0"
-                          >
-                            {copiedField === 'Account Number' ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-                            <span>Copy</span>
-                          </button>
-                        </div>
-
-                        {sellerPaymentConfig?.bank_branch && (
-                          <div className="bg-white p-3 rounded-xl border border-emerald-200 text-xs text-gray-700 flex justify-between">
-                            <span className="text-gray-500">Branch:</span>
-                            <strong className="text-gray-900">{sellerPaymentConfig.bank_branch}</strong>
-                          </div>
-                        )}
-
-                        {sellerPaymentConfig?.bank_routing_number && (
-                          <div className="bg-white p-3 rounded-xl border border-emerald-200 text-xs text-gray-700 flex items-center justify-between">
-                            <span className="text-gray-500">Routing No:</span>
-                            <div className="flex items-center gap-1.5">
-                              <span className="font-mono font-bold text-gray-900">{sellerPaymentConfig.bank_routing_number}</span>
-                              <button
-                                type="button"
-                                onClick={() => handleCopy(sellerPaymentConfig.bank_routing_number || '', 'Routing Number')}
-                                className="text-emerald-700 hover:text-emerald-800 p-1"
-                              >
-                                {copiedField === 'Routing Number' ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-                              </button>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    ) : (
-                      <div className="bg-white p-3.5 rounded-xl border border-emerald-200 text-xs text-gray-800">
-                        <p className="font-semibold">Please contact store support or transfer to our official bank account.</p>
-                      </div>
-                    )}
+                    <div className="bg-white p-3.5 rounded-xl border border-emerald-200 text-xs text-gray-800">
+                      <p className="font-semibold">Please contact store support or transfer to our official bank account.</p>
+                    </div>
 
                     {/* Bank Reference Input */}
                     <div className="bg-white p-4 rounded-2xl border border-gray-200 space-y-2">

@@ -18,7 +18,8 @@ export const ShopPage: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>(categoryParam);
   const [searchQuery, setSearchQuery] = useState<string>(searchParam);
   const [sortBy, setSortBy] = useState<string>('featured');
-  const [priceRange, setPriceRange] = useState<number>(400000);
+  const [maxPriceInput, setMaxPriceInput] = useState<string>('');
+  const [appliedMaxPrice, setAppliedMaxPrice] = useState<number | null>(null);
   const [onlyInStock, setOnlyInStock] = useState<boolean>(false);
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState<boolean>(false);
 
@@ -49,6 +50,24 @@ export const ShopPage: React.FC = () => {
     setSearchQuery(searchParams.get('search') || '');
   }, [searchParams]);
 
+  const handleApplyMaxPrice = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    const val = maxPriceInput.trim();
+    if (!val) {
+      setAppliedMaxPrice(null);
+      return;
+    }
+    const num = Math.max(0, Number(val));
+    if (!isNaN(num)) {
+      setAppliedMaxPrice(num);
+    }
+  };
+
+  const handleClearMaxPrice = () => {
+    setMaxPriceInput('');
+    setAppliedMaxPrice(null);
+  };
+
   const filteredProducts = useMemo(() => {
     return products
       .filter((product) => {
@@ -60,9 +79,9 @@ export const ShopPage: React.FC = () => {
         if (searchQuery.trim() !== '') {
           if (!matchesProductSearch(product, searchQuery)) return false;
         }
-        // Price filter
+        // Price filter (0 to appliedMaxPrice)
         const price = product.discount_price || product.price;
-        if (price > priceRange) return false;
+        if (appliedMaxPrice !== null && price > appliedMaxPrice) return false;
 
         // Stock filter
         if (onlyInStock && product.stock <= 0) return false;
@@ -79,7 +98,7 @@ export const ShopPage: React.FC = () => {
         if (sortBy === 'newest') return (b.created_at || '').localeCompare(a.created_at || '');
         return 0; // featured default
       });
-  }, [products, selectedCategory, searchQuery, priceRange, onlyInStock, sortBy]);
+  }, [products, selectedCategory, searchQuery, appliedMaxPrice, onlyInStock, sortBy]);
 
   const handleCategorySelect = (slug: string) => {
     setSelectedCategory(slug);
@@ -96,7 +115,8 @@ export const ShopPage: React.FC = () => {
   const resetFilters = () => {
     setSelectedCategory('all');
     setSearchQuery('');
-    setPriceRange(400000);
+    setMaxPriceInput('');
+    setAppliedMaxPrice(null);
     setOnlyInStock(false);
     setSortBy('featured');
     setSearchParams({});
@@ -154,7 +174,7 @@ export const ShopPage: React.FC = () => {
                 <Filter className="w-4 h-4 text-rose-600" />
                 <span>Filters</span>
               </h3>
-              {(selectedCategory !== 'all' || searchQuery || priceRange < 400000 || onlyInStock) && (
+              {(selectedCategory !== 'all' || searchQuery || appliedMaxPrice !== null || onlyInStock) && (
                 <button
                   onClick={resetFilters}
                   className="text-xs text-rose-600 font-bold hover:underline"
@@ -199,21 +219,44 @@ export const ShopPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Max Price Range Slider */}
+            {/* Max Price Custom Input (0 to Any Amount, No Upper Bound Specified) */}
             <div className="pt-4 border-t border-rose-100">
               <div className="flex items-center justify-between mb-2">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-gray-400">Max Price</h4>
-                <span className="text-xs font-extrabold text-rose-700">{formatPrice(priceRange)}</span>
+                <h4 className="text-xs font-bold uppercase tracking-wider text-gray-500">Max Price (৳)</h4>
+                {appliedMaxPrice !== null && (
+                  <button
+                    type="button"
+                    onClick={handleClearMaxPrice}
+                    className="text-[11px] text-rose-600 hover:text-rose-700 font-bold underline cursor-pointer"
+                  >
+                    Clear
+                  </button>
+                )}
               </div>
-              <input
-                type="range"
-                min="5000"
-                max="400000"
-                step="5000"
-                value={priceRange}
-                onChange={(e) => setPriceRange(Number(e.target.value))}
-                className="w-full accent-rose-600 cursor-pointer"
-              />
+              <form onSubmit={handleApplyMaxPrice} className="space-y-2">
+                <div className="relative flex items-center">
+                  <span className="absolute left-3 text-xs font-bold text-gray-400 select-none">৳</span>
+                  <input
+                    type="number"
+                    min="0"
+                    placeholder="0 থেকে যেকোনো টাকা..."
+                    value={maxPriceInput}
+                    onChange={(e) => setMaxPriceInput(e.target.value)}
+                    className="w-full pl-7 pr-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs font-bold text-gray-900 focus:outline-none focus:border-rose-500 focus:bg-white transition"
+                  />
+                </div>
+                <button
+                  type="submit"
+                  className="w-full py-2 bg-rose-600 hover:bg-rose-500 text-white font-bold rounded-xl text-xs transition shadow-xs flex items-center justify-center gap-1.5 cursor-pointer active:scale-95"
+                >
+                  <span>Apply Price Filter</span>
+                </button>
+              </form>
+              {appliedMaxPrice !== null && (
+                <p className="text-[11px] text-emerald-600 font-bold mt-2">
+                  ✓ Up to {formatPrice(appliedMaxPrice)}
+                </p>
+              )}
             </div>
 
             {/* In Stock only toggle */}
@@ -291,6 +334,55 @@ export const ShopPage: React.FC = () => {
                   </button>
                 ))}
               </div>
+            </div>
+
+            {/* Mobile Max Price Input */}
+            <div className="pt-4 border-t border-gray-100">
+              <div className="flex items-center justify-between mb-2">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-gray-700">Max Price (৳)</h4>
+                {appliedMaxPrice !== null && (
+                  <button
+                    type="button"
+                    onClick={handleClearMaxPrice}
+                    className="text-[11px] text-rose-600 font-bold underline"
+                  >
+                    Clear
+                  </button>
+                )}
+              </div>
+              <form onSubmit={handleApplyMaxPrice} className="space-y-2">
+                <div className="relative flex items-center">
+                  <span className="absolute left-3 text-xs font-bold text-gray-400">৳</span>
+                  <input
+                    type="number"
+                    min="0"
+                    placeholder="0 থেকে যেকোনো টাকা..."
+                    value={maxPriceInput}
+                    onChange={(e) => setMaxPriceInput(e.target.value)}
+                    className="w-full pl-7 pr-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs font-bold text-gray-900 focus:outline-none focus:border-rose-500 focus:bg-white"
+                  />
+                </div>
+                <button
+                  type="submit"
+                  onClick={() => setIsMobileFilterOpen(false)}
+                  className="w-full py-2 bg-rose-600 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-1.5"
+                >
+                  Apply Price
+                </button>
+              </form>
+            </div>
+
+            {/* Mobile In Stock */}
+            <div className="pt-4 border-t border-gray-100">
+              <label className="flex items-center gap-2.5 cursor-pointer text-xs font-bold text-gray-700">
+                <input
+                  type="checkbox"
+                  checked={onlyInStock}
+                  onChange={(e) => setOnlyInStock(e.target.checked)}
+                  className="w-4 h-4 accent-rose-600 rounded"
+                />
+                <span>In Stock Items Only</span>
+              </label>
             </div>
           </div>
         </div>

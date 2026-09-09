@@ -79,7 +79,6 @@ CREATE TABLE IF NOT EXISTS public.products (
   delivery_note TEXT DEFAULT 'অনুগ্রহ করে ডেলিভারি ম্যানের সামনে প্রোডাক্ট খুলে চেক করে নিবেন। ডেলিভারি ম্যান চলে যাওয়ার পর অভিযোগ গ্রহণযোগ্য হবে না।',
   allowed_payment_methods JSONB DEFAULT '["cod", "bkash", "nagad", "card"]'::JSONB,
   payment_instruction TEXT,
-  seller_payment JSONB DEFAULT '{}'::JSONB,
   warranty_badge_enabled BOOLEAN DEFAULT true,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
@@ -124,7 +123,6 @@ CREATE TABLE IF NOT EXISTS public.orders (
   payment_status TEXT NOT NULL DEFAULT 'pending',
   order_status TEXT NOT NULL DEFAULT 'pending',
   transaction_id TEXT,
-  seller_payment_snapshot JSONB DEFAULT '{}'::JSONB,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
@@ -338,6 +336,10 @@ CREATE INDEX IF NOT EXISTS idx_orders_user_id ON public.orders(user_id);
 CREATE INDEX IF NOT EXISTS idx_addresses_user_id ON public.addresses(user_id);
 CREATE INDEX IF NOT EXISTS idx_chat_conversation_id ON public.chat_messages(conversation_id);
 CREATE INDEX IF NOT EXISTS idx_chat_created_at ON public.chat_messages(created_at DESC);
+
+-- Safe single-merchant enforcement (drops legacy multi-vendor columns if previously created)
+ALTER TABLE IF EXISTS public.products DROP COLUMN IF EXISTS seller_payment;
+ALTER TABLE IF EXISTS public.orders DROP COLUMN IF EXISTS seller_payment_snapshot;
 
 -- ==============================================================================
 -- 13. SEED INITIAL STORE SETTINGS & CLEAN CATEGORIES (ZERO FAKE PRODUCTS)
