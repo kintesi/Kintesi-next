@@ -116,11 +116,15 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       const saved = localStorage.getItem('kintesi_store_settings');
       if (saved) {
         const parsed = JSON.parse(saved);
+        const mergedBanners = { ...DEFAULT_BANNERS, ...(parsed.banners || {}) };
+        if (mergedBanners.heroBadge) {
+          mergedBanners.heroBadge = mergedBanners.heroBadge.replace(/•?\s*kintesi\.com/gi, '').trim();
+        }
         return {
           ...DEFAULT_SETTINGS,
           ...parsed,
           authorizedAdmins: parsed.authorizedAdmins || ['tamim.hasan2005@gmail.com'],
-          banners: { ...DEFAULT_BANNERS, ...(parsed.banners || {}) },
+          banners: mergedBanners,
         };
       }
       return DEFAULT_SETTINGS;

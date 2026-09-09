@@ -276,112 +276,144 @@ export const HomePage: React.FC = () => {
       {/* ========================================================
           💻 DESKTOP VIEW: Full Featured Luxury Mega Store
          ======================================================== */}
-      <div className="hidden md:block space-y-16">
+      <div className="hidden md:block space-y-10 sm:space-y-12">
         
-        {/* 1. Desktop Hero Banner */}
+        {/* 1. Desktop Hero Banner - Sleek, Minimal, Compact & Highly Professional */}
         {banners.showHeroSection !== false && (
-          <section className="bg-gradient-to-br from-gray-950 via-gray-900 to-rose-950 text-white relative overflow-hidden border-b border-rose-950/40">
-            <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-16">
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-                
-                <div className={`space-y-5 ${banners.showSpotlight ? 'lg:col-span-7' : 'lg:col-span-12 text-center max-w-3xl mx-auto'}`}>
-                  {banners.heroBadge && (
-                    <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs font-bold uppercase tracking-wider">
-                      <Sparkles className="w-3.5 h-3.5 text-amber-300" />
-                      <span>{banners.heroBadge}</span>
+          <section className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-2">
+            <div className="relative rounded-3xl bg-gradient-to-br from-rose-50/40 via-white to-gray-50/70 border border-rose-100/90 shadow-[0_2px_16px_rgba(225,29,72,0.03)] overflow-hidden">
+              {/* Subtle background decorative accents */}
+              <div className="absolute -top-20 -left-20 w-64 h-64 bg-rose-100/30 rounded-full blur-3xl pointer-events-none" />
+              <div className="absolute -bottom-20 -right-20 w-64 h-64 bg-rose-50/50 rounded-full blur-3xl pointer-events-none" />
+
+              <div className="relative px-6 sm:px-10 lg:px-12 py-8 lg:py-10">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+                  
+                  {/* Left Column: Refined Typography & Clean CTAs */}
+                  <div className={`space-y-4 ${banners.showSpotlight ? 'lg:col-span-7' : 'lg:col-span-12 text-center max-w-2xl mx-auto'}`}>
+                    
+                    {/* Minimalist Badge */}
+                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white border border-rose-200/80 shadow-xs text-rose-700 text-[11px] font-bold tracking-wide">
+                      <span className="w-1.5 h-1.5 rounded-full bg-rose-600 animate-pulse" />
+                      <span>
+                        {(banners.heroBadge || 'CURATED LIFESTYLE & SHOPPING')
+                          .replace(/•?\s*kintesi\.com/gi, '')
+                          .trim()}
+                      </span>
+                    </div>
+
+                    {/* Proportional Editorial Title */}
+                    <h1 className="text-3xl sm:text-4xl lg:text-[40px] font-black tracking-tight text-gray-950 leading-[1.18]">
+                      {banners.heroTitle}{' '}
+                      <span className="text-rose-600">
+                        {banners.heroHighlightText}
+                      </span>
+                    </h1>
+
+                    {/* Subtitle */}
+                    <p className="text-xs sm:text-sm text-gray-600 max-w-lg font-normal leading-relaxed">
+                      {banners.heroSubtitle}
+                    </p>
+
+                    {/* Compact Action Buttons */}
+                    <div className="flex flex-wrap items-center gap-3 pt-1">
+                      <Link
+                        to={banners.heroPrimaryBtnLink || '/shop'}
+                        className="px-6 py-2.5 bg-gray-950 hover:bg-rose-600 text-white font-bold rounded-xl transition-all shadow-xs hover:shadow-md flex items-center gap-2 text-xs active:scale-95"
+                      >
+                        <span>{banners.heroPrimaryBtnText || 'Explore Catalog'}</span>
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </Link>
+
+                      <Link
+                        to={banners.heroSecondaryBtnLink || '/shop?category=mens-fashion'}
+                        className="px-5 py-2.5 bg-white hover:bg-rose-50/60 text-gray-800 hover:text-rose-700 font-semibold rounded-xl border border-rose-200/80 transition text-xs flex items-center gap-1.5 shadow-2xs"
+                      >
+                        <Shirt className="w-3.5 h-3.5 text-rose-600" />
+                        <span>{banners.heroSecondaryBtnText || 'Fashion Lookbook'}</span>
+                      </Link>
+                    </div>
+
+                    {/* Trust Indicators */}
+                    <div className="flex items-center gap-6 pt-3 border-t border-rose-100/70 text-[11px] text-gray-600 font-medium">
+                      <div className="flex items-center gap-1.5">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-rose-600 flex-shrink-0" />
+                        <span className="font-semibold text-gray-800">100% Genuine</span>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <Truck className="w-3.5 h-3.5 text-rose-600 flex-shrink-0" />
+                        <span className="font-semibold text-gray-800">Express Delivery</span>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <RotateCcw className="w-3.5 h-3.5 text-rose-600 flex-shrink-0" />
+                        <span className="font-semibold text-gray-800">7-Day Easy Return</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Right Column: Sleek, Minimalist Spotlight Showcase */}
+                  {banners.showSpotlight && (
+                    <div className="lg:col-span-5 flex justify-center lg:justify-end">
+                      <div className="w-full max-w-sm bg-white rounded-2xl border border-rose-100/90 shadow-[0_4px_20px_rgba(225,29,72,0.04)] hover:border-rose-300 transition-all p-3 space-y-3 group">
+                        
+                        <div className="relative aspect-[4/3] rounded-xl overflow-hidden bg-gray-50 flex items-center justify-center">
+                          <img
+                            src={banners.spotlightImage}
+                            alt={banners.spotlightTitle}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                            loading="lazy"
+                          />
+                          <span className="absolute top-2.5 left-2.5 bg-rose-600 text-white font-black text-[9px] px-2.5 py-0.5 rounded-full uppercase tracking-wider shadow-xs">
+                            {banners.spotlightBadge || 'DEAL OF THE DAY'}
+                          </span>
+                          {banners.spotlightSavingsText && (
+                            <span className="absolute bottom-2.5 right-2.5 bg-gray-950/80 backdrop-blur-xs text-amber-300 font-bold text-[10px] px-2.5 py-0.5 rounded-full">
+                              {banners.spotlightSavingsText}
+                            </span>
+                          )}
+                        </div>
+
+                        <div className="space-y-1.5 px-1">
+                          <div className="flex items-center justify-between text-[11px]">
+                            <span className="font-bold text-rose-700 uppercase tracking-wide">
+                              {banners.spotlightBrand || 'KINTESI ATELIER'}
+                            </span>
+                            <span className="text-[10px] font-semibold text-gray-500 bg-rose-50/70 border border-rose-100/80 px-2 py-0.5 rounded-md">
+                              {banners.spotlightStockText || 'In Stock'}
+                            </span>
+                          </div>
+                          <h3 className="font-bold text-sm text-gray-900 line-clamp-1 group-hover:text-rose-600 transition">
+                            {banners.spotlightTitle}
+                          </h3>
+                          <div className="flex items-center justify-between pt-2 border-t border-rose-50">
+                            <div className="flex items-baseline gap-2">
+                              <span className="text-base font-black text-gray-950">
+                                {formatPrice(banners.spotlightDiscountPrice)}
+                              </span>
+                              {banners.spotlightPrice && (
+                                <span className="text-xs text-gray-400 line-through">
+                                  {formatPrice(banners.spotlightPrice)}
+                                </span>
+                              )}
+                            </div>
+                            <Link
+                              to={banners.spotlightBtnLink || '/shop'}
+                              className="px-4 py-1.5 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-lg text-xs transition shadow-xs active:scale-95"
+                            >
+                              View Item
+                            </Link>
+                          </div>
+                        </div>
+
+                      </div>
                     </div>
                   )}
 
-                  <h1 className="text-5xl lg:text-6xl font-black tracking-tight leading-tight">
-                    {banners.heroTitle}{' '}
-                    <span className="bg-gradient-to-r from-rose-400 via-rose-300 to-amber-300 bg-clip-text text-transparent">
-                      {banners.heroHighlightText}
-                    </span>
-                  </h1>
-
-                  <p className="text-base text-gray-300 max-w-xl font-normal leading-relaxed">
-                    {banners.heroSubtitle}
-                  </p>
-
-                  <div className="flex flex-wrap items-center gap-3 pt-2">
-                    <Link
-                      to={banners.heroPrimaryBtnLink || '/shop'}
-                      className="px-8 py-3.5 bg-rose-600 hover:bg-rose-500 text-white font-black rounded-xl transition shadow-lg shadow-rose-600/30 flex items-center gap-2 text-sm active:scale-95"
-                    >
-                      <span>{banners.heroPrimaryBtnText}</span>
-                      <ArrowRight className="w-4 h-4" />
-                    </Link>
-
-                    <Link
-                      to={banners.heroSecondaryBtnLink || '/shop?category=mens-fashion'}
-                      className="px-7 py-3.5 bg-white/10 hover:bg-white/20 text-white font-bold rounded-xl border border-white/15 transition text-sm flex items-center gap-2"
-                    >
-                      <Shirt className="w-4 h-4 text-rose-300" />
-                      <span>{banners.heroSecondaryBtnText}</span>
-                    </Link>
-                  </div>
-
-                  <div className="grid grid-cols-3 gap-3 pt-6 border-t border-white/10 text-xs">
-                    <div className="flex items-center gap-2">
-                      <CheckCircle2 className="w-4 h-4 text-rose-400 flex-shrink-0" />
-                      <span className="font-bold text-gray-200">100% Genuine</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Truck className="w-4 h-4 text-amber-400 flex-shrink-0" />
-                      <span className="font-bold text-gray-200">Express Delivery</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <RotateCcw className="w-4 h-4 text-rose-400 flex-shrink-0" />
-                      <span className="font-bold text-gray-200">7-Day Return</span>
-                    </div>
-                  </div>
                 </div>
-
-                {banners.showSpotlight && (
-                  <div className="lg:col-span-5">
-                    <div className="bg-gray-900 border border-gray-800 rounded-3xl p-6 space-y-4 shadow-2xl">
-                      <div className="relative aspect-square rounded-2xl overflow-hidden bg-black/40 flex items-center justify-center">
-                        <img src={banners.spotlightImage} alt={banners.spotlightTitle} className="w-full h-full object-cover" />
-                        <div className="absolute top-3 left-3 bg-rose-600 text-white font-black text-xs px-3 py-1 rounded-full uppercase tracking-wider shadow">
-                          {banners.spotlightBadge}
-                        </div>
-                        {banners.spotlightSavingsText && (
-                          <div className="absolute bottom-3 right-3 bg-black/80 backdrop-blur-sm text-amber-300 font-extrabold text-[11px] px-3 py-1 rounded-full border border-white/10">
-                            {banners.spotlightSavingsText}
-                          </div>
-                        )}
-                      </div>
-
-                      <div className="space-y-2">
-                        <div className="flex justify-between items-center text-xs">
-                          <span className="uppercase font-bold text-rose-400">{banners.spotlightBrand}</span>
-                          <span className="text-gray-400 bg-white/5 px-2 py-0.5 rounded text-[11px]">
-                            {banners.spotlightStockText}
-                          </span>
-                        </div>
-                        <h3 className="font-bold text-lg text-white line-clamp-1">{banners.spotlightTitle}</h3>
-                        <div className="flex items-center justify-between pt-2 border-t border-gray-800">
-                          <div>
-                            <span className="text-2xl font-black text-white">{formatPrice(banners.spotlightDiscountPrice)}</span>
-                            {banners.spotlightPrice && (
-                              <span className="text-xs text-gray-500 line-through ml-2">{formatPrice(banners.spotlightPrice)}</span>
-                            )}
-                          </div>
-                          <Link to={banners.spotlightBtnLink || '/shop'} className="px-5 py-2.5 bg-rose-600 hover:bg-rose-500 text-white font-black rounded-xl text-xs transition shadow">
-                            Buy Now
-                          </Link>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
               </div>
             </div>
           </section>
         )}
-
-
 
         {/* 3. Desktop Flash Sale */}
         {banners.showFlashSale && flashSaleProducts.length > 0 && (
