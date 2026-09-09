@@ -1,5 +1,5 @@
-export const CLOUDINARY_CLOUD_NAME = 'hbs0kfi9';
-export const CLOUDINARY_UPLOAD_PRESET = 'ml_default';
+export const CLOUDINARY_CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || 'dv8woouru';
+export const CLOUDINARY_UPLOAD_PRESET = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET || 'ml_default';
 
 /**
  * Uploads an image file to Cloudinary unsigned upload preset
