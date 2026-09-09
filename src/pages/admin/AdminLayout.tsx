@@ -14,6 +14,7 @@ import {
   LogOut,
   ShieldCheck,
   MessageCircle,
+  Tag,
 } from 'lucide-react';
 
 export const AdminLayout: React.FC = () => {
@@ -58,6 +59,7 @@ export const AdminLayout: React.FC = () => {
     { name: 'Dashboard', path: '/admin', icon: LayoutDashboard },
     { name: 'Manage Products', path: '/admin/products', icon: Package },
     { name: 'Manage Orders & Invoices', path: '/admin/orders', icon: ShoppingCart },
+    { name: 'Discount Coupons', path: '/admin/coupons', icon: Tag },
     { name: 'Live Customer Chat', path: '/admin/chat', icon: MessageCircle },
     { name: 'Categories', path: '/admin/categories', icon: Tags },
     { name: 'Hero & Flash Banners', path: '/admin/banners', icon: Sliders },

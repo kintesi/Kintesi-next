@@ -130,8 +130,27 @@ export interface Order {
 export interface Coupon {
   id: string;
   code: string;
+  description?: string;
+  discount_type?: 'percentage' | 'fixed';
   discount_percent: number;
+  discount_value?: number;
   max_discount?: number;
   min_order_value?: number;
   is_active: boolean;
+  is_new_user_only?: boolean;
+  expires_at?: string;
+  usage_limit_per_user?: number;
+  times_used?: number;
+  created_at?: string;
+}
+
+export interface CouponUsage {
+  id: string;
+  coupon_id: string;
+  coupon_code: string;
+  user_id?: string;
+  customer_email: string;
+  order_id?: string;
+  discount_amount: number;
+  created_at: string;
 }

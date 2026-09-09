@@ -4,6 +4,7 @@ import { useCart } from '../contexts/CartContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useAddress } from '../contexts/AddressContext';
 import { useSettings } from '../contexts/SettingsContext';
+import { useCoupons } from '../contexts/CouponContext';
 import { supabase } from '../lib/supabase';
 import { formatPrice, generateOrderNumber } from '../lib/utils';
 import {
@@ -38,6 +39,7 @@ export const CheckoutPage: React.FC = () => {
   const { user, profile } = useAuth();
   const { addresses, defaultAddress, addAddress } = useAddress();
   const { settings } = useSettings();
+  const { recordCouponUsage } = useCoupons();
   const navigate = useNavigate();
 
   const [selectedAddressId, setSelectedAddressId] = useState<string>('');
@@ -273,6 +275,16 @@ export const CheckoutPage: React.FC = () => {
         } catch (stockErr) {
           console.warn('Stock update notice:', stockErr);
         }
+      }
+
+      if (appliedCoupon) {
+        await recordCouponUsage(
+          appliedCoupon,
+          user?.id || null,
+          email.trim().toLowerCase(),
+          orderNumber,
+          discountAmount
+        );
       }
 
       toast.success('Order placed successfully!');

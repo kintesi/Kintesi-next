@@ -153,57 +153,6 @@ export const AdminBanners: React.FC = () => {
                 className="w-full px-4 py-2.5 bg-gray-900 border border-gray-700 focus:border-amber-500 rounded-xl text-white font-medium"
               />
             </div>
-
-            {/* Quick preset buttons */}
-            <div className="flex flex-wrap items-center gap-2 pt-1">
-              <button
-                type="button"
-                onClick={() => {
-                  setForm({
-                    ...form,
-                    topAnnouncementText: '⚡ Welcome to Kintesi! Use coupon KINTESI10 for 10% OFF + Free Express Delivery',
-                    isCustomAnnouncement: false,
-                    showTopAnnouncement: true,
-                  });
-                }}
-                className="px-3 py-1.5 bg-gray-900 hover:bg-gray-700 border border-gray-700 rounded-lg text-gray-300 text-[11px] font-bold transition flex items-center gap-1.5"
-              >
-                <RefreshCw className="w-3 h-3" />
-                Reset to Default 7-Day Welcome Coupon
-              </button>
-
-              <button
-                type="button"
-                onClick={() => {
-                  setForm({
-                    ...form,
-                    topAnnouncementText: '🔥 EID SPECIAL OFFER! Get Flat 20% OFF on all items using coupon **EID20**',
-                    isCustomAnnouncement: true,
-                    showTopAnnouncement: true,
-                  });
-                }}
-                className="px-3 py-1.5 bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 rounded-lg text-amber-300 text-[11px] font-bold transition flex items-center gap-1.5"
-              >
-                <Sparkles className="w-3 h-3" />
-                Preset: Eid Festival Offer (Broadcast)
-              </button>
-
-              <button
-                type="button"
-                onClick={() => {
-                  setForm({
-                    ...form,
-                    topAnnouncementText: '🚚 FREE EXPRESS SHIPPING on all orders over ৳1,000 for a limited time!',
-                    isCustomAnnouncement: true,
-                    showTopAnnouncement: true,
-                  });
-                }}
-                className="px-3 py-1.5 bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/40 rounded-lg text-emerald-300 text-[11px] font-bold transition flex items-center gap-1.5"
-              >
-                <Tag className="w-3 h-3" />
-                Preset: Free Shipping Offer (Broadcast)
-              </button>
-            </div>
           </div>
         </div>
 

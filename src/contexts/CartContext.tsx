@@ -1,5 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { CartItem, Product, Coupon } from '../types';
+import { useCoupons } from './CouponContext';
+import { useAuth } from './AuthContext';
 import { toast } from 'sonner';
 
 interface CartContextType {
@@ -11,7 +13,7 @@ interface CartContextType {
   isCartOpen: boolean;
   setIsCartOpen: (open: boolean) => void;
   appliedCoupon: Coupon | null;
-  applyCoupon: (code: string) => boolean;
+  applyCoupon: (code: string) => Promise<boolean>;
   removeCoupon: () => void;
   subtotal: number;
   discountAmount: number;
@@ -20,15 +22,11 @@ interface CartContextType {
   totalItemCount: number;
 }
 
-const AVAILABLE_COUPONS: Coupon[] = [
-  { id: 'c1', code: 'KINTESI10', discount_percent: 10, max_discount: 1000, min_order_value: 1000, is_active: true },
-  { id: 'c2', code: 'WELCOME20', discount_percent: 20, max_discount: 2000, min_order_value: 2000, is_active: true },
-  { id: 'c3', code: 'EIDSPECIAL', discount_percent: 15, max_discount: 1500, min_order_value: 1500, is_active: true },
-];
-
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { user } = useAuth();
+  const { validateCoupon } = useCoupons();
   const [cart, setCart] = useState<CartItem[]>(() => {
     try {
       const saved = localStorage.getItem('kintesi_cart');
@@ -125,22 +123,22 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return acc + itemPrice * item.quantity;
   }, 0);
 
-  const applyCoupon = (code: string): boolean => {
-    const formattedCode = code.trim().toUpperCase();
-    const coupon = AVAILABLE_COUPONS.find((c) => c.code === formattedCode && c.is_active);
+  // If cart subtotal drops below minimum order value of applied coupon, clear coupon
+  useEffect(() => {
+    if (appliedCoupon && appliedCoupon.min_order_value && subtotal > 0 && subtotal < appliedCoupon.min_order_value) {
+      toast.info(`Cart subtotal fell below the ৳${appliedCoupon.min_order_value} minimum required for coupon ${appliedCoupon.code}.`);
+      setAppliedCoupon(null);
+    }
+  }, [subtotal, appliedCoupon]);
 
-    if (!coupon) {
-      toast.error('Invalid coupon code');
+  const applyCoupon = async (code: string): Promise<boolean> => {
+    const result = await validateCoupon(code, subtotal, user);
+    if (!result.valid) {
+      toast.error(result.message);
       return false;
     }
-
-    if (coupon.min_order_value && subtotal < coupon.min_order_value) {
-      toast.error(`Minimum order amount of ৳${coupon.min_order_value} required for this coupon`);
-      return false;
-    }
-
-    setAppliedCoupon(coupon);
-    toast.success(`Coupon ${coupon.code} applied! ${coupon.discount_percent}% OFF`);
+    setAppliedCoupon(result.coupon!);
+    toast.success(result.message);
     return true;
   };
 
@@ -151,8 +149,14 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   let discountAmount = 0;
   if (appliedCoupon) {
-    const calculated = (subtotal * appliedCoupon.discount_percent) / 100;
-    discountAmount = appliedCoupon.max_discount ? Math.min(calculated, appliedCoupon.max_discount) : calculated;
+    if (appliedCoupon.discount_type === 'fixed') {
+      const val = Number(appliedCoupon.discount_value || appliedCoupon.discount_percent || 0);
+      discountAmount = Math.min(val, subtotal);
+    } else {
+      const percent = Number(appliedCoupon.discount_percent || appliedCoupon.discount_value || 0);
+      const calculated = (subtotal * percent) / 100;
+      discountAmount = appliedCoupon.max_discount ? Math.min(calculated, appliedCoupon.max_discount) : calculated;
+    }
   }
 
   // Free shipping for orders above ৳5000, otherwise standard ৳60 Inside Dhaka / ৳120 Outside

@@ -397,3 +397,95 @@ INSERT INTO public.categories (name, slug, description, image_url, icon) VALUES
   ('Sports & Fitness Equipment', 'sports-fitness', 'Gym dumbbells, yoga mats, resistance bands & active gear', '', 'Dumbbell')
 ON CONFLICT (slug) DO NOTHING;
 
+-- ==============================================================================
+-- 10. COUPONS & PROMO CODES TABLE
+-- ==============================================================================
+CREATE TABLE IF NOT EXISTS public.coupons (
+  id TEXT PRIMARY KEY,
+  code TEXT UNIQUE NOT NULL,
+  description TEXT,
+  discount_type TEXT DEFAULT 'percentage' CHECK (discount_type IN ('percentage', 'fixed')),
+  discount_percent NUMERIC NOT NULL DEFAULT 0,
+  discount_value NUMERIC NOT NULL DEFAULT 0,
+  min_order_value NUMERIC DEFAULT 0,
+  max_discount NUMERIC,
+  usage_limit_per_user INTEGER DEFAULT 1,
+  times_used INTEGER DEFAULT 0,
+  is_new_user_only BOOLEAN DEFAULT FALSE,
+  is_active BOOLEAN DEFAULT TRUE,
+  expires_at TIMESTAMP WITH TIME ZONE,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- ==============================================================================
+-- 11. COUPON USAGES TABLE (Misuse & Re-use Prevention)
+-- ==============================================================================
+CREATE TABLE IF NOT EXISTS public.coupon_usages (
+  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+  coupon_id TEXT NOT NULL,
+  coupon_code TEXT NOT NULL,
+  user_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,
+  customer_email TEXT NOT NULL,
+  order_id TEXT,
+  discount_amount NUMERIC NOT NULL DEFAULT 0,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_coupon_usages_lookup 
+ON public.coupon_usages (coupon_code, customer_email, user_id);
+
+-- Enable RLS
+ALTER TABLE public.coupons ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.coupon_usages ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Public can view coupons" ON public.coupons;
+CREATE POLICY "Public can view coupons" ON public.coupons
+  FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Admins can manage coupons" ON public.coupons;
+CREATE POLICY "Admins can manage coupons" ON public.coupons
+  FOR ALL USING (
+    (auth.jwt() ->> 'email') = 'manage.kintesi@gmail.com' OR
+    (auth.jwt() ->> 'email') IN (SELECT email FROM public.profiles WHERE role = 'admin')
+  );
+
+DROP POLICY IF EXISTS "Customers can insert coupon usage" ON public.coupon_usages;
+CREATE POLICY "Customers can insert coupon usage" ON public.coupon_usages
+  FOR INSERT WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Admins and users can view usages" ON public.coupon_usages;
+CREATE POLICY "Admins and users can view usages" ON public.coupon_usages
+  FOR SELECT USING (true);
+
+-- Seed Default Welcome Coupon (KINTESI10)
+INSERT INTO public.coupons (
+  id,
+  code,
+  description,
+  discount_type,
+  discount_percent,
+  discount_value,
+  min_order_value,
+  max_discount,
+  usage_limit_per_user,
+  times_used,
+  is_new_user_only,
+  is_active,
+  created_at
+) VALUES (
+  'kintesi10-default',
+  'KINTESI10',
+  'Welcome Coupon for New Customers (Valid for 7 days after registration)',
+  'percentage',
+  10,
+  10,
+  500,
+  1000,
+  1,
+  0,
+  true,
+  true,
+  timezone('utc'::text, now())
+) ON CONFLICT (code) DO NOTHING;
+
+
