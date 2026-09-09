@@ -93,20 +93,20 @@ export const InvoiceModal: React.FC<InvoiceProps> = ({ order, onClose }) => {
           {/* Header */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 border-b-2 border-gray-100 pb-8">
             <div className="flex items-center gap-3.5">
-              <div className="w-14 h-14 rounded-2xl bg-gray-50 p-2 flex items-center justify-center border border-gray-200">
+              <div className="w-14 h-14 rounded-2xl bg-white p-2 flex items-center justify-center border border-rose-100 shadow-xs">
                 <img src="/logo.png" alt="Kintesi" className="w-full h-full object-contain" />
               </div>
               <div>
                 <h1 className="text-2xl font-black text-gray-900 tracking-tight">
-                  Kin<span className="text-emerald-600">tesi</span>
+                  Kin<span className="text-rose-600">tesi</span>
                 </h1>
-                <p className="text-xs text-gray-500 font-semibold">Premier Online Shopping Marketplace • kintesi.com</p>
+                <p className="text-xs text-gray-500 font-semibold">Premier Online Shopping Marketplace</p>
                 <p className="text-[11px] text-gray-400">Dhaka, Bangladesh • support@kintesi.com • Helpline: {sellerPhone}</p>
               </div>
             </div>
 
             <div className="text-left sm:text-right">
-              <span className="inline-block text-[11px] font-black uppercase tracking-widest text-emerald-800 bg-emerald-100/80 px-3 py-1 rounded-md border border-emerald-200">
+              <span className="inline-block text-[11px] font-black uppercase tracking-widest text-rose-800 bg-rose-50 px-3 py-1 rounded-md border border-rose-200">
                 OFFICIAL TAX INVOICE
               </span>
               <p className="font-mono font-black text-gray-900 text-base mt-2">
@@ -254,7 +254,7 @@ export const InvoiceModal: React.FC<InvoiceProps> = ({ order, onClose }) => {
               </div>
               <div className="border-t-2 border-gray-900 pt-2 flex justify-between font-black text-sm text-gray-900">
                 <span>Grand Total</span>
-                <span className="text-emerald-700 text-lg">{formatPrice(order.total_amount)}</span>
+                <span className="text-rose-600 text-lg">{formatPrice(order.total_amount)}</span>
               </div>
             </div>
           </div>
@@ -262,7 +262,7 @@ export const InvoiceModal: React.FC<InvoiceProps> = ({ order, onClose }) => {
           {/* Footer, Barcode & Official Signature */}
           <div className="border-t-2 border-gray-100 pt-6 flex flex-col sm:flex-row items-center justify-between gap-6 text-[11px] text-gray-500">
             <div className="space-y-1 text-center sm:text-left">
-              <p className="font-bold text-gray-800 text-xs">Thank you for ordering with Kintesi (kintesi.com)!</p>
+              <p className="font-bold text-gray-800 text-xs">Thank you for ordering with Kintesi!</p>
               <p>This is a computer-generated official receipt. No physical signature required.</p>
             </div>
             

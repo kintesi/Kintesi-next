@@ -171,17 +171,17 @@ export const HomePage: React.FC = () => {
       {/* ========================================================
           📱 MOBILE VIEW: Clean & Authentic E-Commerce (All Devices)
          ======================================================== */}
-      <div className="block md:hidden bg-[#F8F9FA] min-h-screen space-y-4 pb-28 pt-2.5">
+      <div className="block md:hidden bg-white min-h-screen space-y-4 pb-28 pt-2.5">
         
         {/* 1. Flash Sale Hero Banner (Controlled by Admin Banners settings) */}
         {banners.showFlashSale && (
           <div className="px-3">
             <Link
               to={banners.spotlightBtnLink || "/shop"}
-              className="relative block rounded-2xl overflow-hidden bg-gradient-to-r from-amber-400 via-amber-400 to-yellow-400 p-4 text-white shadow-xs transition hover:brightness-105"
+              className="relative block rounded-2xl overflow-hidden bg-gradient-to-r from-rose-600 via-rose-600 to-amber-500 p-4 text-white shadow-xs transition hover:brightness-105"
             >
               <div className="relative z-10 max-w-[62%] space-y-1">
-                <div className="inline-block px-2.5 py-0.5 bg-rose-500 text-white rounded-full text-[9px] font-black uppercase tracking-wider">
+                <div className="inline-block px-2.5 py-0.5 bg-black/40 backdrop-blur-xs text-white rounded-full text-[9px] font-black uppercase tracking-wider">
                   {banners.flashSaleTag || '30% OFF'}
                 </div>
                 <h2 className="text-lg sm:text-xl font-black tracking-tight text-white uppercase leading-none">
@@ -204,11 +204,11 @@ export const HomePage: React.FC = () => {
           </div>
         )}
 
-        {/* 2. Browse by Categories (Matching Reference Mockup) */}
+        {/* 2. Browse by Categories */}
         <div className="px-3 space-y-2.5">
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-black text-gray-900">Browse by Categories</h3>
-            <Link to="/shop" className="text-xs text-amber-600 font-bold flex items-center">
+            <Link to="/shop" className="text-xs text-rose-600 font-bold flex items-center">
               <span>View All</span>
               <ChevronRight className="w-3.5 h-3.5" />
             </Link>
@@ -221,7 +221,7 @@ export const HomePage: React.FC = () => {
                 to={`/shop?category=${cat.slug}`}
                 className="flex flex-col items-center group active:scale-95 transition"
               >
-                <div className="w-16 h-16 rounded-2xl overflow-hidden bg-white border border-gray-200/90 shadow-xs mb-1">
+                <div className="w-16 h-16 rounded-2xl overflow-hidden bg-white border border-rose-100/90 shadow-xs mb-1 group-hover:border-rose-300">
                   <img
                     src={cat.image_url ? `${cat.image_url.split('?')[0]}?w=160&auto=format&fit=crop&q=75` : 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=160&auto=format&fit=crop&q=75'}
                     alt={cat.name}
@@ -237,11 +237,11 @@ export const HomePage: React.FC = () => {
           </div>
         </div>
 
-        {/* 3. Trendy Collections Grid (Single Clean Section) */}
+        {/* 3. Trendy Collections Grid */}
         <div className="px-3 space-y-2.5">
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-black text-gray-900">Trendy Collections</h3>
-            <Link to="/shop" className="text-xs text-amber-600 font-bold flex items-center">
+            <Link to="/shop" className="text-xs text-rose-600 font-bold flex items-center">
               <span>View All</span>
               <ChevronRight className="w-3.5 h-3.5" />
             </Link>
@@ -280,13 +280,13 @@ export const HomePage: React.FC = () => {
         
         {/* 1. Desktop Hero Banner */}
         {banners.showHeroSection !== false && (
-          <section className="bg-gradient-to-br from-gray-950 via-slate-900 to-gray-950 text-white relative overflow-hidden">
+          <section className="bg-gradient-to-br from-gray-950 via-gray-900 to-rose-950 text-white relative overflow-hidden border-b border-rose-950/40">
             <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-16">
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
                 
                 <div className={`space-y-5 ${banners.showSpotlight ? 'lg:col-span-7' : 'lg:col-span-12 text-center max-w-3xl mx-auto'}`}>
                   {banners.heroBadge && (
-                    <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-bold uppercase tracking-wider">
+                    <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs font-bold uppercase tracking-wider">
                       <Sparkles className="w-3.5 h-3.5 text-amber-300" />
                       <span>{banners.heroBadge}</span>
                     </div>
@@ -294,7 +294,7 @@ export const HomePage: React.FC = () => {
 
                   <h1 className="text-5xl lg:text-6xl font-black tracking-tight leading-tight">
                     {banners.heroTitle}{' '}
-                    <span className="bg-gradient-to-r from-emerald-400 to-teal-300 bg-clip-text text-transparent">
+                    <span className="bg-gradient-to-r from-rose-400 via-rose-300 to-amber-300 bg-clip-text text-transparent">
                       {banners.heroHighlightText}
                     </span>
                   </h1>
@@ -306,7 +306,7 @@ export const HomePage: React.FC = () => {
                   <div className="flex flex-wrap items-center gap-3 pt-2">
                     <Link
                       to={banners.heroPrimaryBtnLink || '/shop'}
-                      className="px-8 py-3.5 bg-emerald-500 hover:bg-emerald-400 text-gray-950 font-black rounded-xl transition shadow-lg shadow-emerald-500/20 flex items-center gap-2 text-sm active:scale-95"
+                      className="px-8 py-3.5 bg-rose-600 hover:bg-rose-500 text-white font-black rounded-xl transition shadow-lg shadow-rose-600/30 flex items-center gap-2 text-sm active:scale-95"
                     >
                       <span>{banners.heroPrimaryBtnText}</span>
                       <ArrowRight className="w-4 h-4" />
@@ -316,14 +316,14 @@ export const HomePage: React.FC = () => {
                       to={banners.heroSecondaryBtnLink || '/shop?category=mens-fashion'}
                       className="px-7 py-3.5 bg-white/10 hover:bg-white/20 text-white font-bold rounded-xl border border-white/15 transition text-sm flex items-center gap-2"
                     >
-                      <Shirt className="w-4 h-4 text-emerald-300" />
+                      <Shirt className="w-4 h-4 text-rose-300" />
                       <span>{banners.heroSecondaryBtnText}</span>
                     </Link>
                   </div>
 
                   <div className="grid grid-cols-3 gap-3 pt-6 border-t border-white/10 text-xs">
                     <div className="flex items-center gap-2">
-                      <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                      <CheckCircle2 className="w-4 h-4 text-rose-400 flex-shrink-0" />
                       <span className="font-bold text-gray-200">100% Genuine</span>
                     </div>
                     <div className="flex items-center gap-2">
@@ -331,7 +331,7 @@ export const HomePage: React.FC = () => {
                       <span className="font-bold text-gray-200">Express Delivery</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <RotateCcw className="w-4 h-4 text-teal-400 flex-shrink-0" />
+                      <RotateCcw className="w-4 h-4 text-rose-400 flex-shrink-0" />
                       <span className="font-bold text-gray-200">7-Day Return</span>
                     </div>
                   </div>
@@ -354,7 +354,7 @@ export const HomePage: React.FC = () => {
 
                       <div className="space-y-2">
                         <div className="flex justify-between items-center text-xs">
-                          <span className="uppercase font-bold text-emerald-400">{banners.spotlightBrand}</span>
+                          <span className="uppercase font-bold text-rose-400">{banners.spotlightBrand}</span>
                           <span className="text-gray-400 bg-white/5 px-2 py-0.5 rounded text-[11px]">
                             {banners.spotlightStockText}
                           </span>
@@ -367,7 +367,7 @@ export const HomePage: React.FC = () => {
                               <span className="text-xs text-gray-500 line-through ml-2">{formatPrice(banners.spotlightPrice)}</span>
                             )}
                           </div>
-                          <Link to={banners.spotlightBtnLink || '/shop'} className="px-5 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-gray-950 font-black rounded-xl text-xs transition shadow">
+                          <Link to={banners.spotlightBtnLink || '/shop'} className="px-5 py-2.5 bg-rose-600 hover:bg-rose-500 text-white font-black rounded-xl text-xs transition shadow">
                             Buy Now
                           </Link>
                         </div>
@@ -425,7 +425,7 @@ export const HomePage: React.FC = () => {
 
         {/* 4. Desktop Featured Tabs */}
         <section className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
-          <div className="flex items-center justify-between border-b border-gray-200 pb-4">
+          <div className="flex items-center justify-between border-b border-rose-100 pb-4">
             <div>
               <h2 className="text-2xl font-black text-gray-900 tracking-tight">Featured Products</h2>
               <p className="text-xs text-gray-500 mt-0.5">Top-rated selections for home, fashion, and tech</p>
@@ -442,7 +442,9 @@ export const HomePage: React.FC = () => {
                   key={tab.key}
                   onClick={() => setActiveTab(tab.key as any)}
                   className={`px-3.5 py-2 rounded-xl transition ${
-                    activeTab === tab.key ? 'bg-gray-900 text-white shadow-sm' : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'
+                    activeTab === tab.key
+                      ? 'bg-gray-950 text-white shadow-sm'
+                      : 'bg-white text-gray-600 border border-rose-100/90 hover:border-rose-300 hover:bg-rose-50/40'
                   }`}
                 >
                   {tab.label}
@@ -459,8 +461,8 @@ export const HomePage: React.FC = () => {
                 ))}
               </div>
             ) : (
-              <div className="py-16 text-center space-y-3 bg-white rounded-3xl border border-gray-100 p-8 shadow-xs">
-                <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto">
+              <div className="py-16 text-center space-y-3 bg-white rounded-3xl border border-rose-100 p-8 shadow-xs">
+                <div className="w-12 h-12 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center mx-auto border border-rose-100">
                   <ShoppingBag className="w-6 h-6" />
                 </div>
                 <h3 className="text-base font-bold text-gray-900">Your Store Catalog is Ready</h3>
@@ -469,7 +471,7 @@ export const HomePage: React.FC = () => {
                 </p>
                 <Link
                   to="/admin/products"
-                  className="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-600 text-white font-bold rounded-xl text-xs shadow-md shadow-emerald-600/30 hover:bg-emerald-700 transition"
+                  className="inline-flex items-center gap-2 px-5 py-2.5 bg-rose-600 text-white font-bold rounded-xl text-xs shadow-md shadow-rose-600/20 hover:bg-rose-700 transition"
                 >
                   <Plus className="w-4 h-4" />
                   <span>Add Products in Admin</span>

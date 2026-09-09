@@ -146,12 +146,12 @@ export const ShopPage: React.FC = () => {
         
         {/* Desktop Sidebar Filters */}
         <div className="hidden md:block space-y-6">
-          <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm space-y-6">
+          <div className="bg-white p-6 rounded-3xl border border-rose-100 shadow-[0_2px_12px_rgba(225,29,72,0.03)] space-y-6">
             
             {/* Filter Header */}
             <div className="flex items-center justify-between">
               <h3 className="font-extrabold text-gray-900 text-base flex items-center gap-2">
-                <Filter className="w-4 h-4 text-emerald-600" />
+                <Filter className="w-4 h-4 text-rose-600" />
                 <span>Filters</span>
               </h3>
               {(selectedCategory !== 'all' || searchQuery || priceRange < 400000 || onlyInStock) && (
@@ -172,8 +172,8 @@ export const ShopPage: React.FC = () => {
                   onClick={() => handleCategorySelect('all')}
                   className={`w-full text-left px-3 py-2 rounded-xl text-xs font-bold transition flex items-center justify-between ${
                     selectedCategory === 'all'
-                      ? 'bg-emerald-50 text-emerald-700'
-                      : 'text-gray-600 hover:bg-gray-50'
+                      ? 'bg-rose-50 text-rose-700'
+                      : 'text-gray-600 hover:bg-rose-50/40'
                   }`}
                 >
                   <span>All Categories</span>
@@ -187,8 +187,8 @@ export const ShopPage: React.FC = () => {
                       onClick={() => handleCategorySelect(cat.slug)}
                       className={`w-full text-left px-3 py-2 rounded-xl text-xs font-bold transition flex items-center justify-between ${
                         selectedCategory === cat.slug
-                          ? 'bg-emerald-50 text-emerald-700'
-                          : 'text-gray-600 hover:bg-gray-50'
+                          ? 'bg-rose-50 text-rose-700'
+                          : 'text-gray-600 hover:bg-rose-50/40'
                       }`}
                     >
                       <span>{cat.name}</span>
@@ -200,10 +200,10 @@ export const ShopPage: React.FC = () => {
             </div>
 
             {/* Max Price Range Slider */}
-            <div className="pt-4 border-t border-gray-100">
+            <div className="pt-4 border-t border-rose-100">
               <div className="flex items-center justify-between mb-2">
                 <h4 className="text-xs font-bold uppercase tracking-wider text-gray-400">Max Price</h4>
-                <span className="text-xs font-extrabold text-emerald-700">{formatPrice(priceRange)}</span>
+                <span className="text-xs font-extrabold text-rose-700">{formatPrice(priceRange)}</span>
               </div>
               <input
                 type="range"
@@ -212,18 +212,18 @@ export const ShopPage: React.FC = () => {
                 step="5000"
                 value={priceRange}
                 onChange={(e) => setPriceRange(Number(e.target.value))}
-                className="w-full accent-emerald-600 cursor-pointer"
+                className="w-full accent-rose-600 cursor-pointer"
               />
             </div>
 
             {/* In Stock only toggle */}
-            <div className="pt-4 border-t border-gray-100">
+            <div className="pt-4 border-t border-rose-100">
               <label className="flex items-center gap-2.5 cursor-pointer text-xs font-bold text-gray-700">
                 <input
                   type="checkbox"
                   checked={onlyInStock}
                   onChange={(e) => setOnlyInStock(e.target.checked)}
-                  className="w-4 h-4 accent-emerald-600 rounded"
+                  className="w-4 h-4 accent-rose-600 rounded"
                 />
                 <span>In Stock Items Only</span>
               </label>
@@ -235,12 +235,12 @@ export const ShopPage: React.FC = () => {
         {/* Product Grid */}
         <div className="md:col-span-3">
           {filteredProducts.length === 0 ? (
-            <div className="text-center py-20 bg-white rounded-3xl border border-gray-100 p-8 shadow-sm">
+            <div className="text-center py-20 bg-white rounded-3xl border border-rose-100 p-8 shadow-xs">
               <p className="text-gray-400 text-lg font-medium mb-2">No matching products found</p>
               <p className="text-xs text-gray-500 mb-6">Try changing your filters, search term, or price range.</p>
               <button
                 onClick={resetFilters}
-                className="px-6 py-2.5 bg-emerald-600 text-white text-xs font-bold rounded-xl hover:bg-emerald-700 transition"
+                className="px-6 py-2.5 bg-rose-600 text-white text-xs font-bold rounded-xl hover:bg-rose-700 transition shadow-sm"
               >
                 Reset Filters
               </button>

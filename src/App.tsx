@@ -36,7 +36,7 @@ import { AdminLiveChat } from './pages/admin/AdminLiveChat';
 
 const StorefrontLayout = () => {
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50/50">
+    <div className="min-h-screen flex flex-col bg-white">
       <Navbar />
       <main className="flex-1">
         <Outlet />

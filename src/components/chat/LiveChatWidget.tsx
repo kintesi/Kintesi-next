@@ -75,7 +75,7 @@ export const LiveChatWidget: React.FC = () => {
       {!isOpen && (
         <button
           onClick={() => openChat()}
-          className="fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-30 p-3 sm:p-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-full shadow-2xl transition-all duration-300 hover:scale-110 active:scale-95 flex items-center justify-center group ring-4 ring-emerald-600/20"
+          className="fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-30 p-3 sm:p-4 bg-rose-600 hover:bg-rose-700 text-white rounded-full shadow-2xl transition-all duration-300 hover:scale-110 active:scale-95 flex items-center justify-center group ring-4 ring-rose-600/20"
           aria-label="Open Live Chat with Seller"
         >
           <div className="relative">
@@ -94,25 +94,25 @@ export const LiveChatWidget: React.FC = () => {
 
       {/* Live Chat Modal / Window */}
       {isOpen && (
-        <div className="fixed bottom-4 right-4 z-50 w-[92vw] sm:w-96 max-w-lg h-[540px] max-h-[85vh] bg-white rounded-3xl shadow-2xl border border-gray-100 flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-5 duration-300">
+        <div className="fixed bottom-4 right-4 z-50 w-[92vw] sm:w-96 max-w-lg h-[540px] max-h-[85vh] bg-white rounded-3xl shadow-2xl border border-rose-100 flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-5 duration-300">
           
           {/* Header */}
-          <div className="bg-gradient-to-r from-gray-900 via-slate-900 to-emerald-950 p-4 text-white flex items-center justify-between shadow-md">
+          <div className="bg-gradient-to-r from-gray-950 via-gray-900 to-rose-950 p-4 text-white flex items-center justify-between shadow-md border-b border-rose-950/40">
             <div className="flex items-center gap-3">
               <div className="relative">
-                <div className="w-10 h-10 rounded-2xl bg-white p-1 flex items-center justify-center shadow-inner">
+                <div className="w-10 h-10 rounded-2xl bg-white p-1 flex items-center justify-center shadow-xs border border-rose-100/40">
                   <img src="/logo.png" alt="Kintesi" className="w-full h-full object-contain" />
                 </div>
-                <span className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-emerald-500 border-2 border-gray-900 rounded-full" />
+                <span className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-rose-500 border-2 border-gray-900 rounded-full" />
               </div>
 
               <div>
                 <h3 className="font-extrabold text-sm flex items-center gap-1.5">
                   <span>Kintesi Seller & Support</span>
-                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+                  <ShieldCheck className="w-3.5 h-3.5 text-rose-400" />
                 </h3>
-                <p className="text-[10px] text-emerald-400 font-medium flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-ping" />
+                <p className="text-[10px] text-rose-300 font-medium flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 bg-rose-400 rounded-full animate-ping" />
                   <span>Online • Immediate Assistance</span>
                 </p>
               </div>
@@ -237,9 +237,9 @@ export const LiveChatWidget: React.FC = () => {
             {isTyping && (
               <div className="flex items-center gap-1.5 text-gray-400 text-xs py-1 px-2">
                 <span className="w-2 h-2 bg-emerald-500 rounded-full animate-bounce" />
-                <span className="w-2 h-2 bg-emerald-500 rounded-full animate-bounce [animation-delay:0.2s]" />
-                <span className="w-2 h-2 bg-emerald-500 rounded-full animate-bounce [animation-delay:0.4s]" />
-                <span className="text-[11px] font-medium text-emerald-700 ml-1">Store agent typing...</span>
+                <span className="w-2 h-2 bg-rose-500 rounded-full animate-bounce [animation-delay:0.2s]" />
+                <span className="w-2 h-2 bg-rose-500 rounded-full animate-bounce [animation-delay:0.4s]" />
+                <span className="text-[11px] font-medium text-rose-700 ml-1">Store agent typing...</span>
               </div>
             )}
 
@@ -247,13 +247,13 @@ export const LiveChatWidget: React.FC = () => {
           </div>
 
           {/* Quick Questions Pills */}
-          <div className="p-2 bg-white border-t border-gray-100 flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+          <div className="p-2 bg-white border-t border-rose-100 flex items-center gap-1.5 overflow-x-auto no-scrollbar">
             {QUICK_QUESTIONS.map((q, idx) => (
               <button
                 key={idx}
                 type="button"
                 onClick={() => handleQuickQuestion(q)}
-                className="px-2.5 py-1 bg-gray-100 hover:bg-emerald-50 hover:text-emerald-800 hover:border-emerald-200 border border-gray-200 rounded-full text-[10px] font-bold text-gray-600 whitespace-nowrap transition shrink-0"
+                className="px-2.5 py-1 bg-gray-50 hover:bg-rose-50 hover:text-rose-800 hover:border-rose-200 border border-rose-100 rounded-full text-[10px] font-bold text-gray-600 whitespace-nowrap transition shrink-0"
               >
                 {q}
               </button>
@@ -261,19 +261,19 @@ export const LiveChatWidget: React.FC = () => {
           </div>
 
           {/* Chat Input Bar */}
-          <form onSubmit={handleSend} className="p-3 bg-white border-t border-gray-200 flex items-center gap-2">
+          <form onSubmit={handleSend} className="p-3 bg-white border-t border-rose-100 flex items-center gap-2">
             <input
               type="text"
               value={inputMessage}
               onChange={(e) => setInputMessage(e.target.value)}
               placeholder="Type your message to seller..."
-              className="flex-1 px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-2xl text-xs text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition"
+              className="flex-1 px-4 py-2.5 bg-gray-50 border border-rose-100 rounded-2xl text-xs text-gray-900 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:bg-white transition"
             />
 
             <button
               type="submit"
               disabled={!inputMessage.trim()}
-              className="p-2.5 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 text-white rounded-2xl transition shadow-md flex items-center justify-center shrink-0 active:scale-95"
+              className="p-2.5 bg-rose-600 hover:bg-rose-700 disabled:opacity-40 text-white rounded-2xl transition shadow-md flex items-center justify-center shrink-0 active:scale-95"
               aria-label="Send message"
             >
               <Send className="w-4 h-4" />

@@ -80,7 +80,7 @@ export const AdminLayout: React.FC = () => {
           </div>
           <div>
             <h1 className="font-black text-white text-base leading-tight">Kintesi Admin</h1>
-            <span className="text-[10px] bg-emerald-500/20 text-emerald-400 font-bold px-2 py-0.5 rounded-full">
+            <span className="text-[10px] bg-rose-500/20 text-rose-400 font-bold px-2 py-0.5 rounded-full">
               {isMasterOwner ? 'Master Admin' : 'Admin'}
             </span>
           </div>
@@ -97,7 +97,7 @@ export const AdminLayout: React.FC = () => {
                 to={item.path}
                 className={`flex items-center gap-3 px-4 py-3 rounded-2xl text-xs font-bold transition ${
                   isActive
-                    ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/30'
+                    ? 'bg-rose-600 text-white shadow-lg shadow-rose-600/30'
                     : 'text-gray-400 hover:text-white hover:bg-gray-800/60'
                 }`}
               >
@@ -114,7 +114,7 @@ export const AdminLayout: React.FC = () => {
             to="/"
             className="flex items-center gap-2.5 px-4 py-2.5 rounded-xl bg-gray-800 hover:bg-gray-700 text-gray-200 text-xs font-semibold transition"
           >
-            <Store className="w-4 h-4 text-emerald-400" />
+            <Store className="w-4 h-4 text-rose-400" />
             <span>Back to Storefront</span>
           </Link>
           <button

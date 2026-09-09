@@ -104,7 +104,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
         sender: 'seller',
         senderName: 'Kintesi Support Agent',
         senderEmail: 'support@kintesi.com',
-        text: '👋 Assalamu Alaikum! Welcome to Kintesi (kintesi.com). How can we help you today? Feel free to ask about any product, fitting, delivery or your order!',
+        text: '👋 Assalamu Alaikum! Welcome to Kintesi. How can we help you today? Feel free to ask about any product, fitting, delivery or your order!',
         timestamp: new Date().toISOString(),
         read: true,
       },

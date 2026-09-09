@@ -82,21 +82,25 @@ export const Navbar: React.FC = () => {
   return (
     <>
       {/* Slim Top Announcement Bar (Desktop only) */}
-      <div className="hidden sm:flex bg-gradient-to-r from-emerald-900 via-emerald-800 to-teal-950 text-white text-[11px] font-semibold py-1 px-4 text-center items-center justify-center gap-2 shadow-xs">
+      <div className="hidden sm:flex bg-gradient-to-r from-gray-950 via-rose-950 to-gray-950 text-white text-[11px] font-semibold py-1.5 px-4 text-center items-center justify-center gap-2 border-b border-rose-900/40 shadow-xs">
         <Sparkles className="w-3 h-3 animate-pulse text-amber-300" />
-        <span>⚡ Welcome to Kintesi! Use coupon <strong className="text-amber-300 uppercase font-black">KINTESI10</strong> for 10% OFF + Free Express Delivery • <span className="text-emerald-300">kintesi.com</span></span>
+        <span>⚡ Welcome to Kintesi! Use coupon <strong className="text-amber-300 uppercase font-black">KINTESI10</strong> for 10% OFF + Free Express Delivery</span>
       </div>
 
-      <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-gray-100 shadow-xs">
+      <header className="sticky top-0 z-40 bg-white/98 backdrop-blur-md border-b border-rose-100 shadow-[0_2px_12px_rgba(225,29,72,0.03)]">
         <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
           
           {/* Mobile Top Bar */}
           <div className="md:hidden py-2 space-y-2">
             <div className="flex items-center justify-between gap-2">
-              <Link to="/" className="flex items-center gap-1.5 flex-shrink-0">
-                <img src="/logo.png" alt="Kintesi" className="w-8 h-8 object-contain" />
-                <span className="text-lg font-black tracking-tight text-gray-900">
-                  Kin<span className="text-emerald-600">tesi</span>
+              <Link to="/" className="flex items-center gap-2 flex-shrink-0 group">
+                <img 
+                  src="/logo.png" 
+                  alt="Kintesi" 
+                  className="h-8 w-auto max-w-[32px] object-contain transition-transform group-hover:scale-105" 
+                />
+                <span className="text-lg font-black tracking-tight text-gray-950">
+                  Kin<span className="text-rose-600">tesi</span>
                 </span>
               </Link>
 
@@ -104,13 +108,13 @@ export const Navbar: React.FC = () => {
                 <Link to="/wishlist" className="p-1.5 text-gray-600 relative">
                   <Heart className="w-5 h-5" />
                   {wishlist.length > 0 && (
-                    <span className="absolute 0 top-0 right-0 w-3.5 h-3.5 bg-rose-500 text-white text-[8px] font-bold rounded-full flex items-center justify-center">
+                    <span className="absolute 0 top-0 right-0 w-3.5 h-3.5 bg-rose-600 text-white text-[8px] font-bold rounded-full flex items-center justify-center">
                       {wishlist.length}
                     </span>
                   )}
                 </Link>
                 {isAdmin && (
-                  <Link to="/admin" className="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded-lg text-[10px] font-black uppercase">
+                  <Link to="/admin" className="px-2 py-0.5 bg-rose-50 text-rose-700 border border-rose-200/80 rounded-lg text-[10px] font-black uppercase">
                     Admin
                   </Link>
                 )}
@@ -125,12 +129,12 @@ export const Navbar: React.FC = () => {
                   placeholder="Search products, brands, categories..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-8 pr-16 py-2 bg-gray-100/90 focus:bg-white border border-gray-200 focus:border-emerald-500 rounded-full text-xs transition focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                  className="w-full pl-8 pr-16 py-2 bg-gray-50/80 focus:bg-white border border-rose-100 focus:border-rose-500 rounded-full text-xs transition focus:outline-none focus:ring-2 focus:ring-rose-500/20"
                 />
                 <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
                 <button
                   type="submit"
-                  className="absolute right-1 top-1/2 -translate-y-1/2 px-3 py-1 bg-emerald-600 text-white rounded-full text-[11px] font-bold shadow-xs"
+                  className="absolute right-1 top-1/2 -translate-y-1/2 px-3 py-1 bg-rose-600 text-white rounded-full text-[11px] font-bold shadow-xs hover:bg-rose-700 transition"
                 >
                   Search
                 </button>
@@ -141,17 +145,24 @@ export const Navbar: React.FC = () => {
           {/* Desktop Navigation (Sleek h-16) */}
           <div className="hidden md:flex items-center justify-between h-16 gap-6">
             
-            {/* Logo */}
-            <Link to="/" className="flex items-center gap-2.5 group flex-shrink-0">
-              <div className="w-10 h-10 rounded-xl bg-gray-50 p-1 border border-gray-200 group-hover:scale-105 transition shadow-xs flex items-center justify-center">
-                <img src="/logo.png" alt="Kintesi" className="w-full h-full object-contain" />
+            {/* Logo Seamlessly Blended */}
+            <Link to="/" className="flex items-center gap-3 group flex-shrink-0">
+              <div className="relative flex items-center justify-center">
+                <img 
+                  src="/logo.png" 
+                  alt="Kintesi" 
+                  className="h-10 w-auto max-w-[42px] object-contain transition-transform duration-300 group-hover:scale-105 drop-shadow-xs" 
+                />
               </div>
               <div className="flex flex-col">
-                <span className="text-xl font-black tracking-tight text-gray-900 leading-none">
-                  Kin<span className="text-emerald-600">tesi</span>
-                </span>
-                <span className="text-[9px] text-gray-400 font-bold tracking-wider uppercase mt-0.5">
-                  kintesi.com
+                <div className="flex items-baseline">
+                  <span className="text-2xl font-black tracking-tight text-gray-950 leading-none">
+                    Kin<span className="text-rose-600">tesi</span>
+                  </span>
+                  <span className="inline-block w-1.5 h-1.5 rounded-full bg-rose-600 ml-0.5 mb-0.5"></span>
+                </div>
+                <span className="text-[10px] text-gray-400 font-semibold tracking-wider uppercase mt-0.5">
+                  Online Marketplace
                 </span>
               </div>
             </Link>
@@ -168,12 +179,12 @@ export const Navbar: React.FC = () => {
                     setShowSearchResults(true);
                   }}
                   onFocus={() => setShowSearchResults(true)}
-                  className="w-full pl-10 pr-20 py-2 bg-gray-100/80 hover:bg-gray-100 focus:bg-white border border-gray-200/80 focus:border-emerald-500 rounded-full text-xs transition focus:outline-none focus:ring-3 focus:ring-emerald-500/10"
+                  className="w-full pl-10 pr-20 py-2 bg-gray-50/80 hover:bg-gray-50 focus:bg-white border border-rose-100 focus:border-rose-500 rounded-full text-xs transition focus:outline-none focus:ring-3 focus:ring-rose-500/15"
                 />
                 <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <button
                   type="submit"
-                  className="absolute right-1 top-1/2 -translate-y-1/2 px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-full text-xs font-bold transition shadow-xs"
+                  className="absolute right-1 top-1/2 -translate-y-1/2 px-3.5 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-full text-xs font-bold transition shadow-xs"
                 >
                   Search
                 </button>
@@ -181,15 +192,15 @@ export const Navbar: React.FC = () => {
 
               {/* Live search dropdown */}
               {showSearchResults && searchQuery.trim() !== '' && (
-                <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden z-50 animate-slide-up">
+                <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-2xl border border-rose-100/80 overflow-hidden z-50 animate-slide-up">
                   {searchFilteredProducts.length > 0 ? (
-                    <div className="divide-y divide-gray-50">
+                    <div className="divide-y divide-rose-50/60">
                       {searchFilteredProducts.map((prod) => (
                         <Link
                           key={prod.id}
                           to={`/product/${prod.slug || prod.id}`}
                           onClick={() => setShowSearchResults(false)}
-                          className="flex items-center gap-3 p-2.5 hover:bg-gray-50 transition"
+                          className="flex items-center gap-3 p-2.5 hover:bg-rose-50/40 transition"
                         >
                           <img
                             src={prod.images[0] || '/logo.webp'}
@@ -198,7 +209,7 @@ export const Navbar: React.FC = () => {
                           />
                           <div className="flex-1 min-w-0">
                             <p className="text-xs font-bold text-gray-800 line-clamp-1">{prod.title}</p>
-                            <p className="text-xs text-emerald-600 font-extrabold mt-0.5">
+                            <p className="text-xs text-rose-600 font-extrabold mt-0.5">
                               {formatPrice(prod.discount_price || prod.price)}
                             </p>
                           </div>
@@ -207,7 +218,7 @@ export const Navbar: React.FC = () => {
                       <Link
                         to={`/shop?search=${encodeURIComponent(searchQuery)}`}
                         onClick={() => setShowSearchResults(false)}
-                        className="block p-2.5 text-center text-xs font-bold text-emerald-600 hover:bg-emerald-50 transition"
+                        className="block p-2.5 text-center text-xs font-bold text-rose-600 hover:bg-rose-50 transition"
                       >
                         View all results for "{searchQuery}"
                       </Link>
@@ -232,7 +243,7 @@ export const Navbar: React.FC = () => {
               >
                 <Heart className="w-5 h-5" />
                 {wishlist.length > 0 && (
-                  <span className="absolute top-0 right-0 w-4 h-4 bg-rose-500 text-white rounded-full text-[9px] font-black flex items-center justify-center shadow-xs">
+                  <span className="absolute top-0 right-0 w-4 h-4 bg-rose-600 text-white rounded-full text-[9px] font-black flex items-center justify-center shadow-xs">
                     {wishlist.length}
                   </span>
                 )}
@@ -241,12 +252,12 @@ export const Navbar: React.FC = () => {
               {/* Cart Button */}
               <button
                 onClick={() => setIsCartOpen(true)}
-                className="relative h-9 px-3.5 bg-gray-900 hover:bg-emerald-600 text-white rounded-xl font-bold text-xs transition-all flex items-center gap-2 shadow-xs active:scale-95"
+                className="relative h-9 px-3.5 bg-gray-950 hover:bg-rose-600 text-white rounded-xl font-bold text-xs transition-all flex items-center gap-2 shadow-xs active:scale-95"
               >
                 <div className="relative">
                   <ShoppingCart className="w-4 h-4" />
                   {totalItemCount > 0 && (
-                    <span className="absolute -top-2 -right-2 w-3.5 h-3.5 bg-emerald-500 text-white rounded-full text-[8px] font-black flex items-center justify-center">
+                    <span className="absolute -top-2 -right-2 w-3.5 h-3.5 bg-rose-600 text-white rounded-full text-[8px] font-black flex items-center justify-center">
                       {totalItemCount}
                     </span>
                   )}
@@ -258,9 +269,9 @@ export const Navbar: React.FC = () => {
               {isAdmin && (
                 <Link
                   to="/admin"
-                  className="h-9 px-3 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 rounded-xl font-bold text-xs transition flex items-center gap-1.5 border border-emerald-200"
+                  className="h-9 px-3 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded-xl font-bold text-xs transition flex items-center gap-1.5 border border-rose-200/80"
                 >
-                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+                  <ShieldCheck className="w-3.5 h-3.5 text-rose-600" />
                   <span>Admin</span>
                 </Link>
               )}
@@ -279,7 +290,7 @@ export const Navbar: React.FC = () => {
                         className="w-6 h-6 rounded-lg object-cover border border-gray-200"
                       />
                     ) : (
-                      <div className="w-6 h-6 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-[10px]">
+                      <div className="w-6 h-6 rounded-lg bg-rose-100 text-rose-700 flex items-center justify-center font-bold text-[10px]">
                         {user.email?.charAt(0).toUpperCase()}
                       </div>
                     )}
@@ -292,8 +303,8 @@ export const Navbar: React.FC = () => {
                           <Crown className="w-2.5 h-2.5 text-amber-500" /> Master Admin
                         </span>
                       ) : isAdmin ? (
-                        <span className="text-[9px] font-extrabold text-emerald-600 flex items-center gap-0.5 leading-none mt-0.5">
-                          <ShieldCheck className="w-2.5 h-2.5 text-emerald-500" /> Admin
+                        <span className="text-[9px] font-extrabold text-rose-600 flex items-center gap-0.5 leading-none mt-0.5">
+                          <ShieldCheck className="w-2.5 h-2.5 text-rose-500" /> Admin
                         </span>
                       ) : null}
                     </div>
@@ -302,8 +313,8 @@ export const Navbar: React.FC = () => {
 
                   {/* Dropdown Menu */}
                   {isProfileDropdownOpen && (
-                    <div className="absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-2xl border border-gray-100 p-1.5 z-50 animate-slide-up">
-                      <div className="px-3 py-2 border-b border-gray-100 mb-1">
+                    <div className="absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-2xl border border-rose-100 p-1.5 z-50 animate-slide-up">
+                      <div className="px-3 py-2 border-b border-rose-50 mb-1">
                         <p className="text-xs font-bold text-gray-900">{profile?.full_name || 'User'}</p>
                         <p className="text-[10px] text-gray-400 truncate">{user.email}</p>
                       </div>
@@ -312,9 +323,9 @@ export const Navbar: React.FC = () => {
                         <Link
                           to="/admin"
                           onClick={() => setIsProfileDropdownOpen(false)}
-                          className="flex items-center gap-2 px-3 py-2 rounded-xl bg-emerald-50 text-emerald-800 font-bold text-xs hover:bg-emerald-100 transition mb-1"
+                          className="flex items-center gap-2 px-3 py-2 rounded-xl bg-rose-50 text-rose-700 font-bold text-xs hover:bg-rose-100 transition mb-1 border border-rose-200/50"
                         >
-                          <ShieldAlert className="w-4 h-4 text-emerald-600" />
+                          <ShieldAlert className="w-4 h-4 text-rose-600" />
                           <span>Admin Control Panel</span>
                         </Link>
                       )}
@@ -322,16 +333,16 @@ export const Navbar: React.FC = () => {
                       <Link
                         to="/profile"
                         onClick={() => setIsProfileDropdownOpen(false)}
-                        className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium text-gray-700 hover:bg-gray-50 transition"
+                        className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium text-gray-700 hover:bg-rose-50/60 hover:text-rose-700 transition"
                       >
-                        <MapPin className="w-4 h-4 text-emerald-600" />
+                        <MapPin className="w-4 h-4 text-rose-600" />
                         <span>Address Book & Profile</span>
                       </Link>
 
                       <Link
                         to="/orders"
                         onClick={() => setIsProfileDropdownOpen(false)}
-                        className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium text-gray-700 hover:bg-gray-50 transition"
+                        className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium text-gray-700 hover:bg-rose-50/60 hover:text-rose-700 transition"
                       >
                         <Package className="w-4 h-4 text-gray-400" />
                         <span>My Orders</span>
@@ -340,7 +351,7 @@ export const Navbar: React.FC = () => {
                       <Link
                         to="/wishlist"
                         onClick={() => setIsProfileDropdownOpen(false)}
-                        className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium text-gray-700 hover:bg-gray-50 transition"
+                        className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium text-gray-700 hover:bg-rose-50/60 hover:text-rose-700 transition"
                       >
                         <Heart className="w-4 h-4 text-gray-400" />
                         <span>Wishlist</span>
@@ -362,7 +373,7 @@ export const Navbar: React.FC = () => {
               ) : (
                 <button
                   onClick={() => setIsAuthOpen(true)}
-                  className="h-9 flex items-center gap-1.5 px-3.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-xl font-bold text-xs transition active:scale-95"
+                  className="h-9 flex items-center gap-1.5 px-3.5 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded-xl font-bold text-xs transition active:scale-95 border border-rose-200/60"
                 >
                   <User className="w-3.5 h-3.5" />
                   <span>Sign In</span>
@@ -372,12 +383,12 @@ export const Navbar: React.FC = () => {
           </div>
 
           {/* Sleek Category Navigation Strip (Desktop only - Compact h-9) */}
-          <nav className="hidden md:flex items-center justify-between border-t border-gray-100 py-1.5 text-xs text-gray-600 font-medium">
+          <nav className="hidden md:flex items-center justify-between border-t border-rose-100/70 py-1.5 text-xs text-gray-600 font-medium">
             <div className="flex items-center gap-5">
               <div ref={deptRef} className="relative">
                 <button
                   onClick={() => setIsDepartmentMenuOpen(!isDepartmentMenuOpen)}
-                  className="flex items-center gap-1.5 px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition shadow-xs"
+                  className="flex items-center gap-1.5 px-3 py-1 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-xs font-bold transition shadow-xs"
                 >
                   <Grid className="w-3 h-3" />
                   <span>Departments</span>
@@ -385,13 +396,13 @@ export const Navbar: React.FC = () => {
                 </button>
 
                 {isDepartmentMenuOpen && (
-                  <div className="absolute top-full left-0 mt-1.5 w-64 bg-white rounded-2xl shadow-2xl border border-gray-100 p-1.5 z-50 animate-slide-up space-y-0.5">
+                  <div className="absolute top-full left-0 mt-1.5 w-64 bg-white rounded-2xl shadow-2xl border border-rose-100 p-1.5 z-50 animate-slide-up space-y-0.5">
                     {INITIAL_CATEGORIES.map((cat) => (
                       <Link
                         key={cat.slug}
                         to={`/shop?category=${cat.slug}`}
                         onClick={() => setIsDepartmentMenuOpen(false)}
-                        className="flex items-center justify-between px-3 py-2 rounded-xl text-gray-700 hover:bg-emerald-50 hover:text-emerald-800 transition"
+                        className="flex items-center justify-between px-3 py-2 rounded-xl text-gray-700 hover:bg-rose-50 hover:text-rose-800 transition"
                       >
                         <span className="text-xs font-semibold">{cat.name}</span>
                         <ChevronDown className="w-3 h-3 -rotate-90 text-gray-400" />
@@ -401,35 +412,35 @@ export const Navbar: React.FC = () => {
                 )}
               </div>
 
-              <Link to="/shop?category=groceries-daily-essentials" className="hover:text-emerald-600 transition font-semibold">
+              <Link to="/shop?category=groceries-daily-essentials" className="hover:text-rose-600 transition font-semibold">
                 Groceries
               </Link>
-              <Link to="/shop?category=beauty-skincare" className="hover:text-emerald-600 transition font-semibold">
+              <Link to="/shop?category=beauty-skincare" className="hover:text-rose-600 transition font-semibold">
                 Beauty & Skincare
               </Link>
-              <Link to="/shop?category=home-kitchen" className="hover:text-emerald-600 transition font-semibold">
+              <Link to="/shop?category=home-kitchen" className="hover:text-rose-600 transition font-semibold">
                 Home & Kitchen
               </Link>
-              <Link to="/shop?category=mens-fashion" className="hover:text-emerald-600 transition font-semibold">
+              <Link to="/shop?category=mens-fashion" className="hover:text-rose-600 transition font-semibold">
                 Men's Fashion
               </Link>
-              <Link to="/shop?category=womens-fashion" className="hover:text-emerald-600 transition font-semibold">
+              <Link to="/shop?category=womens-fashion" className="hover:text-rose-600 transition font-semibold">
                 Women's Fashion
               </Link>
-              <Link to="/shop?category=footwear-sneakers" className="hover:text-emerald-600 transition font-semibold">
+              <Link to="/shop?category=footwear-sneakers" className="hover:text-rose-600 transition font-semibold">
                 Footwear
               </Link>
-              <Link to="/shop?category=smartphones-tablets" className="hover:text-emerald-600 transition font-semibold">
+              <Link to="/shop?category=smartphones-tablets" className="hover:text-rose-600 transition font-semibold">
                 Phones & Laptops
               </Link>
             </div>
 
             <div className="flex items-center gap-4 text-xs font-semibold">
-              <Link to="/profile" className="text-emerald-700 hover:text-emerald-800 flex items-center gap-1">
+              <Link to="/profile" className="text-rose-700 hover:text-rose-800 flex items-center gap-1">
                 <MapPin className="w-3 h-3" />
                 <span>Address Book</span>
               </Link>
-              <span className="text-gray-300">•</span>
+              <span className="text-rose-200">•</span>
               <Link to="/orders" className="text-gray-500 hover:text-gray-800">
                 Track Order
               </Link>

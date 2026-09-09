@@ -54,7 +54,7 @@ export interface StoreSettings {
 
 export const DEFAULT_BANNERS: BannerSettings = {
   showHeroSection: true,
-  heroBadge: 'PREMIER LIFESTYLE & SHOPPING MARKETPLACE • kintesi.com',
+  heroBadge: 'PREMIER LIFESTYLE & SHOPPING MARKETPLACE',
   heroTitle: 'Everything You Need for',
   heroHighlightText: 'Life, Fashion & Tech',
   heroSubtitle: 'From authentic designer apparel, sneakers & lifestyle essentials to flagship smartphones, home appliances & gadgets — delivered to your doorstep across Bangladesh.',

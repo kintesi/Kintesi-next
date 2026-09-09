@@ -51,12 +51,12 @@ export const AdminDashboard: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-black text-white">Admin Dashboard</h1>
-          <p className="text-xs text-gray-400 mt-1">Live overview of your Kintesi (kintesi.com) e-commerce store</p>
+          <p className="text-xs text-gray-400 mt-1">Live overview of your Kintesi e-commerce store</p>
         </div>
         <div className="flex gap-2">
           <Link
             to="/admin/products"
-            className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl transition shadow"
+            className="px-4 py-2.5 bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold rounded-xl transition shadow"
           >
             + Add New Product
           </Link>

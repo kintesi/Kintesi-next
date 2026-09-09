@@ -5,9 +5,10 @@
 @layer base {
   html {
     font-size: 15px;
+    background-color: #ffffff;
   }
   body {
-    @apply antialiased text-gray-900 bg-gray-50;
+    @apply antialiased text-gray-900 bg-white;
   }
 }
 

@@ -19,7 +19,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   const currentPrice = product.discount_price || product.price;
 
   return (
-    <div className="group bg-white rounded-2xl border border-gray-200/90 hover:border-emerald-500 shadow-sm hover:shadow-md transition-all flex flex-col overflow-hidden relative">
+    <div className="group bg-white rounded-2xl border border-rose-100/80 hover:border-rose-300 shadow-[0_2px_8px_rgba(225,29,72,0.04)] hover:shadow-[0_8px_20px_rgba(225,29,72,0.08)] transition-all flex flex-col overflow-hidden relative">
       
       {/* Floating Badges */}
       <div className="absolute top-2.5 left-2.5 z-10 flex flex-col gap-1 pointer-events-none">
@@ -50,7 +50,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
       {/* Product Image */}
       <Link
         to={`/product/${product.slug || product.id}`}
-        className="block relative aspect-square bg-gray-50 overflow-hidden p-3"
+        className="block relative aspect-square bg-white border-b border-rose-50 overflow-hidden p-3"
       >
         <img
           src={product.images?.[0] || '/logo.webp'}
@@ -66,7 +66,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
         <div className="space-y-1">
           {/* Brand & Rating */}
           <div className="flex items-center justify-between text-[11px] text-gray-400">
-            <span className="uppercase font-bold text-emerald-700 truncate max-w-[100px]">
+            <span className="uppercase font-bold text-rose-700 truncate max-w-[100px]">
               {product.brand || 'Kintesi'}
             </span>
             <div className="flex items-center gap-0.5 text-amber-500 font-bold">
@@ -77,7 +77,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
 
           {/* Title */}
           <Link to={`/product/${product.slug || product.id}`} className="block">
-            <h3 className="font-bold text-gray-900 text-xs sm:text-sm leading-snug line-clamp-2 hover:text-emerald-600 transition">
+            <h3 className="font-bold text-gray-900 text-xs sm:text-sm leading-snug line-clamp-2 hover:text-rose-600 transition">
               {product.title}
             </h3>
           </Link>
@@ -110,9 +110,9 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
         </div>
 
         {/* Price & Add to Cart Footer */}
-        <div className="mt-3 pt-2.5 border-t border-gray-100 flex items-center justify-between gap-1.5">
+        <div className="mt-3 pt-2.5 border-t border-rose-50 flex items-center justify-between gap-1.5">
           <div>
-            <div className="text-emerald-700 font-black text-sm sm:text-base leading-tight">
+            <div className="text-rose-700 font-black text-sm sm:text-base leading-tight">
               {formatPrice(currentPrice)}
             </div>
             {product.discount_price && (
@@ -124,7 +124,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
 
           <button
             onClick={() => addToCart(product, 1)}
-            className="p-2 sm:px-3 sm:py-2 bg-gray-900 hover:bg-emerald-600 text-white rounded-xl font-bold text-xs transition flex items-center gap-1.5 active:scale-95 shadow-sm"
+            className="p-2 sm:px-3 sm:py-2 bg-gray-950 hover:bg-rose-600 text-white rounded-xl font-bold text-xs transition flex items-center gap-1.5 active:scale-95 shadow-xs"
             title="Add to Cart"
           >
             <ShoppingCart className="w-3.5 h-3.5" />
