@@ -22,7 +22,7 @@ export const MobileBottomNav: React.FC = () => {
   return (
     <>
       {/* Sleek, Symmetrical & Ultra-Clean Mobile Bottom Navigation */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-30 bg-white/95 backdrop-blur-md border-t border-gray-200/90 shadow-[0_-4px_25px_rgba(0,0,0,0.08)]">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-30 bg-white border-t border-rose-100 shadow-[0_-4px_25px_rgba(225,29,72,0.04)]">
         <div className="max-w-md mx-auto grid grid-cols-5 items-center h-[62px] px-1 text-center">
           
           {/* 1. Home */}
@@ -30,7 +30,7 @@ export const MobileBottomNav: React.FC = () => {
             to="/"
             onClick={() => setIsCartOpen(false)}
             className={`flex flex-col items-center justify-center h-full py-1 transition ${
-              isActive('/') ? 'text-amber-500 font-bold' : 'text-gray-400 hover:text-gray-700 font-medium'
+              isActive('/') ? 'text-rose-600 font-bold' : 'text-gray-400 hover:text-gray-700 font-medium'
             }`}
           >
             <Home className={`w-5.5 h-5.5 ${isActive('/') ? 'stroke-[2.5]' : 'stroke-[1.8]'}`} />
@@ -42,7 +42,7 @@ export const MobileBottomNav: React.FC = () => {
             to="/shop"
             onClick={() => setIsCartOpen(false)}
             className={`flex flex-col items-center justify-center h-full py-1 transition ${
-              isActive('/shop') ? 'text-amber-500 font-bold' : 'text-gray-400 hover:text-gray-700 font-medium'
+              isActive('/shop') ? 'text-rose-600 font-bold' : 'text-gray-400 hover:text-gray-700 font-medium'
             }`}
           >
             <LayoutGrid className={`w-5.5 h-5.5 ${isActive('/shop') ? 'stroke-[2.5]' : 'stroke-[1.8]'}`} />
@@ -53,14 +53,14 @@ export const MobileBottomNav: React.FC = () => {
           <button
             onClick={() => setIsCartOpen(!isCartOpen)}
             className={`flex flex-col items-center justify-center h-full py-1 transition relative cursor-pointer ${
-              isCartOpen ? 'text-amber-500 font-bold' : 'text-gray-400 hover:text-gray-700 font-medium'
+              isCartOpen ? 'text-rose-600 font-bold' : 'text-gray-400 hover:text-gray-700 font-medium'
             }`}
             aria-label="Shopping Cart"
           >
             <div className="relative">
               <ShoppingBag className={`w-5.5 h-5.5 ${isCartOpen ? 'stroke-[2.5]' : 'stroke-[1.8]'}`} />
               {totalItemCount > 0 && (
-                <span className="absolute -top-1.5 -right-2 bg-rose-500 text-white text-[9px] font-black rounded-full w-4.5 h-4.5 flex items-center justify-center shadow-xs animate-scale-in">
+                <span className="absolute -top-1.5 -right-2 bg-rose-600 text-white text-[9px] font-black rounded-full w-4.5 h-4.5 flex items-center justify-center shadow-xs animate-scale-in">
                   {totalItemCount}
                 </span>
               )}
@@ -73,7 +73,7 @@ export const MobileBottomNav: React.FC = () => {
             to="/wishlist"
             onClick={() => setIsCartOpen(false)}
             className={`flex flex-col items-center justify-center h-full py-1 transition ${
-              isActive('/wishlist') ? 'text-amber-500 font-bold' : 'text-gray-400 hover:text-gray-700 font-medium'
+              isActive('/wishlist') ? 'text-rose-600 font-bold' : 'text-gray-400 hover:text-gray-700 font-medium'
             }`}
           >
             <Heart className={`w-5.5 h-5.5 ${isActive('/wishlist') ? 'stroke-[2.5]' : 'stroke-[1.8]'}`} />
@@ -86,13 +86,13 @@ export const MobileBottomNav: React.FC = () => {
               to="/profile"
               onClick={() => setIsCartOpen(false)}
               className={`flex flex-col items-center justify-center h-full py-1 transition ${
-                isActive('/profile') ? 'text-amber-500 font-bold' : 'text-gray-400 hover:text-gray-700 font-medium'
+                isActive('/profile') ? 'text-rose-600 font-bold' : 'text-gray-400 hover:text-gray-700 font-medium'
               }`}
             >
               <div className="relative">
                 <User className={`w-5.5 h-5.5 ${isActive('/profile') ? 'stroke-[2.5]' : 'stroke-[1.8]'}`} />
                 {isAdmin && (
-                  <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-emerald-500 rounded-full border border-white" />
+                  <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-rose-600 rounded-full border border-white" />
                 )}
               </div>
               <span className="text-[10px] mt-1 tracking-tight font-medium">Profile</span>
@@ -103,7 +103,7 @@ export const MobileBottomNav: React.FC = () => {
                 setIsCartOpen(false);
                 setIsAuthOpen(true);
               }}
-              className="flex flex-col items-center justify-center h-full py-1 text-gray-400 hover:text-amber-500 transition font-medium cursor-pointer"
+              className="flex flex-col items-center justify-center h-full py-1 text-gray-400 hover:text-rose-600 transition font-medium cursor-pointer"
             >
               <User className="w-5.5 h-5.5 stroke-[1.8]" />
               <span className="text-[10px] mt-1 tracking-tight font-medium">Profile</span>

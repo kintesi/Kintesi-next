@@ -60,25 +60,25 @@ export const DEFAULT_BANNERS: BannerSettings = {
   heroSubtitle: 'From authentic designer apparel, sneakers & lifestyle essentials to flagship smartphones, home appliances & gadgets — delivered to your doorstep across Bangladesh.',
   heroPrimaryBtnText: 'Explore Kintesi Catalog',
   heroPrimaryBtnLink: '/shop',
-  heroSecondaryBtnText: 'Fashion Lookbook',
-  heroSecondaryBtnLink: '/shop?category=mens-fashion',
+  heroSecondaryBtnText: 'Browse Categories',
+  heroSecondaryBtnLink: '/shop',
 
-  spotlightBadge: '🔥 Deal of the Day',
-  spotlightTitle: 'Vintage Genuine Leather Biker Jacket',
-  spotlightBrand: 'Kintesi Atelier',
-  spotlightImage: 'https://images.unsplash.com/photo-1551028719-00167b16eac5?q=80&w=1000&auto=format&fit=crop',
-  spotlightPrice: 18500,
-  spotlightDiscountPrice: 14900,
-  spotlightStockText: '18 Left in Stock',
-  spotlightSavingsText: 'Save ৳3,600 Today',
-  spotlightBtnLink: '/product/vintage-genuine-leather-biker-jacket',
-  showSpotlight: true,
+  spotlightBadge: '',
+  spotlightTitle: '',
+  spotlightBrand: '',
+  spotlightImage: '',
+  spotlightPrice: 0,
+  spotlightDiscountPrice: 0,
+  spotlightStockText: '',
+  spotlightSavingsText: '',
+  spotlightBtnLink: '/shop',
+  showSpotlight: false,
 
-  showFlashSale: true,
-  flashSaleTag: '🔥 SUPER FLASH SALE',
-  flashSaleTitle: 'Limited Time Discounts Up to 35%',
-  flashSaleSubtitle: 'Hurry up! Special prices end when the timer reaches zero.',
-  flashSaleHours: 5,
+  showFlashSale: false,
+  flashSaleTag: '',
+  flashSaleTitle: '',
+  flashSaleSubtitle: '',
+  flashSaleHours: 4,
   flashSaleTheme: 'sunset',
 };
 
@@ -119,6 +119,13 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         const mergedBanners = { ...DEFAULT_BANNERS, ...(parsed.banners || {}) };
         if (mergedBanners.heroBadge) {
           mergedBanners.heroBadge = mergedBanners.heroBadge.replace(/•?\s*kintesi\.com/gi, '').trim();
+        }
+        // Strict cleanup: eradicate any legacy fake products/images
+        if (mergedBanners.spotlightTitle?.includes('Leather Biker Jacket') || mergedBanners.spotlightImage?.includes('unsplash')) {
+          mergedBanners.showSpotlight = false;
+          mergedBanners.spotlightTitle = '';
+          mergedBanners.spotlightImage = '';
+          mergedBanners.spotlightBrand = '';
         }
         return {
           ...DEFAULT_SETTINGS,

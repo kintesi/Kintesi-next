@@ -87,7 +87,7 @@ export const Navbar: React.FC = () => {
         <span>⚡ Welcome to Kintesi! Use coupon <strong className="text-amber-300 uppercase font-black">KINTESI10</strong> for 10% OFF + Free Express Delivery</span>
       </div>
 
-      <header className="sticky top-0 z-40 bg-white/98 backdrop-blur-md border-b border-rose-100 shadow-[0_2px_12px_rgba(225,29,72,0.03)]">
+      <header className="sticky top-0 z-40 bg-white border-b border-rose-100 shadow-[0_2px_12px_rgba(225,29,72,0.03)]">
         <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
           
           {/* Mobile Top Bar */}

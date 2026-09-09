@@ -37,10 +37,10 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
           e.stopPropagation();
           toggleWishlist(product);
         }}
-        className={`absolute top-2.5 right-2.5 z-10 p-2 rounded-xl backdrop-blur-sm transition shadow-sm ${
+        className={`absolute top-2.5 right-2.5 z-10 p-2 rounded-xl transition shadow-xs ${
           isWishlisted
             ? 'bg-rose-50 text-rose-600 shadow-rose-600/20'
-            : 'bg-white/80 hover:bg-white text-gray-400 hover:text-rose-500'
+            : 'bg-white hover:bg-rose-50 text-gray-400 hover:text-rose-500 border border-rose-100/60'
         }`}
         title={isWishlisted ? 'Remove from Wishlist' : 'Add to Wishlist'}
       >

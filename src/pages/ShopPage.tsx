@@ -274,7 +274,7 @@ export const ShopPage: React.FC = () => {
                 <button
                   onClick={() => handleCategorySelect('all')}
                   className={`w-full text-left p-2 rounded-lg text-xs font-bold ${
-                    selectedCategory === 'all' ? 'bg-emerald-50 text-emerald-700' : 'text-gray-600'
+                    selectedCategory === 'all' ? 'bg-rose-50 text-rose-700' : 'text-gray-600'
                   }`}
                 >
                   All Categories
@@ -284,7 +284,7 @@ export const ShopPage: React.FC = () => {
                     key={cat.slug || cat.id}
                     onClick={() => handleCategorySelect(cat.slug)}
                     className={`w-full text-left p-2 rounded-lg text-xs font-bold ${
-                      selectedCategory === cat.slug ? 'bg-emerald-50 text-emerald-700' : 'text-gray-600'
+                      selectedCategory === cat.slug ? 'bg-rose-50 text-rose-700' : 'text-gray-600'
                     }`}
                   >
                     {cat.name}
