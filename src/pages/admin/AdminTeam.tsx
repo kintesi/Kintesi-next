@@ -10,12 +10,20 @@ import { toast } from 'sonner';
 export const AdminTeam: React.FC = () => {
   const { user } = useAuth();
   const { settings, updateSettings } = useSettings();
-  const isMasterOwner = user?.email?.toLowerCase().trim() === 'tamim.hasan2005@gmail.com';
+  const isMasterOwner = ['mnage.faisalsheikh@gmail.com', 'tamim.hasan2005@gmail.com'].includes(user?.email?.toLowerCase().trim() || '');
 
   const [admins, setAdmins] = useState<UserProfile[]>([
     {
+      id: 'owner-admin',
+      full_name: 'Faisal Sheikh (Store Owner)',
+      email: 'mnage.faisalsheikh@gmail.com',
+      avatar_url: null,
+      role: 'admin',
+      created_at: new Date().toISOString(),
+    },
+    {
       id: 'master-admin',
-      full_name: 'Tamim Hasan (Owner)',
+      full_name: 'Tamim Hasan (Developer)',
       email: 'tamim.hasan2005@gmail.com',
       avatar_url: null,
       role: 'admin',
@@ -31,8 +39,16 @@ export const AdminTeam: React.FC = () => {
     try {
       let staffList: UserProfile[] = [
         {
+          id: 'owner-admin',
+          full_name: 'Faisal Sheikh (Store Owner)',
+          email: 'mnage.faisalsheikh@gmail.com',
+          avatar_url: null,
+          role: 'admin',
+          created_at: new Date().toISOString(),
+        },
+        {
           id: 'master-admin',
-          full_name: 'Tamim Hasan (Owner)',
+          full_name: 'Tamim Hasan (Developer)',
           email: 'tamim.hasan2005@gmail.com',
           avatar_url: null,
           role: 'admin',
@@ -44,7 +60,7 @@ export const AdminTeam: React.FC = () => {
       try {
         const localEmails: string[] = JSON.parse(localStorage.getItem('kintesi_authorized_admins') || '[]');
         localEmails.forEach((em) => {
-          if (em.toLowerCase() !== 'tamim.hasan2005@gmail.com') {
+          if (!['mnage.faisalsheikh@gmail.com', 'tamim.hasan2005@gmail.com'].includes(em.toLowerCase())) {
             staffList.push({
               id: 'local-' + em,
               full_name: em.split('@')[0],
@@ -124,14 +140,14 @@ export const AdminTeam: React.FC = () => {
   };
 
   const handleRevokeAdmin = async (admin: UserProfile) => {
-    if (admin.email.toLowerCase() === 'tamim.hasan2005@gmail.com') {
+    if (['mnage.faisalsheikh@gmail.com', 'tamim.hasan2005@gmail.com'].includes(admin.email.toLowerCase())) {
       toast.error('Cannot remove master owner admin account');
       return;
     }
 
     if (!confirm(`Are you sure you want to revoke admin privileges from ${admin.email}?`)) return;
 
-    const existingAdmins = settings.authorizedAdmins || ['tamim.hasan2005@gmail.com'];
+    const existingAdmins = settings.authorizedAdmins || ['mnage.faisalsheikh@gmail.com', 'tamim.hasan2005@gmail.com'];
     const updatedList = existingAdmins.filter((e) => e.toLowerCase() !== admin.email.toLowerCase());
     await updateSettings({ authorizedAdmins: updatedList });
 
@@ -158,11 +174,11 @@ export const AdminTeam: React.FC = () => {
           </div>
           <h2 className="text-xl font-bold text-white">Owner Authorization Required</h2>
           <p className="text-xs text-gray-400 leading-relaxed">
-            Only the Store Owner (<b>tamim.hasan2005@gmail.com</b>) has permission to manage and authorize staff admins.
+            Only the Store Owner (<b>mnage.faisalsheikh@gmail.com</b>) has permission to manage and authorize staff admins.
           </p>
           <Link
             to="/admin"
-            className="inline-block py-2.5 px-6 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs transition"
+            className="inline-block py-2.5 px-6 bg-rose-600 hover:bg-rose-500 text-white font-bold rounded-xl text-xs transition"
           >
             Back to Dashboard
           </Link>
@@ -207,16 +223,16 @@ export const AdminTeam: React.FC = () => {
             </thead>
             <tbody className="divide-y divide-gray-700/60 text-gray-200">
               {admins.map((adm) => {
-                const isMaster = adm.email.toLowerCase() === 'tamim.hasan2005@gmail.com';
+                const isMaster = ['mnage.faisalsheikh@gmail.com', 'tamim.hasan2005@gmail.com'].includes(adm.email.toLowerCase());
                 return (
                   <tr key={adm.id || adm.email} className="hover:bg-gray-700/40 transition">
                     <td className="p-4 font-bold text-white flex items-center gap-2.5">
-                      <div className="w-9 h-9 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold">
+                      <div className="w-9 h-9 rounded-xl bg-rose-500/20 text-rose-400 flex items-center justify-center font-bold">
                         {adm.email.charAt(0).toUpperCase()}
                       </div>
                       <div>
                         <p>{adm.full_name || 'Admin User'}</p>
-                        {isMaster && <span className="text-[10px] text-amber-300 font-semibold">Store Owner</span>}
+                        {isMaster && <span className="text-[10px] text-rose-300 font-semibold">{adm.email === 'mnage.faisalsheikh@gmail.com' ? 'Store Owner' : 'Lead Developer'}</span>}
                       </div>
                     </td>
                     <td className="p-4 font-mono text-gray-300">{adm.email}</td>
