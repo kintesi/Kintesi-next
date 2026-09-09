@@ -3,10 +3,17 @@ import { createClient } from '@supabase/supabase-js';
 const rawUrl = import.meta.env.VITE_SUPABASE_URL;
 const rawKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-export const isDatabaseConnected = Boolean(rawUrl && rawKey && !rawUrl.includes('placeholder'));
+const DEFAULT_SUPABASE_URL = 'https://jhewkxwfujkigvbmybry.supabase.co';
+const DEFAULT_SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpoZXdreHdmdWpraWd2Ym15YnJ5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg5MjAyMDYsImV4cCI6MjEwNDQ5NjIwNn0.kDSjx7F7tYhDwbL-LbYANEEuDiQuclKnFp5mwJc6Y0A';
 
-const supabaseUrl = rawUrl || 'https://unconnected-project.supabase.co';
-const supabaseAnonKey = rawKey || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.dummy_key';
+const supabaseUrl = rawUrl || DEFAULT_SUPABASE_URL;
+const supabaseAnonKey = rawKey || DEFAULT_SUPABASE_ANON_KEY;
+
+export const isDatabaseConnected = Boolean(
+  (rawUrl || DEFAULT_SUPABASE_URL) &&
+  !supabaseUrl.includes('unconnected-project') &&
+  !supabaseUrl.includes('placeholder')
+);
 
 export const ADMIN_EMAIL = import.meta.env.VITE_ADMIN_EMAIL || 'manage.kintesi@gmail.com';
 
