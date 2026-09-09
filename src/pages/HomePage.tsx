@@ -56,6 +56,19 @@ const ICON_MAP: Record<string, any> = {
   Dumbbell,
 };
 
+const getFlashThemeClasses = (theme?: string) => {
+  switch (theme) {
+    case 'emerald':
+      return 'from-emerald-700 via-teal-700 to-cyan-800';
+    case 'cyber':
+      return 'from-purple-800 via-indigo-700 to-pink-700';
+    case 'dark':
+      return 'from-gray-950 via-slate-900 to-zinc-900 border border-amber-500/30';
+    default:
+      return 'from-rose-600 via-orange-600 to-amber-500';
+  }
+};
+
 export const HomePage: React.FC = () => {
   const { settings } = useSettings();
   const banners = settings.banners;
@@ -140,7 +153,19 @@ export const HomePage: React.FC = () => {
     return () => window.removeEventListener('kintesi_products_updated', loadData);
   }, []);
 
-  const flashSaleProducts = products.filter((p) => p.discount_price && p.discount_price < p.price);
+  const hasValidSpotlight = Boolean(
+    banners.showSpotlight &&
+    banners.spotlightTitle &&
+    banners.spotlightTitle.trim().length > 0 &&
+    (Number(banners.spotlightPrice) > 0 || Number(banners.spotlightDiscountPrice) > 0)
+  );
+
+  const activeFlashProducts = React.useMemo(() => {
+    // Only real products added by store admin
+    const discounted = products.filter((p) => p.discount_price && p.discount_price < p.price);
+    if (discounted.length > 0) return discounted;
+    return products.slice(0, 4);
+  }, [products]);
 
   const tabFilteredProducts = products.filter((p) => {
     if (activeTab === 'groceries') {
@@ -207,6 +232,54 @@ export const HomePage: React.FC = () => {
           </div>
         )}
 
+        {/* 1b. Mobile Spotlight Promo Card (ONLY when configured by Admin) */}
+        {hasValidSpotlight && (
+          <div className="px-3">
+            <div className="bg-white rounded-2xl p-3 border border-rose-100/90 shadow-2xs flex items-center gap-3">
+              <div className="w-20 h-20 rounded-xl bg-gray-50 border border-gray-100 overflow-hidden flex-shrink-0 relative flex items-center justify-center">
+                {banners.spotlightImage ? (
+                  <img
+                    src={banners.spotlightImage}
+                    alt={banners.spotlightTitle}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full bg-rose-50 flex items-center justify-center text-rose-500">
+                    <Package className="w-6 h-6" />
+                  </div>
+                )}
+                {banners.spotlightSavingsText && (
+                  <span className="absolute bottom-1 left-1 bg-rose-600 text-white text-[8px] font-black px-1.5 py-0.5 rounded shadow">
+                    {banners.spotlightSavingsText}
+                  </span>
+                )}
+              </div>
+              <div className="flex-1 min-w-0 space-y-1">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[9px] font-black text-rose-600 bg-rose-50 px-1.5 py-0.5 rounded uppercase">
+                    {banners.spotlightBadge || 'Deal of the Day'}
+                  </span>
+                  <span className="text-[10px] text-gray-400 truncate">{banners.spotlightBrand || 'Exclusive'}</span>
+                </div>
+                <h4 className="text-xs font-bold text-gray-900 truncate">
+                  {banners.spotlightTitle}
+                </h4>
+                <div className="flex items-center justify-between pt-0.5">
+                  <span className="text-sm font-black text-rose-600">
+                    {formatPrice(banners.spotlightDiscountPrice || banners.spotlightPrice)}
+                  </span>
+                  <Link
+                    to={banners.spotlightBtnLink || '/shop'}
+                    className="px-3 py-1 bg-gray-950 text-white font-bold rounded-lg text-[10px] active:scale-95 shadow-xs"
+                  >
+                    Buy Now
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* 2. Browse by Categories */}
         <div className="px-3 space-y-2.5">
           <div className="flex items-center justify-between">
@@ -246,6 +319,48 @@ export const HomePage: React.FC = () => {
             })}
           </div>
         </div>
+
+        {/* 2b. Mobile Flash Sale Countdown & Deals */}
+        {banners.showFlashSale !== false && (
+          <div className="px-3 space-y-3">
+            <div className={`bg-gradient-to-r ${getFlashThemeClasses(banners.flashSaleTheme)} rounded-2xl p-4 text-white shadow-md space-y-2`}>
+              <div className="flex items-center justify-between">
+                <div className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-white/20 backdrop-blur-md text-[10px] font-black uppercase">
+                  <Flame className="w-3 h-3 fill-white" />
+                  <span>{banners.flashSaleTag || '⚡ FLASH SALE'}</span>
+                </div>
+                {/* Timer */}
+                <div className="flex items-center gap-1 bg-black/40 px-2.5 py-1 rounded-lg border border-white/20 text-[10px] font-mono font-bold">
+                  <Timer className="w-3 h-3 text-amber-300 mr-0.5" />
+                  <span>{String(timeLeft.hours).padStart(2, '0')}h</span>
+                  <span>:</span>
+                  <span>{String(timeLeft.minutes).padStart(2, '0')}m</span>
+                  <span>:</span>
+                  <span className="text-amber-300">{String(timeLeft.seconds).padStart(2, '0')}s</span>
+                </div>
+              </div>
+
+              <div>
+                <h3 className="text-sm font-black">{banners.flashSaleTitle || 'Exclusive 24-Hour Super Deals'}</h3>
+                <p className="text-white/80 text-[10px]">{banners.flashSaleSubtitle || 'Limited stock flash offers with up to 50% discount. Order before time runs out!'}</p>
+              </div>
+            </div>
+
+            {/* Mobile Flash Deals Grid */}
+            {activeFlashProducts.length > 0 ? (
+              <div className="grid grid-cols-2 gap-2.5">
+                {activeFlashProducts.slice(0, 4).map((product) => (
+                  <ProductCard key={product.id} product={product} />
+                ))}
+              </div>
+            ) : (
+              <div className="bg-white rounded-2xl p-4 text-center border border-rose-100 shadow-2xs space-y-1">
+                <p className="text-xs font-bold text-gray-900">Flash Deals Starting Soon</p>
+                <p className="text-[10px] text-gray-400">Add discounted products in admin to showcase them here!</p>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* 3. Trendy Collections Grid */}
         <div className="px-3 space-y-2.5">
@@ -357,40 +472,121 @@ export const HomePage: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Right Column: 4 Authentic Value Prop Pillars (ZERO Fake Products, 100% High-End Credibility) */}
-                  <div className="lg:col-span-5 grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div className="bg-white rounded-2xl p-4 border border-rose-100/90 shadow-2xs hover:border-rose-300 transition space-y-2">
-                      <div className="w-8 h-8 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center border border-rose-100">
-                        <CheckCircle2 className="w-4 h-4" />
-                      </div>
-                      <h4 className="text-xs font-bold text-gray-900">100% Genuine</h4>
-                      <p className="text-[11px] text-gray-500 leading-relaxed">Authentic items sourced directly from verified brands.</p>
-                    </div>
+                  {/* Right Column: Hero Spotlight Promo Product Card (Deal of the Day) */}
+                  {hasValidSpotlight ? (
+                    <div className="lg:col-span-5 relative">
+                      <div className="relative rounded-3xl bg-white border border-rose-100/90 shadow-[0_8px_30px_rgb(0,0,0,0.06)] p-5 sm:p-6 overflow-hidden transition-all duration-300 hover:shadow-xl hover:border-rose-200">
+                        
+                        {/* Top Header with Badges */}
+                        <div className="flex items-center justify-between gap-2 mb-3.5">
+                          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-600 text-white text-[11px] font-black uppercase tracking-wider shadow-xs">
+                            <Flame className="w-3.5 h-3.5 fill-white" />
+                            <span>{banners.spotlightBadge || 'Deal of the Day'}</span>
+                          </div>
+                          <span className="text-[11px] font-bold text-gray-500 bg-gray-100/80 px-2.5 py-0.5 rounded-full">
+                            {banners.spotlightStockText || 'In Stock'}
+                          </span>
+                        </div>
 
-                    <div className="bg-white rounded-2xl p-4 border border-rose-100/90 shadow-2xs hover:border-rose-300 transition space-y-2">
-                      <div className="w-8 h-8 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center border border-rose-100">
-                        <Truck className="w-4 h-4" />
-                      </div>
-                      <h4 className="text-xs font-bold text-gray-900">Express Delivery</h4>
-                      <p className="text-[11px] text-gray-500 leading-relaxed">Swift doorstep courier across all 64 districts in Bangladesh.</p>
-                    </div>
+                        {/* Product Image Stage */}
+                        <div className="relative w-full h-52 sm:h-56 rounded-2xl bg-gradient-to-b from-gray-50 to-rose-50/30 border border-gray-100 overflow-hidden mb-4 group flex items-center justify-center">
+                          {banners.spotlightImage ? (
+                            <img
+                              src={banners.spotlightImage}
+                              alt={banners.spotlightTitle}
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                              loading="lazy"
+                            />
+                          ) : (
+                            <div className="w-full h-full bg-rose-50/50 flex flex-col items-center justify-center text-rose-500">
+                              <Package className="w-10 h-10 mb-1" />
+                              <span className="text-[11px] font-bold">Featured Product</span>
+                            </div>
+                          )}
+                          {banners.spotlightSavingsText && (
+                            <div className="absolute bottom-2.5 left-2.5 bg-gray-950/90 backdrop-blur-md text-amber-300 text-[11px] font-black px-2.5 py-1 rounded-xl shadow-md border border-white/10">
+                              {banners.spotlightSavingsText}
+                            </div>
+                          )}
+                          <span className="absolute top-2.5 right-2.5 bg-white/90 backdrop-blur-md text-gray-900 text-[10px] font-bold px-2 py-0.5 rounded-lg border border-gray-200/80">
+                            {banners.spotlightBrand || 'Exclusive'}
+                          </span>
+                        </div>
 
-                    <div className="bg-white rounded-2xl p-4 border border-rose-100/90 shadow-2xs hover:border-rose-300 transition space-y-2">
-                      <div className="w-8 h-8 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center border border-rose-100">
-                        <ShieldCheck className="w-4 h-4" />
-                      </div>
-                      <h4 className="text-xs font-bold text-gray-900">Cash on Delivery</h4>
-                      <p className="text-[11px] text-gray-500 leading-relaxed">Inspect on arrival. bKash, Nagad & Cards supported.</p>
-                    </div>
+                        {/* Product Info & Action */}
+                        <div className="space-y-3">
+                          <h3 className="text-base sm:text-lg font-black text-gray-950 line-clamp-1 leading-snug">
+                            {banners.spotlightTitle}
+                          </h3>
 
-                    <div className="bg-white rounded-2xl p-4 border border-rose-100/90 shadow-2xs hover:border-rose-300 transition space-y-2">
-                      <div className="w-8 h-8 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center border border-rose-100">
-                        <RotateCcw className="w-4 h-4" />
+                          <div className="flex items-center justify-between pt-1">
+                            <div>
+                              <div className="flex items-baseline gap-2">
+                                <span className="text-xl sm:text-2xl font-black text-rose-600">
+                                  {formatPrice(banners.spotlightDiscountPrice || banners.spotlightPrice)}
+                                </span>
+                                {banners.spotlightPrice &&
+                                  banners.spotlightDiscountPrice &&
+                                  Number(banners.spotlightPrice) > Number(banners.spotlightDiscountPrice) && (
+                                    <span className="text-xs sm:text-sm text-gray-400 line-through font-semibold">
+                                      {formatPrice(banners.spotlightPrice)}
+                                    </span>
+                                  )}
+                              </div>
+                              <span className="text-[10px] text-emerald-600 font-bold flex items-center gap-1 mt-0.5">
+                                <CheckCircle2 className="w-3 h-3" />
+                                <span>Verified Authentic Product</span>
+                              </span>
+                            </div>
+
+                            <Link
+                              to={banners.spotlightBtnLink || '/shop'}
+                              className="px-5 py-2.5 bg-gray-950 hover:bg-rose-600 text-white font-bold rounded-xl text-xs transition-all shadow-sm hover:shadow-md flex items-center gap-1.5 active:scale-95"
+                            >
+                              <span>Buy Now</span>
+                              <ArrowRight className="w-3.5 h-3.5" />
+                            </Link>
+                          </div>
+                        </div>
+
                       </div>
-                      <h4 className="text-xs font-bold text-gray-900">Easy Returns</h4>
-                      <p className="text-[11px] text-gray-500 leading-relaxed">Hassle-free 7-day replacement with doorstep pickup.</p>
                     </div>
-                  </div>
+                  ) : (
+                    /* Authentic Trust Pillars when Spotlight is turned OFF or not yet set */
+                    <div className="lg:col-span-5 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div className="bg-white rounded-2xl p-4 border border-rose-100/90 shadow-2xs hover:border-rose-300 transition space-y-2">
+                        <div className="w-8 h-8 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center border border-rose-100">
+                          <CheckCircle2 className="w-4 h-4" />
+                        </div>
+                        <h4 className="text-xs font-bold text-gray-900">100% Genuine</h4>
+                        <p className="text-[11px] text-gray-500 leading-relaxed">Authentic items sourced directly from verified brands.</p>
+                      </div>
+
+                      <div className="bg-white rounded-2xl p-4 border border-rose-100/90 shadow-2xs hover:border-rose-300 transition space-y-2">
+                        <div className="w-8 h-8 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center border border-rose-100">
+                          <Truck className="w-4 h-4" />
+                        </div>
+                        <h4 className="text-xs font-bold text-gray-900">Express Delivery</h4>
+                        <p className="text-[11px] text-gray-500 leading-relaxed">Swift doorstep courier across all 64 districts in Bangladesh.</p>
+                      </div>
+
+                      <div className="bg-white rounded-2xl p-4 border border-rose-100/90 shadow-2xs hover:border-rose-300 transition space-y-2">
+                        <div className="w-8 h-8 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center border border-rose-100">
+                          <ShieldCheck className="w-4 h-4" />
+                        </div>
+                        <h4 className="text-xs font-bold text-gray-900">Cash on Delivery</h4>
+                        <p className="text-[11px] text-gray-500 leading-relaxed">Inspect on arrival. bKash, Nagad & Cards supported.</p>
+                      </div>
+
+                      <div className="bg-white rounded-2xl p-4 border border-rose-100/90 shadow-2xs hover:border-rose-300 transition space-y-2">
+                        <div className="w-8 h-8 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center border border-rose-100">
+                          <RotateCcw className="w-4 h-4" />
+                        </div>
+                        <h4 className="text-xs font-bold text-gray-900">Easy Returns</h4>
+                        <p className="text-[11px] text-gray-500 leading-relaxed">Hassle-free 7-day replacement with doorstep pickup.</p>
+                      </div>
+                    </div>
+                  )}
 
                 </div>
               </div>
@@ -399,19 +595,19 @@ export const HomePage: React.FC = () => {
         )}
 
         {/* 3. Desktop Flash Sale */}
-        {banners.showFlashSale && flashSaleProducts.length > 0 && (
+        {banners.showFlashSale !== false && (
           <section className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="bg-gradient-to-r from-rose-600 via-orange-600 to-amber-500 rounded-3xl p-8 text-white mb-6 shadow-lg flex items-center justify-between">
+            <div className={`bg-gradient-to-r ${getFlashThemeClasses(banners.flashSaleTheme)} rounded-3xl p-8 text-white mb-6 shadow-lg flex items-center justify-between`}>
               <div className="space-y-1">
-                <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-white/20 rounded-full text-xs font-black uppercase tracking-wider">
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-white/20 backdrop-blur-md rounded-full text-xs font-black uppercase tracking-wider">
                   <Flame className="w-3.5 h-3.5 fill-white" />
-                  <span>{banners.flashSaleTag}</span>
+                  <span>{banners.flashSaleTag || '⚡ FLASH SALE'}</span>
                 </div>
-                <h3 className="text-3xl font-black">{banners.flashSaleTitle}</h3>
-                <p className="text-white/80 text-xs">{banners.flashSaleSubtitle}</p>
+                <h3 className="text-3xl font-black">{banners.flashSaleTitle || 'Exclusive 24-Hour Super Deals'}</h3>
+                <p className="text-white/80 text-xs">{banners.flashSaleSubtitle || 'Limited stock flash offers with up to 50% discount. Order before time runs out!'}</p>
               </div>
 
-              <div className="flex items-center gap-2 bg-black/40 p-2.5 rounded-2xl border border-white/20">
+              <div className="flex items-center gap-2 bg-black/40 p-2.5 rounded-2xl border border-white/20 backdrop-blur-md">
                 <Timer className="w-5 h-5 text-amber-300" />
                 <div className="text-center bg-white/10 px-3 py-1 rounded-lg min-w-12">
                   <span className="text-base font-black font-mono block leading-none">{String(timeLeft.hours).padStart(2, '0')}</span>
@@ -430,11 +626,30 @@ export const HomePage: React.FC = () => {
               </div>
             </div>
 
-            <div className="grid grid-cols-4 gap-6">
-              {flashSaleProducts.slice(0, 4).map((product) => (
-                <ProductCard key={product.id} product={product} />
-              ))}
-            </div>
+            {activeFlashProducts.length > 0 ? (
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                {activeFlashProducts.slice(0, 4).map((product) => (
+                  <ProductCard key={product.id} product={product} />
+                ))}
+              </div>
+            ) : (
+              <div className="bg-white rounded-3xl p-8 text-center border border-rose-100 shadow-xs space-y-3">
+                <div className="w-12 h-12 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center mx-auto border border-rose-100">
+                  <Flame className="w-6 h-6" />
+                </div>
+                <h4 className="text-base font-bold text-gray-900">Flash Deals Starting Soon</h4>
+                <p className="text-xs text-gray-500 max-w-md mx-auto">
+                  Limited-time flash discounts are currently being updated. Check back soon or browse our catalog!
+                </p>
+                <Link
+                  to="/shop"
+                  className="inline-flex items-center gap-1.5 px-5 py-2.5 bg-rose-600 text-white font-bold rounded-xl text-xs hover:bg-rose-700 transition shadow-xs"
+                >
+                  <span>Explore Shop</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </Link>
+              </div>
+            )}
           </section>
         )}
 

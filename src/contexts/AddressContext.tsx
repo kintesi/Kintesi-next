@@ -40,27 +40,26 @@ export const AddressProvider: React.FC<{ children: React.ReactNode }> = ({ child
           }
         }
 
-        // Fallback local storage
+        // Fallback local storage (strictly real customer addresses only, zero mock data)
         if (loaded.length === 0) {
           const key = user ? `kintesi_addresses_${user.id}` : 'kintesi_guest_addresses';
           const saved = localStorage.getItem(key);
           if (saved) {
-            loaded = JSON.parse(saved);
-          } else if (user) {
-            // Seed a starter default address based on user profile if empty
-            loaded = [
-              {
-                id: 'addr-' + Date.now(),
-                user_id: user.id,
-                label: 'Home',
-                recipient_name: user.user_metadata?.full_name || 'Customer',
-                phone: '01800123456',
-                street_address: 'House 14, Road 5, Block C, Uttara',
-                city: 'Dhaka',
-                postal_code: '1230',
-                is_default: true,
-              },
-            ];
+            try {
+              const parsed: Address[] = JSON.parse(saved);
+              // Clean out any legacy mock demo addresses
+              loaded = parsed.filter(
+                (a) =>
+                  a &&
+                  !a.phone?.includes('01800123456') &&
+                  !a.street_address?.includes('House 14, Road 5')
+              );
+              if (loaded.length !== parsed.length) {
+                localStorage.setItem(key, JSON.stringify(loaded));
+              }
+            } catch {
+              loaded = [];
+            }
           }
         }
 

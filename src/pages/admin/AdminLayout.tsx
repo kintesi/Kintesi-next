@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { isAdminUser } from '../../lib/supabase';
@@ -15,11 +15,42 @@ import {
   ShieldCheck,
   MessageCircle,
   Tag,
+  Menu,
+  X,
+  PanelLeftClose,
+  PanelLeftOpen,
 } from 'lucide-react';
 
 export const AdminLayout: React.FC = () => {
   const { user, isAdmin, isLoading, signOut } = useAuth();
   const location = useLocation();
+
+  // Desktop sidebar collapse state with localStorage persistence
+  const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(() => {
+    try {
+      const saved = localStorage.getItem('kintesi_admin_sidebar_open');
+      return saved !== null ? saved === 'true' : true;
+    } catch {
+      return true;
+    }
+  });
+
+  // Mobile drawer state
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  // Close mobile drawer on route navigation
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [location.pathname]);
+
+  // Persist desktop sidebar state
+  const toggleDesktopSidebar = () => {
+    setIsSidebarOpen((prev) => {
+      const next = !prev;
+      localStorage.setItem('kintesi_admin_sidebar_open', String(next));
+      return next;
+    });
+  };
 
   if (isLoading) {
     return (
@@ -69,76 +100,201 @@ export const AdminLayout: React.FC = () => {
 
   const isChat = location.pathname === '/admin/chat';
 
-  return (
-    <div className={`bg-gray-900 text-gray-100 flex flex-col md:flex-row ${isChat ? 'h-screen max-h-screen overflow-hidden' : 'min-h-screen'}`}>
-      
-      {/* Sidebar */}
-      <aside className={`w-full md:w-64 bg-gray-950 border-r border-gray-800 flex flex-col flex-shrink-0 ${isChat ? 'h-screen max-h-screen' : ''}`}>
-        
-        {/* Brand */}
-        <div className="p-6 border-b border-gray-800 flex items-center gap-3">
-          <div className="w-10 h-10 rounded-2xl bg-white p-1 flex items-center justify-center shadow">
+  // Reusable navigation content for desktop & mobile
+  const sidebarContent = (
+    <div className="flex flex-col h-full bg-gray-950">
+      {/* Brand & Toggle Button */}
+      <div className="p-5 border-b border-gray-800 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-2xl bg-white p-1 flex items-center justify-center shadow">
             <img src="/logo.png" alt="Kintesi" className="w-full h-full object-contain" />
           </div>
           <div>
-            <h1 className="font-black text-white text-base leading-tight">Kintesi Admin</h1>
+            <h1 className="font-black text-white text-sm leading-tight">Kintesi Admin</h1>
             <span className="text-[10px] bg-rose-500/20 text-rose-400 font-bold px-2 py-0.5 rounded-full">
               {isMasterOwner ? 'Master Admin' : 'Admin'}
             </span>
           </div>
         </div>
 
-        {/* Nav list */}
-        <nav className="p-4 space-y-1.5 flex-1">
-          {navItems.map((item) => {
-            const isActive = location.pathname === item.path;
-            const Icon = item.icon;
-            return (
-              <Link
-                key={item.path}
-                to={item.path}
-                className={`flex items-center gap-3 px-4 py-3 rounded-2xl text-xs font-bold transition ${
-                  isActive
-                    ? 'bg-rose-600 text-white shadow-lg shadow-rose-600/30'
-                    : 'text-gray-400 hover:text-white hover:bg-gray-800/60'
-                }`}
-              >
-                <Icon className="w-4 h-4" />
-                <span>{item.name}</span>
-              </Link>
-            );
-          })}
-        </nav>
+        {/* Desktop collapse button */}
+        <button
+          onClick={toggleDesktopSidebar}
+          className="hidden md:flex p-1.5 rounded-xl text-gray-400 hover:text-white hover:bg-gray-800 transition"
+          title="Hide Sidebar"
+          aria-label="Hide Sidebar"
+        >
+          <PanelLeftClose className="w-5 h-5 text-gray-400 hover:text-rose-400 transition" />
+        </button>
 
-        {/* User footer & Back to store */}
-        <div className="p-4 border-t border-gray-800 space-y-2">
-          <Link
-            to="/"
-            className="flex items-center gap-2.5 px-4 py-2.5 rounded-xl bg-gray-800 hover:bg-gray-700 text-gray-200 text-xs font-semibold transition"
-          >
-            <Store className="w-4 h-4 text-rose-400" />
-            <span>Back to Storefront</span>
-          </Link>
+        {/* Mobile close button */}
+        <button
+          onClick={() => setIsMobileMenuOpen(false)}
+          className="md:hidden p-1.5 rounded-xl text-gray-400 hover:text-white hover:bg-gray-800 transition"
+          aria-label="Close menu"
+        >
+          <X className="w-5 h-5" />
+        </button>
+      </div>
+
+      {/* Nav list */}
+      <nav className="p-3 space-y-1.5 flex-1 overflow-y-auto">
+        {navItems.map((item) => {
+          const isActive = location.pathname === item.path;
+          const Icon = item.icon;
+          return (
+            <Link
+              key={item.path}
+              to={item.path}
+              onClick={() => setIsMobileMenuOpen(false)}
+              className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold transition ${
+                isActive
+                  ? 'bg-rose-600 text-white shadow-lg shadow-rose-600/30'
+                  : 'text-gray-400 hover:text-white hover:bg-gray-800/60'
+              }`}
+            >
+              <Icon className="w-4 h-4 flex-shrink-0" />
+              <span>{item.name}</span>
+            </Link>
+          );
+        })}
+      </nav>
+
+      {/* User footer & Back to store */}
+      <div className="p-3 border-t border-gray-800 space-y-1.5">
+        <Link
+          to="/"
+          className="flex items-center gap-2.5 px-3.5 py-2 rounded-xl bg-gray-800/80 hover:bg-gray-700 text-gray-200 text-xs font-semibold transition"
+        >
+          <Store className="w-4 h-4 text-rose-400 flex-shrink-0" />
+          <span>Back to Storefront</span>
+        </Link>
+        <button
+          onClick={signOut}
+          className="w-full flex items-center gap-2.5 px-3.5 py-2 rounded-xl hover:bg-rose-950/40 text-rose-400 text-xs font-semibold transition"
+        >
+          <LogOut className="w-4 h-4 flex-shrink-0" />
+          <span>Sign Out</span>
+        </button>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className={`bg-gray-900 text-gray-100 flex flex-col md:flex-row ${isChat ? 'h-screen max-h-screen overflow-hidden' : 'min-h-screen'}`}>
+      
+      {/* Mobile Top Sticky Bar with Burger Button */}
+      <header className="md:hidden sticky top-0 z-30 bg-gray-950 border-b border-gray-800 px-4 py-3 flex items-center justify-between">
+        <div className="flex items-center gap-3">
           <button
-            onClick={signOut}
-            className="w-full flex items-center gap-2.5 px-4 py-2.5 rounded-xl hover:bg-rose-950/40 text-rose-400 text-xs font-semibold transition"
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            className="p-2 rounded-xl bg-gray-900 border border-gray-800 text-gray-300 hover:text-white hover:bg-gray-800 transition active:scale-95"
+            aria-label="Toggle navigation menu"
+            title="Open navigation menu"
           >
-            <LogOut className="w-4 h-4" />
-            <span>Sign Out</span>
+            {isMobileMenuOpen ? <X className="w-5 h-5 text-rose-400" /> : <Menu className="w-5 h-5 text-rose-400" />}
           </button>
+          <div className="flex items-center gap-2">
+            <div className="w-7 h-7 rounded-lg bg-white p-0.5 flex items-center justify-center">
+              <img src="/logo.png" alt="Kintesi" className="w-full h-full object-contain" />
+            </div>
+            <span className="font-black text-white text-sm">Kintesi Admin</span>
+          </div>
+        </div>
+
+        <Link
+          to="/"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 text-gray-200 text-[11px] font-semibold hover:bg-gray-700 transition"
+        >
+          <Store className="w-3.5 h-3.5 text-rose-400" />
+          <span>Store</span>
+        </Link>
+      </header>
+
+      {/* Mobile Backdrop Overlay */}
+      {isMobileMenuOpen && (
+        <div
+          className="md:hidden fixed inset-0 z-40 bg-black/70 backdrop-blur-xs transition-opacity"
+          onClick={() => setIsMobileMenuOpen(false)}
+        />
+      )}
+
+      {/* Mobile Drawer (Slide-in) */}
+      <aside
+        className={`md:hidden fixed inset-y-0 left-0 z-50 w-72 bg-gray-950 border-r border-gray-800 shadow-2xl transform transition-transform duration-200 ease-in-out ${
+          isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}
+      >
+        {sidebarContent}
+      </aside>
+
+      {/* Desktop Sidebar (Collapsible with width transition) */}
+      <aside
+        className={`hidden md:flex flex-col flex-shrink-0 bg-gray-950 border-r border-gray-800 transition-all duration-250 ease-in-out ${
+          isSidebarOpen ? 'w-64 opacity-100' : 'w-0 opacity-0 border-r-0 overflow-hidden'
+        } ${isChat ? 'h-screen max-h-screen' : ''}`}
+      >
+        <div className="w-64 h-full">
+          {sidebarContent}
         </div>
       </aside>
 
       {/* Main Content Area */}
-      <main
-        className={`flex-1 bg-gray-900 ${
-          location.pathname === '/admin/chat'
-            ? 'p-0 h-screen overflow-hidden flex flex-col'
-            : 'overflow-y-auto p-6 sm:p-10'
-        }`}
-      >
-        <Outlet />
-      </main>
+      <div className="flex-1 flex flex-col min-w-0">
+        
+        {/* Desktop Top Header Bar with Burger Toggle */}
+        <div className="hidden md:flex items-center justify-between px-6 py-2.5 bg-gray-950/70 border-b border-gray-800 backdrop-blur-md sticky top-0 z-20">
+          <div className="flex items-center gap-3">
+            {/* Burger toggle button to hide / unhide sidebar */}
+            <button
+              onClick={toggleDesktopSidebar}
+              className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-gray-900 hover:bg-gray-800 text-gray-300 hover:text-white text-xs font-bold border border-gray-800 hover:border-gray-700 transition active:scale-95 shadow-xs"
+              title={isSidebarOpen ? 'Hide sidebar menu' : 'Unhide sidebar menu'}
+              aria-label={isSidebarOpen ? 'Hide sidebar menu' : 'Unhide sidebar menu'}
+            >
+              {isSidebarOpen ? (
+                <>
+                  <PanelLeftClose className="w-4 h-4 text-rose-400" />
+                  <span>Hide Sidebar</span>
+                </>
+              ) : (
+                <>
+                  <Menu className="w-4 h-4 text-rose-400" />
+                  <span>Show Sidebar</span>
+                </>
+              )}
+            </button>
+
+            <span className="text-xs text-gray-400 font-medium">
+              {navItems.find((item) => item.path === location.pathname)?.name || 'Admin Console'}
+            </span>
+          </div>
+
+          <div className="flex items-center gap-3 text-xs text-gray-400">
+            <Link
+              to="/"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gray-900 hover:bg-gray-800 border border-gray-800 text-gray-300 hover:text-white transition font-medium"
+            >
+              <Store className="w-3.5 h-3.5 text-rose-400" />
+              <span>View Storefront</span>
+            </Link>
+            <span className="text-gray-700">|</span>
+            <span className="font-semibold text-gray-300">{user?.email}</span>
+          </div>
+        </div>
+
+        <main
+          className={`flex-1 bg-gray-900 ${
+            isChat
+              ? 'p-0 h-[calc(100vh-45px)] overflow-hidden flex flex-col'
+              : 'overflow-y-auto p-4 sm:p-6 lg:p-8'
+          }`}
+        >
+          <div className="w-full max-w-[1750px] mx-auto">
+            <Outlet />
+          </div>
+        </main>
+      </div>
 
     </div>
   );

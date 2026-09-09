@@ -7,6 +7,9 @@ export interface BannerSettings {
   showTopAnnouncement?: boolean;
   topAnnouncementText?: string;
   isCustomAnnouncement?: boolean;
+  announcementText?: string;
+  showAnnouncementBar?: boolean;
+  enable7DayNewUserOffer?: boolean;
 
   // Hero Section
   showHeroSection: boolean;
@@ -83,11 +86,11 @@ export const DEFAULT_BANNERS: BannerSettings = {
   spotlightBtnLink: '/shop',
   showSpotlight: false,
 
-  showFlashSale: false,
-  flashSaleTag: '',
-  flashSaleTitle: '',
-  flashSaleSubtitle: '',
-  flashSaleHours: 4,
+  showFlashSale: true,
+  flashSaleTag: '⚡ FLASH SALE',
+  flashSaleTitle: 'Exclusive 24-Hour Super Deals',
+  flashSaleSubtitle: 'Limited stock flash offers with up to 50% discount. Order before time runs out!',
+  flashSaleHours: 6,
   flashSaleTheme: 'sunset',
 };
 

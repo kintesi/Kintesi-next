@@ -39,14 +39,14 @@ export const ProfilePage: React.FC = () => {
   const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
   const [editingAddress, setEditingAddress] = useState<Address | null>(null);
 
-  // Address form state
+  // Address form state (starts completely clean)
   const [addressForm, setAddressForm] = useState({
     label: 'Home',
-    recipient_name: profile?.full_name || '',
-    phone: profile?.phone || '',
+    recipient_name: '',
+    phone: '',
     street_address: '',
     city: 'Dhaka',
-    thana: 'Uttara',
+    thana: '',
     customThana: '',
     isCustomThana: false,
     postal_code: '',
@@ -57,11 +57,11 @@ export const ProfilePage: React.FC = () => {
     setEditingAddress(null);
     setAddressForm({
       label: 'Home',
-      recipient_name: profile?.full_name || user?.user_metadata?.full_name || '',
-      phone: profile?.phone || '',
+      recipient_name: '',
+      phone: '',
       street_address: '',
       city: 'Dhaka',
-      thana: 'Uttara',
+      thana: '',
       customThana: '',
       isCustomThana: false,
       postal_code: '',
@@ -415,7 +415,7 @@ export const ProfilePage: React.FC = () => {
                     required
                     value={addressForm.recipient_name}
                     onChange={(e) => setAddressForm({ ...addressForm, recipient_name: e.target.value })}
-                    placeholder="Full name"
+                    placeholder="e.g. Tanvir Ahmed"
                     className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl font-medium focus:ring-2 focus:ring-emerald-500 focus:bg-white transition"
                   />
                 </div>
@@ -429,7 +429,7 @@ export const ProfilePage: React.FC = () => {
                     required
                     value={addressForm.phone}
                     onChange={(e) => setAddressForm({ ...addressForm, phone: e.target.value })}
-                    placeholder="01XXXXXXXXX"
+                    placeholder="e.g. 01700000000"
                     className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl font-medium focus:ring-2 focus:ring-emerald-500 focus:bg-white transition"
                   />
                 </div>
@@ -445,7 +445,7 @@ export const ProfilePage: React.FC = () => {
                   required
                   value={addressForm.street_address}
                   onChange={(e) => setAddressForm({ ...addressForm, street_address: e.target.value })}
-                  placeholder="House 12, Road 4, Sector 7, Area name"
+                  placeholder="e.g. House 12, Road 4, Sector 7, Area name"
                   className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl font-medium focus:ring-2 focus:ring-emerald-500 focus:bg-white transition"
                 />
               </div>

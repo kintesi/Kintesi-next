@@ -47,12 +47,12 @@ export const CheckoutPage: React.FC = () => {
   const [isAuthOpen, setIsAuthOpen] = useState(false);
 
   // Form State
-  const [name, setName] = useState(profile?.full_name || defaultAddress?.recipient_name || '');
-  const [phone, setPhone] = useState(profile?.phone || defaultAddress?.phone || '');
+  const [name, setName] = useState(defaultAddress?.recipient_name || '');
+  const [phone, setPhone] = useState(defaultAddress?.phone || '');
   const [email, setEmail] = useState(user?.email || '');
   const [address, setAddress] = useState(defaultAddress?.street_address || '');
   const [city, setCity] = useState(defaultAddress?.city || 'Dhaka');
-  const [thana, setThana] = useState('Uttara');
+  const [thana, setThana] = useState('');
   const [customThana, setCustomThana] = useState('');
   const [isCustomThana, setIsCustomThana] = useState(false);
   const [postalCode, setPostalCode] = useState(defaultAddress?.postal_code || '');
@@ -422,7 +422,7 @@ export const CheckoutPage: React.FC = () => {
                       required
                       value={name}
                       onChange={(e) => setName(e.target.value)}
-                      placeholder="e.g. Faisal Sheikh"
+                      placeholder="e.g. Tanvir Ahmed"
                       className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-xs focus:ring-2 focus:ring-emerald-500"
                     />
                   </div>
@@ -439,7 +439,7 @@ export const CheckoutPage: React.FC = () => {
                       required
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
-                      placeholder="01XXXXXXXXX"
+                      placeholder="e.g. 01700000000"
                       className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-xs focus:ring-2 focus:ring-emerald-500"
                     />
                   </div>
@@ -456,7 +456,7 @@ export const CheckoutPage: React.FC = () => {
                       required
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      placeholder="your.email@gmail.com"
+                      placeholder="e.g. customer@gmail.com"
                       className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-xs focus:ring-2 focus:ring-emerald-500"
                     />
                   </div>
@@ -471,7 +471,7 @@ export const CheckoutPage: React.FC = () => {
                     required
                     value={address}
                     onChange={(e) => setAddress(e.target.value)}
-                    placeholder="House 12, Road 4, Sector 7, Uttara"
+                    placeholder="e.g. House 12, Road 4, Sector 7, Area name"
                     className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-xs focus:ring-2 focus:ring-emerald-500"
                   />
                 </div>
