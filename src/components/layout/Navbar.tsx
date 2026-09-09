@@ -171,15 +171,12 @@ export const Navbar: React.FC = () => {
           {/* Mobile Top Bar */}
           <div className="md:hidden py-2 space-y-2">
             <div className="flex items-center justify-between gap-2">
-              <Link to="/" className="flex items-center gap-2 flex-shrink-0 group">
+              <Link to="/" className="flex items-center flex-shrink-0 group">
                 <img 
-                  src="/logo.png" 
+                  src="/navbar-logo.png" 
                   alt="Kintesi" 
-                  className="h-8 w-auto max-w-[32px] object-contain transition-transform group-hover:scale-105" 
+                  className="h-7 w-auto max-w-[140px] object-contain transition-transform group-hover:scale-105" 
                 />
-                <span className="text-lg font-black tracking-tight text-gray-950">
-                  Kin<span className="text-rose-600">tesi</span>
-                </span>
               </Link>
 
               <div className="flex items-center gap-2">
@@ -224,25 +221,12 @@ export const Navbar: React.FC = () => {
           <div className="hidden md:flex items-center justify-between h-16 gap-6">
             
             {/* Logo Seamlessly Blended */}
-            <Link to="/" className="flex items-center gap-3 group flex-shrink-0">
-              <div className="relative flex items-center justify-center">
-                <img 
-                  src="/logo.png" 
-                  alt="Kintesi" 
-                  className="h-10 w-auto max-w-[42px] object-contain transition-transform duration-300 group-hover:scale-105 drop-shadow-xs" 
-                />
-              </div>
-              <div className="flex flex-col">
-                <div className="flex items-baseline">
-                  <span className="text-2xl font-black tracking-tight text-gray-950 leading-none">
-                    Kin<span className="text-rose-600">tesi</span>
-                  </span>
-                  <span className="inline-block w-1.5 h-1.5 rounded-full bg-rose-600 ml-0.5 mb-0.5"></span>
-                </div>
-                <span className="text-[10px] text-gray-400 font-semibold tracking-wider uppercase mt-0.5">
-                  Online Marketplace
-                </span>
-              </div>
+            <Link to="/" className="flex items-center group flex-shrink-0 py-1">
+              <img 
+                src="/navbar-logo.png" 
+                alt="Kintesi" 
+                className="h-9 w-auto max-w-[170px] object-contain transition-transform duration-300 group-hover:scale-105 drop-shadow-xs" 
+              />
             </Link>
 
             {/* Search Bar - Sleek & Balanced */}
