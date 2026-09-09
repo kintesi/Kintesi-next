@@ -1,0 +1,138 @@
+import React from 'react';
+import { Product } from '../../types';
+import { useCart } from '../../contexts/CartContext';
+import { useWishlist } from '../../contexts/WishlistContext';
+import { formatPrice, calculateDiscount } from '../../lib/utils';
+import { ShoppingCart, Heart, Star } from 'lucide-react';
+import { Link } from 'react-router-dom';
+
+interface ProductCardProps {
+  product: Product;
+}
+
+export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
+  const { addToCart } = useCart();
+  const { toggleWishlist, isInWishlist } = useWishlist();
+
+  const discountPercent = calculateDiscount(product.price, product.discount_price);
+  const isWishlisted = isInWishlist(product.id);
+  const currentPrice = product.discount_price || product.price;
+
+  return (
+    <div className="group bg-white rounded-2xl border border-gray-200/90 hover:border-emerald-500 shadow-sm hover:shadow-md transition-all flex flex-col overflow-hidden relative">
+      
+      {/* Floating Badges */}
+      <div className="absolute top-2.5 left-2.5 z-10 flex flex-col gap-1 pointer-events-none">
+        {discountPercent > 0 && (
+          <span className="px-2 py-0.5 bg-rose-600 text-white text-[10px] font-black rounded-md uppercase tracking-wider shadow-sm">
+            {discountPercent}% OFF
+          </span>
+        )}
+      </div>
+
+      {/* Wishlist Button */}
+      <button
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          toggleWishlist(product);
+        }}
+        className={`absolute top-2.5 right-2.5 z-10 p-2 rounded-xl backdrop-blur-sm transition shadow-sm ${
+          isWishlisted
+            ? 'bg-rose-50 text-rose-600 shadow-rose-600/20'
+            : 'bg-white/80 hover:bg-white text-gray-400 hover:text-rose-500'
+        }`}
+        title={isWishlisted ? 'Remove from Wishlist' : 'Add to Wishlist'}
+      >
+        <Heart className={`w-3.5 h-3.5 ${isWishlisted ? 'fill-rose-500' : ''}`} />
+      </button>
+
+      {/* Product Image */}
+      <Link
+        to={`/product/${product.slug || product.id}`}
+        className="block relative aspect-square bg-gray-50 overflow-hidden p-3"
+      >
+        <img
+          src={product.images?.[0] || '/logo.webp'}
+          alt={product.title}
+          className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
+          loading="lazy"
+        />
+      </Link>
+
+      {/* Card Body */}
+      <div className="p-3 sm:p-4 flex flex-col flex-1 bg-white justify-between">
+        
+        <div className="space-y-1">
+          {/* Brand & Rating */}
+          <div className="flex items-center justify-between text-[11px] text-gray-400">
+            <span className="uppercase font-bold text-emerald-700 truncate max-w-[100px]">
+              {product.brand || 'Cart Fly'}
+            </span>
+            <div className="flex items-center gap-0.5 text-amber-500 font-bold">
+              <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+              <span>{product.rating || 5.0}</span>
+            </div>
+          </div>
+
+          {/* Title */}
+          <Link to={`/product/${product.slug || product.id}`} className="block">
+            <h3 className="font-bold text-gray-900 text-xs sm:text-sm leading-snug line-clamp-2 hover:text-emerald-600 transition">
+              {product.title}
+            </h3>
+          </Link>
+
+          {/* Color & Size Variant Hints */}
+          {( (product.colors && product.colors.length > 0) || (product.sizes && product.sizes.length > 0) ) && (
+            <div className="flex items-center justify-between pt-1 text-[10px] text-gray-400">
+              {product.colors && product.colors.length > 0 && (
+                <div className="flex items-center gap-1">
+                  {product.colors.slice(0, 3).map((c, i) => (
+                    <span
+                      key={i}
+                      className="w-2.5 h-2.5 rounded-full border border-gray-300 shadow-xs"
+                      style={{ backgroundColor: c.hex }}
+                      title={c.name}
+                    />
+                  ))}
+                  {product.colors.length > 3 && (
+                    <span className="text-[9px] text-gray-400 font-bold">+{product.colors.length - 3}</span>
+                  )}
+                </div>
+              )}
+              {product.sizes && product.sizes.length > 0 && (
+                <span className="bg-gray-100 px-1.5 py-0.5 rounded text-[9px] font-bold text-gray-600 truncate max-w-[80px]">
+                  {product.sizes[0]}{product.sizes.length > 1 ? ` +${product.sizes.length - 1}` : ''}
+                </span>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Price & Add to Cart Footer */}
+        <div className="mt-3 pt-2.5 border-t border-gray-100 flex items-center justify-between gap-1.5">
+          <div>
+            <div className="text-emerald-700 font-black text-sm sm:text-base leading-tight">
+              {formatPrice(currentPrice)}
+            </div>
+            {product.discount_price && (
+              <div className="text-gray-400 line-through text-[10px] font-semibold">
+                {formatPrice(product.price)}
+              </div>
+            )}
+          </div>
+
+          <button
+            onClick={() => addToCart(product, 1)}
+            className="p-2 sm:px-3 sm:py-2 bg-gray-900 hover:bg-emerald-600 text-white rounded-xl font-bold text-xs transition flex items-center gap-1.5 active:scale-95 shadow-sm"
+            title="Add to Cart"
+          >
+            <ShoppingCart className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Add</span>
+          </button>
+        </div>
+      </div>
+
+    </div>
+  );
+};
