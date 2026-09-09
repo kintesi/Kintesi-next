@@ -85,7 +85,14 @@ export const Navbar: React.FC = () => {
   }, [settings?.banners?.showTopAnnouncement, settings?.banners?.isCustomAnnouncement]);
 
   const renderAnnouncementText = (text?: string) => {
-    const raw = text || '⚡ Welcome to Kintesi! Use coupon KINTESI10 for 10% OFF + Free Express Delivery';
+    let raw = (text || '⚡ Welcome to Kintesi! Use coupon KINTESI10 for 10% OFF')
+      .replace(/\s*[\+\&]?\s*Free\s+Express\s+Delivery/gi, '')
+      .replace(/\s*Free\s+Express\s+Delivery/gi, '')
+      .replace(/\s*[\+\&]?\s*Express\s+Delivery/gi, '')
+      .trim();
+    if (!raw) {
+      raw = '⚡ Welcome to Kintesi! Use coupon KINTESI10 for 10% OFF';
+    }
     if (raw.includes('**')) {
       const parts = raw.split(/(\*\*.*?\*\*)/g);
       return parts.map((part, index) => {

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useSettings, BannerSettings, DEFAULT_BANNERS } from '../../contexts/SettingsContext';
+import { useSettings, BannerSettings, DEFAULT_BANNERS, cleanAnnouncementText } from '../../contexts/SettingsContext';
 import { formatPrice } from '../../lib/utils';
 import { ImageUploader } from '../../components/common/ImageUploader';
 import {
@@ -26,13 +26,21 @@ export const AdminBanners: React.FC = () => {
 
   useEffect(() => {
     if (settings.banners) {
-      setForm(settings.banners);
+      setForm({
+        ...settings.banners,
+        topAnnouncementText: cleanAnnouncementText(settings.banners.topAnnouncementText || ''),
+      });
     }
   }, [settings.banners]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await updateBanners(form);
+    const sanitized = {
+      ...form,
+      topAnnouncementText: cleanAnnouncementText(form.topAnnouncementText),
+    };
+    setForm(sanitized);
+    await updateBanners(sanitized);
   };
 
   const getFlashThemeClasses = (theme: string) => {
@@ -149,7 +157,7 @@ export const AdminBanners: React.FC = () => {
                 type="text"
                 value={form.topAnnouncementText ?? ''}
                 onChange={(e) => setForm({ ...form, topAnnouncementText: e.target.value })}
-                placeholder="⚡ Welcome to Kintesi! Use coupon KINTESI10 for 10% OFF + Free Express Delivery"
+                placeholder="⚡ Welcome to Kintesi! Use coupon KINTESI10 for 10% OFF"
                 className="w-full px-4 py-2.5 bg-gray-900 border border-gray-700 focus:border-amber-500 rounded-xl text-white font-medium"
               />
             </div>
@@ -484,7 +492,7 @@ export const AdminBanners: React.FC = () => {
               <div className="bg-gradient-to-r from-gray-950 via-rose-950 to-gray-950 text-white text-[11px] font-semibold py-2 px-4 rounded-xl text-center flex items-center justify-center gap-2 border border-rose-900/40 shadow-xs">
                 <Sparkles className="w-3.5 h-3.5 flex-shrink-0 animate-pulse text-amber-300" />
                 <span>
-                  {form.topAnnouncementText || '⚡ Welcome to Kintesi! Use coupon KINTESI10 for 10% OFF + Free Express Delivery'}
+                  {form.topAnnouncementText || '⚡ Welcome to Kintesi! Use coupon KINTESI10 for 10% OFF'}
                 </span>
               </div>
             </div>

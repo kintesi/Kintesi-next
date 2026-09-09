@@ -59,7 +59,7 @@ export interface StoreSettings {
 
 export const DEFAULT_BANNERS: BannerSettings = {
   showTopAnnouncement: true,
-  topAnnouncementText: '⚡ Welcome to Kintesi! Use coupon KINTESI10 for 10% OFF + Free Express Delivery',
+  topAnnouncementText: '⚡ Welcome to Kintesi! Use coupon KINTESI10 for 10% OFF',
   isCustomAnnouncement: false,
 
   showHeroSection: true,
@@ -119,6 +119,15 @@ interface SettingsContextType {
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
 
+export const cleanAnnouncementText = (text?: string | null): string => {
+  if (!text) return '';
+  return text
+    .replace(/\s*[\+\&]?\s*Free\s+Express\s+Delivery/gi, '')
+    .replace(/\s*Free\s+Express\s+Delivery/gi, '')
+    .replace(/\s*[\+\&]?\s*Express\s+Delivery/gi, '')
+    .trim();
+};
+
 export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [settings, setSettings] = useState<StoreSettings>(() => {
     try {
@@ -126,6 +135,9 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       if (saved) {
         const parsed = JSON.parse(saved);
         const mergedBanners = { ...DEFAULT_BANNERS, ...(parsed.banners || {}) };
+        if (mergedBanners.topAnnouncementText) {
+          mergedBanners.topAnnouncementText = cleanAnnouncementText(mergedBanners.topAnnouncementText);
+        }
         if (mergedBanners.heroBadge) {
           mergedBanners.heroBadge = mergedBanners.heroBadge.replace(/•?\s*kintesi\.com/gi, '').trim();
         }
@@ -158,12 +170,28 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         const { data, error } = await supabase
           .from('store_settings')
           .select('*')
+          .order('updated_at', { ascending: false })
           .limit(1)
           .maybeSingle();
 
         if (data && !error) {
           const remoteBanners = data.banners || data.settings_payload?.banners;
           setSettings((prev) => {
+            const rawText = remoteBanners?.topAnnouncementText ?? remoteBanners?.announcementText;
+            const cleanText = rawText !== undefined ? cleanAnnouncementText(rawText) : undefined;
+            const mergedBanners: BannerSettings = {
+              ...DEFAULT_BANNERS,
+              ...prev.banners,
+              ...(remoteBanners || {}),
+              topAnnouncementText: cleanText !== undefined ? cleanText : cleanAnnouncementText(prev.banners?.topAnnouncementText || '⚡ Welcome to Kintesi! Use coupon KINTESI10 for 10% OFF'),
+              showTopAnnouncement: remoteBanners?.showTopAnnouncement !== undefined
+                ? remoteBanners.showTopAnnouncement
+                : (remoteBanners?.showAnnouncementBar !== undefined ? remoteBanners.showAnnouncementBar : prev.banners?.showTopAnnouncement !== false),
+              isCustomAnnouncement: remoteBanners?.isCustomAnnouncement !== undefined
+                ? remoteBanners.isCustomAnnouncement
+                : Boolean(cleanText && cleanText !== '⚡ Welcome to Kintesi! Use coupon KINTESI10 for 10% OFF'),
+            };
+
             const merged: StoreSettings = {
               storeName: data.storeName || data.store_name || prev.storeName,
               helplinePhone: data.helplinePhone || data.helpline_phone || prev.helplinePhone,
@@ -178,7 +206,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
               deliveryFeeOutsideDhaka: Number(data.deliveryFeeOutsideDhaka ?? data.delivery_fee_outside_dhaka ?? prev.deliveryFeeOutsideDhaka),
               freeShippingThreshold: Number(data.freeShippingThreshold ?? data.free_shipping_threshold ?? prev.freeShippingThreshold),
               authorizedAdmins: data.authorizedAdmins || data.authorized_admins || prev.authorizedAdmins || ['manage.kintesi@gmail.com'],
-              banners: remoteBanners ? { ...DEFAULT_BANNERS, ...remoteBanners } : prev.banners,
+              banners: mergedBanners,
             };
             localStorage.setItem('kintesi_store_settings', JSON.stringify(merged));
             return merged;
@@ -205,7 +233,6 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
     try {
       const dbPayload = {
-        id: 'default',
         store_name: updated.storeName,
         helpline_phone: updated.helplinePhone,
         support_email: updated.supportEmail,
@@ -223,7 +250,10 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         settings_payload: updated,
         updated_at: new Date().toISOString(),
       };
-      await supabase.from('store_settings').upsert(dbPayload, { onConflict: 'id' });
+      await Promise.allSettled([
+        supabase.from('store_settings').upsert({ id: 'default', ...dbPayload }, { onConflict: 'id' }),
+        supabase.from('store_settings').upsert({ id: 'global_store_settings', ...dbPayload }, { onConflict: 'id' }),
+      ]);
     } catch (err) {
       console.warn('Settings supabase sync notice:', err);
     } finally {
@@ -234,14 +264,20 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   const updateBanners = async (newBanners: Partial<BannerSettings>) => {
     setIsLoading(true);
-    const updatedBanners = { ...settings.banners, ...newBanners };
+    const cleanedBanners = { ...newBanners };
+    if (cleanedBanners.topAnnouncementText !== undefined) {
+      cleanedBanners.topAnnouncementText = cleanAnnouncementText(cleanedBanners.topAnnouncementText);
+    }
+    const updatedBanners = { ...settings.banners, ...cleanedBanners };
     const updated = { ...settings, banners: updatedBanners };
     setSettings(updated);
     localStorage.setItem('kintesi_store_settings', JSON.stringify(updated));
 
+    // Dispatch event so Navbar immediately updates
+    window.dispatchEvent(new CustomEvent('kintesi_banners_updated', { detail: updatedBanners }));
+
     try {
       const dbPayload = {
-        id: 'default',
         store_name: updated.storeName,
         helpline_phone: updated.helplinePhone,
         support_email: updated.supportEmail,
@@ -259,7 +295,10 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         settings_payload: updated,
         updated_at: new Date().toISOString(),
       };
-      await supabase.from('store_settings').upsert(dbPayload, { onConflict: 'id' });
+      await Promise.allSettled([
+        supabase.from('store_settings').upsert({ id: 'default', ...dbPayload }, { onConflict: 'id' }),
+        supabase.from('store_settings').upsert({ id: 'global_store_settings', ...dbPayload }, { onConflict: 'id' }),
+      ]);
     } catch (err) {
       console.warn('Banner supabase sync notice:', err);
     } finally {
