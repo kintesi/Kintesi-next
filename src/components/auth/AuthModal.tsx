@@ -23,6 +23,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMo
     try {
       setLoading(true);
       await signInWithGoogle();
+      onClose();
     } catch (err: any) {
       // Handled in AuthContext
     } finally {

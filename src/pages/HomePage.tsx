@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
+import { getCategoriesFromDB, getProductsFromDB } from '../lib/dbService';
 import { Product, Category } from '../types';
 import { INITIAL_PRODUCTS, INITIAL_CATEGORIES } from '../data/mockData';
 import { ProductCard } from '../components/common/ProductCard';
@@ -138,29 +139,12 @@ export const HomePage: React.FC = () => {
     async function loadData() {
       try {
         setIsLoadingData(true);
-        const savedCustom: Product[] = JSON.parse(localStorage.getItem('kintesi_custom_products') || '[]');
-        
-        // Fetch categories and products concurrently with 3.5s timeout protection
-        const fetchPromise = Promise.all([
-          supabase.from('categories').select('*'),
-          supabase.from('products').select('*')
+        const [cats, prods] = await Promise.all([
+          getCategoriesFromDB(),
+          getProductsFromDB(),
         ]);
-        const timeoutPromise = new Promise<[any, any]>((resolve) =>
-          setTimeout(() => resolve([{ data: null }, { data: null }]), 3500)
-        );
-        const [catRes, prodRes] = await Promise.race([fetchPromise, timeoutPromise]);
-
-        if (catRes.data && catRes.data.length > 0) {
-          setCategories(catRes.data);
-          localStorage.setItem('kintesi_custom_categories', JSON.stringify(catRes.data));
-        }
-
-        const merged = [...savedCustom, ...(prodRes.data || [])].filter(
-          (p) => p && p.id && !p.id.startsWith('prod-')
-        );
-        const unique = Array.from(new Map(merged.map((p) => [p.slug || p.id, p])).values());
-        setProducts(unique);
-        localStorage.setItem('kintesi_custom_products', JSON.stringify(unique));
+        if (cats && cats.length > 0) setCategories(cats);
+        setProducts(prods);
       } catch (err) {
         console.warn('Home page data note:', err);
       } finally {

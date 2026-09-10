@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { Product } from '../types';
 import { INITIAL_PRODUCTS } from '../data/mockData';
+import { getProductsFromDB } from '../lib/dbService';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { useCart } from '../contexts/CartContext';
@@ -123,108 +124,22 @@ export const ProductDetailPage: React.FC = () => {
           setSelectedImage(localProd.images?.[0] || '/logo.webp');
           if (localProd.sizes && localProd.sizes.length > 0) setSelectedSize(localProd.sizes[0]);
           if (localProd.colors && localProd.colors.length > 0) setSelectedColor(localProd.colors[0].name);
-          // Show instantly from cache without waiting for remote DB
           setLoading(false);
         } else {
           setLoading(true);
         }
 
-        const isUUID = (str?: string) =>
-          str ? /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str) : false;
-
-        let query = supabase.from('products').select('*');
-        if (isUUID(slug)) {
-          query = query.or(`slug.eq.${slug},id.eq.${slug}`);
-        } else {
-          query = query.eq('slug', slug);
+        const allProds = await getProductsFromDB();
+        const found = allProds.find((p) => (p.slug === slug || p.id === slug) && !p.id?.startsWith('prod-'));
+        if (found) {
+          setProduct(found);
+          setSelectedImage(found.images?.[0] || '/logo.webp');
+          if (found.sizes && found.sizes.length > 0) setSelectedSize(found.sizes[0]);
+          if (found.colors && found.colors.length > 0) setSelectedColor(found.colors[0].name);
         }
+        setAllProducts(allProds);
 
-        const fetchTimeout = (ms = 3500) =>
-          new Promise<{ data: null; error: any }>((res) => setTimeout(() => res({ data: null, error: null }), ms));
-
-        let { data, error } = await Promise.race([query.maybeSingle(), fetchTimeout(3500)]);
-
-        // If not found yet and slug was not UUID, also query by id for string/numeric IDs
-        if (!data) {
-          try {
-            const { data: byId } = await Promise.race([
-              supabase.from('products').select('*').eq('id', slug).maybeSingle(),
-              fetchTimeout(2500)
-            ]);
-            if (byId) data = byId;
-          } catch (e) {}
-        }
-
-        if (error) {
-          console.warn('Supabase product query fallback:', error.message);
-        }
-
-        if (data) {
-          let parsedSizes: string[] = [];
-          if (Array.isArray(data.sizes)) {
-            parsedSizes = data.sizes;
-          } else if (typeof data.sizes === 'string') {
-            try { parsedSizes = JSON.parse(data.sizes); } catch { parsedSizes = data.sizes.split(',').map((s: string) => s.trim()); }
-          }
-
-          let parsedColors: { name: string; hex: string }[] = [];
-          if (Array.isArray(data.colors)) {
-            parsedColors = data.colors;
-          } else if (typeof data.colors === 'string') {
-            try { parsedColors = JSON.parse(data.colors); } catch {}
-          }
-
-          let parsedHighlights: string[] = [];
-          if (Array.isArray(data.highlights)) {
-            parsedHighlights = data.highlights;
-          } else if (typeof data.highlights === 'string') {
-            try { parsedHighlights = JSON.parse(data.highlights); } catch { parsedHighlights = [data.highlights]; }
-          }
-
-          // If edited in localStorage, respect admin's direct modifications
-          if (customMatch) {
-            parsedSizes = customMatch.sizes || parsedSizes;
-            parsedColors = customMatch.colors || parsedColors;
-            parsedHighlights = customMatch.highlights || parsedHighlights;
-          } else {
-            if (parsedSizes.length === 0 && localProd?.sizes) parsedSizes = localProd.sizes;
-            if (parsedColors.length === 0 && localProd?.colors) parsedColors = localProd.colors;
-            if (parsedHighlights.length === 0 && localProd?.highlights) parsedHighlights = localProd.highlights;
-          }
-
-          const mergedProduct: Product = {
-            ...data,
-            sizes: (data.sizes && data.sizes.length > 0) ? parsedSizes : (customMatch?.sizes || parsedSizes),
-            colors: (data.colors && data.colors.length > 0) ? parsedColors : (customMatch?.colors || parsedColors),
-            highlights: (parsedHighlights && parsedHighlights.length > 0) ? parsedHighlights : (customMatch?.highlights || [
-              '100% Genuine Brand Product Guarantee with Invoice',
-              'Fast 24-48h Dispatch with Live Tracking',
-              '7 Days Hassle-Free Replacement Policy'
-            ]),
-            sku: (data.sku && data.sku.trim()) ? data.sku : (customMatch?.sku || localProd?.sku || ''),
-            warranty: data.warranty !== undefined && data.warranty !== null ? data.warranty : (customMatch?.warranty ?? localProd?.warranty ?? ''),
-            delivery_note: data.delivery_note !== undefined && data.delivery_note !== null ? data.delivery_note : (customMatch?.delivery_note ?? localProd?.delivery_note ?? ''),
-            images: (data.images && data.images.length > 0) ? data.images : (customMatch?.images || localProd?.images || ['/logo.webp']),
-          };
-
-          setProduct(mergedProduct);
-          setSelectedImage(mergedProduct.images?.[0] || '/logo.webp');
-          if (mergedProduct.sizes && mergedProduct.sizes.length > 0) setSelectedSize(mergedProduct.sizes[0]);
-          if (mergedProduct.colors && mergedProduct.colors.length > 0) setSelectedColor(mergedProduct.colors[0].name);
-        }
-
-        // Fetch all products for related recommendation with timeout
-        const { data: all } = await Promise.race([
-          supabase.from('products').select('*'),
-          fetchTimeout(3000)
-        ]);
-        const mergedAll = [...savedCustom, ...(all || []), ...INITIAL_PRODUCTS];
-        // Unique by id/slug
-        const uniqueAll = Array.from(new Map(mergedAll.map((p) => [p.slug || p.id, p])).values());
-        setAllProducts(uniqueAll);
-
-        // Load only real customer submitted reviews from storage
-        const targetId = data?.id || localProd?.id;
+        const targetId = found?.id || localProd?.id;
         if (targetId) {
           const savedCustomReviews = JSON.parse(localStorage.getItem(`kintesi_reviews_${targetId}`) || '[]');
           setReviews(savedCustomReviews);

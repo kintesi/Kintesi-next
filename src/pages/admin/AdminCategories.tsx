@@ -6,6 +6,8 @@ import { Plus, Trash2, Edit2, Tags, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { ImageUploader } from '../../components/common/ImageUploader';
 
+import { getCategoriesFromDB, saveCategoryToDB } from '../../lib/dbService';
+
 export const AdminCategories: React.FC = () => {
   const [categories, setCategories] = useState<Category[]>(INITIAL_CATEGORIES);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -21,7 +23,7 @@ export const AdminCategories: React.FC = () => {
 
   const loadCategories = async () => {
     try {
-      const { data } = await supabase.from('categories').select('*');
+      const data = await getCategoriesFromDB();
       if (data && data.length > 0) setCategories(data);
     } catch (err) {
       console.warn('Categories load note:', err);
@@ -61,7 +63,9 @@ export const AdminCategories: React.FC = () => {
     if (!formData.name) return;
 
     const slug = formData.slug.trim() || formData.name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
-    const payload = {
+    const catId = editingCategory?.id || ('cat-' + slug);
+    const payload: Category = {
+      id: catId,
       name: formData.name,
       slug: slug,
       description: formData.description,
@@ -70,23 +74,10 @@ export const AdminCategories: React.FC = () => {
     };
 
     try {
-      if (editingCategory) {
-        await supabase.from('categories').update(payload).eq('id', editingCategory.id);
-        toast.success('Category updated!');
-      } else {
-        await supabase.from('categories').insert([payload]);
-        toast.success('Category created!');
-      }
+      await saveCategoryToDB(payload);
+      toast.success(editingCategory ? 'Category updated!' : 'Category created!');
       loadCategories();
     } catch (err: any) {
-      // Local fallback
-      if (editingCategory) {
-        setCategories((prev) =>
-          prev.map((c) => (c.slug === editingCategory.slug ? { ...c, ...payload } : c))
-        );
-      } else {
-        setCategories([...categories, { ...payload, id: 'cat-' + Date.now() }]);
-      }
       toast.success('Category saved!');
     }
     setIsModalOpen(false);
@@ -94,11 +85,10 @@ export const AdminCategories: React.FC = () => {
 
   const handleDelete = async (slug: string, name: string) => {
     if (!confirm(`Delete category "${name}"?`)) return;
-    try {
-      await supabase.from('categories').delete().eq('slug', slug);
-    } catch {}
     setCategories((prev) => prev.filter((c) => c.slug !== slug));
-    toast.success('Category deleted');
+    const saved = categories.filter((c) => c.slug !== slug);
+    localStorage.setItem('kintesi_custom_categories', JSON.stringify(saved));
+    toast.success('Category removed');
   };
 
   return (

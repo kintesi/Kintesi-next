@@ -6,6 +6,7 @@ import { useAddress } from '../contexts/AddressContext';
 import { useSettings } from '../contexts/SettingsContext';
 import { useCoupons } from '../contexts/CouponContext';
 import { supabase } from '../lib/supabase';
+import { saveOrderToDB } from '../lib/dbService';
 import { formatPrice, generateOrderNumber } from '../lib/utils';
 import {
   ShieldCheck,
@@ -282,10 +283,11 @@ export const CheckoutPage: React.FC = () => {
         }
       }
 
-      // Sync guest local cache
+      // Sync local cache and Firestore
       const existingOrders = JSON.parse(localStorage.getItem('kintesi_guest_orders') || '[]');
       const savedOrder = { ...orderData, id: orderNumber, created_at: new Date().toISOString() };
       localStorage.setItem('kintesi_guest_orders', JSON.stringify([savedOrder, ...existingOrders]));
+      await saveOrderToDB(savedOrder);
 
       // Automatically reduce product stock count on sale
       for (const cartItem of cart) {

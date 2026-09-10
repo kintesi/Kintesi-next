@@ -1,4 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { db } from '../lib/firebase';
 import { supabase } from '../lib/supabase';
 import { toast } from 'sonner';
 
@@ -197,23 +199,15 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const [isLoading, setIsLoading] = useState(false);
   const [isSettingsLoaded, setIsSettingsLoaded] = useState(false);
 
-  // Load from Supabase on mount
+  // Load from Firebase Firestore on mount
   useEffect(() => {
     async function loadRemoteSettings() {
       try {
-        const remotePromise = supabase
-          .from('store_settings')
-          .select('*')
-          .order('updated_at', { ascending: false })
-          .limit(1)
-          .maybeSingle();
-        const timeoutPromise = new Promise<any>((res) =>
-          setTimeout(() => res({ data: null, error: null }), 2500)
-        );
-        const { data, error } = await Promise.race([remotePromise, timeoutPromise]);
+        const storeDoc = await getDoc(doc(db, 'store_settings', 'default'));
 
-        if (data && !error) {
-          const remoteBanners = data.banners || data.settings_payload?.banners;
+        if (storeDoc.exists()) {
+          const data = storeDoc.data() as any;
+          const remoteBanners = data.banners;
           setSettings((prev) => {
             const rawText = remoteBanners?.topAnnouncementText ?? remoteBanners?.announcementText;
             const cleanText = rawText !== undefined ? cleanAnnouncementText(rawText) : undefined;
@@ -231,19 +225,19 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
             };
 
             const merged: StoreSettings = {
-              storeName: data.storeName || data.store_name || prev.storeName,
-              helplinePhone: data.helplinePhone || data.helpline_phone || prev.helplinePhone,
-              supportEmail: data.supportEmail || data.support_email || prev.supportEmail,
-              bkashNumber: data.bkashNumber || data.bkash_number || prev.bkashNumber,
-              bkashType: (data.bkashType || data.bkash_type || prev.bkashType) as any,
-              nagadNumber: data.nagadNumber || data.nagad_number || prev.nagadNumber,
-              nagadType: (data.nagadType || data.nagad_type || prev.nagadType) as any,
-              rocketNumber: data.rocketNumber || data.rocket_number || prev.rocketNumber,
-              rocketType: (data.rocketType || data.rocket_type || prev.rocketType) as any,
-              deliveryFeeInsideDhaka: Number(data.deliveryFeeInsideDhaka ?? data.delivery_fee_inside_dhaka ?? prev.deliveryFeeInsideDhaka),
-              deliveryFeeOutsideDhaka: Number(data.deliveryFeeOutsideDhaka ?? data.delivery_fee_outside_dhaka ?? prev.deliveryFeeOutsideDhaka),
-              freeShippingThreshold: Number(data.freeShippingThreshold ?? data.free_shipping_threshold ?? prev.freeShippingThreshold),
-              authorizedAdmins: data.authorizedAdmins || data.authorized_admins || prev.authorizedAdmins || ['manage.kintesi@gmail.com'],
+              storeName: data.storeName || prev.storeName,
+              helplinePhone: data.helplinePhone || prev.helplinePhone,
+              supportEmail: data.supportEmail || prev.supportEmail,
+              bkashNumber: data.bkashNumber || prev.bkashNumber,
+              bkashType: (data.bkashType || prev.bkashType) as any,
+              nagadNumber: data.nagadNumber || prev.nagadNumber,
+              nagadType: (data.nagadType || prev.nagadType) as any,
+              rocketNumber: data.rocketNumber || prev.rocketNumber,
+              rocketType: (data.rocketType || prev.rocketType) as any,
+              deliveryFeeInsideDhaka: Number(data.deliveryFeeInsideDhaka ?? prev.deliveryFeeInsideDhaka),
+              deliveryFeeOutsideDhaka: Number(data.deliveryFeeOutsideDhaka ?? prev.deliveryFeeOutsideDhaka),
+              freeShippingThreshold: Number(data.freeShippingThreshold ?? prev.freeShippingThreshold),
+              authorizedAdmins: data.authorizedAdmins || prev.authorizedAdmins || ['manage.kintesi@gmail.com'],
               banners: mergedBanners,
             };
             localStorage.setItem('kintesi_store_settings', JSON.stringify(merged));
@@ -270,30 +264,9 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     localStorage.setItem('kintesi_store_settings', JSON.stringify(updated));
 
     try {
-      const dbPayload = {
-        store_name: updated.storeName,
-        helpline_phone: updated.helplinePhone,
-        support_email: updated.supportEmail,
-        bkash_number: updated.bkashNumber,
-        bkash_type: updated.bkashType,
-        nagad_number: updated.nagadNumber,
-        nagad_type: updated.nagadType,
-        rocket_number: updated.rocketNumber,
-        rocket_type: updated.rocketType,
-        delivery_fee_inside_dhaka: updated.deliveryFeeInsideDhaka,
-        delivery_fee_outside_dhaka: updated.deliveryFeeOutsideDhaka,
-        free_shipping_threshold: updated.freeShippingThreshold,
-        authorized_admins: updated.authorizedAdmins,
-        banners: updated.banners,
-        settings_payload: updated,
-        updated_at: new Date().toISOString(),
-      };
-      await Promise.allSettled([
-        supabase.from('store_settings').upsert({ id: 'default', ...dbPayload }, { onConflict: 'id' }),
-        supabase.from('store_settings').upsert({ id: 'global_store_settings', ...dbPayload }, { onConflict: 'id' }),
-      ]);
+      await setDoc(doc(db, 'store_settings', 'default'), updated, { merge: true });
     } catch (err) {
-      console.warn('Settings supabase sync notice:', err);
+      console.warn('Settings firestore sync notice:', err);
     } finally {
       setIsLoading(false);
       toast.success('Settings updated!');
@@ -315,30 +288,9 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     window.dispatchEvent(new CustomEvent('kintesi_banners_updated', { detail: updatedBanners }));
 
     try {
-      const dbPayload = {
-        store_name: updated.storeName,
-        helpline_phone: updated.helplinePhone,
-        support_email: updated.supportEmail,
-        bkash_number: updated.bkashNumber,
-        bkash_type: updated.bkashType,
-        nagad_number: updated.nagadNumber,
-        nagad_type: updated.nagadType,
-        rocket_number: updated.rocketNumber,
-        rocket_type: updated.rocketType,
-        delivery_fee_inside_dhaka: updated.deliveryFeeInsideDhaka,
-        delivery_fee_outside_dhaka: updated.deliveryFeeOutsideDhaka,
-        free_shipping_threshold: updated.freeShippingThreshold,
-        authorized_admins: updated.authorizedAdmins,
-        banners: updatedBanners,
-        settings_payload: updated,
-        updated_at: new Date().toISOString(),
-      };
-      await Promise.allSettled([
-        supabase.from('store_settings').upsert({ id: 'default', ...dbPayload }, { onConflict: 'id' }),
-        supabase.from('store_settings').upsert({ id: 'global_store_settings', ...dbPayload }, { onConflict: 'id' }),
-      ]);
+      await setDoc(doc(db, 'store_settings', 'default'), { banners: updatedBanners }, { merge: true });
     } catch (err) {
-      console.warn('Banner supabase sync notice:', err);
+      console.warn('Banner firestore sync notice:', err);
     } finally {
       setIsLoading(false);
       toast.success('Banners updated!');

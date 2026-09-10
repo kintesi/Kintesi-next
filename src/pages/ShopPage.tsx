@@ -8,6 +8,8 @@ import { Filter, SlidersHorizontal, ArrowUpDown, X, Check } from 'lucide-react';
 import { formatPrice } from '../lib/utils';
 import { matchesProductSearch } from '../lib/searchUtils';
 
+import { getCategoriesFromDB, getProductsFromDB } from '../lib/dbService';
+
 export const ShopPage: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const categoryParam = searchParams.get('category') || 'all';
@@ -26,18 +28,14 @@ export const ShopPage: React.FC = () => {
   useEffect(() => {
     async function loadData() {
       try {
-        const savedCustom: Product[] = JSON.parse(localStorage.getItem('kintesi_custom_products') || '[]');
-        const { data: catData } = await supabase.from('categories').select('*');
-        if (catData && catData.length > 0) setCategories(catData);
-
-        const { data: prodData } = await supabase.from('products').select('*');
-        const merged = [...savedCustom, ...(prodData || [])].filter(
-          (p) => p && p.id && !p.id.startsWith('prod-')
-        );
-        const unique = Array.from(new Map(merged.map((p) => [p.slug || p.id, p])).values());
-        setProducts(unique);
+        const [cats, prods] = await Promise.all([
+          getCategoriesFromDB(),
+          getProductsFromDB(),
+        ]);
+        if (cats && cats.length > 0) setCategories(cats);
+        setProducts(prods);
       } catch (err) {
-        console.warn('Using local dataset:', err);
+        console.warn('Shop page data notice:', err);
       }
     }
     loadData();

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
+import { getOrdersFromDB } from '../lib/dbService';
 import { Order } from '../types';
 import { formatPrice } from '../lib/utils';
 import { useSettings } from '../contexts/SettingsContext';
@@ -55,14 +56,7 @@ export const MyOrdersPage: React.FC = () => {
 
       setLoading(true);
       try {
-        const queryPromise = supabase
-          .from('orders')
-          .select('*')
-          .eq('user_id', user.id)
-          .order('created_at', { ascending: false });
-        const timeoutPromise = new Promise<any>((res) => setTimeout(() => res({ data: null }), 3000));
-        const { data } = await Promise.race([queryPromise, timeoutPromise]);
-
+        const data = await getOrdersFromDB(user.id);
         if (data) {
           setOrders(data);
         }

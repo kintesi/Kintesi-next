@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
+import { getOrdersFromDB, updateOrderInDB } from '../../lib/dbService';
 import { Order } from '../../types';
 import { formatPrice } from '../../lib/utils';
 import { Package, Truck, CheckCircle2, Clock, XCircle, Search, Eye, Printer, Trash2, Copy, Check, CreditCard, Landmark } from 'lucide-react';
@@ -15,15 +16,10 @@ export const AdminOrders: React.FC = () => {
 
   const loadOrders = async () => {
     try {
-      const { data } = await supabase.from('orders').select('*').order('created_at', { ascending: false });
-      let all: Order[] = data || [];
-
-      // Merge local guest orders
+      const all = await getOrdersFromDB();
       const local = JSON.parse(localStorage.getItem('kintesi_guest_orders') || '[]');
-      if (local.length > 0) {
-        all = [...all, ...local.filter((l: any) => !all.some((o) => o.order_number === l.order_number))];
-      }
-      setOrders(all);
+      const combined = [...all, ...local.filter((l: any) => !all.some((o) => o.order_number === l.order_number))];
+      setOrders(combined);
     } catch (err) {
       console.warn('Orders load note:', err);
     }
@@ -64,24 +60,20 @@ export const AdminOrders: React.FC = () => {
   };
 
   const handleUpdateStatus = async (orderNumber: string, newStatus: string) => {
+    await updateOrderInDB(orderNumber, { order_status: newStatus as any });
     try {
-      const { error } = await supabase
+      await supabase
         .from('orders')
         .update({ order_status: newStatus })
         .eq('order_number', orderNumber);
+    } catch {}
 
-      if (error) throw error;
-      toast.success(`Order #${orderNumber} updated to ${newStatus}`);
-    } catch (err: any) {
-      console.warn('Status update fallback:', err.message);
-      // Update locally
-      const local = JSON.parse(localStorage.getItem('kintesi_guest_orders') || '[]');
-      const updatedLocal = local.map((o: any) =>
-        o.order_number === orderNumber ? { ...o, order_status: newStatus } : o
-      );
-      localStorage.setItem('kintesi_guest_orders', JSON.stringify(updatedLocal));
-      toast.success(`Order #${orderNumber} marked as ${newStatus}`);
-    }
+    const local = JSON.parse(localStorage.getItem('kintesi_guest_orders') || '[]');
+    const updatedLocal = local.map((o: any) =>
+      o.order_number === orderNumber ? { ...o, order_status: newStatus } : o
+    );
+    localStorage.setItem('kintesi_guest_orders', JSON.stringify(updatedLocal));
+    toast.success(`Order #${orderNumber} updated to ${newStatus}`);
 
     setOrders((prev) =>
       prev.map((o) => (o.order_number === orderNumber ? { ...o, order_status: newStatus as any } : o))
@@ -92,6 +84,7 @@ export const AdminOrders: React.FC = () => {
   };
 
   const handleUpdatePaymentStatus = async (orderNumber: string, newPaymentStatus: string) => {
+    await updateOrderInDB(orderNumber, { payment_status: newPaymentStatus as any });
     try {
       await supabase
         .from('orders')
@@ -99,10 +92,19 @@ export const AdminOrders: React.FC = () => {
         .eq('order_number', orderNumber);
     } catch {}
 
+    const local = JSON.parse(localStorage.getItem('kintesi_guest_orders') || '[]');
+    const updatedLocal = local.map((o: any) =>
+      o.order_number === orderNumber ? { ...o, payment_status: newPaymentStatus } : o
+    );
+    localStorage.setItem('kintesi_guest_orders', JSON.stringify(updatedLocal));
+    toast.success(`Payment for Order #${orderNumber} marked as ${newPaymentStatus}`);
+
     setOrders((prev) =>
       prev.map((o) => (o.order_number === orderNumber ? { ...o, payment_status: newPaymentStatus as any } : o))
     );
-    toast.success(`Payment status marked as ${newPaymentStatus}`);
+    if (selectedOrder && selectedOrder.order_number === orderNumber) {
+      setSelectedOrder({ ...selectedOrder, payment_status: newPaymentStatus as any });
+    }
   };
 
   const filteredOrders = orders.filter((ord) => {

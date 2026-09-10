@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { supabase } from '../../lib/supabase';
+import { getProductsFromDB, saveProductToDB, deleteProductFromDB, getCategoriesFromDB } from '../../lib/dbService';
 import { useAuth } from '../../contexts/AuthContext';
 import { INITIAL_PRODUCTS, INITIAL_CATEGORIES } from '../../data/mockData';
 import { Product, Category } from '../../types';
@@ -146,23 +147,11 @@ export const AdminProducts: React.FC = () => {
 
   const loadProducts = async () => {
     try {
-      const { data, error } = await supabase.from('products').select('*').order('created_at', { ascending: false });
-      const cloudProducts: Product[] = (data || []).filter((p) => p && p.id && !p.id.startsWith('prod-'));
-
-      const savedCustom: Product[] = JSON.parse(localStorage.getItem('kintesi_custom_products') || '[]');
-      const cloudIdSet = new Set(cloudProducts.map((p) => p.id));
-      const cloudSlugSet = new Set(cloudProducts.map((p) => p.slug));
-
-      const offlineOnlyProducts = savedCustom.filter(
-        (p) => p && p.id && !p.id.startsWith('prod-') && !cloudIdSet.has(p.id) && !cloudSlugSet.has(p.slug)
-      );
-
-      // Cloud database products are primary source of truth
-      const merged = [...cloudProducts, ...offlineOnlyProducts];
-      setProducts(merged);
-      localStorage.setItem('kintesi_custom_products', JSON.stringify(merged));
-
-      const { data: cats } = await supabase.from('categories').select('*');
+      const [prods, cats] = await Promise.all([
+        getProductsFromDB(),
+        getCategoriesFromDB()
+      ]);
+      setProducts(prods);
       if (cats && cats.length > 0) setCategories(cats);
     } catch (err) {
       console.warn('Load products note:', err);
@@ -640,6 +629,9 @@ export const AdminProducts: React.FC = () => {
     localStorage.setItem('kintesi_custom_products', JSON.stringify(updatedCustom));
     window.dispatchEvent(new Event('kintesi_products_updated'));
 
+    // Sync with Firestore Cloud Database
+    await saveProductToDB(completeProduct);
+
     setProducts((prev) => {
       const idx = prev.findIndex((p) => (editingProduct && p.id === editingProduct.id) || p.slug === slug);
       if (idx >= 0) {
@@ -679,7 +671,8 @@ export const AdminProducts: React.FC = () => {
       console.warn('Supabase delete warning:', err?.message || err);
     }
 
-    // 2. Remove permanently from local storage cache
+    // 2. Remove permanently from local storage cache and Firestore
+    await deleteProductFromDB(prod.id);
     const savedCustom: Product[] = JSON.parse(localStorage.getItem('kintesi_custom_products') || '[]');
     const cleanCustom = savedCustom.filter((p) => p.id !== prod.id && p.slug !== prod.slug);
     localStorage.setItem('kintesi_custom_products', JSON.stringify(cleanCustom));

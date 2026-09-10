@@ -1,12 +1,35 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import { User, Session } from '@supabase/supabase-js';
-import { supabase, isAdminUser } from '../lib/supabase';
+﻿import React, { createContext, useContext, useEffect, useState } from 'react';
+import {
+  signInWithPopup,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  signOut as fbSignOut,
+  onAuthStateChanged,
+  updateProfile as fbUpdateProfile,
+  User as FirebaseUser
+} from 'firebase/auth';
+import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
+import { auth, googleProvider, db, isAdminUser } from '../lib/firebase';
 import { UserProfile } from '../types';
 import { toast } from 'sonner';
 
+export interface AppUser {
+  id: string;
+  uid: string;
+  email: string | null;
+  displayName: string | null;
+  photoURL: string | null;
+  user_metadata: {
+    full_name?: string | null;
+    avatar_url?: string | null;
+    name?: string | null;
+    picture?: string | null;
+  };
+}
+
 interface AuthContextType {
-  user: User | null;
-  session: Session | null;
+  user: any;
+  session: any;
   profile: UserProfile | null;
   isAdmin: boolean;
   isSuperAdmin: boolean;
@@ -25,8 +48,8 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
+  const [user, setUser] = useState<AppUser | null>(null);
+  const [session, setSession] = useState<any>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
@@ -41,29 +64,39 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsAuthModalOpen(false);
   };
 
-  const fetchProfile = async (currentUser: User) => {
+  const mapFirebaseUser = (fbUser: FirebaseUser): AppUser => {
+    return {
+      ...fbUser,
+      id: fbUser.uid,
+      uid: fbUser.uid,
+      email: fbUser.email,
+      displayName: fbUser.displayName,
+      photoURL: fbUser.photoURL,
+      user_metadata: {
+        full_name: fbUser.displayName || fbUser.email?.split('@')[0] || 'User',
+        avatar_url: fbUser.photoURL || null,
+        name: fbUser.displayName,
+        picture: fbUser.photoURL,
+      },
+    };
+  };
+
+  const fetchProfile = async (currentUser: AppUser) => {
     try {
       const userEmail = currentUser.email?.toLowerCase().trim() || '';
       const isMasterAdmin = isAdminUser(userEmail);
-      
-      // Check remote Supabase store_settings for authorized admins list
+
       let isStaffAdmin = false;
       try {
-        const { data: storeConfig } = await supabase
-          .from('store_settings')
-          .select('"authorizedAdmins"')
-          .eq('id', 'default')
-          .single();
-        
-        if (storeConfig && storeConfig.authorizedAdmins) {
-          const authList: string[] = storeConfig.authorizedAdmins;
+        const storeDoc = await getDoc(doc(db, 'store_settings', 'default'));
+        if (storeDoc.exists()) {
+          const authList: string[] = storeDoc.data()?.authorizedAdmins || [];
           if (authList.map((e) => e.toLowerCase().trim()).includes(userEmail)) {
             isStaffAdmin = true;
           }
         }
       } catch {}
 
-      // Fallback local check
       if (!isStaffAdmin) {
         try {
           const localAdmins: string[] = JSON.parse(localStorage.getItem('kintesi_authorized_admins') || '[]');
@@ -73,163 +106,138 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         } catch {}
       }
 
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', currentUser.id)
-        .single();
+      const userDocRef = doc(db, 'profiles', currentUser.id);
+      const userDoc = await getDoc(userDocRef);
 
-      if (data) {
+      if (userDoc.exists()) {
+        const data = userDoc.data() as UserProfile;
         const resolvedRole = isMasterAdmin || isStaffAdmin || data.role === 'admin' ? 'admin' : 'customer';
         setProfile({
           ...data,
+          id: currentUser.id,
           role: resolvedRole,
         });
 
-        // Ensure role is admin in DB if authorized
         if (resolvedRole === 'admin' && data.role !== 'admin') {
-          await supabase.from('profiles').update({ role: 'admin' }).eq('id', currentUser.id);
+          await updateDoc(userDocRef, { role: 'admin' }).catch(() => {});
         }
       } else {
         const resolvedRole = isMasterAdmin || isStaffAdmin ? 'admin' : 'customer';
         const newProfile: UserProfile = {
           id: currentUser.id,
-          full_name: currentUser.user_metadata?.full_name || currentUser.user_metadata?.name || currentUser.email?.split('@')[0] || 'Admin User',
+          full_name: currentUser.user_metadata?.full_name || currentUser.displayName || currentUser.email?.split('@')[0] || 'Customer',
           email: currentUser.email || '',
-          avatar_url: currentUser.user_metadata?.avatar_url || currentUser.user_metadata?.picture || null,
+          avatar_url: currentUser.photoURL || null,
           role: resolvedRole,
+          created_at: new Date().toISOString(),
         };
         setProfile(newProfile);
-
-        await supabase.from('profiles').upsert(newProfile);
+        await setDoc(userDocRef, newProfile).catch(() => {});
       }
     } catch (err) {
-      console.error('Error handling profile:', err);
+      console.warn('Firebase profile fetch note:', err);
+      // Fallback profile if offline
+      const resolvedRole = isAdminUser(currentUser.email) ? 'admin' : 'customer';
+      setProfile({
+        id: currentUser.id,
+        full_name: currentUser.user_metadata?.full_name || 'Customer',
+        email: currentUser.email || '',
+        avatar_url: currentUser.photoURL || null,
+        role: resolvedRole,
+      });
     }
   };
 
   useEffect(() => {
     let mounted = true;
 
+    // Safety timeout so UI never hangs
     const safetyTimer = setTimeout(() => {
-      if (mounted) {
-        setIsLoading(false);
-      }
+      if (mounted) setIsLoading(false);
     }, 1500);
 
-    async function initAuth() {
-      try {
-        const sessionPromise = supabase.auth.getSession();
-        const timeoutPromise = new Promise<any>((res) =>
-          setTimeout(() => res({ data: { session: null } }), 1500)
-        );
-        const { data: { session: initialSession } } = await Promise.race([sessionPromise, timeoutPromise]);
-
-        if (mounted) {
-          setSession(initialSession);
-          setUser(initialSession?.user ?? null);
-          if (initialSession?.user) {
-            // Fetch profile non-blocking
-            fetchProfile(initialSession.user).catch((e) => console.warn('Profile fetch note:', e));
-          }
+    const unsubscribe = onAuthStateChanged(auth, async (fbUser) => {
+      if (mounted) {
+        if (fbUser) {
+          const mapped = mapFirebaseUser(fbUser);
+          setUser(mapped);
+          setSession({ user: mapped });
+          fetchProfile(mapped).catch(() => {});
+        } else {
+          setUser(null);
+          setSession(null);
+          setProfile(null);
         }
-      } catch (err) {
-        console.error('Auth initialization error:', err);
-      } finally {
-        if (mounted) {
-          setIsLoading(false);
-          clearTimeout(safetyTimer);
-        }
+        setIsLoading(false);
+        clearTimeout(safetyTimer);
       }
-    }
-
-    initAuth();
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, newSession) => {
-      setSession(newSession);
-      const currentUser = newSession?.user ?? null;
-      setUser(currentUser);
-
-      if (currentUser) {
-        fetchProfile(currentUser).catch((e) => console.warn('Auth change profile fetch note:', e));
-      } else {
-        setProfile(null);
-      }
-      setIsLoading(false);
     });
 
     return () => {
       mounted = false;
-      subscription.unsubscribe();
+      unsubscribe();
     };
   }, []);
 
   const signInWithGoogle = async () => {
     try {
-      const redirectUrl = window.location.origin;
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: redirectUrl,
-          queryParams: {
-            access_type: 'offline',
-            prompt: 'select_account',
-          },
-        },
-      });
-      if (error) {
-        toast.error(`Google Sign-In Error: ${error.message}`);
-        throw error;
-      }
+      const result = await signInWithPopup(auth, googleProvider);
+      const mapped = mapFirebaseUser(result.user);
+      setUser(mapped);
+      setSession({ user: mapped });
+      await fetchProfile(mapped);
+      toast.success('Signed in with Google successfully!');
+      closeAuthModal();
     } catch (err: any) {
       console.error('Google Auth Error:', err);
-      toast.error(err.message || 'Failed to initialize Google Sign-in');
+      // Don't toast error if user closed the popup window
+      if (err?.code !== 'auth/popup-closed-by-user') {
+        toast.error(err.message || 'Failed to sign in with Google');
+      }
     }
   };
 
   const signInWithEmail = async (email: string, pass: string) => {
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password: pass,
-      });
-      if (error) {
-        toast.error(error.message);
-        return { error };
-      }
+      const result = await signInWithEmailAndPassword(auth, email.trim(), pass);
+      const mapped = mapFirebaseUser(result.user);
+      setUser(mapped);
+      setSession({ user: mapped });
+      await fetchProfile(mapped);
       toast.success('Logged in successfully!');
       return { error: null };
     } catch (err: any) {
-      toast.error(err.message || 'Login failed');
+      const msg = err.code === 'auth/invalid-credential' || err.code === 'auth/wrong-password'
+        ? 'Invalid email or password'
+        : err.message || 'Login failed';
+      toast.error(msg);
       return { error: err };
     }
   };
 
   const signUpWithEmail = async (email: string, pass: string, name: string) => {
     try {
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password: pass,
-        options: {
-          data: {
-            full_name: name,
-          },
-        },
-      });
-      if (error) {
-        toast.error(error.message);
-        return { error };
-      }
+      const result = await createUserWithEmailAndPassword(auth, email.trim(), pass);
+      await fbUpdateProfile(result.user, { displayName: name.trim() });
+      const mapped = mapFirebaseUser(result.user);
+      mapped.displayName = name.trim();
+      mapped.user_metadata.full_name = name.trim();
+      setUser(mapped);
+      setSession({ user: mapped });
+      await fetchProfile(mapped);
       toast.success('Account created successfully!');
       return { error: null };
     } catch (err: any) {
-      toast.error(err.message || 'Signup failed');
+      const msg = err.code === 'auth/email-already-in-use'
+        ? 'This email address is already registered'
+        : err.message || 'Signup failed';
+      toast.error(msg);
       return { error: err };
     }
   };
 
   const signOut = async () => {
-    await supabase.auth.signOut();
+    await fbSignOut(auth);
     setUser(null);
     setSession(null);
     setProfile(null);
@@ -242,7 +250,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const isAdmin = isAdminUser(user?.email) || profile?.role === 'admin';
+  const isAdmin = profile?.role === 'admin' || isAdminUser(user?.email);
+  const isSuperAdmin = isAdminUser(user?.email);
 
   return (
     <AuthContext.Provider
@@ -251,17 +260,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         session,
         profile,
         isAdmin,
-        isSuperAdmin: user?.email?.toLowerCase().trim() === 'manage.kintesi@gmail.com',
+        isSuperAdmin,
         isLoading,
-        isAuthModalOpen,
-        authModalMode,
-        openAuthModal,
-        closeAuthModal,
         signInWithGoogle,
         signInWithEmail,
         signUpWithEmail,
         signOut,
         refreshProfile,
+        isAuthModalOpen,
+        authModalMode,
+        openAuthModal,
+        closeAuthModal,
       }}
     >
       {children}
