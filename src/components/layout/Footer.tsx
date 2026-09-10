@@ -9,9 +9,9 @@ export const Footer: React.FC = () => {
   const phone = settings?.helplinePhone?.trim();
   const email = settings?.supportEmail?.trim();
   return (
-    <footer className="bg-gray-950 text-gray-400 pt-16 pb-12 border-t border-gray-800/80">
-      {/* Trust Badges */}
-      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 pb-12 border-b border-gray-800/80">
+    <footer className="bg-gray-950 text-gray-400 pt-8 md:pt-16 pb-12 border-t border-gray-800/80">
+      {/* Trust Badges - Hidden on mobile */}
+      <div className="hidden md:block max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 pb-12 border-b border-gray-800/80">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div className="flex items-center gap-4 p-4 rounded-2xl bg-gray-900/60 border border-gray-800/80">
             <div className="p-3 bg-rose-500/10 text-rose-400 rounded-xl">
