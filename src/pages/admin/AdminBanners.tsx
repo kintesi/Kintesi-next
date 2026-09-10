@@ -26,7 +26,12 @@ import {
   ExternalLink,
   Package,
   ShoppingBag,
+  Trash2,
+  Plus,
+  Layers,
 } from 'lucide-react';
+import { FlashSaleSlide } from '../../contexts/SettingsContext';
+import { FlashSaleBanner } from '../../components/home/FlashSaleBanner';
 
 export const AdminBanners: React.FC = () => {
   const { settings, updateBanners, isLoading } = useSettings();
@@ -37,6 +42,7 @@ export const AdminBanners: React.FC = () => {
   const [isSavingSpotlight, setIsSavingSpotlight] = useState(false);
   const [isSavingFlash, setIsSavingFlash] = useState(false);
   const [isSavingFeatured, setIsSavingFeatured] = useState(false);
+  const [selectedSlideIndex, setSelectedSlideIndex] = useState(0);
   const [catalogProducts, setCatalogProducts] = useState<Product[]>([]);
 
   useEffect(() => {
@@ -63,6 +69,59 @@ export const AdminBanners: React.FC = () => {
     }
   }, [settings.banners]);
 
+  const currentSlides: FlashSaleSlide[] = (form.flashSaleSlides && form.flashSaleSlides.length > 0)
+    ? form.flashSaleSlides
+    : [
+        {
+          id: 'slide-1',
+          tag: form.flashSaleTag || '⚡ FLASH SALE',
+          title: form.flashSaleTitle || 'Exclusive 24-Hour Super Deals',
+          subtitle: form.flashSaleSubtitle || 'Limited stock flash offers with up to 50% discount. Order before time runs out!',
+          bgImage: form.flashSaleBgImage || '',
+        },
+      ];
+
+  const handleAddSlide = () => {
+    const newSlide: FlashSaleSlide = {
+      id: `slide-${Date.now()}`,
+      tag: '⚡ FLASH SALE',
+      title: 'Mega Flash Deals',
+      subtitle: 'Grab your favorite products at huge discounts before the timer ends!',
+      bgImage: '',
+    };
+    const updated = [...currentSlides, newSlide];
+    setForm((prev) => ({ ...prev, flashSaleSlides: updated }));
+    setSelectedSlideIndex(updated.length - 1);
+    toast.success(`Slide ${updated.length} added! Configure its text & background image, then click Save.`);
+  };
+
+  const handleRemoveSlide = (idxToRemove: number) => {
+    if (currentSlides.length <= 1) {
+      toast.error('At least one slide is required.');
+      return;
+    }
+    const updated = currentSlides.filter((_, idx) => idx !== idxToRemove);
+    setForm((prev) => ({ ...prev, flashSaleSlides: updated }));
+    setSelectedSlideIndex((prev) => Math.min(prev, updated.length - 1));
+    toast.info('Slide removed. Click Save to publish changes.');
+  };
+
+  const handleUpdateCurrentSlide = (field: keyof FlashSaleSlide, value: string) => {
+    const updated = [...currentSlides];
+    const target = { ...updated[selectedSlideIndex], [field]: value };
+    updated[selectedSlideIndex] = target;
+    setForm((prev) => {
+      const nextForm = { ...prev, flashSaleSlides: updated };
+      if (selectedSlideIndex === 0) {
+        if (field === 'title') nextForm.flashSaleTitle = value;
+        if (field === 'subtitle') nextForm.flashSaleSubtitle = value;
+        if (field === 'tag') nextForm.flashSaleTag = value;
+        if (field === 'bgImage') nextForm.flashSaleBgImage = value;
+      }
+      return nextForm;
+    });
+  };
+
   const handleSubmit = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     const hours = Math.max(1, Math.min(72, Number(form.flashSaleHours) || 4));
@@ -74,6 +133,8 @@ export const AdminBanners: React.FC = () => {
       ...form,
       flashSaleHours: hours,
       flashSaleEndsAt: endsAt,
+      flashSaleBgImage: form.flashSaleBgImage || currentSlides[0]?.bgImage || '',
+      flashSaleSlides: currentSlides,
       topAnnouncementText: cleanAnnouncementText(form.topAnnouncementText),
     };
     setForm(sanitized);
@@ -153,14 +214,22 @@ export const AdminBanners: React.FC = () => {
       }
       await updateBanners({
         showFlashSale: Boolean(form.showFlashSale),
-        flashSaleTag: form.flashSaleTag || '',
-        flashSaleTitle: form.flashSaleTitle || '',
-        flashSaleSubtitle: form.flashSaleSubtitle || '',
+        flashSaleTag: form.flashSaleTag || currentSlides[0]?.tag || '',
+        flashSaleTitle: form.flashSaleTitle || currentSlides[0]?.title || '',
+        flashSaleSubtitle: form.flashSaleSubtitle || currentSlides[0]?.subtitle || '',
         flashSaleHours: hours,
         flashSaleTheme: form.flashSaleTheme || 'sunset',
         flashSaleEndsAt: endsAt,
+        flashSaleBgImage: form.flashSaleBgImage || currentSlides[0]?.bgImage || '',
+        flashSaleSlides: currentSlides,
       });
-      setForm((prev) => ({ ...prev, flashSaleHours: hours, flashSaleEndsAt: endsAt }));
+      setForm((prev) => ({
+        ...prev,
+        flashSaleHours: hours,
+        flashSaleEndsAt: endsAt,
+        flashSaleBgImage: form.flashSaleBgImage || currentSlides[0]?.bgImage || '',
+        flashSaleSlides: currentSlides,
+      }));
       toast.success('Flash Sale Banner saved & published!');
     } catch {
       toast.error('Failed to save Flash Sale banner');
@@ -944,28 +1013,120 @@ export const AdminBanners: React.FC = () => {
                   <option value="dark">🖤 Midnight Luxury (Slate / Gold)</option>
                 </select>
               </div>
+            </div>
 
-              <div className="sm:col-span-3">
-                <label className="block font-bold text-gray-300 uppercase mb-1.5">Flash Sale Main Heading</label>
-                <input
-                  type="text"
-                  value={form.flashSaleTitle}
-                  onChange={(e) => setForm({ ...form, flashSaleTitle: e.target.value })}
-                  placeholder="Limited Time Discounts Up to 35%"
-                  className="w-full px-4 py-2.5 bg-gray-900 border border-gray-700 rounded-xl text-white font-bold focus:border-amber-400 focus:outline-none"
-                />
+            {/* Multi-Slide & Background Image Manager */}
+            <div className="border-t border-gray-700/80 pt-5 space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div>
+                  <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                    <Layers className="w-4 h-4 text-amber-400" />
+                    <span>Flash Sale Slides & Background Images ({currentSlides.length} Slides)</span>
+                  </h3>
+                  <p className="text-[11px] text-gray-400">
+                    একাধিক স্লাইড ও ব্যাকগ্রাউন্ড ইমেজ যুক্ত করুন। ওয়েবসাইটে এগুলো ৪.৫ সেকেন্ড পর পর সুন্দর ট্রানজিশন অ্যানিমেশন দিয়ে একটির পর একটি আসবে।
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleAddSlide}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gray-900 hover:bg-gray-700 text-amber-300 font-bold rounded-xl text-xs border border-amber-500/30 transition shadow-sm self-start sm:self-auto cursor-pointer active:scale-95"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>Add New Slide</span>
+                </button>
               </div>
 
-              <div className="sm:col-span-3">
-                <label className="block font-bold text-gray-300 uppercase mb-1.5">Flash Sale Subtitle</label>
-                <input
-                  type="text"
-                  value={form.flashSaleSubtitle}
-                  onChange={(e) => setForm({ ...form, flashSaleSubtitle: e.target.value })}
-                  placeholder="Hurry up! Special prices end when the timer reaches zero."
-                  className="w-full px-4 py-2.5 bg-gray-900 border border-gray-700 rounded-xl text-white font-medium focus:border-amber-400 focus:outline-none"
-                />
+              {/* Slide Selector Tabs */}
+              <div className="flex items-center gap-2 overflow-x-auto pb-1">
+                {currentSlides.map((s, idx) => (
+                  <button
+                    key={s.id || idx}
+                    type="button"
+                    onClick={() => setSelectedSlideIndex(idx)}
+                    className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold transition shrink-0 cursor-pointer ${
+                      selectedSlideIndex === idx
+                        ? 'bg-amber-500 text-gray-950 shadow-md'
+                        : 'bg-gray-900 text-gray-400 border border-gray-700 hover:text-white'
+                    }`}
+                  >
+                    <span>Slide {idx + 1}</span>
+                    {s.bgImage && <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" title="Has background image" />}
+                  </button>
+                ))}
               </div>
+
+              {/* Active Slide Editor Box */}
+              {currentSlides[selectedSlideIndex] && (
+                <div className="bg-gray-900/90 border border-gray-700 rounded-2xl p-4 sm:p-5 space-y-4">
+                  <div className="flex items-center justify-between border-b border-gray-800 pb-3">
+                    <div className="flex items-center gap-2">
+                      <span className="px-2.5 py-0.5 rounded-lg bg-amber-500/20 text-amber-300 font-black text-xs">
+                        Editing Slide #{selectedSlideIndex + 1}
+                      </span>
+                      <span className="text-[11px] text-gray-400">
+                        {currentSlides[selectedSlideIndex].title || 'Untitled Slide'}
+                      </span>
+                    </div>
+
+                    {currentSlides.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveSlide(selectedSlideIndex)}
+                        className="flex items-center gap-1 text-xs text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 px-2.5 py-1 rounded-lg transition cursor-pointer"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                        <span>Delete Slide</span>
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
+                    <div>
+                      <label className="block font-bold text-gray-300 uppercase mb-1">Slide Tag Badge</label>
+                      <input
+                        type="text"
+                        value={currentSlides[selectedSlideIndex]?.tag || ''}
+                        onChange={(e) => handleUpdateCurrentSlide('tag', e.target.value)}
+                        placeholder="⚡ FLASH SALE"
+                        className="w-full px-3.5 py-2 bg-gray-950 border border-gray-700 rounded-xl text-white font-bold focus:border-amber-400 focus:outline-none"
+                      />
+                    </div>
+
+                    <div className="sm:col-span-2">
+                      <label className="block font-bold text-gray-300 uppercase mb-1">Slide Main Heading</label>
+                      <input
+                        type="text"
+                        value={currentSlides[selectedSlideIndex]?.title || ''}
+                        onChange={(e) => handleUpdateCurrentSlide('title', e.target.value)}
+                        placeholder="Exclusive 24-Hour Super Deals"
+                        className="w-full px-3.5 py-2 bg-gray-950 border border-gray-700 rounded-xl text-white font-bold focus:border-amber-400 focus:outline-none"
+                      />
+                    </div>
+
+                    <div className="sm:col-span-3">
+                      <label className="block font-bold text-gray-300 uppercase mb-1">Slide Subtitle</label>
+                      <input
+                        type="text"
+                        value={currentSlides[selectedSlideIndex]?.subtitle || ''}
+                        onChange={(e) => handleUpdateCurrentSlide('subtitle', e.target.value)}
+                        placeholder="Limited stock flash offers with up to 50% discount. Order before time runs out!"
+                        className="w-full px-3.5 py-2 bg-gray-950 border border-gray-700 rounded-xl text-white font-medium focus:border-amber-400 focus:outline-none"
+                      />
+                    </div>
+
+                    <div className="sm:col-span-3">
+                      <ImageUploader
+                        label="Slide Background Image (স্লাইডের ব্যাকগ্রাউন্ড ছবি)"
+                        value={currentSlides[selectedSlideIndex]?.bgImage || ''}
+                        onChange={(url) => handleUpdateCurrentSlide('bgImage', url)}
+                        helpText="এই স্লাইডের ব্যাকগ্রাউন্ডে ছবি দেখানোর জন্য ইমেজ আপলোড করুন বা লিংক দিন। ডার্ক ওভারলে স্বয়ংক্রিয়ভাবে টেক্সটের সুস্পষ্টতা নিশ্চিত করবে।"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
@@ -1218,37 +1379,25 @@ export const AdminBanners: React.FC = () => {
               </div>
 
               {form.showFlashSale ? (
-                <div className={`bg-gradient-to-r ${getFlashThemeClasses(form.flashSaleTheme)} rounded-2xl p-4 text-white shadow-lg space-y-2.5 relative overflow-hidden`}>
+                <div className="relative">
                   {form.flashSaleEndsAt && new Date(form.flashSaleEndsAt).getTime() <= Date.now() && (
-                    <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px] flex items-center justify-center text-center p-3 z-10">
+                    <div className="absolute inset-0 bg-black/70 backdrop-blur-[2px] rounded-2xl flex items-center justify-center text-center p-3 z-30">
                       <div className="bg-rose-950/90 border border-rose-500/50 rounded-xl p-2.5 space-y-1">
                         <p className="text-xs font-bold text-rose-300">Countdown Expired</p>
                         <p className="text-[10px] text-gray-300">Auto-hidden from storefront visitors</p>
                       </div>
                     </div>
                   )}
-
-                  <div className="flex items-center justify-between">
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-white/20 backdrop-blur-md rounded-full text-[10px] font-black uppercase">
-                      <Flame className="w-3 h-3 fill-white" />
-                      <span>{form.flashSaleTag || 'FLASH SALE'}</span>
-                    </span>
-
-                    {/* Timer preview */}
-                    <div className="flex items-center gap-1 text-[10px] font-mono font-bold bg-black/40 px-2 py-0.5 rounded-lg border border-white/20">
-                      <Timer className="w-3 h-3 text-amber-300 mr-0.5" />
-                      <span>{String(form.flashSaleHours || 4).padStart(2, '0')}h : 00m : 00s</span>
-                    </div>
-                  </div>
-
-                  <div>
-                    <h5 className="text-xs font-black text-white leading-tight">
-                      {form.flashSaleTitle || 'Flash Sale Heading'}
-                    </h5>
-                    <p className="text-white/80 text-[10px] mt-0.5 line-clamp-1">
-                      {form.flashSaleSubtitle || 'Limited time special discounts'}
-                    </p>
-                  </div>
+                  <FlashSaleBanner
+                    slides={currentSlides}
+                    defaultTag={form.flashSaleTag}
+                    defaultTitle={form.flashSaleTitle}
+                    defaultSubtitle={form.flashSaleSubtitle}
+                    defaultBgImage={form.flashSaleBgImage}
+                    theme={form.flashSaleTheme}
+                    timeLeft={{ hours: form.flashSaleHours || 4, minutes: 0, seconds: 0 }}
+                    isMobile={true}
+                  />
                 </div>
               ) : (
                 <div className="bg-gray-900/60 border border-dashed border-gray-700 text-gray-500 text-xs py-2 px-3 rounded-xl text-center">

@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabase';
 import { Product, Category } from '../types';
 import { INITIAL_PRODUCTS, INITIAL_CATEGORIES } from '../data/mockData';
 import { ProductCard } from '../components/common/ProductCard';
+import { FlashSaleBanner } from '../components/home/FlashSaleBanner';
 import { useSettings } from '../contexts/SettingsContext';
 import {
   ArrowRight,
@@ -302,71 +303,19 @@ export const HomePage: React.FC = () => {
           </div>
         )}
 
-        {/* 2. Browse by Categories */}
-        <div className="px-3 space-y-2.5">
-          <div className="flex items-center justify-between">
-            <h3 className="text-sm font-black text-gray-900">Browse by Categories</h3>
-            <Link to="/shop" className="text-xs text-rose-600 font-bold flex items-center">
-              <span>View All</span>
-              <ChevronRight className="w-3.5 h-3.5" />
-            </Link>
-          </div>
-
-          <div className="grid grid-cols-4 gap-2.5 text-center">
-            {categories.slice(0, 4).map((cat) => {
-              const IconComp = ICON_MAP[cat.icon] || ShoppingBag;
-              return (
-                <Link
-                  key={cat.slug || cat.id}
-                  to={`/shop?category=${cat.slug}`}
-                  className="flex flex-col items-center group active:scale-95 transition"
-                >
-                  <div className="w-14 h-14 rounded-2xl bg-rose-50/70 border border-rose-100/90 flex items-center justify-center text-rose-600 mb-1.5 group-hover:bg-rose-600 group-hover:text-white transition shadow-2xs">
-                    {cat.image_url ? (
-                      <img
-                        src={cat.image_url}
-                        alt={cat.name}
-                        className="w-full h-full object-cover rounded-2xl"
-                        loading="lazy"
-                      />
-                    ) : (
-                      <IconComp className="w-6 h-6" />
-                    )}
-                  </div>
-                  <span className="text-[11px] font-bold text-gray-800 line-clamp-1">
-                    {cat.name.split('&')[0].trim()}
-                  </span>
-                </Link>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* 2b. Mobile Flash Sale Countdown & Deals */}
+        {/* 2. Mobile Flash Sale Countdown & Deals */}
         {isFlashSaleActive && (
           <div className="px-3 space-y-3">
-            <div className={`bg-gradient-to-r ${getFlashThemeClasses(banners.flashSaleTheme)} rounded-2xl p-4 text-white shadow-md space-y-2`}>
-              <div className="flex items-center justify-between">
-                <div className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-white/20 backdrop-blur-md text-[10px] font-black uppercase">
-                  <Flame className="w-3 h-3 fill-white" />
-                  <span>{banners.flashSaleTag || '⚡ FLASH SALE'}</span>
-                </div>
-                {/* Timer */}
-                <div className="flex items-center gap-1 bg-black/40 px-2.5 py-1 rounded-lg border border-white/20 text-[10px] font-mono font-bold">
-                  <Timer className="w-3 h-3 text-amber-300 mr-0.5" />
-                  <span>{String(timeLeft.hours).padStart(2, '0')}h</span>
-                  <span>:</span>
-                  <span>{String(timeLeft.minutes).padStart(2, '0')}m</span>
-                  <span>:</span>
-                  <span className="text-amber-300">{String(timeLeft.seconds).padStart(2, '0')}s</span>
-                </div>
-              </div>
-
-              <div>
-                <h3 className="text-sm font-black">{banners.flashSaleTitle || 'Exclusive 24-Hour Super Deals'}</h3>
-                <p className="text-white/80 text-[10px]">{banners.flashSaleSubtitle || 'Limited stock flash offers with up to 50% discount. Order before time runs out!'}</p>
-              </div>
-            </div>
+            <FlashSaleBanner
+              slides={banners.flashSaleSlides}
+              defaultTag={banners.flashSaleTag}
+              defaultTitle={banners.flashSaleTitle}
+              defaultSubtitle={banners.flashSaleSubtitle}
+              defaultBgImage={banners.flashSaleBgImage}
+              theme={banners.flashSaleTheme}
+              timeLeft={timeLeft}
+              isMobile={true}
+            />
 
             {/* Mobile Flash Deals Grid */}
             {activeFlashProducts.length > 0 ? (
@@ -621,34 +570,16 @@ export const HomePage: React.FC = () => {
         {/* 3. Desktop Flash Sale */}
         {isFlashSaleActive && (
           <section className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
-            <div className={`bg-gradient-to-r ${getFlashThemeClasses(banners.flashSaleTheme)} rounded-3xl p-8 text-white mb-6 shadow-lg flex items-center justify-between`}>
-              <div className="space-y-1">
-                <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-white/20 backdrop-blur-md rounded-full text-xs font-black uppercase tracking-wider">
-                  <Flame className="w-3.5 h-3.5 fill-white" />
-                  <span>{banners.flashSaleTag || '⚡ FLASH SALE'}</span>
-                </div>
-                <h3 className="text-3xl font-black">{banners.flashSaleTitle || 'Exclusive 24-Hour Super Deals'}</h3>
-                <p className="text-white/80 text-xs">{banners.flashSaleSubtitle || 'Limited stock flash offers with up to 50% discount. Order before time runs out!'}</p>
-              </div>
-
-              <div className="flex items-center gap-2 bg-black/40 p-2.5 rounded-2xl border border-white/20 backdrop-blur-md">
-                <Timer className="w-5 h-5 text-amber-300" />
-                <div className="text-center bg-white/10 px-3 py-1 rounded-lg min-w-12">
-                  <span className="text-base font-black font-mono block leading-none">{String(timeLeft.hours).padStart(2, '0')}</span>
-                  <span className="text-[8px] uppercase tracking-wider text-rose-200">Hours</span>
-                </div>
-                <span className="font-bold">:</span>
-                <div className="text-center bg-white/10 px-3 py-1 rounded-lg min-w-12">
-                  <span className="text-base font-black font-mono block leading-none">{String(timeLeft.minutes).padStart(2, '0')}</span>
-                  <span className="text-[8px] uppercase tracking-wider text-rose-200">Mins</span>
-                </div>
-                <span className="font-bold">:</span>
-                <div className="text-center bg-white/10 px-3 py-1 rounded-lg min-w-12">
-                  <span className="text-base font-black font-mono block leading-none text-amber-300">{String(timeLeft.seconds).padStart(2, '0')}</span>
-                  <span className="text-[8px] uppercase tracking-wider text-rose-200">Secs</span>
-                </div>
-              </div>
-            </div>
+            <FlashSaleBanner
+              slides={banners.flashSaleSlides}
+              defaultTag={banners.flashSaleTag}
+              defaultTitle={banners.flashSaleTitle}
+              defaultSubtitle={banners.flashSaleSubtitle}
+              defaultBgImage={banners.flashSaleBgImage}
+              theme={banners.flashSaleTheme}
+              timeLeft={timeLeft}
+              isMobile={false}
+            />
 
             {activeFlashProducts.length > 0 ? (
               <div className="grid grid-cols-2 md:grid-cols-4 gap-6">

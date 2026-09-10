@@ -2,6 +2,14 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { toast } from 'sonner';
 
+export interface FlashSaleSlide {
+  id: string;
+  tag?: string;
+  title: string;
+  subtitle?: string;
+  bgImage?: string;
+}
+
 export interface BannerSettings {
   // Top Announcement Bar
   showTopAnnouncement?: boolean;
@@ -42,6 +50,8 @@ export interface BannerSettings {
   flashSaleHours: number;
   flashSaleTheme: 'sunset' | 'emerald' | 'cyber' | 'dark';
   flashSaleEndsAt?: string;
+  flashSaleBgImage?: string;
+  flashSaleSlides?: FlashSaleSlide[];
 
   // Featured Products Section
   showFeaturedProducts?: boolean;
@@ -99,6 +109,16 @@ export const DEFAULT_BANNERS: BannerSettings = {
   flashSaleHours: 6,
   flashSaleTheme: 'sunset',
   flashSaleEndsAt: '',
+  flashSaleBgImage: '',
+  flashSaleSlides: [
+    {
+      id: '1',
+      tag: '⚡ FLASH SALE',
+      title: 'Exclusive 24-Hour Super Deals',
+      subtitle: 'Limited stock flash offers with up to 50% discount. Order before time runs out!',
+      bgImage: '',
+    },
+  ],
 
   showFeaturedProducts: true,
   featuredProductsTitle: 'Featured Products',
