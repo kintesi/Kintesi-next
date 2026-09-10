@@ -1,26 +1,71 @@
-import {
+﻿import {
   collection,
   doc,
-  getDoc,
   getDocs,
   setDoc,
   updateDoc,
   deleteDoc,
   query,
   where,
-  orderBy,
-  limit
+  orderBy
 } from 'firebase/firestore';
 import { db } from './firebase';
+import { supabase } from './supabase';
 import { Product, Category, Order } from '../types';
 import { INITIAL_CATEGORIES } from '../data/mockData';
 
+// Timeout wrapper so slow network queries failover gracefully without freezing UI
+function withTimeout<T>(promise: PromiseLike<T>, ms: number = 3500): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error('Operation timed out')), ms);
+    Promise.resolve(promise)
+      .then((res) => {
+        clearTimeout(timer);
+        resolve(res);
+      })
+      .catch((err) => {
+        clearTimeout(timer);
+        reject(err);
+      });
+  });
+}
+
 // ==========================================
-// 📦 PRODUCTS
+// 📦 PRODUCTS (Primary: Supabase | Hot Backup: Firebase)
 // ==========================================
 
 export async function getProductsFromDB(): Promise<Product[]> {
   const localSaved: Product[] = JSON.parse(localStorage.getItem('kintesi_custom_products') || '[]');
+
+  // 1. Primary: Try fetching from Supabase (Relational PostgreSQL)
+  try {
+    const result = await withTimeout<any>(
+      supabase.from('products').select('*').order('created_at', { ascending: false }),
+      4000
+    );
+    const supaProducts = result?.data;
+    const error = result?.error;
+
+    if (!error && supaProducts && supaProducts.length > 0) {
+      const clean = supaProducts.filter((p: any) => p && p.id && !p.id.startsWith('prod-'));
+      localStorage.setItem('kintesi_custom_products', JSON.stringify(clean));
+
+      // Asynchronously mirror / shadow backup to Firebase
+      Promise.resolve().then(async () => {
+        try {
+          for (const item of clean) {
+            setDoc(doc(db, 'products', item.id), item, { merge: true }).catch(() => {});
+          }
+        } catch {}
+      });
+
+      return clean;
+    }
+  } catch (supaErr) {
+    console.warn('Supabase products fetch failed or timed out, failing over to Firebase backup:', supaErr);
+  }
+
+  // 2. Secondary / Backup: Cloud Firestore Failover
   try {
     const colRef = collection(db, 'products');
     const snap = await getDocs(colRef);
@@ -30,46 +75,89 @@ export async function getProductsFromDB(): Promise<Product[]> {
       localStorage.setItem('kintesi_custom_products', JSON.stringify(clean));
       return clean;
     }
-  } catch (err) {
-    console.warn('Firestore products fetch notice (using cache):', err);
+  } catch (fireErr) {
+    console.warn('Firebase products fetch notice (using cache):', fireErr);
   }
+
+  // 3. Fallback: Local Storage cache
   return localSaved.filter((p) => p && p.id && !p.id.startsWith('prod-'));
 }
 
 export async function saveProductToDB(product: Product): Promise<void> {
-  // 1. Update localStorage immediately for 0ms reactivity
+  // 1. Instant local reactivity (0ms)
   const localSaved: Product[] = JSON.parse(localStorage.getItem('kintesi_custom_products') || '[]');
   const updated = [product, ...localSaved.filter((p) => p.id !== product.id && p.slug !== product.slug)];
   localStorage.setItem('kintesi_custom_products', JSON.stringify(updated));
   window.dispatchEvent(new Event('kintesi_products_updated'));
 
-  // 2. Persist to Firestore
+  // 2. Primary: Save to Supabase (PostgreSQL)
+  try {
+    const { error } = await supabase.from('products').upsert([product]);
+    if (error) {
+      console.warn('Supabase product upsert warning:', error.message);
+    }
+  } catch (err) {
+    console.error('Supabase product save error:', err);
+  }
+
+  // 3. Real-time Secondary Backup: Save to Firebase Firestore
   try {
     const docRef = doc(db, 'products', product.id);
     await setDoc(docRef, product, { merge: true });
   } catch (err) {
-    console.error('Firestore save product error:', err);
+    console.error('Firebase product backup error:', err);
   }
 }
 
 export async function deleteProductFromDB(productId: string): Promise<void> {
+  // 1. Local update
   const localSaved: Product[] = JSON.parse(localStorage.getItem('kintesi_custom_products') || '[]');
   const filtered = localSaved.filter((p) => p.id !== productId);
   localStorage.setItem('kintesi_custom_products', JSON.stringify(filtered));
   window.dispatchEvent(new Event('kintesi_products_updated'));
 
+  // 2. Delete from Supabase Primary
+  try {
+    await supabase.from('products').delete().eq('id', productId);
+  } catch (err) {
+    console.warn('Supabase product delete warning:', err);
+  }
+
+  // 3. Delete from Firebase Backup
   try {
     await deleteDoc(doc(db, 'products', productId));
   } catch (err) {
-    console.error('Firestore delete product error:', err);
+    console.warn('Firebase product delete warning:', err);
   }
 }
 
 // ==========================================
-// 🏷️ CATEGORIES
+// 🏷️ CATEGORIES (Primary: Supabase | Hot Backup: Firebase)
 // ==========================================
 
 export async function getCategoriesFromDB(): Promise<Category[]> {
+  // 1. Primary: Try Supabase
+  try {
+    const result = await withTimeout<any>(
+      supabase.from('categories').select('*').order('name'),
+      3500
+    );
+    const supaCats = result?.data;
+    const error = result?.error;
+
+    if (!error && supaCats && supaCats.length > 0) {
+      localStorage.setItem('kintesi_custom_categories', JSON.stringify(supaCats));
+      // Backup to Firebase
+      for (const cat of supaCats) {
+        setDoc(doc(db, 'categories', cat.id || cat.slug), cat, { merge: true }).catch(() => {});
+      }
+      return supaCats;
+    }
+  } catch (err) {
+    console.warn('Supabase categories fetch failover to Firebase:', err);
+  }
+
+  // 2. Secondary: Try Firebase
   try {
     const colRef = collection(db, 'categories');
     const snap = await getDocs(colRef);
@@ -86,12 +174,14 @@ export async function getCategoriesFromDB(): Promise<Category[]> {
     }
   } catch (err) {
     console.warn('Firestore categories fetch notice:', err);
-    try {
-      const saved = localStorage.getItem('kintesi_custom_categories');
-      if (saved) return JSON.parse(saved);
-    } catch {}
-    return INITIAL_CATEGORIES;
   }
+
+  // 3. Local fallback
+  try {
+    const saved = localStorage.getItem('kintesi_custom_categories');
+    if (saved) return JSON.parse(saved);
+  } catch {}
+  return INITIAL_CATEGORIES;
 }
 
 export async function saveCategoryToDB(category: Category): Promise<void> {
@@ -99,18 +189,44 @@ export async function saveCategoryToDB(category: Category): Promise<void> {
   const updated = [category, ...localSaved.filter((c) => c.id !== category.id)];
   localStorage.setItem('kintesi_custom_categories', JSON.stringify(updated));
 
+  // 1. Primary: Supabase
+  try {
+    await supabase.from('categories').upsert([category]);
+  } catch (err) {
+    console.warn('Supabase category save warning:', err);
+  }
+
+  // 2. Real-time Backup: Firebase
   try {
     await setDoc(doc(db, 'categories', category.id), category, { merge: true });
   } catch (err) {
-    console.error('Firestore save category error:', err);
+    console.error('Firebase category backup error:', err);
   }
 }
 
 // ==========================================
-// 📋 ORDERS
+// 📋 ORDERS (Primary: Supabase Relational Ledger | Hot Backup: Firebase)
 // ==========================================
 
 export async function getOrdersFromDB(userId?: string): Promise<Order[]> {
+  // 1. Primary: Try Supabase
+  try {
+    let q = supabase.from('orders').select('*').order('created_at', { ascending: false });
+    if (userId) {
+      q = q.eq('user_id', userId);
+    }
+    const result = await withTimeout<any>(q, 3500);
+    const supaOrders = result?.data;
+    const error = result?.error;
+
+    if (!error && supaOrders && supaOrders.length > 0) {
+      return supaOrders;
+    }
+  } catch (err) {
+    console.warn('Supabase orders fetch failover to Firebase:', err);
+  }
+
+  // 2. Secondary Backup: Try Firebase
   try {
     const colRef = collection(db, 'orders');
     let q;
@@ -138,15 +254,34 @@ export async function getOrdersFromDB(userId?: string): Promise<Order[]> {
 }
 
 export async function saveOrderToDB(order: Order): Promise<void> {
+  // 1. Primary: Save to Supabase (PostgreSQL Relational Ledger)
+  try {
+    const { error } = await supabase.from('orders').upsert([order]);
+    if (error) {
+      console.warn('Supabase order insert notice:', error.message);
+    }
+  } catch (err) {
+    console.error('Supabase order save error:', err);
+  }
+
+  // 2. Real-time Backup: Save to Firebase Firestore
   try {
     const docRef = doc(db, 'orders', order.id);
     await setDoc(docRef, order);
   } catch (err) {
-    console.error('Firestore save order error:', err);
+    console.error('Firestore save order backup error:', err);
   }
 }
 
 export async function updateOrderInDB(orderId: string, updates: Partial<Order>): Promise<void> {
+  // 1. Primary: Update in Supabase
+  try {
+    await supabase.from('orders').update(updates).eq('id', orderId);
+  } catch (err) {
+    console.warn('Supabase update order warning:', err);
+  }
+
+  // 2. Real-time Backup: Update in Firebase
   try {
     const docRef = doc(db, 'orders', orderId);
     await updateDoc(docRef, updates);

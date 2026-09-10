@@ -1,4 +1,4 @@
-﻿import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState } from 'react';
 import {
   signInWithPopup,
   signInWithEmailAndPassword,
@@ -10,6 +10,7 @@ import {
 } from 'firebase/auth';
 import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
 import { auth, googleProvider, db, isAdminUser } from '../lib/firebase';
+import { supabase } from '../lib/supabase';
 import { UserProfile } from '../types';
 import { toast } from 'sonner';
 
@@ -133,6 +134,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         };
         setProfile(newProfile);
         await setDoc(userDocRef, newProfile).catch(() => {});
+        try {
+          Promise.resolve(
+            supabase.from('profiles').upsert([
+              {
+                id: currentUser.id,
+                email: currentUser.email || '',
+                full_name: newProfile.full_name,
+                role: resolvedRole,
+                avatar_url: currentUser.photoURL || null,
+              }
+            ])
+          ).catch(() => {});
+        } catch {}
       }
     } catch (err) {
       console.warn('Firebase profile fetch note:', err);
