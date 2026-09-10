@@ -3,6 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { Product } from '../types';
 import { INITIAL_PRODUCTS } from '../data/mockData';
 import { supabase } from '../lib/supabase';
+import { useAuth } from '../contexts/AuthContext';
 import { useCart } from '../contexts/CartContext';
 import { useWishlist } from '../contexts/WishlistContext';
 import { useAddress } from '../contexts/AddressContext';
@@ -41,6 +42,7 @@ import { toast } from 'sonner';
 export const ProductDetailPage: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
+  const { user, openAuthModal } = useAuth();
   const { addToCart } = useCart();
   const { toggleWishlist, isInWishlist } = useWishlist();
   const { defaultAddress, addresses } = useAddress();
@@ -258,10 +260,20 @@ export const ProductDetailPage: React.FC = () => {
     .slice(0, 4);
 
   const handleAddToCart = () => {
+    if (!user) {
+      toast.error('পণ্য কার্টে যোগ করতে বা অর্ডার করতে প্রথমে অ্যাকাউন্টে লগইন করুন (Account Required)');
+      openAuthModal('login');
+      return;
+    }
     addToCart(product, quantity, selectedColor, selectedSize);
   };
 
   const handleBuyNow = () => {
+    if (!user) {
+      toast.error('অর্ডার করতে অনুগ্রহ করে প্রথমে আপনার অ্যাকাউন্টে লগইন করুন (Account Required)');
+      openAuthModal('login');
+      return;
+    }
     addToCart(product, quantity, selectedColor, selectedSize);
     navigate('/checkout');
   };

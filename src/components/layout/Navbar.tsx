@@ -320,8 +320,15 @@ export const Navbar: React.FC = () => {
 
               {/* Cart Button */}
               <button
-                onClick={() => setIsCartOpen(true)}
-                className="relative h-9 px-3.5 bg-gray-950 hover:bg-rose-600 text-white rounded-xl font-bold text-xs transition-all flex items-center gap-2 shadow-xs active:scale-95"
+                onClick={() => {
+                  if (!user) {
+                    setIsAuthOpen(true);
+                    return;
+                  }
+                  setIsCartOpen(true);
+                }}
+                className="relative h-9 px-3.5 bg-gray-950 hover:bg-rose-600 text-white rounded-xl font-bold text-xs transition-all flex items-center gap-2 shadow-xs active:scale-95 cursor-pointer"
+                title={user ? 'Open Cart' : 'Login required to access cart'}
               >
                 <div className="relative">
                   <ShoppingCart className="w-4 h-4" />
@@ -521,9 +528,20 @@ export const Navbar: React.FC = () => {
                 <span>Address Book</span>
               </button>
               <span className="text-rose-200">•</span>
-              <Link to="/orders" className="text-gray-500 hover:text-gray-800">
-                Track Order
-              </Link>
+              <button
+                type="button"
+                onClick={() => {
+                  if (user) {
+                    navigate('/orders');
+                  } else {
+                    setIsAuthOpen(true);
+                  }
+                }}
+                className="text-gray-500 hover:text-gray-800 flex items-center gap-1 cursor-pointer bg-transparent border-none p-0 text-xs font-semibold"
+                title={user ? 'Track My Orders' : 'Login required to track orders and packages'}
+              >
+                <span>Track Order</span>
+              </button>
             </div>
           </nav>
 

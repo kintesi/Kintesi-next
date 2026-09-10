@@ -120,6 +120,37 @@ export const CheckoutPage: React.FC = () => {
     }
   };
 
+  if (!user) {
+    return (
+      <div className="max-w-xl mx-auto px-4 py-20 text-center space-y-6">
+        <div className="w-20 h-20 rounded-3xl bg-rose-50 border border-rose-200 text-rose-600 flex items-center justify-center mx-auto shadow-md">
+          <Lock className="w-10 h-10" />
+        </div>
+        <div className="space-y-2">
+          <h2 className="text-2xl font-black text-gray-900">Account Required for Checkout</h2>
+          <p className="text-sm text-gray-500 max-w-md mx-auto leading-relaxed">
+            অর্ডার নিশ্চিত করতে ও চেকআউট সম্পন্ন করতে অনুগ্রহ করে আপনার Kintesi অ্যাকাউন্টে লগইন করুন বা সাইন আপ করুন।
+          </p>
+        </div>
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+          <button
+            onClick={() => setIsAuthOpen(true)}
+            className="w-full sm:w-auto px-7 py-3.5 bg-rose-600 hover:bg-rose-700 text-white font-black rounded-xl text-xs transition shadow-lg shadow-rose-600/25 active:scale-95 cursor-pointer"
+          >
+            লগইন / রেজিস্টার করুন (Sign In / Register)
+          </button>
+          <Link
+            to="/shop"
+            className="w-full sm:w-auto px-6 py-3.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-xl text-xs transition"
+          >
+            Continue Shopping
+          </Link>
+        </div>
+        <AuthModal isOpen={isAuthOpen} onClose={() => setIsAuthOpen(false)} />
+      </div>
+    );
+  }
+
   if (cart.length === 0) {
     return (
       <div className="max-w-[1440px] mx-auto px-4 py-20 text-center">

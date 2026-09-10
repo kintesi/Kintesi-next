@@ -51,7 +51,13 @@ export const MobileBottomNav: React.FC = () => {
 
           {/* 3. Clean Modern Cart Button with Live Counter Badge */}
           <button
-            onClick={() => setIsCartOpen(!isCartOpen)}
+            onClick={() => {
+              if (!user) {
+                setIsAuthOpen(true);
+                return;
+              }
+              setIsCartOpen(!isCartOpen);
+            }}
             className={`flex flex-col items-center justify-center h-full py-1 transition relative cursor-pointer ${
               isCartOpen ? 'text-rose-600 font-bold' : 'text-gray-400 hover:text-gray-700 font-medium'
             }`}

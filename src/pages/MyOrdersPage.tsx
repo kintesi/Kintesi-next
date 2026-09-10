@@ -25,7 +25,7 @@ import { InvoiceModal } from '../components/invoice/InvoiceModal';
 const STATUS_STEPS = ['pending', 'processing', 'shipped', 'delivered'];
 
 export const MyOrdersPage: React.FC = () => {
-  const { user, profile } = useAuth();
+  const { user, profile, openAuthModal } = useAuth();
   const { settings } = useSettings();
   const { openChat } = useChat();
   const [orders, setOrders] = useState<Order[]>([]);
@@ -47,25 +47,22 @@ export const MyOrdersPage: React.FC = () => {
 
   useEffect(() => {
     async function loadOrders() {
+      if (!user) {
+        setOrders([]);
+        setLoading(false);
+        return;
+      }
+
       setLoading(true);
       try {
-        let fetchedOrders: Order[] = [];
-        
-        if (user) {
-          const { data } = await supabase
-            .from('orders')
-            .select('*')
-            .eq('user_id', user.id)
-            .order('created_at', { ascending: false });
-          if (data) fetchedOrders = data;
-        }
+        const { data, error } = await supabase
+          .from('orders')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false });
 
-        const local = JSON.parse(localStorage.getItem('kintesi_guest_orders') || '[]');
-        if (local.length > 0) {
-          const merged = [...fetchedOrders, ...local.filter((l: any) => !fetchedOrders.some((f) => f.order_number === l.order_number))];
-          setOrders(merged);
-        } else {
-          setOrders(fetchedOrders);
+        if (data) {
+          setOrders(data);
         }
       } catch (err) {
         console.warn('Orders load note:', err);
@@ -124,6 +121,36 @@ export const MyOrdersPage: React.FC = () => {
       default: return 'bg-gray-100 text-gray-800 border-gray-200';
     }
   };
+
+  if (!user) {
+    return (
+      <div className="max-w-xl mx-auto px-4 py-20 text-center space-y-6">
+        <div className="w-20 h-20 rounded-3xl bg-emerald-50 border border-emerald-200 text-emerald-600 flex items-center justify-center mx-auto shadow-md">
+          <Truck className="w-10 h-10" />
+        </div>
+        <div className="space-y-2">
+          <h2 className="text-2xl font-black text-gray-900">Account Required for Orders & Tracking</h2>
+          <p className="text-sm text-gray-500 max-w-md mx-auto leading-relaxed">
+            আপনার অর্ডার হিস্ট্রি দেখতে, লাইভ ডেলিভারি পার্সেল ট্র্যাক করতে এবং অফিশিয়াল ইনভয়েস ডাউনলোড করতে একটি Kintesi অ্যাকাউন্ট আবশ্যক। অনুগ্রহ করে আপনার অ্যাকাউন্টে লগইন করুন বা নতুন অ্যাকাউন্ট তৈরি করুন।
+          </p>
+        </div>
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+          <button
+            onClick={() => openAuthModal('login')}
+            className="w-full sm:w-auto px-7 py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-black rounded-xl text-xs transition shadow-lg shadow-emerald-600/25 active:scale-95 cursor-pointer"
+          >
+            লগইন / রেজিস্টার করুন (Sign In / Register)
+          </button>
+          <Link
+            to="/shop"
+            className="w-full sm:w-auto px-6 py-3.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-xl text-xs transition"
+          >
+            Continue Shopping
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16 space-y-8">

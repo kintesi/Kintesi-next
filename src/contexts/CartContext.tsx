@@ -25,7 +25,7 @@ interface CartContextType {
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { user } = useAuth();
+  const { user, openAuthModal } = useAuth();
   const { validateCoupon } = useCoupons();
   const [cart, setCart] = useState<CartItem[]>(() => {
     try {
@@ -46,9 +46,16 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   });
 
+  // Only logged-in users have an active cart
+  const activeCart = user ? cart : [];
+
   useEffect(() => {
-    localStorage.setItem('kintesi_cart', JSON.stringify(cart));
-  }, [cart]);
+    if (user) {
+      localStorage.setItem('kintesi_cart', JSON.stringify(cart));
+    } else {
+      localStorage.removeItem('kintesi_cart');
+    }
+  }, [cart, user]);
 
   useEffect(() => {
     if (appliedCoupon) {
@@ -59,6 +66,12 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [appliedCoupon]);
 
   const addToCart = (product: Product, quantity = 1, color?: string, size?: string) => {
+    if (!user) {
+      toast.error('পণ্য কার্টে যোগ করতে বা অর্ডার করতে প্রথমে অ্যাকাউন্টে লগইন করুন (Account Required)');
+      openAuthModal('login');
+      return;
+    }
+
     setCart((prev) => {
       const existingIndex = prev.findIndex(
         (item) => item.product.id === product.id && item.selectedColor === color && item.selectedSize === size
@@ -118,7 +131,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.removeItem('kintesi_coupon');
   };
 
-  const subtotal = cart.reduce((acc, item) => {
+  const subtotal = activeCart.reduce((acc, item) => {
     const itemPrice = item.product.discount_price || item.product.price;
     return acc + itemPrice * item.quantity;
   }, 0);
@@ -162,12 +175,12 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Free shipping for orders above ৳5000, otherwise standard ৳60 Inside Dhaka / ৳120 Outside
   const shippingFee = subtotal === 0 ? 0 : subtotal >= 5000 ? 0 : 60;
   const total = Math.max(0, subtotal - discountAmount + shippingFee);
-  const totalItemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
+  const totalItemCount = activeCart.reduce((sum, item) => sum + item.quantity, 0);
 
   return (
     <CartContext.Provider
       value={{
-        cart,
+        cart: activeCart,
         addToCart,
         removeFromCart,
         updateQuantity,

@@ -36,7 +36,12 @@ import { AdminTeam } from './pages/admin/AdminTeam';
 import { AdminBanners } from './pages/admin/AdminBanners';
 import { AdminLiveChat } from './pages/admin/AdminLiveChat';
 
+import { useAuth } from './contexts/AuthContext';
+import { AuthModal } from './components/auth/AuthModal';
+
 const StorefrontLayout = () => {
+  const { isAuthModalOpen, closeAuthModal, authModalMode } = useAuth();
+
   return (
     <div className="min-h-screen flex flex-col bg-white">
       <Navbar />
@@ -47,6 +52,7 @@ const StorefrontLayout = () => {
       <CartDrawer />
       <MobileBottomNav />
       <LiveChatWidget />
+      <AuthModal isOpen={isAuthModalOpen} onClose={closeAuthModal} initialMode={authModalMode} />
     </div>
   );
 };

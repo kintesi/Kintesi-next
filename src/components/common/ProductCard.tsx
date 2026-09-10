@@ -1,6 +1,7 @@
 import React from 'react';
 import { Product } from '../../types';
 import { useCart } from '../../contexts/CartContext';
+import { useAuth } from '../../contexts/AuthContext';
 import { useWishlist } from '../../contexts/WishlistContext';
 import { formatPrice, calculateDiscount } from '../../lib/utils';
 import { ShoppingCart, Heart, Star } from 'lucide-react';
@@ -11,6 +12,7 @@ interface ProductCardProps {
 }
 
 export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
+  const { user, openAuthModal } = useAuth();
   const { addToCart } = useCart();
   const { toggleWishlist, isInWishlist } = useWishlist();
 
@@ -123,9 +125,15 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
           </div>
 
           <button
-            onClick={() => addToCart(product, 1)}
-            className="p-2 sm:px-3 sm:py-2 bg-gray-950 hover:bg-rose-600 text-white rounded-xl font-bold text-xs transition flex items-center gap-1.5 active:scale-95 shadow-xs"
-            title="Add to Cart"
+            onClick={() => {
+              if (!user) {
+                openAuthModal('login');
+                return;
+              }
+              addToCart(product, 1);
+            }}
+            className="p-2 sm:px-3 sm:py-2 bg-gray-950 hover:bg-rose-600 text-white rounded-xl font-bold text-xs transition flex items-center gap-1.5 active:scale-95 shadow-xs cursor-pointer"
+            title={user ? 'Add to Cart' : 'Account required to add to cart'}
           >
             <ShoppingCart className="w-3.5 h-3.5" />
             <span className="hidden sm:inline">Add</span>
