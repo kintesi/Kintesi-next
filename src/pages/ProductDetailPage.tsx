@@ -34,6 +34,7 @@ import {
   ChevronDown,
   MessageCircle,
   AlertTriangle,
+  Cpu,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -717,76 +718,136 @@ export const ProductDetailPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Section 1: Comprehensive Specifications & Material Details Card */}
-      <section className="bg-white rounded-3xl border border-gray-100 p-6 sm:p-10 shadow-sm space-y-6">
-        <div className="border-b border-gray-100 pb-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
-              <Shirt className="w-5 h-5" />
-            </div>
-            <div>
-              <h3 className="text-lg font-black text-gray-900">Specifications & Material Details</h3>
-              <p className="text-xs text-gray-500">Fabric craftsmanship, dimensions & technical data</p>
-            </div>
-          </div>
-          <span className="px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-xs font-bold font-mono">
-            SKU: {product.sku || 'CF-' + product.id.slice(0, 6).toUpperCase()}
-          </span>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-xs">
-          {product.fabric && (
-            <div className="p-4 bg-gray-50 rounded-2xl space-y-1 border border-gray-100">
-              <span className="text-gray-400 font-bold uppercase text-[10px] tracking-wider">Fabric / Material</span>
-              <p className="font-black text-gray-900 text-sm">{product.fabric}</p>
-            </div>
-          )}
-
-          {product.fit_type && (
-            <div className="p-4 bg-gray-50 rounded-2xl space-y-1 border border-gray-100">
-              <span className="text-gray-400 font-bold uppercase text-[10px] tracking-wider">Fit Type</span>
-              <p className="font-black text-gray-900 text-sm">{product.fit_type}</p>
-            </div>
-          )}
-
-          {product.gender && (
-            <div className="p-4 bg-gray-50 rounded-2xl space-y-1 border border-gray-100">
-              <span className="text-gray-400 font-bold uppercase text-[10px] tracking-wider">Department</span>
-              <p className="font-black text-gray-900 text-sm">{product.gender}</p>
-            </div>
-          )}
-
-          {product.origin && (
-            <div className="p-4 bg-gray-50 rounded-2xl space-y-1 border border-gray-100">
-              <span className="text-gray-400 font-bold uppercase text-[10px] tracking-wider">Country of Origin</span>
-              <p className="font-black text-gray-900 text-sm">{product.origin}</p>
-            </div>
-          )}
-
-          {product.warranty && (
-            <div className="p-4 bg-gray-50 rounded-2xl space-y-1 border border-gray-100">
-              <span className="text-gray-400 font-bold uppercase text-[10px] tracking-wider">Warranty Period</span>
-              <p className="font-black text-gray-900 text-sm">{product.warranty}</p>
-            </div>
-          )}
-
-          {product.care_instructions && (
-            <div className="p-4 bg-gray-50 rounded-2xl space-y-1 border border-gray-100 sm:col-span-2">
-              <span className="text-gray-400 font-bold uppercase text-[10px] tracking-wider">Care & Maintenance</span>
-              <p className="font-bold text-gray-800 text-xs leading-relaxed">{product.care_instructions}</p>
-            </div>
-          )}
-
-          {/* Dynamic Specifications */}
-          {product.specifications &&
-            Object.entries(product.specifications).map(([key, val]) => (
-              <div key={key} className="p-4 bg-gray-50 rounded-2xl space-y-1 border border-gray-100">
-                <span className="text-gray-400 font-bold uppercase text-[10px] tracking-wider">{key}</span>
-                <p className="font-black text-gray-900 text-sm">{val}</p>
+      {/* Section 1: Comprehensive Specifications & Technical Details Card */}
+      {Boolean(
+        product.fabric ||
+        product.fit_type ||
+        product.gender ||
+        product.origin ||
+        product.warranty ||
+        product.care_instructions ||
+        (product.specifications && Object.keys(product.specifications).length > 0)
+      ) && (
+        <section className="bg-white rounded-3xl border border-gray-100 p-6 sm:p-10 shadow-sm space-y-6">
+          <div className="border-b border-gray-100 pb-4 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className={`w-10 h-10 rounded-2xl flex items-center justify-center ${
+                product.category_id?.includes('smartphones') ||
+                product.category_id?.includes('laptops') ||
+                product.category_id?.includes('audio') ||
+                product.category_id?.includes('cameras') ||
+                product.category_id?.includes('watches') ||
+                product.category_id?.includes('gadget') ||
+                product.category_id?.includes('tech')
+                  ? 'bg-cyan-50 text-cyan-600'
+                  : 'bg-emerald-50 text-emerald-600'
+              }`}>
+                {product.category_id?.includes('smartphones') ||
+                product.category_id?.includes('laptops') ||
+                product.category_id?.includes('audio') ||
+                product.category_id?.includes('cameras') ||
+                product.category_id?.includes('watches') ||
+                product.category_id?.includes('gadget') ||
+                product.category_id?.includes('tech') ? (
+                  <Cpu className="w-5 h-5" />
+                ) : (
+                  <Shirt className="w-5 h-5" />
+                )}
               </div>
-            ))}
-        </div>
-      </section>
+              <div>
+                <h3 className="text-lg font-black text-gray-900">
+                  {product.category_id?.includes('smartphones') ||
+                  product.category_id?.includes('laptops') ||
+                  product.category_id?.includes('audio') ||
+                  product.category_id?.includes('cameras') ||
+                  product.category_id?.includes('watches') ||
+                  product.category_id?.includes('gadget') ||
+                  product.category_id?.includes('tech')
+                    ? 'Technical Specifications & Hardware Details'
+                    : 'Specifications & Material Details'}
+                </h3>
+                <p className="text-xs text-gray-500">
+                  {product.category_id?.includes('smartphones') ||
+                  product.category_id?.includes('laptops') ||
+                  product.category_id?.includes('audio') ||
+                  product.category_id?.includes('cameras') ||
+                  product.category_id?.includes('watches') ||
+                  product.category_id?.includes('gadget') ||
+                  product.category_id?.includes('tech')
+                    ? 'Hardware performance, connectivity & official warranty'
+                    : 'Fabric craftsmanship, dimensions & technical data'}
+                </p>
+              </div>
+            </div>
+            <span className="px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-xs font-bold font-mono">
+              SKU: {product.sku || 'KT-' + product.id.slice(0, 6).toUpperCase()}
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-xs">
+            {product.warranty && (
+              <div className="p-4 bg-gray-50 rounded-2xl space-y-1 border border-gray-100">
+                <span className="text-gray-400 font-bold uppercase text-[10px] tracking-wider">Official Warranty</span>
+                <p className="font-black text-gray-900 text-sm">{product.warranty}</p>
+              </div>
+            )}
+
+            {product.fabric && (
+              <div className="p-4 bg-gray-50 rounded-2xl space-y-1 border border-gray-100">
+                <span className="text-gray-400 font-bold uppercase text-[10px] tracking-wider">
+                  {product.category_id?.includes('smartphones') ||
+                  product.category_id?.includes('laptops') ||
+                  product.category_id?.includes('audio') ||
+                  product.category_id?.includes('cameras') ||
+                  product.category_id?.includes('watches') ||
+                  product.category_id?.includes('gadget') ||
+                  product.category_id?.includes('tech')
+                    ? 'Build & Protection'
+                    : 'Fabric / Material'}
+                </span>
+                <p className="font-black text-gray-900 text-sm">{product.fabric}</p>
+              </div>
+            )}
+
+            {product.fit_type && (
+              <div className="p-4 bg-gray-50 rounded-2xl space-y-1 border border-gray-100">
+                <span className="text-gray-400 font-bold uppercase text-[10px] tracking-wider">Fit Type</span>
+                <p className="font-black text-gray-900 text-sm">{product.fit_type}</p>
+              </div>
+            )}
+
+            {product.gender && (
+              <div className="p-4 bg-gray-50 rounded-2xl space-y-1 border border-gray-100">
+                <span className="text-gray-400 font-bold uppercase text-[10px] tracking-wider">Department</span>
+                <p className="font-black text-gray-900 text-sm">{product.gender}</p>
+              </div>
+            )}
+
+            {product.origin && (
+              <div className="p-4 bg-gray-50 rounded-2xl space-y-1 border border-gray-100">
+                <span className="text-gray-400 font-bold uppercase text-[10px] tracking-wider">Origin / Variant</span>
+                <p className="font-black text-gray-900 text-sm">{product.origin}</p>
+              </div>
+            )}
+
+            {product.care_instructions && (
+              <div className="p-4 bg-gray-50 rounded-2xl space-y-1 border border-gray-100 sm:col-span-2">
+                <span className="text-gray-400 font-bold uppercase text-[10px] tracking-wider">Care & Maintenance</span>
+                <p className="font-bold text-gray-800 text-xs leading-relaxed">{product.care_instructions}</p>
+              </div>
+            )}
+
+            {/* Dynamic Specifications */}
+            {product.specifications &&
+              Object.entries(product.specifications).map(([key, val]) => (
+                <div key={key} className="p-4 bg-gray-50 rounded-2xl space-y-1 border border-gray-100">
+                  <span className="text-gray-400 font-bold uppercase text-[10px] tracking-wider">{key}</span>
+                  <p className="font-black text-gray-900 text-sm">{val}</p>
+                </div>
+              ))}
+          </div>
+        </section>
+      )}
 
       {/* Section 2: Detailed Description & Key Highlights */}
       <section className="bg-white rounded-3xl border border-gray-100 p-6 sm:p-10 shadow-sm space-y-6">

@@ -28,6 +28,9 @@ import {
   Lock,
   Landmark,
   Smartphone,
+  Cpu,
+  Zap,
+  Ban,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { ImageUploader } from '../../components/common/ImageUploader';
@@ -41,6 +44,38 @@ export const AdminProducts: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [specMode, setSpecMode] = useState<'auto' | 'gadgets' | 'fashion' | 'groceries' | 'none'>('auto');
+
+  const getCategorySpecMode = (catId: string): 'gadgets' | 'fashion' | 'groceries' => {
+    const c = (catId || '').toLowerCase();
+    if (
+      c.includes('smartphones') ||
+      c.includes('laptops') ||
+      c.includes('audio') ||
+      c.includes('cameras') ||
+      c.includes('watches') ||
+      c.includes('gadget') ||
+      c.includes('electronic') ||
+      c.includes('tech')
+    ) {
+      return 'gadgets';
+    }
+    if (c.includes('groceries') || c.includes('food') || c.includes('daily-essentials') || c.includes('pantry')) {
+      return 'groceries';
+    }
+    if (
+      c.includes('fashion') ||
+      c.includes('footwear') ||
+      c.includes('apparel') ||
+      c.includes('clothing') ||
+      c.includes('saree') ||
+      c.includes('kurti') ||
+      c.includes('shoes')
+    ) {
+      return 'fashion';
+    }
+    return 'gadgets';
+  };
 
   // Form State (Zero pre-selected or hardcoded values - completely clean for new products)
   const [formData, setFormData] = useState({
@@ -104,6 +139,7 @@ export const AdminProducts: React.FC = () => {
     specVal3: '',
     tags: '',
   });
+  const currentSpecMode = specMode === 'auto' ? getCategorySpecMode(formData.category_id) : specMode;
 
   const loadProducts = async () => {
     try {
@@ -418,12 +454,12 @@ export const AdminProducts: React.FC = () => {
           }
         : {},
       highlights: highlightsList,
-      fabric: formData.fabric.trim(),
-      fit_type: formData.fit_type.trim(),
-      care_instructions: formData.care_instructions.trim(),
-      origin: formData.origin.trim(),
-      gender: formData.gender.trim(),
-      specifications: specsObj,
+      fabric: currentSpecMode === 'none' ? '' : formData.fabric.trim(),
+      fit_type: currentSpecMode === 'fashion' ? formData.fit_type.trim() : '',
+      care_instructions: (currentSpecMode === 'fashion' || currentSpecMode === 'groceries') ? formData.care_instructions.trim() : '',
+      origin: currentSpecMode === 'none' ? '' : formData.origin.trim(),
+      gender: currentSpecMode === 'fashion' ? formData.gender.trim() : '',
+      specifications: currentSpecMode === 'none' ? {} : specsObj,
       tags: uniqueTags,
       sizes: formData.selectedSizes,
       colors: formData.colors,
@@ -1206,170 +1242,507 @@ export const AdminProducts: React.FC = () => {
                 </div>
               </div>
 
-              {/* Section 5: Fabric, Fashion & Material Specifications */}
+              {/* Section 5: Dynamic Category-Aware Specifications */}
               <div className="space-y-4 bg-gray-950/60 p-4 rounded-2xl border border-gray-800/80">
-                <div className="flex items-center justify-between">
-                  <h4 className="text-xs font-black uppercase tracking-wider text-pink-400 flex items-center gap-1.5">
-                    <Shirt className="w-4 h-4" /> Fabric, Materials & Technical Specifications (কাপড় ও ম্যাটেরিয়াল বিবরণ)
-                  </h4>
-                  <span className="text-[10px] bg-pink-500/10 text-pink-400 font-bold px-2 py-0.5 rounded-full">
-                    Fashion & General Items
-                  </span>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                  {/* Fabric / Material */}
-                  <div>
-                    <label className="block text-xs font-bold text-gray-300 mb-1">Fabric / Material (কাপড়/উপাদান)</label>
-                    <input
-                      type="text"
-                      placeholder="e.g. 100% Combed Cotton / Silk / Leather"
-                      value={formData.fabric}
-                      onChange={(e) => setFormData({ ...formData, fabric: e.target.value })}
-                      className="w-full bg-gray-900 border border-gray-700 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-emerald-500"
-                    />
-                    {/* Quick Fabric Chips */}
-                    <div className="flex flex-wrap gap-1 mt-1.5">
-                      {['100% Cotton', 'Linen', 'Denim', 'Silk', 'Leather', 'Georgette', 'Polyester'].map((f) => (
-                        <button
-                          type="button"
-                          key={f}
-                          onClick={() => setFormData({ ...formData, fabric: f })}
-                          className="text-[9px] bg-gray-900 hover:bg-gray-800 text-gray-400 px-1.5 py-0.5 rounded border border-gray-700 hover:text-white"
-                        >
-                          {f}
-                        </button>
-                      ))}
-                    </div>
+                {/* Section Top Header & Mode Switcher */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-2 border-b border-gray-800">
+                  <div className="flex items-center gap-2">
+                    {currentSpecMode === 'gadgets' && <Cpu className="w-4 h-4 text-cyan-400" />}
+                    {currentSpecMode === 'fashion' && <Shirt className="w-4 h-4 text-pink-400" />}
+                    {currentSpecMode === 'groceries' && <Sparkles className="w-4 h-4 text-emerald-400" />}
+                    {currentSpecMode === 'none' && <Ban className="w-4 h-4 text-gray-400" />}
+                    <h4 className="text-xs font-black uppercase tracking-wider text-white">
+                      {currentSpecMode === 'gadgets' && '⚡ Device, Hardware & Tech Specs (গ্যাজেট ও টেকনিক্যাল বিবরণ)'}
+                      {currentSpecMode === 'fashion' && '👕 Fabric, Materials & Technical Specs (কাপড় ও ম্যাটেরিয়াল বিবরণ)'}
+                      {currentSpecMode === 'groceries' && '🌿 Food, Nutrition & Storage Specs (খাদ্য ও উপাদান বিবরণ)'}
+                      {currentSpecMode === 'none' && '🚫 Specifications Disabled (স্পেসিফিকেশন বন্ধ)'}
+                    </h4>
                   </div>
 
-                  {/* Fit Type */}
-                  <div>
-                    <label className="block text-xs font-bold text-gray-300 mb-1">Fit / Cut Type (ফিটিং টাইপ)</label>
-                    <input
-                      type="text"
-                      placeholder="e.g. Regular Fit, Slim Fit, Oversized"
-                      value={formData.fit_type}
-                      onChange={(e) => setFormData({ ...formData, fit_type: e.target.value })}
-                      className="w-full bg-gray-900 border border-gray-700 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-emerald-500"
-                    />
-                    {/* Quick Fit Chips */}
-                    <div className="flex flex-wrap gap-1 mt-1.5">
-                      {['Regular Fit', 'Slim Fit', 'Oversized', 'Relaxed Fit', 'Comfort Fit'].map((fit) => (
-                        <button
-                          type="button"
-                          key={fit}
-                          onClick={() => setFormData({ ...formData, fit_type: fit })}
-                          className="text-[9px] bg-gray-900 hover:bg-gray-800 text-gray-400 px-1.5 py-0.5 rounded border border-gray-700 hover:text-white"
-                        >
-                          {fit}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Gender / Department */}
-                  <div>
-                    <label className="block text-xs font-bold text-gray-300 mb-1">Target Gender / Dept</label>
-                    <select
-                      value={formData.gender}
-                      onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
-                      className="w-full bg-gray-900 border border-gray-700 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-emerald-500"
+                  {/* Mode Selector Tabs */}
+                  <div className="flex flex-wrap items-center gap-1 bg-gray-900 p-1 rounded-xl border border-gray-800">
+                    <button
+                      type="button"
+                      onClick={() => setSpecMode('gadgets')}
+                      className={`px-2.5 py-1 rounded-lg text-[10px] font-bold transition flex items-center gap-1 ${
+                        currentSpecMode === 'gadgets'
+                          ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 shadow-xs'
+                          : 'text-gray-400 hover:text-white'
+                      }`}
                     >
-                      <option value="Unisex">Unisex (সবার জন্য)</option>
-                      <option value="Men">Men (পুরুষ)</option>
-                      <option value="Women">Women (মহিলা)</option>
-                      <option value="Kids / Boys">Kids / Boys (ছেলে শিশু)</option>
-                      <option value="Kids / Girls">Kids / Girls (মেয়ে শিশু)</option>
-                      <option value="Baby">Baby (নবজাতক)</option>
-                    </select>
-                  </div>
-
-                  {/* Wash & Care Instructions */}
-                  <div className="sm:col-span-2">
-                    <label className="block text-xs font-bold text-gray-300 mb-1">
-                      Wash & Care Instructions (ধোয়া ও রক্ষণাবেক্ষণ)
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="e.g. Machine wash cold with like colors, do not bleach, warm iron"
-                      value={formData.care_instructions}
-                      onChange={(e) => setFormData({ ...formData, care_instructions: e.target.value })}
-                      className="w-full bg-gray-900 border border-gray-700 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-emerald-500"
-                    />
-                  </div>
-
-                  {/* Country of Origin / Made In */}
-                  <div>
-                    <label className="block text-xs font-bold text-gray-300 mb-1">Made In / Origin</label>
-                    <input
-                      type="text"
-                      placeholder="e.g. Made in Bangladesh / Imported"
-                      value={formData.origin}
-                      onChange={(e) => setFormData({ ...formData, origin: e.target.value })}
-                      className="w-full bg-gray-900 border border-gray-700 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-emerald-500"
-                    />
-                  </div>
-                </div>
-
-                {/* Additional Dynamic Specifications (GSM, Sleeve, Collar, etc.) */}
-                <div className="pt-3 border-t border-gray-800">
-                  <label className="block text-xs font-bold text-gray-300 mb-2">
-                    Custom Specs (GSM / Sleeve / Collar / Pattern):
-                  </label>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    <div className="flex gap-1.5">
-                      <input
-                        type="text"
-                        placeholder="Spec 1 (e.g. GSM)"
-                        value={formData.specKey1}
-                        onChange={(e) => setFormData({ ...formData, specKey1: e.target.value })}
-                        className="w-1/2 bg-gray-900 border border-gray-700 rounded-xl px-2.5 py-1.5 text-xs text-gray-300 font-bold"
-                      />
-                      <input
-                        type="text"
-                        placeholder="Value (e.g. 200 GSM)"
-                        value={formData.specVal1}
-                        onChange={(e) => setFormData({ ...formData, specVal1: e.target.value })}
-                        className="w-1/2 bg-gray-900 border border-gray-700 rounded-xl px-2.5 py-1.5 text-xs text-white"
-                      />
-                    </div>
-
-                    <div className="flex gap-1.5">
-                      <input
-                        type="text"
-                        placeholder="Spec 2 (e.g. Sleeve)"
-                        value={formData.specKey2}
-                        onChange={(e) => setFormData({ ...formData, specKey2: e.target.value })}
-                        className="w-1/2 bg-gray-900 border border-gray-700 rounded-xl px-2.5 py-1.5 text-xs text-gray-300 font-bold"
-                      />
-                      <input
-                        type="text"
-                        placeholder="Value (e.g. Half Sleeve)"
-                        value={formData.specVal2}
-                        onChange={(e) => setFormData({ ...formData, specVal2: e.target.value })}
-                        className="w-1/2 bg-gray-900 border border-gray-700 rounded-xl px-2.5 py-1.5 text-xs text-white"
-                      />
-                    </div>
-
-                    <div className="flex gap-1.5">
-                      <input
-                        type="text"
-                        placeholder="Spec 3 (e.g. Collar)"
-                        value={formData.specKey3}
-                        onChange={(e) => setFormData({ ...formData, specKey3: e.target.value })}
-                        className="w-1/2 bg-gray-900 border border-gray-700 rounded-xl px-2.5 py-1.5 text-xs text-gray-300 font-bold"
-                      />
-                      <input
-                        type="text"
-                        placeholder="Value (e.g. Polo / Mandarin)"
-                        value={formData.specVal3}
-                        onChange={(e) => setFormData({ ...formData, specVal3: e.target.value })}
-                        className="w-1/2 bg-gray-900 border border-gray-700 rounded-xl px-2.5 py-1.5 text-xs text-white"
-                      />
-                    </div>
+                      <Zap className="w-3 h-3" /> Gadget & Tech
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSpecMode('fashion')}
+                      className={`px-2.5 py-1 rounded-lg text-[10px] font-bold transition flex items-center gap-1 ${
+                        currentSpecMode === 'fashion'
+                          ? 'bg-pink-500/20 text-pink-300 border border-pink-500/40 shadow-xs'
+                          : 'text-gray-400 hover:text-white'
+                      }`}
+                    >
+                      <Shirt className="w-3 h-3" /> Fashion
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSpecMode('groceries')}
+                      className={`px-2.5 py-1 rounded-lg text-[10px] font-bold transition flex items-center gap-1 ${
+                        currentSpecMode === 'groceries'
+                          ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 shadow-xs'
+                          : 'text-gray-400 hover:text-white'
+                      }`}
+                    >
+                      <Sparkles className="w-3 h-3" /> Groceries
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSpecMode('none')}
+                      className={`px-2 py-1 rounded-lg text-[10px] font-bold transition flex items-center gap-1 ${
+                        currentSpecMode === 'none'
+                          ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40 shadow-xs'
+                          : 'text-gray-500 hover:text-gray-300'
+                      }`}
+                      title="Skip specifications"
+                    >
+                      <Ban className="w-3 h-3" /> Skip
+                    </button>
                   </div>
                 </div>
+
+                {/* 1. GADGETS & ELECTRONICS SPECIFICATIONS */}
+                {currentSpecMode === 'gadgets' && (
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                      {/* Official Warranty */}
+                      <div>
+                        <label className="block text-xs font-bold text-gray-300 mb-1">
+                          Official Warranty (ওয়ারেন্টি সময়সীমা)
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="e.g. 1 Year Official Brand Warranty / 7 Days Replacement"
+                          value={formData.warranty}
+                          onChange={(e) => setFormData({ ...formData, warranty: e.target.value })}
+                          className="w-full bg-gray-900 border border-gray-700 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-cyan-500"
+                        />
+                        <div className="flex flex-wrap gap-1 mt-1.5">
+                          {['1 Year Brand Warranty', '6 Months Warranty', '7 Days Replacement', 'No Warranty'].map((w) => (
+                            <button
+                              type="button"
+                              key={w}
+                              onClick={() => setFormData({ ...formData, warranty: w })}
+                              className="text-[9px] bg-gray-900 hover:bg-gray-800 text-cyan-400 px-1.5 py-0.5 rounded border border-gray-700 hover:border-cyan-500"
+                            >
+                              {w}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Origin / Variant */}
+                      <div>
+                        <label className="block text-xs font-bold text-gray-300 mb-1">
+                          Edition / Origin (ভার্সন / উৎপাদন)
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="e.g. Official BD / Global Version / Made in China"
+                          value={formData.origin}
+                          onChange={(e) => setFormData({ ...formData, origin: e.target.value })}
+                          className="w-full bg-gray-900 border border-gray-700 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-cyan-500"
+                        />
+                        <div className="flex flex-wrap gap-1 mt-1.5">
+                          {['Official BD', 'Global Version', 'Imported', 'Made in China', 'Made in Bangladesh'].map((o) => (
+                            <button
+                              type="button"
+                              key={o}
+                              onClick={() => setFormData({ ...formData, origin: o })}
+                              className="text-[9px] bg-gray-900 hover:bg-gray-800 text-gray-400 px-1.5 py-0.5 rounded border border-gray-700 hover:text-white"
+                            >
+                              {o}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Build / Body Material */}
+                      <div>
+                        <label className="block text-xs font-bold text-gray-300 mb-1">
+                          Build & Protection (বডি ও স্থায়িত্ব)
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="e.g. Transparent Acrylic, Aluminum Frame, IP68"
+                          value={formData.fabric}
+                          onChange={(e) => setFormData({ ...formData, fabric: e.target.value })}
+                          className="w-full bg-gray-900 border border-gray-700 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-cyan-500"
+                        />
+                        <div className="flex flex-wrap gap-1 mt-1.5">
+                          {['Transparent Body', 'Ergonomic Shell', 'Aluminum Frame', 'IP68 Water Resistant', 'Gorilla Glass'].map((b) => (
+                            <button
+                              type="button"
+                              key={b}
+                              onClick={() => setFormData({ ...formData, fabric: b })}
+                              className="text-[9px] bg-gray-900 hover:bg-gray-800 text-gray-400 px-1.5 py-0.5 rounded border border-gray-700 hover:text-white"
+                            >
+                              {b}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Hardware Key-Value Specs */}
+                    <div className="pt-3 border-t border-gray-800">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 mb-2">
+                        <label className="block text-xs font-bold text-gray-300">
+                          Hardware Key Specs (কানেক্টিভিটি, ব্যাটারি, সেন্সর, ডিপিআই ইত্যাদি):
+                        </label>
+                        <div className="flex flex-wrap items-center gap-1">
+                          <span className="text-[10px] text-gray-500 font-bold mr-1">Quick Add:</span>
+                          {[
+                            { key: 'Connectivity', defaultVal: 'Bluetooth 5.3 & 2.4G Wireless' },
+                            { key: 'Battery', defaultVal: 'Rechargeable Type-C' },
+                            { key: 'DPI / Sensitivity', defaultVal: '800 / 1200 / 1600 DPI' },
+                            { key: 'Sensor', defaultVal: 'Optical Gaming Sensor' },
+                            { key: 'Lighting', defaultVal: 'RGB Breathing Light' },
+                            { key: 'RAM / Memory', defaultVal: '8 GB' },
+                            { key: 'Storage', defaultVal: '256 GB' },
+                            { key: 'Display', defaultVal: '6.7" AMOLED 120Hz' },
+                          ].map((item) => (
+                            <button
+                              type="button"
+                              key={item.key}
+                              onClick={() => {
+                                if (!formData.specKey1 || formData.specKey1 === item.key) {
+                                  setFormData({ ...formData, specKey1: item.key, specVal1: formData.specVal1 || item.defaultVal });
+                                } else if (!formData.specKey2 || formData.specKey2 === item.key) {
+                                  setFormData({ ...formData, specKey2: item.key, specVal2: formData.specVal2 || item.defaultVal });
+                                } else {
+                                  setFormData({ ...formData, specKey3: item.key, specVal3: formData.specVal3 || item.defaultVal });
+                                }
+                              }}
+                              className="text-[9px] bg-gray-900 hover:bg-cyan-950 text-cyan-400 hover:text-cyan-300 px-1.5 py-0.5 rounded border border-cyan-800/50 transition"
+                            >
+                              + {item.key}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <div className="flex gap-1.5">
+                          <input
+                            type="text"
+                            placeholder="Spec 1 (e.g. Connectivity)"
+                            value={formData.specKey1}
+                            onChange={(e) => setFormData({ ...formData, specKey1: e.target.value })}
+                            className="w-1/2 bg-gray-900 border border-gray-700 rounded-xl px-2.5 py-1.5 text-xs text-cyan-300 font-bold focus:border-cyan-500 focus:outline-none"
+                          />
+                          <input
+                            type="text"
+                            placeholder="Value (e.g. BT 5.3 + 2.4G)"
+                            value={formData.specVal1}
+                            onChange={(e) => setFormData({ ...formData, specVal1: e.target.value })}
+                            className="w-1/2 bg-gray-900 border border-gray-700 rounded-xl px-2.5 py-1.5 text-xs text-white focus:border-cyan-500 focus:outline-none"
+                          />
+                        </div>
+
+                        <div className="flex gap-1.5">
+                          <input
+                            type="text"
+                            placeholder="Spec 2 (e.g. Battery)"
+                            value={formData.specKey2}
+                            onChange={(e) => setFormData({ ...formData, specKey2: e.target.value })}
+                            className="w-1/2 bg-gray-900 border border-gray-700 rounded-xl px-2.5 py-1.5 text-xs text-cyan-300 font-bold focus:border-cyan-500 focus:outline-none"
+                          />
+                          <input
+                            type="text"
+                            placeholder="Value (e.g. Type-C Charge)"
+                            value={formData.specVal2}
+                            onChange={(e) => setFormData({ ...formData, specVal2: e.target.value })}
+                            className="w-1/2 bg-gray-900 border border-gray-700 rounded-xl px-2.5 py-1.5 text-xs text-white focus:border-cyan-500 focus:outline-none"
+                          />
+                        </div>
+
+                        <div className="flex gap-1.5">
+                          <input
+                            type="text"
+                            placeholder="Spec 3 (e.g. DPI / Sensor)"
+                            value={formData.specKey3}
+                            onChange={(e) => setFormData({ ...formData, specKey3: e.target.value })}
+                            className="w-1/2 bg-gray-900 border border-gray-700 rounded-xl px-2.5 py-1.5 text-xs text-cyan-300 font-bold focus:border-cyan-500 focus:outline-none"
+                          />
+                          <input
+                            type="text"
+                            placeholder="Value (e.g. 1600 DPI Optical)"
+                            value={formData.specVal3}
+                            onChange={(e) => setFormData({ ...formData, specVal3: e.target.value })}
+                            className="w-1/2 bg-gray-900 border border-gray-700 rounded-xl px-2.5 py-1.5 text-xs text-white focus:border-cyan-500 focus:outline-none"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* 2. FASHION & APPAREL SPECIFICATIONS */}
+                {currentSpecMode === 'fashion' && (
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                      {/* Fabric / Material */}
+                      <div>
+                        <label className="block text-xs font-bold text-gray-300 mb-1">Fabric / Material (কাপড়/উপাদান)</label>
+                        <input
+                          type="text"
+                          placeholder="e.g. 100% Combed Cotton / Silk / Leather"
+                          value={formData.fabric}
+                          onChange={(e) => setFormData({ ...formData, fabric: e.target.value })}
+                          className="w-full bg-gray-900 border border-gray-700 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-pink-500"
+                        />
+                        <div className="flex flex-wrap gap-1 mt-1.5">
+                          {['100% Cotton', 'Linen', 'Denim', 'Silk', 'Leather', 'Georgette', 'Polyester'].map((f) => (
+                            <button
+                              type="button"
+                              key={f}
+                              onClick={() => setFormData({ ...formData, fabric: f })}
+                              className="text-[9px] bg-gray-900 hover:bg-gray-800 text-pink-400 px-1.5 py-0.5 rounded border border-gray-700 hover:border-pink-500"
+                            >
+                              {f}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Fit Type */}
+                      <div>
+                        <label className="block text-xs font-bold text-gray-300 mb-1">Fit / Cut Type (ফিটিং টাইপ)</label>
+                        <input
+                          type="text"
+                          placeholder="e.g. Regular Fit, Slim Fit, Oversized"
+                          value={formData.fit_type}
+                          onChange={(e) => setFormData({ ...formData, fit_type: e.target.value })}
+                          className="w-full bg-gray-900 border border-gray-700 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-pink-500"
+                        />
+                        <div className="flex flex-wrap gap-1 mt-1.5">
+                          {['Regular Fit', 'Slim Fit', 'Oversized', 'Relaxed Fit', 'Comfort Fit'].map((fit) => (
+                            <button
+                              type="button"
+                              key={fit}
+                              onClick={() => setFormData({ ...formData, fit_type: fit })}
+                              className="text-[9px] bg-gray-900 hover:bg-gray-800 text-gray-400 px-1.5 py-0.5 rounded border border-gray-700 hover:text-white"
+                            >
+                              {fit}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Gender / Department */}
+                      <div>
+                        <label className="block text-xs font-bold text-gray-300 mb-1">Target Gender / Dept</label>
+                        <select
+                          value={formData.gender}
+                          onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
+                          className="w-full bg-gray-900 border border-gray-700 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-pink-500"
+                        >
+                          <option value="Unisex">Unisex (সবার জন্য)</option>
+                          <option value="Men">Men (পুরুষ)</option>
+                          <option value="Women">Women (মহিলা)</option>
+                          <option value="Kids / Boys">Kids / Boys (ছেলে শিশু)</option>
+                          <option value="Kids / Girls">Kids / Girls (মেয়ে শিশু)</option>
+                          <option value="Baby">Baby (নবজাতক)</option>
+                        </select>
+                      </div>
+
+                      {/* Wash & Care Instructions */}
+                      <div className="sm:col-span-2">
+                        <label className="block text-xs font-bold text-gray-300 mb-1">
+                          Wash & Care Instructions (ধোয়া ও রক্ষণাবেক্ষণ)
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="e.g. Machine wash cold with like colors, do not bleach, warm iron"
+                          value={formData.care_instructions}
+                          onChange={(e) => setFormData({ ...formData, care_instructions: e.target.value })}
+                          className="w-full bg-gray-900 border border-gray-700 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-pink-500"
+                        />
+                      </div>
+
+                      {/* Country of Origin / Made In */}
+                      <div>
+                        <label className="block text-xs font-bold text-gray-300 mb-1">Made In / Origin</label>
+                        <input
+                          type="text"
+                          placeholder="e.g. Made in Bangladesh / Imported"
+                          value={formData.origin}
+                          onChange={(e) => setFormData({ ...formData, origin: e.target.value })}
+                          className="w-full bg-gray-900 border border-gray-700 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-pink-500"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Additional Fashion Specs */}
+                    <div className="pt-3 border-t border-gray-800">
+                      <label className="block text-xs font-bold text-gray-300 mb-2">
+                        Custom Specs (GSM / Sleeve / Collar / Pattern):
+                      </label>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <div className="flex gap-1.5">
+                          <input
+                            type="text"
+                            placeholder="Spec 1 (e.g. GSM)"
+                            value={formData.specKey1}
+                            onChange={(e) => setFormData({ ...formData, specKey1: e.target.value })}
+                            className="w-1/2 bg-gray-900 border border-gray-700 rounded-xl px-2.5 py-1.5 text-xs text-pink-300 font-bold focus:border-pink-500 focus:outline-none"
+                          />
+                          <input
+                            type="text"
+                            placeholder="Value (e.g. 200 GSM)"
+                            value={formData.specVal1}
+                            onChange={(e) => setFormData({ ...formData, specVal1: e.target.value })}
+                            className="w-1/2 bg-gray-900 border border-gray-700 rounded-xl px-2.5 py-1.5 text-xs text-white focus:border-pink-500 focus:outline-none"
+                          />
+                        </div>
+
+                        <div className="flex gap-1.5">
+                          <input
+                            type="text"
+                            placeholder="Spec 2 (e.g. Sleeve)"
+                            value={formData.specKey2}
+                            onChange={(e) => setFormData({ ...formData, specKey2: e.target.value })}
+                            className="w-1/2 bg-gray-900 border border-gray-700 rounded-xl px-2.5 py-1.5 text-xs text-pink-300 font-bold focus:border-pink-500 focus:outline-none"
+                          />
+                          <input
+                            type="text"
+                            placeholder="Value (e.g. Half Sleeve)"
+                            value={formData.specVal2}
+                            onChange={(e) => setFormData({ ...formData, specVal2: e.target.value })}
+                            className="w-1/2 bg-gray-900 border border-gray-700 rounded-xl px-2.5 py-1.5 text-xs text-white focus:border-pink-500 focus:outline-none"
+                          />
+                        </div>
+
+                        <div className="flex gap-1.5">
+                          <input
+                            type="text"
+                            placeholder="Spec 3 (e.g. Collar)"
+                            value={formData.specKey3}
+                            onChange={(e) => setFormData({ ...formData, specKey3: e.target.value })}
+                            className="w-1/2 bg-gray-900 border border-gray-700 rounded-xl px-2.5 py-1.5 text-xs text-pink-300 font-bold focus:border-pink-500 focus:outline-none"
+                          />
+                          <input
+                            type="text"
+                            placeholder="Value (e.g. Polo / Mandarin)"
+                            value={formData.specVal3}
+                            onChange={(e) => setFormData({ ...formData, specVal3: e.target.value })}
+                            className="w-1/2 bg-gray-900 border border-gray-700 rounded-xl px-2.5 py-1.5 text-xs text-white focus:border-pink-500 focus:outline-none"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* 3. GROCERIES & FOOD SPECIFICATIONS */}
+                {currentSpecMode === 'groceries' && (
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                      {/* Net Weight / Volume */}
+                      <div>
+                        <label className="block text-xs font-bold text-gray-300 mb-1">
+                          Net Weight / Volume (ওজন / পরিমাণ)
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="e.g. 1 Kg / 500 ml / 5 Liter"
+                          value={formData.fabric}
+                          onChange={(e) => setFormData({ ...formData, fabric: e.target.value })}
+                          className="w-full bg-gray-900 border border-gray-700 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-emerald-500"
+                        />
+                        <div className="flex flex-wrap gap-1 mt-1.5">
+                          {['250 g', '500 g', '1 Kg', '2 Kg', '5 Kg', '500 ml', '1 Liter', '5 Liter'].map((w) => (
+                            <button
+                              type="button"
+                              key={w}
+                              onClick={() => setFormData({ ...formData, fabric: w })}
+                              className="text-[9px] bg-gray-900 hover:bg-gray-800 text-emerald-400 px-1.5 py-0.5 rounded border border-gray-700 hover:border-emerald-500"
+                            >
+                              {w}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Shelf Life / Expiry */}
+                      <div>
+                        <label className="block text-xs font-bold text-gray-300 mb-1">
+                          Shelf Life (মেয়াদকাল)
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="e.g. 12 Months from MFG / Best before 6 months"
+                          value={formData.warranty}
+                          onChange={(e) => setFormData({ ...formData, warranty: e.target.value })}
+                          className="w-full bg-gray-900 border border-gray-700 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-emerald-500"
+                        />
+                      </div>
+
+                      {/* Origin / Source */}
+                      <div>
+                        <label className="block text-xs font-bold text-gray-300 mb-1">
+                          Origin / Source (উৎপাদনস্থল)
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="e.g. Organic Farm, Dinajpur / 100% Pure"
+                          value={formData.origin}
+                          onChange={(e) => setFormData({ ...formData, origin: e.target.value })}
+                          className="w-full bg-gray-900 border border-gray-700 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-emerald-500"
+                        />
+                      </div>
+
+                      {/* Storage Instructions */}
+                      <div className="sm:col-span-2">
+                        <label className="block text-xs font-bold text-gray-300 mb-1">
+                          Storage Instructions (সংরক্ষণ পদ্ধতি)
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="e.g. Store in a cool, dry place away from direct sunlight"
+                          value={formData.care_instructions}
+                          onChange={(e) => setFormData({ ...formData, care_instructions: e.target.value })}
+                          className="w-full bg-gray-900 border border-gray-700 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-emerald-500"
+                        />
+                      </div>
+
+                      {/* Food Grade / Quality */}
+                      <div>
+                        <label className="block text-xs font-bold text-gray-300 mb-1">
+                          Certification / Quality
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="e.g. BSTI Certified / 100% Organic"
+                          value={formData.fit_type}
+                          onChange={(e) => setFormData({ ...formData, fit_type: e.target.value })}
+                          className="w-full bg-gray-900 border border-gray-700 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-emerald-500"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* 4. DISABLED / SKIPPED SPECIFICATIONS */}
+                {currentSpecMode === 'none' && (
+                  <div className="p-4 rounded-xl bg-gray-900/60 border border-dashed border-gray-800 text-center space-y-2">
+                    <p className="text-xs text-gray-400">
+                      🚫 এই প্রোডাক্টের জন্য কোনো বিশেষ স্পেসিফিকেশন বন্ধ রাখা হয়েছে।
+                    </p>
+                    <p className="text-[11px] text-gray-500">
+                      প্রয়োজন হলে ওপরের <strong>"⚡ Gadget & Tech"</strong> বা <strong>"👕 Fashion"</strong> ট্যাবে ক্লিক করে যেকোনো সময় স্পেসিফিকেশন চালু করতে পারবেন।
+                    </p>
+                  </div>
+                )}
               </div>
 
               {/* Section 6: Key Highlights & Description */}
