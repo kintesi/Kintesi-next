@@ -1,77 +1,9 @@
-export interface TaxonomyCategory {
-  id: string;
-  name: string;
-  bnName: string;
-  sector: 'personal_care' | 'health_wellness' | 'gadgets' | 'fashion_men' | 'fashion_women' | 'jewelry_watches' | 'beauty' | 'groceries' | 'home' | 'kids' | 'sports' | 'automotive' | 'books_stationery' | 'pets' | 'general';
-  suggestedCategoryId: string;
-  tags: string[];
-}
-
-export const SECTOR_TABS = [
-  {
-    "id": "all",
-    "label": "🌐 All Categories (সকল ক্যাটাগরি)"
-  },
-  {
-    "id": "personal_care",
-    "label": "🧴 Personal Care & Intimate (ব্যক্তিগত যত্ন ও হাইজিন)"
-  },
-  {
-    "id": "health_wellness",
-    "label": "💊 Health & First Aid (স্বাস্থ্য ও ফার্স্ট এইড)"
-  },
-  {
-    "id": "gadgets",
-    "label": "⚡ Gadgets & Tech (গ্যাজেট ও টেক)"
-  },
-  {
-    "id": "fashion_men",
-    "label": "👔 Men's Fashion (পুরুষদের ফ্যাশন)"
-  },
-  {
-    "id": "fashion_women",
-    "label": "👗 Women's Fashion (নারীদের ফ্যাশন)"
-  },
-  {
-    "id": "jewelry_watches",
-    "label": "⌚ Watches & Jewelry (ঘড়ি ও গহনা)"
-  },
-  {
-    "id": "beauty",
-    "label": "✨ Beauty & Cosmetics (প্রসাধন)"
-  },
-  {
-    "id": "groceries",
-    "label": "🍃 Groceries & Food (খাবার ও মুদি)"
-  },
-  {
-    "id": "home",
-    "label": "🏠 Home & Kitchen (গৃহস্থালি ও কিচেন)"
-  },
-  {
-    "id": "kids",
-    "label": "👶 Baby & Kids (বাচ্চাদের পণ্য)"
-  },
-  {
-    "id": "sports",
-    "label": "⚽ Sports & Fitness (খেলাধুলা ও ফিটনেস)"
-  },
-  {
-    "id": "automotive",
-    "label": "🏍️ Bike & Car (বাইক ও গাড়ি)"
-  },
-  {
-    "id": "books_stationery",
-    "label": "📚 Books & Stationery (বই ও স্টেশনারি)"
-  },
-  {
-    "id": "pets",
-    "label": "🐾 Pet Care (পোষা প্রাণী)"
-  }
-] as const;
+import type { TaxonomyCategory } from './sectorTabs';
+export type { TaxonomyCategory };
+export { SECTOR_TABS } from './sectorTabs';
 
 export const TAXONOMY_DATA: TaxonomyCategory[] = [
-  {
+{
     id: "shaving-beard-grooming",
     name: "Shaving, Beard Care & Trimmers",
     bnName: "শেভিং, বিয়ার্ড কেয়ার ও ট্রিমার",
@@ -717,5 +649,2398 @@ export const TAXONOMY_DATA: TaxonomyCategory[] = [
     sector: 'sports',
     suggestedCategoryId: 'footwear-sneakers',
     tags: ['cricket bat', 'football', 'badminton racket', 'shuttlecock', 'sports jersey', 'jersey', 'ক্রিকেট ব্যাট', 'ফুটবল', 'বুট জুতা']
+  },
+
+  {
+    "id": "lubricants-massage-gels",
+    "name": "Personal Lubricants & Massage Gels",
+    "bnName": "লুব্রিকেন্ট ও বডি ম্যাসাজ জেল",
+    "sector": "personal_care",
+    "suggestedCategoryId": "beauty-skincare",
+    "tags": [
+      "lubricant",
+      "personal lubricant",
+      "water based lubricant",
+      "silicone lube",
+      "massage gel",
+      "durex lube",
+      "sensual lube",
+      "intimate gel",
+      "লুব্রিকেন্ট",
+      "ব্যক্তিগত লুব্রিকেন্ট",
+      "ওয়াটার বেসড লুব্রিকেন্ট",
+      "ম্যাসাজ জেল",
+      "ইন্টিমেট ময়েশ্চারাইজার",
+      "যৌন আরামদায়ক জেল"
+    ]
+  },
+
+  {
+    "id": "condoms-contraception-premium",
+    "name": "Premium Condoms, Ultra Thin & Dotted",
+    "bnName": "প্রিমিয়াম কনডম ও জন্মনিয়ন্ত্রণ সামগ্রী",
+    "sector": "personal_care",
+    "suggestedCategoryId": "beauty-skincare",
+    "tags": [
+      "condom",
+      "ultra thin condom",
+      "dotted condom",
+      "ribbed condom",
+      "flavored condom",
+      "long lasting condom",
+      "durex",
+      "moods",
+      "panther",
+      "raja",
+      "skore",
+      "manforce",
+      "কনডম",
+      "পাতলা কনডম",
+      "ডটেড কনডম",
+      "জন্মনিয়ন্ত্রণ",
+      "নিরাপদ মিলন",
+      "ডিউরেক্স",
+      "ফ্লেভার্ড কনডম"
+    ]
+  },
+
+  {
+    "id": "hair-removal-creams-wax-strips",
+    "name": "Hair Removal Creams & Wax Strips",
+    "bnName": "হেয়ার রিমুভাল ক্রিম ও ওয়াক্স স্ট্রিপ",
+    "sector": "personal_care",
+    "suggestedCategoryId": "beauty-skincare",
+    "tags": [
+      "hair removal cream",
+      "veet",
+      "wax strips",
+      "cold wax",
+      "hot wax beans",
+      "hair inhibitor",
+      "body hair removal",
+      "bikini hair removal",
+      "লোম দূর করার ক্রিম",
+      "ভীট",
+      "ওয়াক্স স্ট্রিপ",
+      "হেয়ার রিমুভার",
+      "শরীরের অবাঞ্ছিত লোম পরিষ্কার"
+    ]
+  },
+
+  {
+    "id": "electric-toothbrushes-water-flossers",
+    "name": "Electric Toothbrushes & Water Flossers",
+    "bnName": "ইলেকট্রিক টুথব্রাশ ও ওয়াটার ফ্লসার",
+    "sector": "personal_care",
+    "suggestedCategoryId": "beauty-skincare",
+    "tags": [
+      "electric toothbrush",
+      "sonic toothbrush",
+      "water flosser",
+      "dental floss",
+      "oral irrigator",
+      "interdental brush",
+      "teeth whitening kit",
+      "oral b",
+      "ইলেকট্রিক টুথব্রাশ",
+      "ওয়াটার ফ্লসার",
+      "ডেন্টাল ফ্লস",
+      "দাঁতের যত্ন",
+      "দাঁত সাদা করার কিট"
+    ]
+  },
+
+  {
+    "id": "intimate-lightening-soothing-gels",
+    "name": "Intimate Soothing & Brightening Gels",
+    "bnName": "ইন্টিমেট সুদিং ও ব্রাইটেনিং জেল",
+    "sector": "personal_care",
+    "suggestedCategoryId": "beauty-skincare",
+    "tags": [
+      "intimate soothing gel",
+      "bikini brightening cream",
+      "underarm brightening",
+      "intimate lightening",
+      "nipple cream",
+      "stretch mark oil",
+      "আন্ডারআর্ম ব্রাইটেনিং",
+      "বডি সুদিং জেল",
+      "ইন্টিমেট ক্রিম",
+      "ডার্ক স্পট রিমুভার"
+    ]
+  },
+
+  {
+    "id": "foot-care-callus-remover",
+    "name": "Foot Creams, Heel Repair & Callus Removers",
+    "bnName": "পায়ের যত্ন, গোড়ালি ফাটা ক্রিম ও স্ক্রাবার",
+    "sector": "personal_care",
+    "suggestedCategoryId": "beauty-skincare",
+    "tags": [
+      "foot cream",
+      "cracked heel cream",
+      "heel repair",
+      "foot file",
+      "callus remover",
+      "foot soak salt",
+      "pedicure kit",
+      "পা ফাটা ক্রিম",
+      "গোড়ালি ফাটার যত্ন",
+      "পায়ের স্ক্রাবার",
+      "পেডিকিওর কিট"
+    ]
+  },
+
+  {
+    "id": "hand-sanitizers-wet-wipes",
+    "name": "Hand Sanitizers & Disinfectant Wipes",
+    "bnName": "হ্যান্ড স্যানিটাইজার ও অ্যান্টিসেপটিক ওয়াইপস",
+    "sector": "personal_care",
+    "suggestedCategoryId": "beauty-skincare",
+    "tags": [
+      "hand sanitizer",
+      "alcohol rub",
+      "disinfectant wipes",
+      "pocket sanitizer",
+      "antiseptic spray",
+      "savlon sanitizer",
+      "হ্যান্ড স্যানিটাইজার",
+      "অ্যালকোহল স্যানিটাইজার",
+      "জীবাণুনাশক স্প্রে",
+      "হ্যান্ড ওয়াশ"
+    ]
+  },
+
+  {
+    "id": "blood-pressure-monitors-bp-machines",
+    "name": "Digital Blood Pressure (BP) Monitors",
+    "bnName": "ডিজিটাল ব্লাড প্রেশার (বিপি) মেশিন",
+    "sector": "health_wellness",
+    "suggestedCategoryId": "beauty-skincare",
+    "tags": [
+      "bp machine",
+      "blood pressure monitor",
+      "digital bp monitor",
+      "omron bp monitor",
+      "arm bp monitor",
+      "wrist bp monitor",
+      "বিপি মেশিন",
+      "প্রেসার মাপার মেশিন",
+      "ব্লাড প্রেশার মাপক",
+      "ডিজিটাল বিপি"
+    ]
+  },
+
+  {
+    "id": "glucometers-diabetic-care",
+    "name": "Blood Glucose Meters & Diabetes Test Strips",
+    "bnName": "গ্লুকোমিটার ও ডায়াবেটিস টেস্ট স্ট্রিপ",
+    "sector": "health_wellness",
+    "suggestedCategoryId": "beauty-skincare",
+    "tags": [
+      "glucometer",
+      "blood sugar test",
+      "diabetes test strip",
+      "accu-chek",
+      "contour plus",
+      "lancets",
+      "lancing device",
+      "গ্লুকোমিটার",
+      "ডায়াবেটিস মাপার মেশিন",
+      "ব্লাড সুগার টেস্ট",
+      "টেস্ট স্ট্রিপ",
+      "সুগার মাপার যন্ত্র"
+    ]
+  },
+
+  {
+    "id": "pulse-oximeters-thermometers",
+    "name": "Pulse Oximeters & Infrared Thermometers",
+    "bnName": "পালস অক্সিমিটার ও ইনফ্রারেড থার্মোমিটার",
+    "sector": "health_wellness",
+    "suggestedCategoryId": "beauty-skincare",
+    "tags": [
+      "pulse oximeter",
+      "oxygen saturation monitor",
+      "digital thermometer",
+      "infrared thermometer",
+      "gun thermometer",
+      "fever thermometer",
+      "পালস অক্সিমিটার",
+      "অক্সিজেন মাপক",
+      "ডিজিটাল থার্মোমিটার",
+      "জ্বর মাপার যন্ত্র"
+    ]
+  },
+
+  {
+    "id": "nebulizers-respiratory-care",
+    "name": "Nebulizer Machines & Steam Inhalers",
+    "bnName": "নেবুলাইজার মেশিন ও স্টিম ইনহেলার",
+    "sector": "health_wellness",
+    "suggestedCategoryId": "beauty-skincare",
+    "tags": [
+      "nebulizer",
+      "compressor nebulizer",
+      "mesh nebulizer",
+      "steam inhaler",
+      "asthma machine",
+      "vaporizer",
+      "facial steamer",
+      "নেবুলাইজার",
+      "শ্বাসকষ্টের মেশিন",
+      "স্টিমার",
+      "ভেপোরাইজার",
+      "বাষ্প নেওয়ার যন্ত্র"
+    ]
+  },
+
+  {
+    "id": "orthopedic-braces-knee-back-support",
+    "name": "Orthopedic Knee Caps, Belts & Back Supports",
+    "bnName": "অর্থোপেডিক নি ক্যাপ, লাম্বার বেল্ট ও ব্যাক সাপোর্ট",
+    "sector": "health_wellness",
+    "suggestedCategoryId": "beauty-skincare",
+    "tags": [
+      "knee cap",
+      "knee support",
+      "lumbar support belt",
+      "back brace",
+      "cervical collar",
+      "ankle support",
+      "wrist splint",
+      "posture corrector",
+      "নি ক্যাপ",
+      "হাঁটু সাপোর্ট",
+      "কোমরের বেল্ট",
+      "অর্থোপেডিক বেল্ট",
+      "ঘাড়ের কলার"
+    ]
+  },
+
+  {
+    "id": "adult-diapers-incontinence-pads",
+    "name": "Adult Diapers & Underpads",
+    "bnName": "এডাল্ট ডায়াপার ও আন্ডারপ্যাড",
+    "sector": "health_wellness",
+    "suggestedCategoryId": "beauty-skincare",
+    "tags": [
+      "adult diaper",
+      "seniors diaper",
+      "incontinence pad",
+      "underpad",
+      "bed pad",
+      "disposable underpad",
+      "friends adult diaper",
+      "এডাল্ট ডায়াপার",
+      "বড়দের ডায়াপার",
+      "রোগীদের ডায়াপার",
+      "ইউরিন প্যাড",
+      "বেড আন্ডারপ্যাড"
+    ]
+  },
+
+  {
+    "id": "hot-water-bags-ice-packs",
+    "name": "Hot Water Bottles, Electric Gel Bags & Ice Packs",
+    "bnName": "হট ওয়াটার ব্যাগ, জেল হিটিং প্যাড ও আইস প্যাক",
+    "sector": "health_wellness",
+    "suggestedCategoryId": "beauty-skincare",
+    "tags": [
+      "hot water bag",
+      "electric heating bag",
+      "hot water bottle",
+      "ice bag",
+      "cold pack",
+      "gel ice pack",
+      "pain relief bag",
+      "হট ওয়াটার ব্যাগ",
+      "গরম পানির ব্যাগ",
+      "ইলেকট্রিক হিটিং ব্যাগ",
+      "ব্যথা কমানোর ব্যাগ",
+      "আইস প্যাক"
+    ]
+  },
+
+  {
+    "id": "first-aid-kits-antiseptic-bandages",
+    "name": "First Aid Kits, Antiseptic Liquids & Bandages",
+    "bnName": "ফার্স্ট এইড কিট, অ্যান্টিসেপটিক ও ব্যান্ডেজ",
+    "sector": "health_wellness",
+    "suggestedCategoryId": "beauty-skincare",
+    "tags": [
+      "first aid kit",
+      "savlon",
+      "dettol",
+      "povidone iodine",
+      "antiseptic cream",
+      "adhesive bandage",
+      "band aid",
+      "gauze bandage",
+      "cotton roll",
+      "micropore tape",
+      "ফার্স্ট এইড কিট",
+      "স্যাভলন",
+      "ডেটোল",
+      "ব্যান্ড এইড",
+      "ব্যান্ডেজ",
+      "তুলা",
+      "ড্রেসিং সামগ্রী"
+    ]
+  },
+
+  {
+    "id": "vitamins-multivitamins-supplements",
+    "name": "Multivitamins, Calcium & Omega-3 Fish Oil",
+    "bnName": "মাল্টিভিটামিন, ক্যালসিয়াম ও ওমেগা-৩ ফিশ অয়েল",
+    "sector": "health_wellness",
+    "suggestedCategoryId": "beauty-skincare",
+    "tags": [
+      "multivitamin",
+      "vitamin c",
+      "vitamin d3",
+      "calcium tablets",
+      "omega 3",
+      "fish oil",
+      "zinc supplements",
+      "biotin",
+      "iron supplement",
+      "মাল্টিভিটামিন",
+      "ভিটামিন সি",
+      "ভিটামিন ডি",
+      "ক্যালসিয়াম ট্যাবলেট",
+      "ওমেগা ৩",
+      "ফিশ অয়েল",
+      "বায়োটিন",
+      "পুষ্টিকর সাপ্লিমেন্ট"
+    ]
+  },
+
+  {
+    "id": "herbal-wellness-ayurvedic-supplements",
+    "name": "Herbal & Ayurvedic Wellness Products",
+    "bnName": "ভেষজ ও আয়ুর্বেদিক স্বাস্থ্যপণ্য",
+    "sector": "health_wellness",
+    "suggestedCategoryId": "beauty-skincare",
+    "tags": [
+      "ashwagandha",
+      "triphala",
+      "shilajit",
+      "moringa powder",
+      "isabgol husk",
+      "black seed oil",
+      "kalonji oil",
+      "অশ্বগন্ধা",
+      "ত্রিফলা",
+      "শিলাজিত",
+      "মরিঙ্গা পাউডার",
+      "ইসবগুলের ভুসি",
+      "কালোজিরা তেল",
+      "আয়ুর্বেদিক ঔষধ"
+    ]
+  },
+
+  {
+    "id": "mechanical-keyboards-gaming-mouse",
+    "name": "Mechanical Keyboards & Gaming Mice",
+    "bnName": "মেকানিক্যাল কীবোর্ড ও গেমিং মাউস",
+    "sector": "gadgets",
+    "suggestedCategoryId": "laptops-computers",
+    "tags": [
+      "mechanical keyboard",
+      "rgb keyboard",
+      "gaming keyboard",
+      "gaming mouse",
+      "wireless mouse",
+      "logitech mouse",
+      "fantech",
+      "redragon",
+      "mouse pad",
+      "মেকানিক্যাল কীবোর্ড",
+      "গেমিং মাউস",
+      "ওয়্যারলেস মাউস",
+      "আরজিবি কীবোর্ড",
+      "মাউস প্যাড"
+    ]
+  },
+
+  {
+    "id": "webcams-microphones-content-creation",
+    "name": "Webcams, USB Microphones & Ring Lights",
+    "bnName": "ওয়েবক্যাম, কনডেনসার মাইক্রোফোন ও রিং লাইট",
+    "sector": "gadgets",
+    "suggestedCategoryId": "laptops-computers",
+    "tags": [
+      "webcam",
+      "hd webcam",
+      "usb microphone",
+      "condenser mic",
+      "boya mic",
+      "wireless mic",
+      "ring light",
+      "tripod for phone",
+      "vlogging kit",
+      "ওয়েবক্যাম",
+      "মাইক্রোফোন",
+      "বয়া মাইক্রোফোন",
+      "রিং লাইট",
+      "ব্লগিং ট্রাইপড",
+      "ইউটিউব রেকর্ডিং গিয়ার"
+    ]
+  },
+
+  {
+    "id": "power-banks-fast-chargers-gan",
+    "name": "GaN Fast Chargers, Power Banks & Cables",
+    "bnName": "ফাস্ট চার্জার, পাওয়ার ব্যাংক ও টাইপ-সি ক্যাবল",
+    "sector": "gadgets",
+    "suggestedCategoryId": "smartphones-tablets",
+    "tags": [
+      "power bank",
+      "20000mah power bank",
+      "fast charger",
+      "gan charger",
+      "65w charger",
+      "type c cable",
+      "lightning cable",
+      "magsafe charger",
+      "anker",
+      "baseus",
+      "পাওয়ার ব্যাংক",
+      "ফাস্ট চার্জার",
+      "টাইপ সি ক্যাবল",
+      "চার্জিং কর্ড",
+      "ম্যাগসেফ"
+    ]
+  },
+
+  {
+    "id": "tws-earbuds-anc-headphones",
+    "name": "TWS Earbuds, ANC Neckbands & Over-Ear Headphones",
+    "bnName": "টিডব্লিউএস ইয়ারবাডস, নেকব্যান্ড ও ব্লুটুথ হেডফোন",
+    "sector": "gadgets",
+    "suggestedCategoryId": "audio-headphones",
+    "tags": [
+      "tws earbuds",
+      "wireless earbuds",
+      "anc earbuds",
+      "bluetooth neckband",
+      "airpods",
+      "galaxy buds",
+      "over ear headphones",
+      "noise cancelling",
+      "ইয়ারবাডস",
+      "টিডব্লিউএস",
+      "ব্লুটুথ হেডফোন",
+      "নেকব্যান্ড",
+      "নয়েজ ক্যানসেলিং হেডসেট"
+    ]
+  },
+
+  {
+    "id": "smartwatches-fitness-bands-straps",
+    "name": "Smartwatches, AMOLED Displays & Fitness Bands",
+    "bnName": "স্মার্টওয়াচ, অ্যামোলেড ডিসপ্লে ও ফিটনেস ট্র্যাকার",
+    "sector": "gadgets",
+    "suggestedCategoryId": "smart-watches",
+    "tags": [
+      "smartwatch",
+      "amoled smartwatch",
+      "calling smartwatch",
+      "fitness tracker",
+      "mi band",
+      "apple watch clone",
+      "smartwatch strap",
+      "silicone strap",
+      "স্মার্টওয়াচ",
+      "অ্যামোলেড ঘড়ি",
+      "ফিটনেস ব্যান্ড",
+      "স্মার্টওয়াচ স্ট্র্যাপ"
+    ]
+  },
+
+  {
+    "id": "routers-wifi-extenders-mesh",
+    "name": "Wi-Fi Routers, Mesh Systems & Range Extenders",
+    "bnName": "ওয়াইফাই রাউটার, মেশ সিস্টেম ও রেঞ্জ এক্সটেন্ডার",
+    "sector": "gadgets",
+    "suggestedCategoryId": "laptops-computers",
+    "tags": [
+      "wifi router",
+      "dual band router",
+      "gigabit router",
+      "tp-link router",
+      "mesh wifi",
+      "wifi range extender",
+      "lan cable",
+      "cat6 cable",
+      "ওয়াইফাই রাউটার",
+      "টিপি লিংক",
+      "ডুয়াল ব্যান্ড রাউটার",
+      "ইন্টারনেট এক্সটেন্ডার",
+      "ল্যান ক্যাবল"
+    ]
+  },
+
+  {
+    "id": "cctv-cameras-smart-security",
+    "name": "Smart Wi-Fi Security Cameras & CCTV",
+    "bnName": "স্মার্ট ওয়াইফাই সিসিটিভি ক্যামেরা ও সিকিউরিটি",
+    "sector": "gadgets",
+    "suggestedCategoryId": "laptops-computers",
+    "tags": [
+      "cctv camera",
+      "wifi camera",
+      "ip camera",
+      "security camera",
+      "imou camera",
+      "mi home security camera",
+      "night vision camera",
+      "360 camera",
+      "সিসিক্যামেরা",
+      "ওয়াইফাই ক্যামেরা",
+      "সিকিউরিটি ক্যামেরা",
+      "নাইট ভিশন ক্যামেরা"
+    ]
+  },
+
+  {
+    "id": "storage-pendrives-portable-ssd",
+    "name": "Pendrives, MicroSD Cards & Portable SSDs",
+    "bnName": "পেনড্রাইভ, মেমোরি কার্ড ও পোর্টেবল এসএসডি",
+    "sector": "gadgets",
+    "suggestedCategoryId": "laptops-computers",
+    "tags": [
+      "pendrive",
+      "usb drive",
+      "64gb pendrive",
+      "128gb pendrive",
+      "microsd card",
+      "memory card",
+      "portable ssd",
+      "external hard drive",
+      "sandisk",
+      "transcend",
+      "পেনড্রাইভ",
+      "মেমোরি কার্ড",
+      "এসএসডি",
+      "হার্ডডিস্ক"
+    ]
+  },
+
+  {
+    "id": "mini-projectors-smart-plugs",
+    "name": "Mini Projectors, Smart Plugs & TV Sticks",
+    "bnName": "মিনি প্রজেক্টর, স্মার্ট প্লাগ ও টিভি স্টিক",
+    "sector": "gadgets",
+    "suggestedCategoryId": "smartphones-tablets",
+    "tags": [
+      "mini projector",
+      "portable projector",
+      "android tv box",
+      "fire tv stick",
+      "chromecast",
+      "smart plug",
+      "smart bulb",
+      "rgb strip light",
+      "মিনি প্রজেক্টর",
+      "অ্যান্ড্রয়েড টিভি বক্স",
+      "স্মার্ট প্লাগ",
+      "টিভি স্টিক",
+      "স্মার্ট লাইট"
+    ]
+  },
+
+  {
+    "id": "laptop-stands-cooling-pads",
+    "name": "Aluminium Laptop Stands & Cooling Pads",
+    "bnName": "অ্যালুমিনিয়াম ল্যাপটপ স্ট্যান্ড ও কুলিং ফ্যান",
+    "sector": "gadgets",
+    "suggestedCategoryId": "laptops-computers",
+    "tags": [
+      "laptop stand",
+      "aluminum laptop stand",
+      "cooling pad",
+      "laptop cooler",
+      "adjustable stand",
+      "laptop riser",
+      "ল্যাপটপ স্ট্যান্ড",
+      "কুলিং প্যাড",
+      "ল্যাপটপ রাইজার"
+    ]
+  },
+
+  {
+    "id": "gaming-controllers-gamepads",
+    "name": "Wireless Gamepads, Triggers & Controllers",
+    "bnName": "ওয়্যারলেস গেমপ্যাড, ট্রিগার ও গেমিং কন্ট্রোলার",
+    "sector": "gadgets",
+    "suggestedCategoryId": "gadgets",
+    "tags": [
+      "gamepad",
+      "gaming controller",
+      "wireless controller",
+      "pubg trigger",
+      "mobile joystick",
+      "ps4 controller clone",
+      "xbox controller clone",
+      "গেমপ্যাড",
+      "গেমিং কন্ট্রোলার",
+      "পাবজি ট্রিগার",
+      "জয়স্টিক"
+    ]
+  },
+
+  {
+    "id": "mens-premium-panjabi-kabli",
+    "name": "Men's Designer Panjabi, Kabli Sets & Pajama",
+    "bnName": "পুরুষদের প্রিমিয়াম পাঞ্জাবি, কাবলি সেট ও পায়জামা",
+    "sector": "fashion_men",
+    "suggestedCategoryId": "mens-fashion",
+    "tags": [
+      "panjabi",
+      "cotton panjabi",
+      "silk panjabi",
+      "semi fitted panjabi",
+      "kabli set",
+      "pajama",
+      "aligarhi pajama",
+      "eid panjabi",
+      "পাঞ্জাবি",
+      "কটন পাঞ্জাবি",
+      "কাবলি সেট",
+      "পায়জামা",
+      "ঈদ পাঞ্জাবি",
+      "ছেলেদের পাঞ্জাবি",
+      "সিল্ক পাঞ্জাবি"
+    ]
+  },
+
+  {
+    "id": "mens-formal-casual-shirts",
+    "name": "Men's Formal & Casual Cotton Shirts",
+    "bnName": "পুরুষদের ফরমাল ও ক্যাজুয়াল কটন শার্ট",
+    "sector": "fashion_men",
+    "suggestedCategoryId": "mens-fashion",
+    "tags": [
+      "formal shirt",
+      "casual shirt",
+      "oxford shirt",
+      "slim fit shirt",
+      "checked shirt",
+      "solid shirt",
+      "linen shirt",
+      "ফরমাল শার্ট",
+      "ক্যাজুয়াল শার্ট",
+      "লিনেন শার্ট",
+      "স্লিম ফিট শার্ট",
+      "ছেলেদের শার্ট"
+    ]
+  },
+
+  {
+    "id": "mens-polo-tshirts-hoodies",
+    "name": "Men's Polo T-Shirts, Drop Shoulder & Hoodies",
+    "bnName": "পুরুষদের পোলো টি-শার্ট, ড্রপ শোল্ডার ও হুডি",
+    "sector": "fashion_men",
+    "suggestedCategoryId": "mens-fashion",
+    "tags": [
+      "polo t-shirt",
+      "round neck t-shirt",
+      "drop shoulder t-shirt",
+      "oversized t-shirt",
+      "hoodie",
+      "sweatshirt",
+      "graphic tee",
+      "পোলো টি শার্ট",
+      "টি শার্ট",
+      "ড্রপ শোল্ডার টি-শার্ট",
+      "হুডি",
+      "সোয়েটশার্ট"
+    ]
+  },
+
+  {
+    "id": "mens-jeans-chinos-joggers",
+    "name": "Men's Denim Jeans, Chino Pants & Cargo Joggers",
+    "bnName": "পুরুষদের ডেনিম জিন্স, চিনো প্যান্ট ও কার্গো জগার",
+    "sector": "fashion_men",
+    "suggestedCategoryId": "mens-fashion",
+    "tags": [
+      "denim jeans",
+      "skinny jeans",
+      "slim fit jeans",
+      "chino pants",
+      "cargo pants",
+      "joggers",
+      "track pants",
+      "জিন্স প্যান্ট",
+      "ডেনিম জিন্স",
+      "চিনো প্যান্ট",
+      "কার্গো প্যান্ট",
+      "জগার্স",
+      "ট্র্যাক প্যান্ট"
+    ]
+  },
+
+  {
+    "id": "mens-boxers-briefs-underwear",
+    "name": "Men's Boxers, Trunks, Briefs & Vests",
+    "bnName": "পুরুষদের বক্সার, ট্রাঙ্ক, আন্ডারওয়্যার ও স্যান্ডো গেঞ্জি",
+    "sector": "fashion_men",
+    "suggestedCategoryId": "mens-fashion",
+    "tags": [
+      "boxer shorts",
+      "trunks",
+      "briefs",
+      "men underwear",
+      "cotton boxers",
+      "sando genji",
+      "vest",
+      "innerwear",
+      "বক্সার শর্টস",
+      "আন্ডারওয়্যার",
+      "ট্রাঙ্ক",
+      "স্যান্ডো গেঞ্জি",
+      "পুরুষদের অন্তর্বাস",
+      "বক্সার"
+    ]
+  },
+
+  {
+    "id": "mens-leather-wallets-belts",
+    "name": "Pure Leather Wallets, Belts & Keyrings",
+    "bnName": "আসল চামড়ার ওয়ালেট, বেল্ট ও কার্ডহোল্ডার",
+    "sector": "fashion_men",
+    "suggestedCategoryId": "mens-fashion",
+    "tags": [
+      "leather wallet",
+      "bifold wallet",
+      "card holder",
+      "leather belt",
+      "formal belt",
+      "keychain",
+      "money clip",
+      "লেদার ওয়ালেট",
+      "চামড়ার মানিব্যাগ",
+      "লেদার বেল্ট",
+      "কার্ড হোল্ডার",
+      "চামড়ার বেল্ট"
+    ]
+  },
+
+  {
+    "id": "mens-loafers-sneakers-formal-shoes",
+    "name": "Men's Leather Loafers, Formal Shoes & Sneakers",
+    "bnName": "পুরুষদের লেদার লোফার, ফরমাল জুতো ও স্নিকার্স",
+    "sector": "fashion_men",
+    "suggestedCategoryId": "footwear-sneakers",
+    "tags": [
+      "leather shoes",
+      "formal shoes",
+      "oxford shoes",
+      "loafers",
+      "casual sneakers",
+      "sports shoes",
+      "leather sandals",
+      "slippers",
+      "লেদার জুতা",
+      "ফরমাল জুতা",
+      "লোফার",
+      "স্নিকার্স",
+      "চামড়ার স্যান্ডেল"
+    ]
+  },
+
+  {
+    "id": "mens-sunglasses-accessories",
+    "name": "Polarized Sunglasses & Blue-Cut Glasses",
+    "bnName": "পুরুষদের পোলারাইজড সানগ্লাস ও ব্লু-কাট চশমা",
+    "sector": "fashion_men",
+    "suggestedCategoryId": "mens-fashion",
+    "tags": [
+      "sunglasses",
+      "polarized sunglasses",
+      "aviator sunglasses",
+      "wayfarer",
+      "blue light glasses",
+      "sun glass",
+      "সানগ্লাস",
+      "পোলারাইজড চশমা",
+      "রোদের চশমা",
+      "ব্লু লাইট চশমা"
+    ]
+  },
+
+  {
+    "id": "womens-sarees-jamdani-katan-silk",
+    "name": "Exclusive Sarees: Jamdani, Katan, Silk & Cotton",
+    "bnName": "এক্সক্লুসিভ শাড়ি: জামদানি, কাতান, সিল্ক ও সুতি",
+    "sector": "fashion_women",
+    "suggestedCategoryId": "womens-fashion",
+    "tags": [
+      "saree",
+      "jamdani saree",
+      "katan saree",
+      "silk saree",
+      "cotton saree",
+      "georgette saree",
+      "bridal saree",
+      "party saree",
+      "শাড়ি",
+      "জামদানি শাড়ি",
+      "কাতান শাড়ি",
+      "সিল্ক শাড়ি",
+      "সুতি শাড়ি",
+      "জর্জেট শাড়ি",
+      "বিয়ের শাড়ি"
+    ]
+  },
+
+  {
+    "id": "womens-salwar-kameez-three-piece",
+    "name": "Designer Salwar Kameez, Three-Piece & Kurtis",
+    "bnName": "ডিজাইনার সালোয়ার কামিজ, থ্রি-পিস ও কুর্তি",
+    "sector": "fashion_women",
+    "suggestedCategoryId": "womens-fashion",
+    "tags": [
+      "three piece",
+      "salwar kameez",
+      "unstitched three piece",
+      "readymade dress",
+      "kurti",
+      "tunic",
+      "lawn suit",
+      "linen dress",
+      "থ্রি পিস",
+      "সালোয়ার কামিজ",
+      "কুর্তি",
+      "রেডিমেড ড্রেস",
+      "মেয়েদের পোশাক"
+    ]
+  },
+
+  {
+    "id": "womens-abaya-borka-hijab-modest",
+    "name": "Dubai Abayas, Borka, Hijab & Instant Khimar",
+    "bnName": "দুবাই আবায়া, বোরকা, হিজাব ও খিমার",
+    "sector": "fashion_women",
+    "suggestedCategoryId": "womens-fashion",
+    "tags": [
+      "abaya",
+      "dubai abaya",
+      "borka",
+      "burqa",
+      "hijab",
+      "georgette hijab",
+      "instant hijab",
+      "khimar",
+      "niqab",
+      "hijab cap",
+      "hijab pin",
+      "আবায়া",
+      "বোরকা",
+      "হিজাব",
+      "খিমার",
+      "নিকাব",
+      "দুবাই বোরকা",
+      "হিজাব ক্যাপ"
+    ]
+  },
+
+  {
+    "id": "womens-bras-padded-pushup-sports",
+    "name": "Women's Bras: Padded, Non-Wired, Push-Up & Sports",
+    "bnName": "নারীদের ব্রা: প্যাডেড, নন-ওয়্যার্ড, পুশ-আপ ও স্পোর্টস ব্রা",
+    "sector": "fashion_women",
+    "suggestedCategoryId": "womens-fashion",
+    "tags": [
+      "bra",
+      "padded bra",
+      "non wired bra",
+      "push up bra",
+      "sports bra",
+      "t-shirt bra",
+      "strapless bra",
+      "cotton bra",
+      "ব্রা",
+      "প্যাডেড ব্রা",
+      "স্পোর্টস ব্রা",
+      "পুশ আপ ব্রা",
+      "মেয়েদের ব্রা",
+      "নন ওয়্যার্ড ব্রা"
+    ]
+  },
+
+  {
+    "id": "womens-panties-seamless-cotton-lace",
+    "name": "Women's Panties: Seamless, Cotton, Lace & Hipsters",
+    "bnName": "নারীদের প্যান্টি: সিমলেস, সুতি, লেইস ও পিরিয়ড প্যান্টি",
+    "sector": "fashion_women",
+    "suggestedCategoryId": "womens-fashion",
+    "tags": [
+      "panties",
+      "cotton panties",
+      "seamless panties",
+      "lace panties",
+      "hipster panties",
+      "period panties",
+      "bikini briefs",
+      "প্যান্টি",
+      "সুতি প্যান্টি",
+      "সিমলেস প্যান্টি",
+      "মেয়েদের প্যান্টি",
+      "অন্তর্বাস",
+      "পিরিয়ড প্যান্টি"
+    ]
+  },
+
+  {
+    "id": "womens-nightwear-loungewear-nighties",
+    "name": "Women's Nighty, Silk Pajama Sets & Loungewear",
+    "bnName": "নারীদের নাইটি, সিল্ক স্লিপওয়্যার ও লাউঞ্জওয়্যার",
+    "sector": "fashion_women",
+    "suggestedCategoryId": "womens-fashion",
+    "tags": [
+      "nighty",
+      "cotton nighty",
+      "silk nightwear",
+      "satin nighty",
+      "pajama set",
+      "loungewear",
+      "bathrobe",
+      "ঘুমের পোশাক",
+      "নাইটি",
+      "কটন নাইটি",
+      "সিল্ক স্লিপওয়্যার",
+      "লাউঞ্জওয়্যার"
+    ]
+  },
+
+  {
+    "id": "womens-shapewear-tummy-tuckers",
+    "name": "Body Shapewear, Tummy Tuckers & Waist Trainers",
+    "bnName": "বডি শেপওয়্যার, টামি টাকার ও কোমর স্লিমার",
+    "sector": "fashion_women",
+    "suggestedCategoryId": "womens-fashion",
+    "tags": [
+      "shapewear",
+      "tummy tucker",
+      "body shaper",
+      "waist trainer",
+      "slimming belt",
+      "high waist shaper",
+      "শেপওয়্যার",
+      "টামি টাকার",
+      "বডি শেপার",
+      "পেট কমানোর বেল্ট",
+      "স্লিমিং শেপওয়্যার"
+    ]
+  },
+
+  {
+    "id": "womens-handbags-totes-clutches",
+    "name": "Luxury Handbags, Shoulder Totes & Bridal Clutches",
+    "bnName": "লেডিস হ্যান্ডব্যাগ, শোল্ডার ব্যাগ ও ক্লাচ",
+    "sector": "fashion_women",
+    "suggestedCategoryId": "womens-fashion",
+    "tags": [
+      "handbag",
+      "shoulder bag",
+      "tote bag",
+      "crossbody bag",
+      "clutch",
+      "bridal clutch",
+      "ladies purse",
+      "হ্যান্ডব্যাগ",
+      "লেডিস ব্যাগ",
+      "শোল্ডার ব্যাগ",
+      "ক্লাচ",
+      "পার্স",
+      "মেয়েদের ব্যাগ"
+    ]
+  },
+
+  {
+    "id": "womens-heels-flats-sandals",
+    "name": "Women's High Heels, Flat Shoes & Ethnic Sandals",
+    "bnName": "নারীদের হাই হিলস, ফ্ল্যাট স্যান্ডেল ও পার্টি শু",
+    "sector": "fashion_women",
+    "suggestedCategoryId": "footwear-sneakers",
+    "tags": [
+      "heels",
+      "high heels",
+      "block heels",
+      "flat sandals",
+      "kolhapuri",
+      "nagra",
+      "wedges",
+      "ladies shoes",
+      "হাই হিল",
+      "হিল জুতা",
+      "ফ্ল্যাট স্যান্ডেল",
+      "লেডিস শু",
+      "নাগরা জুতা"
+    ]
+  },
+
+  {
+    "id": "gold-plated-kundan-bridal-jewelry",
+    "name": "Gold-Plated, Kundan & Bridal Jewelry Sets",
+    "bnName": "গোল্ড-প্লেটেড, কুন্দন ও ব্রাইডাল গহনা সেট",
+    "sector": "jewelry_watches",
+    "suggestedCategoryId": "womens-fashion",
+    "tags": [
+      "jewelry set",
+      "bridal jewelry",
+      "kundan set",
+      "gold plated jewelry",
+      "choker necklace",
+      "necklace set",
+      "earrings",
+      "গহনা সেট",
+      "গোল্ড প্লেটেড গহনা",
+      "কুন্দন সেট",
+      "নেকলেস",
+      "গলার হার",
+      "বিয়ের গহনা"
+    ]
+  },
+
+  {
+    "id": "earrings-jhumkas-finger-rings",
+    "name": "Designer Jhumkas, Stud Earrings & Finger Rings",
+    "bnName": "ডিজাইনার ঝুমকা, কানের দুল ও আংটি",
+    "sector": "jewelry_watches",
+    "suggestedCategoryId": "womens-fashion",
+    "tags": [
+      "earrings",
+      "jhumka",
+      "stud earrings",
+      "hoop earrings",
+      "finger ring",
+      "adjustable ring",
+      "couple rings",
+      "কানের দুল",
+      "ঝুমকা",
+      "আংটি",
+      "ফিঙ্গার রিং",
+      "টপস"
+    ]
+  },
+
+  {
+    "id": "bangles-bracelets-anklets-payel",
+    "name": "Bangles, Pearl Bracelets & Silver Anklets (Payel)",
+    "bnName": "চুড়ি, পার্ল ব্রেসলেট ও নূপুর / পায়েল",
+    "sector": "jewelry_watches",
+    "suggestedCategoryId": "womens-fashion",
+    "tags": [
+      "bangles",
+      "glass bangles",
+      "metal bangles",
+      "bracelet",
+      "silver payel",
+      "anklet",
+      "pearl bracelet",
+      "চুড়ি",
+      "কাঁচের চুড়ি",
+      "ব্রেসলেট",
+      "পায়েল",
+      "নূপুর"
+    ]
+  },
+
+  {
+    "id": "mens-chronograph-luxury-watches",
+    "name": "Men's Luxury Chronograph & Automatic Watches",
+    "bnName": "পুরুষদের ক্রোনোগ্রাফ ও অটোমেটিক ঘড়ি",
+    "sector": "jewelry_watches",
+    "suggestedCategoryId": "smart-watches",
+    "tags": [
+      "men watch",
+      "chronograph watch",
+      "automatic watch",
+      "leather strap watch",
+      "stainless steel watch",
+      "curren",
+      "naviforce",
+      "skmei",
+      "পুরুষদের ঘড়ি",
+      "লেদার ওয়াচ",
+      "মেটাল ঘড়ি",
+      "হাত ঘড়ি"
+    ]
+  },
+
+  {
+    "id": "womens-minimalist-designer-watches",
+    "name": "Women's Rose Gold & Minimalist Luxury Watches",
+    "bnName": "নারীদের রোজ গোল্ড ও এলিগেন্ট ডিজাইনার ঘড়ি",
+    "sector": "jewelry_watches",
+    "suggestedCategoryId": "smart-watches",
+    "tags": [
+      "women watch",
+      "rose gold watch",
+      "ladies watch",
+      "ceramic watch",
+      "diamond dial watch",
+      "magnetic watch",
+      "মেয়েদের ঘড়ি",
+      "রোজ গোল্ড ঘড়ি",
+      "লেডিস রিস্ট ওয়াচ"
+    ]
+  },
+
+  {
+    "id": "facial-serums-niacinamide-vitamin-c",
+    "name": "Facial Serums: Niacinamide, Salicylic Acid & Vitamin C",
+    "bnName": "ফেস সিরাম: নায়াসিনামাইড, স্যালিসিলিক অ্যাসিড ও ভিটামিন সি",
+    "sector": "beauty",
+    "suggestedCategoryId": "beauty-skincare",
+    "tags": [
+      "serum",
+      "face serum",
+      "niacinamide serum",
+      "vitamin c serum",
+      "salicylic acid serum",
+      "hyaluronic acid",
+      "the ordinary",
+      "glow serum",
+      "ফেস সিরাম",
+      "ভিটামিন সি সিরাম",
+      "ব্রণ কমানোর সিরাম",
+      "নায়াসিনামাইড",
+      "উজ্জ্বলতার সিরাম"
+    ]
+  },
+
+  {
+    "id": "sunscreens-spf50-uv-protection",
+    "name": "Sunscreens: SPF 50+, Matte Finish & Gel Sunblock",
+    "bnName": "সানস্ক্রিন: এসপিএফ ৫০+, ম্যাট ফিনিশ ও সানব্লক",
+    "sector": "beauty",
+    "suggestedCategoryId": "beauty-skincare",
+    "tags": [
+      "sunscreen",
+      "sunblock",
+      "spf 50",
+      "matte sunscreen",
+      "mineral sunscreen",
+      "water resistant sunscreen",
+      "gel sunscreen",
+      "সানস্ক্রিন",
+      "সানব্লক",
+      "রোদে পোড়া থেকে রক্ষা",
+      "এসপিএফ ৫০",
+      "সান প্রটেকশন"
+    ]
+  },
+
+  {
+    "id": "face-washes-cleansers-scrubs",
+    "name": "Face Washes, Foam Cleansers & Exfoliating Scrubs",
+    "bnName": "ফেস ওয়াশ, ফোম ক্লিনজার ও এক্সফোলিয়েটিং স্ক্রাব",
+    "sector": "beauty",
+    "suggestedCategoryId": "beauty-skincare",
+    "tags": [
+      "face wash",
+      "acne face wash",
+      "foaming cleanser",
+      "tea tree face wash",
+      "face scrub",
+      "exfoliator",
+      "simple face wash",
+      "cerave",
+      "ফেস ওয়াশ",
+      "ক্লিনজার",
+      "ব্রণের ফেসওয়াশ",
+      "ফেস স্ক্রাব",
+      "মুখ ধোয়ার ফোম"
+    ]
+  },
+
+  {
+    "id": "moisturizers-night-creams-gels",
+    "name": "Moisturizers, Day Creams, Night Creams & Aloe Gels",
+    "bnName": "ময়েশ্চারাইজার, নাইট ক্রিম ও অ্যালোভেরা সুদিং জেল",
+    "sector": "beauty",
+    "suggestedCategoryId": "beauty-skincare",
+    "tags": [
+      "moisturizer",
+      "day cream",
+      "night cream",
+      "aloe vera gel",
+      "hydrating cream",
+      "snail mucin",
+      "soothing gel",
+      "ময়েশ্চারাইজার",
+      "নাইট ক্রিম",
+      "ডে ক্রিম",
+      "অ্যালোভেরা জেল",
+      "হাইড্রেটিং ক্রিম"
+    ]
+  },
+
+  {
+    "id": "lipsticks-lip-gloss-tints",
+    "name": "Matte Lipsticks, Liquid Lip Gloss & Lip Tints",
+    "bnName": "ম্যাট লিপস্টিক, লিপ গ্লস ও কোরিয়ান লিপ টিন্ট",
+    "sector": "beauty",
+    "suggestedCategoryId": "beauty-skincare",
+    "tags": [
+      "lipstick",
+      "matte lipstick",
+      "liquid lipstick",
+      "lip gloss",
+      "lip tint",
+      "lip balm",
+      "lip liner",
+      "লিপস্টিক",
+      "ম্যাট লিপস্টিক",
+      "লিপ গ্লস",
+      "লিপ টিন্ট",
+      "লিপবাম",
+      "ঠোঁটের যত্ন"
+    ]
+  },
+
+  {
+    "id": "foundation-concealer-compact-powders",
+    "name": "Foundations, Concealers, Compact & Setting Powders",
+    "bnName": "ফাউন্ডেশন, কনসিলার, কমপ্যাক্ট পাউডার ও মেকআপ স্প্রে",
+    "sector": "beauty",
+    "suggestedCategoryId": "beauty-skincare",
+    "tags": [
+      "foundation",
+      "liquid foundation",
+      "concealer",
+      "compact powder",
+      "loose powder",
+      "setting spray",
+      "makeup primer",
+      "bb cream",
+      "ফাউন্ডেশন",
+      "কনসিলার",
+      "কমপ্যাক্ট পাউডার",
+      "মেকআপ প্রাইমার",
+      "বিবি ক্রিম"
+    ]
+  },
+
+  {
+    "id": "eyeliner-mascara-eyeshadow-palettes",
+    "name": "Waterproof Eyeliner, Mascara & Eyeshadow Palettes",
+    "bnName": "ওয়াটারপ্রুফ আইলাইনার, মাশকারা ও আইশ্যাডো প্যালেট",
+    "sector": "beauty",
+    "suggestedCategoryId": "beauty-skincare",
+    "tags": [
+      "eyeliner",
+      "waterproof eyeliner",
+      "mascara",
+      "kajal",
+      "eyeshadow palette",
+      "eyebrow pencil",
+      "false eyelashes",
+      "আইলাইনার",
+      "মাশকারা",
+      "কাজল",
+      "আইশ্যাডো",
+      "চোখের মেকআপ"
+    ]
+  },
+
+  {
+    "id": "hair-oils-shampoo-conditioners",
+    "name": "Hair Oils (Onion/Castor/Coconut), Shampoos & Conditioners",
+    "bnName": "চুলের তেল (পেঁয়াজ/ক্যাস্টর/নারিকেল), শ্যাম্পু ও কন্ডিশনার",
+    "sector": "beauty",
+    "suggestedCategoryId": "beauty-skincare",
+    "tags": [
+      "hair oil",
+      "onion hair oil",
+      "castor oil",
+      "coconut oil",
+      "shampoo",
+      "anti dandruff shampoo",
+      "conditioner",
+      "hair serum",
+      "চুলের তেল",
+      "পেঁয়াজের তেল",
+      "শ্যাম্পু",
+      "কন্ডিশনার",
+      "চুল পড়া বন্ধের তেল",
+      "অ্যান্টি ড্যান্ড্রাফ শ্যাম্পু"
+    ]
+  },
+
+  {
+    "id": "hair-spa-masks-colors",
+    "name": "Hair Spa Creams, Hair Masks & Herbal Hair Colors",
+    "bnName": "হেয়ার স্পা ক্রিম, হেয়ার মাস্ক ও ভেষজ হেয়ার কালার",
+    "sector": "beauty",
+    "suggestedCategoryId": "beauty-skincare",
+    "tags": [
+      "hair spa",
+      "hair mask",
+      "keratin hair mask",
+      "hair color",
+      "mehndi",
+      "henna powder",
+      "hair dye",
+      "হেয়ার স্পা",
+      "হেয়ার মাস্ক",
+      "কেরাটিন ট্রিটমেন্ট",
+      "হেয়ার কালার",
+      "মেহেদি",
+      "চুলের কলপ"
+    ]
+  },
+
+  {
+    "id": "perfumes-bodymists-attar",
+    "name": "Luxury Perfumes, Body Mists & Non-Alcoholic Attar",
+    "bnName": "লাক্সারি পারফিউম, বডি মিস্ট ও অ্যালকোহল-মুক্ত আতর",
+    "sector": "beauty",
+    "suggestedCategoryId": "beauty-skincare",
+    "tags": [
+      "perfume",
+      "eau de parfum",
+      "body mist",
+      "cologne",
+      "attar",
+      "oud attar",
+      "non alcoholic perfume",
+      "পারফিউম",
+      "সুগন্ধি",
+      "বডি মিস্ট",
+      "আতর",
+      "উদ আতর",
+      "খাস আতর"
+    ]
+  },
+
+  {
+    "id": "body-lotions-body-butters",
+    "name": "Deep Hydrating Body Lotions & Cocoa Butter",
+    "bnName": "বডি লোশন, বডি বাটার ও ময়েশ্চারাইজিং মিল্ক",
+    "sector": "beauty",
+    "suggestedCategoryId": "beauty-skincare",
+    "tags": [
+      "body lotion",
+      "body butter",
+      "cocoa butter",
+      "vaseline lotion",
+      "nivea lotion",
+      "shea butter",
+      "winter lotion",
+      "বডি লোশন",
+      "বডি বাটার",
+      "ভ্যাসলিন লোশন",
+      "ময়েশ্চারাইজিং লোশন",
+      "শীতের ক্রিম"
+    ]
+  },
+
+  {
+    "id": "premium-rice-basmati-miniket-chinigura",
+    "name": "Premium Rice: Basmati, Miniket, Nazirshail & Chinigura",
+    "bnName": "প্রিমিয়াম চাল: বাসমতী, মিনিকেট, নাজিরশাইল ও চিনিগুঁড়া",
+    "sector": "groceries",
+    "suggestedCategoryId": "groceries-daily-essentials",
+    "tags": [
+      "rice",
+      "miniket rice",
+      "nazirshail rice",
+      "basmati rice",
+      "chinigura rice",
+      "polao rice",
+      "brown rice",
+      "চাল",
+      "মিনিকেট চাল",
+      "নাজিরশাইল চাল",
+      "বাসমতী চাল",
+      "পোলাও চাল",
+      "চিনিগুঁড়া চাল",
+      "লাল চাল"
+    ]
+  },
+
+  {
+    "id": "edible-oils-mustard-ghee-olive-oil",
+    "name": "Pure Mustard Oil (Ghani), Ghee, Olive Oil & Sunflower",
+    "bnName": "ঘানির খাঁটি সরিষার তেল, ঘি, অলিভ অয়েল ও সূর্যমুখী তেল",
+    "sector": "groceries",
+    "suggestedCategoryId": "groceries-daily-essentials",
+    "tags": [
+      "mustard oil",
+      "ghani mustard oil",
+      "pure ghee",
+      "cow ghee",
+      "olive oil",
+      "extra virgin olive oil",
+      "sunflower oil",
+      "soybean oil",
+      "সরিষার তেল",
+      "ঘানির তেল",
+      "খাঁটি ঘি",
+      "ঘি",
+      "অলিভ অয়েল",
+      "সূর্যমুখী তেল",
+      "সয়াবিন তেল"
+    ]
+  },
+
+  {
+    "id": "raw-natural-honey-sundarban",
+    "name": "Raw Natural Honey (Sundarban & Mustard Blossom)",
+    "bnName": "প্রাকৃতিক খাঁটি মধু (সুন্দরবন ও সরিষা ফুলের মধু)",
+    "sector": "groceries",
+    "suggestedCategoryId": "groceries-daily-essentials",
+    "tags": [
+      "honey",
+      "raw honey",
+      "sundarban honey",
+      "mustard honey",
+      "organic honey",
+      "pure honey",
+      "মধু",
+      "খাঁটি মধু",
+      "সুন্দরবনের মধু",
+      "প্রাকৃতিক মধু",
+      "সরিষা ফুলের মধু"
+    ]
+  },
+
+  {
+    "id": "dry-fruits-nuts-seeds",
+    "name": "Almonds, Cashews, Pistachios, Walnuts & Chia Seeds",
+    "bnName": "কাঠবাদাম, কাজুবাদাম, পেস্তাবাদাম, আখরোট ও চিয়া সিড",
+    "sector": "groceries",
+    "suggestedCategoryId": "groceries-daily-essentials",
+    "tags": [
+      "almonds",
+      "cashew nuts",
+      "pistachios",
+      "walnuts",
+      "raisins",
+      "kismis",
+      "chia seeds",
+      "flax seeds",
+      "pumpkin seeds",
+      "বাদাম",
+      "কাঠবাদাম",
+      "কাজুবাদাম",
+      "পেস্তা বাদাম",
+      "আখরোট",
+      "কিশমিশ",
+      "চিয়া সিড"
+    ]
+  },
+
+  {
+    "id": "spices-turmeric-chili-cardamom",
+    "name": "Pure Spices: Turmeric, Chili, Cumin, Cardamom & Cloves",
+    "bnName": "খাঁটি মশলা: হলুদ, মরিচ, জিরা, এলাচ ও দারুচিনি",
+    "sector": "groceries",
+    "suggestedCategoryId": "groceries-daily-essentials",
+    "tags": [
+      "turmeric powder",
+      "chili powder",
+      "cumin powder",
+      "cardamom",
+      "cinnamon",
+      "cloves",
+      "black pepper",
+      "biryani masala",
+      "radhuni masala",
+      "হলুদ গুঁড়া",
+      "মরিচ গুঁড়া",
+      "জিরা",
+      "এলাচ",
+      "দারুচিনি",
+      "লবঙ্গ",
+      "গরম মসলা",
+      "বিরিয়ানি মসলা"
+    ]
+  },
+
+  {
+    "id": "tea-coffee-green-tea",
+    "name": "Black Tea, Green Tea, Espresso Coffee & Beans",
+    "bnName": "ব্ল্যাক টি, গ্রিন টি, কফি ও অর্গানিক হারবাল চা",
+    "sector": "groceries",
+    "suggestedCategoryId": "groceries-daily-essentials",
+    "tags": [
+      "tea",
+      "black tea",
+      "green tea",
+      "tulsi tea",
+      "coffee",
+      "instant coffee",
+      "nescafe",
+      "coffee beans",
+      "cha",
+      "চা",
+      "ব্ল্যাক টি",
+      "গ্রিন টি",
+      "রং চা",
+      "কফি",
+      "নেসক্যাফে",
+      "হারবাল চা"
+    ]
+  },
+
+  {
+    "id": "breakfast-oats-cornflakes-cereals",
+    "name": "Rolled Oats, Cornflakes, Muesli & Granola",
+    "bnName": "রোল্ড ওটস, কর্নফ্লেক্স, মিউসলি ও গ্র্যানোলা",
+    "sector": "groceries",
+    "suggestedCategoryId": "groceries-daily-essentials",
+    "tags": [
+      "oats",
+      "rolled oats",
+      "quaker oats",
+      "cornflakes",
+      "muesli",
+      "granola",
+      "breakfast cereal",
+      "ওটস",
+      "কর্নফ্লেক্স",
+      "মিউসলি",
+      "সকালের নাস্তা",
+      "পুষ্টিকর খাদ্য"
+    ]
+  },
+
+  {
+    "id": "noodles-pasta-chocolates-snacks",
+    "name": "Instant Noodles, Italian Pasta, Chocolates & Biscuits",
+    "bnName": "ইনস্ট্যান্ট নুডলস, পাস্তা, চকলেট ও বিস্কুট",
+    "sector": "groceries",
+    "suggestedCategoryId": "groceries-daily-essentials",
+    "tags": [
+      "noodles",
+      "maggie noodles",
+      "korean ramen",
+      "pasta",
+      "macaroni",
+      "chocolates",
+      "dairy milk",
+      "biscuits",
+      "chanachur",
+      "নুডলস",
+      "ম্যাগি",
+      "রামেন",
+      "পাস্তা",
+      "চকলেট",
+      "বিস্কুট",
+      "চানাচুর"
+    ]
+  },
+
+  {
+    "id": "premium-dates-khajur-ajwa",
+    "name": "Premium Ajwa, Medjool, Mariam & Amber Dates",
+    "bnName": "প্রিমিয়াম খেজুর: আজওয়া, মরিয়ম, আম্বর ও মেদজুল",
+    "sector": "groceries",
+    "suggestedCategoryId": "groceries-daily-essentials",
+    "tags": [
+      "dates",
+      "ajwa dates",
+      "mariam dates",
+      "medjool dates",
+      "amber dates",
+      "khejur",
+      "saudi dates",
+      "খেজুর",
+      "আজওয়া খেজুর",
+      "মরিয়ম খেজুর",
+      "মেদজুল খেজুর",
+      "রমজানের খেজুর"
+    ]
+  },
+
+  {
+    "id": "air-fryers-microwaves-ovens",
+    "name": "Air Fryers, Microwave Ovens & Electric Ovens",
+    "bnName": "এয়ার ফ্রায়ার, মাইক্রোওয়েভ ওভেন ও ইলেকট্রিক ওভেন",
+    "sector": "home",
+    "suggestedCategoryId": "home-kitchen",
+    "tags": [
+      "air fryer",
+      "oil free fryer",
+      "microwave oven",
+      "electric oven",
+      "toaster",
+      "baking oven",
+      "এয়ার ফ্রায়ার",
+      "মাইক্রোওয়েভ ওভেন",
+      "ওভেন",
+      "টোস্টার",
+      "বেকিং ওভেন"
+    ]
+  },
+
+  {
+    "id": "electric-kettles-blenders-grinders",
+    "name": "Electric Kettles, Blenders, Juicers & Spice Grinders",
+    "bnName": "ইলেকট্রিক কেটলি, ব্লেন্ডার, জুসার ও মশলা গ্রাইন্ডার",
+    "sector": "home",
+    "suggestedCategoryId": "home-kitchen",
+    "tags": [
+      "electric kettle",
+      "blender",
+      "mixer grinder",
+      "juicer",
+      "food processor",
+      "meat grinder",
+      "hand blender",
+      "ইলেকট্রিক কেটলি",
+      "ব্লেন্ডার",
+      "মিক্সার গ্রাইন্ডার",
+      "জুসার",
+      "হ্যান্ড ব্লেন্ডার",
+      "মাংসের কিমা মেশিন"
+    ]
+  },
+
+  {
+    "id": "rice-cookers-induction-stoves",
+    "name": "Digital Rice Cookers, Induction Stoves & Gas Burners",
+    "bnName": "রাইস কুকার, ইন্ডাকশন চুলা ও গ্যাস বার্নার",
+    "sector": "home",
+    "suggestedCategoryId": "home-kitchen",
+    "tags": [
+      "rice cooker",
+      "automatic rice cooker",
+      "induction cooker",
+      "infrared stove",
+      "gas stove",
+      "double burner",
+      "রাইস কুকার",
+      "ইন্ডাকশন চুলা",
+      "ইনফ্রারেড চুলা",
+      "গ্যাস স্টোভ",
+      "চুলা"
+    ]
+  },
+
+  {
+    "id": "cookware-nonstick-frypans-pressure-cookers",
+    "name": "Non-Stick Frypans, Cookware Sets & Pressure Cookers",
+    "bnName": "নন-স্টিক ফ্রাইপ্যান, হাঁড়ি-পাতিল ও প্রেশার কুকার",
+    "sector": "home",
+    "suggestedCategoryId": "home-kitchen",
+    "tags": [
+      "cookware set",
+      "non stick pan",
+      "frypan",
+      "pressure cooker",
+      "karahi",
+      "casserole",
+      "saucepan",
+      "cooker",
+      "হাঁড়ি পাতিল",
+      "নন স্টিক প্যান",
+      "ফ্রাইপ্যান",
+      "প্রেশার কুকার",
+      "কড়াই"
+    ]
+  },
+
+  {
+    "id": "knives-cutting-boards-kitchen-tools",
+    "name": "Kitchen Knife Sets, Chopping Boards & Peelers",
+    "bnName": "কিচেন ছুরি সেট, কাটিং বোর্ড ও পিলার",
+    "sector": "home",
+    "suggestedCategoryId": "home-kitchen",
+    "tags": [
+      "knife set",
+      "kitchen knife",
+      "chopping board",
+      "cutting board",
+      "peeler",
+      "silicone spatula",
+      "measuring spoons",
+      "ছুরি",
+      "কিচেন ছুরি",
+      "কাটিং বোর্ড",
+      "বটি",
+      "চপিং বোর্ড",
+      "চামচ সেট"
+    ]
+  },
+
+  {
+    "id": "water-purifiers-flasks-bottles",
+    "name": "Water Purifier Filters, Vacuum Thermos Flasks & Bottles",
+    "bnName": "ওয়াটার পিউরিফায়ার ফিল্টার, থার্মাস ফ্লাস্ক ও পানির বোতল",
+    "sector": "home",
+    "suggestedCategoryId": "home-kitchen",
+    "tags": [
+      "water purifier",
+      "water filter",
+      "ro filter",
+      "thermos flask",
+      "hot cold water bottle",
+      "sipper bottle",
+      "পানি ফিল্টার",
+      "ফিল্টার ক্যান্ডেল",
+      "থার্মাস ফ্লাস্ক",
+      "পানির বোতল"
+    ]
+  },
+
+  {
+    "id": "bedsheets-blankets-pillows-curtains",
+    "name": "Cotton Bedsheets, Comforters, Pillows & Window Curtains",
+    "bnName": "সুতি বেডশিট, কমফোর্টার, বালিশ ও জানালার পর্দা",
+    "sector": "home",
+    "suggestedCategoryId": "home-kitchen",
+    "tags": [
+      "bedsheet",
+      "cotton bedsheet",
+      "king size bedsheet",
+      "pillow",
+      "pillow cover",
+      "comforter",
+      "blanket",
+      "curtains",
+      "window curtains",
+      "বেডশিট",
+      "বিছানার চাদর",
+      "বালিশের কভার",
+      "কমফোর্টার",
+      "কম্বল",
+      "পর্দা"
+    ]
+  },
+
+  {
+    "id": "cleaning-mops-detergents-dishwash",
+    "name": "Spin Mops, Laundry Detergent, Dishwash & Floor Cleaners",
+    "bnName": "স্পিন মপ, লন্ড্রি ডিটারজেন্ট, ডিশওয়াশ ও ফ্লোর ক্লিনার",
+    "sector": "home",
+    "suggestedCategoryId": "home-kitchen",
+    "tags": [
+      "spin mop",
+      "cleaning mop",
+      "wiper",
+      "laundry detergent",
+      "surf excel",
+      "rin",
+      "dishwash liquid",
+      "vim",
+      "harpic",
+      "floor cleaner",
+      "মপ",
+      "ঘর মোছার মপ",
+      "ডিটারজেন্ট",
+      "ডিশওয়াশ লিকুইড",
+      "হারপিক",
+      "ফ্লোর ক্লিনার"
+    ]
+  },
+
+  {
+    "id": "baby-pant-diapers-wipes",
+    "name": "Baby Pant Diapers, Tape Diapers & Wet Wipes",
+    "bnName": "বেবি প্যান্ট ডায়াপার, টেপ ডায়াপার ও বেবি ওয়াইপস",
+    "sector": "kids",
+    "suggestedCategoryId": "groceries-daily-essentials",
+    "tags": [
+      "baby diaper",
+      "pant diaper",
+      "tape diaper",
+      "pampers",
+      "huggies",
+      "merries",
+      "twinkle",
+      "baby wet wipes",
+      "বেবি ডায়াপার",
+      "বাচ্চাদের ডায়াপার",
+      "প্যান্ট ডায়াপার",
+      "বেবি ওয়াইপস",
+      "ডায়াপার"
+    ]
+  },
+
+  {
+    "id": "baby-skincare-lotion-oil-shampoo",
+    "name": "Baby Lotions, Baby Oil, Tear-Free Shampoos & Powder",
+    "bnName": "বেবি লোশন, নারিকেল তেল, টিয়ার-ফ্রি শ্যাম্পু ও বেবি পাউডার",
+    "sector": "kids",
+    "suggestedCategoryId": "beauty-skincare",
+    "tags": [
+      "baby lotion",
+      "baby oil",
+      "baby shampoo",
+      "baby powder",
+      "baby soap",
+      "johnson baby",
+      "aveeno baby",
+      "kodomo",
+      "বেবি লোশন",
+      "বেবি অয়েল",
+      "বেবি শ্যাম্পু",
+      "বেবি পাউডার",
+      "বাচ্চাদের সাবান"
+    ]
+  },
+
+  {
+    "id": "baby-feeding-bottles-nipples-sterilizers",
+    "name": "Feeding Bottles, Silicone Nipples, Sterilizers & Bibs",
+    "bnName": "ফিডার বোতল, সিলিকন নিপল, স্টেরিলাইজার ও বিবস",
+    "sector": "kids",
+    "suggestedCategoryId": "groceries-daily-essentials",
+    "tags": [
+      "feeding bottle",
+      "baby feeder",
+      "silicone nipple",
+      "bottle sterilizer",
+      "bottle brush",
+      "baby bib",
+      "pacifier",
+      "ফিডার বোতল",
+      "বাচ্চাদের ফিডার",
+      "সিলিকন নিপল",
+      "স্টেরিলাইজার",
+      "চুষনি"
+    ]
+  },
+
+  {
+    "id": "breast-pumps-nursing-maternity",
+    "name": "Manual & Electric Breast Pumps, Nursing Pads & Maternity Wear",
+    "bnName": "ম্যানুয়াল ও ইলেকট্রিক ব্রেস্ট পাম্প, নার্সিং প্যাড ও মাতৃত্বকালীন পোশাক",
+    "sector": "kids",
+    "suggestedCategoryId": "beauty-skincare",
+    "tags": [
+      "breast pump",
+      "electric breast pump",
+      "manual breast pump",
+      "nursing pads",
+      "breast milk storage bags",
+      "maternity dress",
+      "nursing bra",
+      "ব্রেস্ট পাম্প",
+      "ইলেকট্রিক ব্রেস্ট পাম্প",
+      "নার্সিং প্যাড",
+      "মাতৃত্বকালীন জামা",
+      "ফিডিং ব্রা"
+    ]
+  },
+
+  {
+    "id": "baby-strollers-prams-walkers",
+    "name": "Baby Strollers, Prams, Walkers & High Chairs",
+    "bnName": "বেবি স্ট্রোলার, প্র্যাম, ওয়াকার ও হাই চেয়ার",
+    "sector": "kids",
+    "suggestedCategoryId": "home-kitchen",
+    "tags": [
+      "baby stroller",
+      "pram",
+      "baby walker",
+      "high chair",
+      "baby car seat",
+      "baby swing",
+      "baby cradle",
+      "বেবি স্ট্রোলার",
+      "স্ট্রোলার",
+      "বেবি ওয়াকার",
+      "দোলনা",
+      "বাচ্চাদের গাড়ি"
+    ]
+  },
+
+  {
+    "id": "educational-toys-puzzles-boardgames",
+    "name": "Educational Wooden Toys, Puzzles, Legos & Board Games",
+    "bnName": "শিক্ষামূলক কাঠের খেলনা, পাজল, লেগো ও বোর্ড গেম",
+    "sector": "kids",
+    "suggestedCategoryId": "books_stationery",
+    "tags": [
+      "educational toys",
+      "wooden toys",
+      "building blocks",
+      "lego",
+      "puzzle",
+      "board games",
+      "clay modeling",
+      "drawing board",
+      "শিক্ষামূলক খেলনা",
+      "লেগো",
+      "পাজল",
+      "বিল্ডিং ব্লকস",
+      "বোর্ড গেম"
+    ]
+  },
+
+  {
+    "id": "gym-dumbbells-barbells-plates",
+    "name": "Dumbbells, Barbells, Weight Plates & Benches",
+    "bnName": "ডাম্বেল, বারবেল, ওয়েট প্লেট ও জিম বেঞ্চ",
+    "sector": "sports",
+    "suggestedCategoryId": "sports-fitness",
+    "tags": [
+      "dumbbell",
+      "rubber dumbbell",
+      "barbell",
+      "weight plate",
+      "kettlebell",
+      "gym bench",
+      "weightlifting",
+      "ডাম্বেল",
+      "বারবেল",
+      "ওজন প্লেট",
+      "জিম বেঞ্চ",
+      "ব্যায়ামের সরঞ্জাম"
+    ]
+  },
+
+  {
+    "id": "resistance-bands-yoga-mats-skipping-ropes",
+    "name": "Resistance Bands, TPE Yoga Mats & Skipping Ropes",
+    "bnName": "রেজিস্ট্যান্স ব্যান্ড, ইয়োগা ম্যাট ও জাম্প রোপ",
+    "sector": "sports",
+    "suggestedCategoryId": "sports-fitness",
+    "tags": [
+      "resistance band",
+      "pull up band",
+      "yoga mat",
+      "tpe yoga mat",
+      "skipping rope",
+      "jump rope",
+      "push up board",
+      "ab roller",
+      "রেজিস্ট্যান্স ব্যান্ড",
+      "ইয়োগা ম্যাট",
+      "দড়িলাফ",
+      "পুশ আপ বোর্ড",
+      "অ্যাব রোলার"
+    ]
+  },
+
+  {
+    "id": "cricket-bats-balls-accessories",
+    "name": "Kashmir Willow Cricket Bats, Balls, Gloves & Pads",
+    "bnName": "কাশ্মীর উইলো ক্রিকেট ব্যাট, বল, গ্লাভস ও প্যাড",
+    "sector": "sports",
+    "suggestedCategoryId": "sports-fitness",
+    "tags": [
+      "cricket bat",
+      "kashmir willow bat",
+      "tape tennis bat",
+      "cricket ball",
+      "batting gloves",
+      "batting pads",
+      "cricket kit",
+      "ক্রিকেট ব্যাট",
+      "টেপ টেনিস ব্যাট",
+      "ক্রিকেট বল",
+      "ব্যাটিং গ্লাভস",
+      "ক্রিকেট প্যাড"
+    ]
+  },
+
+  {
+    "id": "football-futsal-boots-jerseys",
+    "name": "Match Footballs, Futsal Boots & Club Jerseys",
+    "bnName": "ফুটবল, বুট জুতো ও ফুটবল ক্লাব জার্সি",
+    "sector": "sports",
+    "suggestedCategoryId": "sports-fitness",
+    "tags": [
+      "football",
+      "size 5 football",
+      "futsal ball",
+      "football boots",
+      "stud shoes",
+      "club jersey",
+      "goalkeeper gloves",
+      "shin guards",
+      "ফুটবল",
+      "বুট জুতা",
+      "ফুটবল জার্সি",
+      "গোলকিপার গ্লাভস"
+    ]
+  },
+
+  {
+    "id": "badminton-rackets-shuttles-nets",
+    "name": "Carbon Graphite Badminton Rackets, Shuttlecocks & Nets",
+    "bnName": "কার্বন গ্রাফাইট ব্যাডমিন্টন র‍্যাকেট, ফেদার কর্ক ও নেট",
+    "sector": "sports",
+    "suggestedCategoryId": "sports-fitness",
+    "tags": [
+      "badminton racket",
+      "yonex racket",
+      "shuttlecock",
+      "feather shuttlecock",
+      "badminton net",
+      "badminton grip",
+      "ব্যাডমিন্টন র‍্যাকেট",
+      "ফেদার কর্ক",
+      "ব্যাডমিন্টন নেট",
+      "র‍্যাকেট গ্রিপ"
+    ]
+  },
+
+  {
+    "id": "swimming-cycling-gear",
+    "name": "Swimming Goggles, Caps, Cycling Helmets & Gloves",
+    "bnName": "সাঁতারের চশমা, ক্যাপ, সাইকেলিং হেলমেট ও গ্লাভস",
+    "sector": "sports",
+    "suggestedCategoryId": "sports-fitness",
+    "tags": [
+      "swimming goggles",
+      "swimming cap",
+      "swimsuit",
+      "cycling helmet",
+      "bike gloves",
+      "bicycle light",
+      "bicycle horn",
+      "সাঁতারের চশমা",
+      "সুইমিং ক্যাপ",
+      "সাইকেল হেলমেট",
+      "সাইক্লিং গ্লাভস",
+      "সাইকেলের লাইট"
+    ]
+  },
+
+  {
+    "id": "bike-helmets-riding-gear",
+    "name": "Certified Bike Helmets, Riding Jackets & Gloves",
+    "bnName": "সার্টিফাইড বাইক হেলমেট, রাইডিং জ্যাকেট ও গ্লাভস",
+    "sector": "automotive",
+    "suggestedCategoryId": "sports-fitness",
+    "tags": [
+      "helmet",
+      "full face helmet",
+      "bike helmet",
+      "riding gloves",
+      "riding jacket",
+      "knee guard",
+      "bilmola",
+      "vega",
+      "studds",
+      "হেলমেট",
+      "বাইক হেলমেট",
+      "রাইডিং গ্লাভস",
+      "বাইকার জ্যাকেট",
+      "নি গার্ড"
+    ]
+  },
+
+  {
+    "id": "bike-mobile-holders-chargers-locks",
+    "name": "Waterproof Bike Phone Mounts, USB Chargers & Disc Locks",
+    "bnName": "ওয়াটারপ্রুফ বাইক মোবাইল হোল্ডার, চার্জার ও ডিস্ক লক",
+    "sector": "automotive",
+    "suggestedCategoryId": "smartphones-tablets",
+    "tags": [
+      "bike mobile holder",
+      "phone mount",
+      "bike usb charger",
+      "disc lock",
+      "alarm disc lock",
+      "bike cover",
+      "rain cover",
+      "বাইক মোবাইল হোল্ডার",
+      "ডিস্ক লক",
+      "বাইকের কভার",
+      "বাইক চার্জার"
+    ]
+  },
+
+  {
+    "id": "bike-chain-lube-cleaners-engine-oil",
+    "name": "Chain Lubricant, Cleaners & 4T Engine Oil",
+    "bnName": "চেইন লুব, চেইন ক্লিনার ও ৪টি ইঞ্জিন অয়েল",
+    "sector": "automotive",
+    "suggestedCategoryId": "home-kitchen",
+    "tags": [
+      "chain lube",
+      "chain cleaner",
+      "motul",
+      "engine oil",
+      "4t engine oil",
+      "brake fluid",
+      "coolant",
+      "চেইন লুব",
+      "চেইন ক্লিনার",
+      "ইঞ্জিন অয়েল",
+      "মবিল",
+      "মোটুল"
+    ]
+  },
+
+  {
+    "id": "car-dashcams-accessories",
+    "name": "Car Dashcams, Reverse Cameras & Bluetooth FM Transmitters",
+    "bnName": "কার ড্যাশ ক্যাম, ব্যাক ক্যামেরা ও ব্লুটুথ ট্রান্সমিটার",
+    "sector": "automotive",
+    "suggestedCategoryId": "smartphones-tablets",
+    "tags": [
+      "dash cam",
+      "car dashcam",
+      "reverse camera",
+      "car bluetooth",
+      "fm transmitter",
+      "car charger",
+      "car phone holder",
+      "ড্যাশ ক্যাম",
+      "গাড়ির ক্যামেরা",
+      "রিভার্স ক্যামেরা",
+      "কার চার্জার"
+    ]
+  },
+
+  {
+    "id": "car-perfumes-vacuum-cleaners",
+    "name": "Car Air Fresheners, Portable Vacuum Cleaners & Microfiber",
+    "bnName": "কার পারফিউম, পোর্টেবল ভ্যাকুয়াম ক্লিনার ও মাইক্রোফাইবার",
+    "sector": "automotive",
+    "suggestedCategoryId": "home-kitchen",
+    "tags": [
+      "car perfume",
+      "car air freshener",
+      "car vacuum cleaner",
+      "microfiber cloth",
+      "car shampoo",
+      "car wax",
+      "tyre polish",
+      "কার পারফিউম",
+      "গাড়ির ভ্যাকুয়াম ক্লিনার",
+      "মাইক্রোফাইবার কাপড়",
+      "কার পলিশ"
+    ]
+  },
+
+  {
+    "id": "islamic-books-quran-sharif",
+    "name": "Quran Sharif, Tafseer, Hadith & Islamic Lifestyle Books",
+    "bnName": "কোরআন শরীফ, তাফসীর, হাদিস ও ইসলামিক বই",
+    "sector": "books_stationery",
+    "suggestedCategoryId": "books-stationery",
+    "tags": [
+      "quran sharif",
+      "tafseer",
+      "hadith",
+      "bukhari sharif",
+      "islamic books",
+      "namaz shikkha",
+      "dua book",
+      "rehanul quran",
+      "কোরআন শরীফ",
+      "তাফসীর",
+      "হাদিস",
+      "ইসলামিক বই",
+      "নামাজ শিক্ষা",
+      "দোয়ার বই"
+    ]
+  },
+
+  {
+    "id": "motivational-novels-literature",
+    "name": "Self-Help, Motivational, Fiction & Literature Novels",
+    "bnName": "আত্মউন্নয়ন, মোটিভেশনাল, উপন্যাস ও সাহিত্য",
+    "sector": "books_stationery",
+    "suggestedCategoryId": "books-stationery",
+    "tags": [
+      "motivational books",
+      "self help",
+      "novels",
+      "bengali novels",
+      "humayun ahmed",
+      "translated books",
+      "business books",
+      "বই",
+      "উপন্যাস",
+      "হুমায়ূন আহমেদ",
+      "মোটিভেশনাল বই",
+      "আত্মউন্নয়নমূলক বই",
+      "গল্পের বই"
+    ]
+  },
+
+  {
+    "id": "sketchbooks-acrylic-colors-art-supplies",
+    "name": "Sketchbooks, Acrylic Paints, Brushes & Canvas",
+    "bnName": "স্কেচবুক, অ্যাক্রিলিক কালার, পেইন্টিং ব্রাশ ও ক্যানভাস",
+    "sector": "books_stationery",
+    "suggestedCategoryId": "books-stationery",
+    "tags": [
+      "sketchbook",
+      "acrylic paint",
+      "watercolor",
+      "canvas board",
+      "paint brush",
+      "calligraphy pen",
+      "drawing pencils",
+      "স্কেচবুক",
+      "অ্যাক্রিলিক পেইন্ট",
+      "জলরং",
+      "ক্যানভাস",
+      "পেইন্টিং ব্রাশ",
+      "ড্রয়িং সামগ্রী"
+    ]
+  },
+
+  {
+    "id": "office-stationery-notebooks-pens",
+    "name": "Hardcover Notebooks, Gel Pens, Highlighters & Sticky Notes",
+    "bnName": "নোটবুক, জেল পেন, হাইলাইটার, স্টিকি নোটস ও স্ট্যাপলার",
+    "sector": "books_stationery",
+    "suggestedCategoryId": "books-stationery",
+    "tags": [
+      "notebook",
+      "diary",
+      "gel pen",
+      "fountain pen",
+      "highlighter",
+      "sticky notes",
+      "stapler",
+      "calculator",
+      "নোটবুক",
+      "ডায়েরি",
+      "কলম",
+      "হাইলাইটার",
+      "স্টিকি নোটস",
+      "ক্যালকুলেটর"
+    ]
+  },
+
+  {
+    "id": "cat-food-treats-wet-canned",
+    "name": "Cat Dry Food, Wet Food Pouches & Creamy Treats",
+    "bnName": "বিড়ালের খাবার (ড্রাই ফুড, ওয়েট পাউচ ও ক্রিমি ট্রিট)",
+    "sector": "pets",
+    "suggestedCategoryId": "groceries-daily-essentials",
+    "tags": [
+      "cat food",
+      "dry cat food",
+      "whiskas",
+      "me-o",
+      "smartheart",
+      "wet cat food",
+      "creamy cat treats",
+      "kitten food",
+      "বিড়ালের খাবার",
+      "ক্যাট ফুড",
+      "হুইস্কাস",
+      "বিড়ালের ট্রিট",
+      "বিড়ালের বিস্কুট"
+    ]
+  },
+
+  {
+    "id": "cat-litter-trays-hygiene",
+    "name": "Bentonite Cat Litter, Scented Clumping Sand & Trays",
+    "bnName": "ক্যাট লিটার (সুগন্ধি ক্ল্যাম্পিং স্যান্ড) ও লিটার ট্রে",
+    "sector": "pets",
+    "suggestedCategoryId": "groceries-daily-essentials",
+    "tags": [
+      "cat litter",
+      "bentonite litter",
+      "clumping litter",
+      "scented cat sand",
+      "litter tray",
+      "litter scoop",
+      "ক্যাট লিটার",
+      "বিড়ালের বালু",
+      "লিটার বক্স",
+      "লিটার স্কুপ",
+      "বিড়ালের পরিচ্ছন্নতা"
+    ]
+  },
+
+  {
+    "id": "pet-grooming-shampoo-scratchers",
+    "name": "Pet Shampoos, Flea Combs, Scratchers & Toys",
+    "bnName": "পেট শ্যাম্পু, চিরুনি, নখ কাটার প্লায়ার্স ও খেলনা",
+    "sector": "pets",
+    "suggestedCategoryId": "beauty-skincare",
+    "tags": [
+      "pet shampoo",
+      "cat shampoo",
+      "flea comb",
+      "pet nail clipper",
+      "cat scratcher",
+      "cat collar",
+      "pet carrier",
+      "পেট শ্যাম্পু",
+      "বিড়ালের চিরুনি",
+      "নখ কাটার ট্রিমার",
+      "ক্যাট স্ক্র্যাচার",
+      "বিড়ালের কলার"
+    ]
+  },
+
+  {
+    "id": "cordless-drills-power-tools",
+    "name": "Cordless Drill Machines, Impact Drivers & Rotary Tools",
+    "bnName": "কর্ডলেস ড্রিল মেশিন, পাওয়ার টুলস ও রোটারি কিট",
+    "sector": "home",
+    "suggestedCategoryId": "home-kitchen",
+    "tags": [
+      "drill machine",
+      "cordless drill",
+      "impact drill",
+      "drill bit set",
+      "rotary tool",
+      "angle grinder",
+      "ড্রিল মেশিন",
+      "কর্ডলেস ড্রিল",
+      "ড্রিল বিট",
+      "পাওয়ার টুলস"
+    ]
+  },
+
+  {
+    "id": "screwdriver-sets-hand-tools",
+    "name": "Precision Screwdriver Sets, Pliers & Measuring Tapes",
+    "bnName": "স্ক্রু-ড্রাইভার সেট, প্লায়ার্স ও মেজারিং টেপ",
+    "sector": "home",
+    "suggestedCategoryId": "home-kitchen",
+    "tags": [
+      "screwdriver set",
+      "precision screwdriver",
+      "pliers",
+      "combination pliers",
+      "measuring tape",
+      "claw hammer",
+      "wrench",
+      "toolbox",
+      "স্ক্রু ড্রাইভার",
+      "প্লায়ার্স",
+      "মাপার ফিতা",
+      "হাতুড়ি",
+      "রেঞ্জ",
+      "টুলবক্স"
+    ]
+  },
+
+  {
+    "id": "hot-glue-guns-soldering-multimeters",
+    "name": "Hot Glue Guns, Soldering Irons & Digital Multimeters",
+    "bnName": "হট গ্লু গান, সোল্ডারিং আয়রন ও ডিজিটাল মাল্টিমিটার",
+    "sector": "home",
+    "suggestedCategoryId": "home-kitchen",
+    "tags": [
+      "glue gun",
+      "hot glue gun",
+      "glue sticks",
+      "soldering iron",
+      "solder wire",
+      "digital multimeter",
+      "voltage tester",
+      "গ্লু গান",
+      "সোল্ডারিং আয়রন",
+      "মাল্টিমিটার",
+      "টেস্টার",
+      "ইলেকট্রিক টুলস"
+    ]
   }
 ];

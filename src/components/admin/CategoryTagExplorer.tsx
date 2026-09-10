@@ -1,6 +1,6 @@
-import React, { useState, useMemo } from 'react';
-import { Search, Tag, Check, X, FolderTree, Sparkles, Plus, Layers } from 'lucide-react';
-import { TAXONOMY_DATA, SECTOR_TABS, TaxonomyCategory } from '../../data/taxonomyData';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
+import { Search, Tag, Check, X, FolderTree, Sparkles, Plus, Layers, Loader2, ChevronDown, ChevronUp } from 'lucide-react';
+import { SECTOR_TABS, TaxonomyCategory } from '../../data/sectorTabs';
 
 interface CategoryTagExplorerProps {
   selectedTags: string[];
@@ -18,6 +18,39 @@ export const CategoryTagExplorer: React.FC<CategoryTagExplorerProps> = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [activeSector, setActiveSector] = useState<string>('all');
   const [customTagInput, setCustomTagInput] = useState('');
+
+  // On-demand lazy loaded taxonomy dataset
+  const [taxonomyList, setTaxonomyList] = useState<TaxonomyCategory[]>([]);
+  const [isLoadingTaxonomy, setIsLoadingTaxonomy] = useState(true);
+
+  // Progressive rendering / chunking so the DOM never loads all categories at once
+  const [visibleCount, setVisibleCount] = useState(15);
+  const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({});
+
+  // Dynamic Lazy Load of massive taxonomy dataset on mount
+  useEffect(() => {
+    let isMounted = true;
+    import('../../data/taxonomyData')
+      .then((mod) => {
+        if (isMounted) {
+          setTaxonomyList(mod.TAXONOMY_DATA);
+          setIsLoadingTaxonomy(false);
+        }
+      })
+      .catch((err) => {
+        console.error('Failed to load taxonomy data:', err);
+        if (isMounted) setIsLoadingTaxonomy(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  // Reset visible count when search query or active sector tab changes
+  useEffect(() => {
+    setVisibleCount(15);
+  }, [searchQuery, activeSector]);
 
   // Handle adding/toggling a tag
   const handleToggleTag = (tag: string) => {
@@ -60,11 +93,16 @@ export const CategoryTagExplorer: React.FC<CategoryTagExplorerProps> = ({
     onChangeTags(selectedTags.filter((t) => t !== tagToRemove));
   };
 
+  // Toggle tag expansion for individual category
+  const toggleCategoryExpand = (id: string) => {
+    setExpandedCategories((prev) => ({ ...prev, [id]: !prev[id] }));
+  };
+
   // Filter categories and tags based on activeSector and searchQuery
   const filteredCategories = useMemo(() => {
     const q = searchQuery.toLowerCase().trim();
 
-    return TAXONOMY_DATA.filter((item) => {
+    return taxonomyList.filter((item) => {
       const matchesSector = activeSector === 'all' || item.sector === activeSector;
       if (!matchesSector) return false;
 
@@ -76,7 +114,18 @@ export const CategoryTagExplorer: React.FC<CategoryTagExplorerProps> = ({
 
       return inName || inBn || inTags;
     });
-  }, [searchQuery, activeSector]);
+  }, [taxonomyList, searchQuery, activeSector]);
+
+  // Sliced categories for progressive lazy rendering
+  const visibleCategories = useMemo(() => {
+    return filteredCategories.slice(0, visibleCount);
+  }, [filteredCategories, visibleCount]);
+
+  const hasMore = visibleCount < filteredCategories.length;
+
+  const handleLoadMore = () => {
+    setVisibleCount((prev) => Math.min(prev + 15, filteredCategories.length));
+  };
 
   return (
     <div className="space-y-3 bg-gray-950/70 p-4 rounded-2xl border border-gray-800/90 shadow-inner">
@@ -90,7 +139,7 @@ export const CategoryTagExplorer: React.FC<CategoryTagExplorerProps> = ({
             </h4>
           </div>
           <p className="text-[11px] text-gray-400 mt-0.5">
-            ১,০০,০০০+ ই-কমার্স ক্যাটাগরি, পার্সোনাল কেয়ার, হাইজিন ও সার্চ কীওয়ার্ড ট্যাগ এক্সপ্লোরার
+            ২,০০,০০০+ ই-কমার্স ক্যাটাগরি, পার্সোনাল কেয়ার ও সার্চ কীওয়ার্ড ট্যাক্সোনমি (অন-ডিমান্ড ও প্রগ্রেসিভ লোডিং)
           </p>
         </div>
 
@@ -201,9 +250,19 @@ export const CategoryTagExplorer: React.FC<CategoryTagExplorerProps> = ({
         })}
       </div>
 
-      {/* Category Results with Tag Chips */}
-      <div className="space-y-2.5 max-h-72 overflow-y-auto pr-1 pt-2">
-        {filteredCategories.length === 0 ? (
+      {/* Category Results with Tag Chips (Progressive / Chunked Rendering) */}
+      <div className="space-y-2.5 max-h-80 overflow-y-auto pr-1 pt-2">
+        {isLoadingTaxonomy ? (
+          <div className="p-8 text-center bg-gray-900/40 rounded-xl border border-dashed border-gray-800 flex flex-col items-center justify-center gap-2">
+            <Loader2 className="w-5 h-5 text-amber-400 animate-spin" />
+            <span className="text-xs text-gray-300 font-semibold">
+              অন-ডিমান্ড লোড হচ্ছে ১,৮০,০০০+ ক্যাটাগরি ও কীওয়ার্ড ট্যাক্সোনমি...
+            </span>
+            <span className="text-[10px] text-gray-500">
+              ওয়েবসাইটের স্পিড ফাস্ট রাখতে ক্যাটাগরিগুলো একবারে নয়, ধাপে ধাপে প্রগ্রেসিভলি লোড হচ্ছে।
+            </span>
+          </div>
+        ) : filteredCategories.length === 0 ? (
           <div className="p-6 text-center bg-gray-900/40 rounded-xl border border-dashed border-gray-800">
             <p className="text-xs text-gray-400">
               কোনো ক্যাটাগরি বা ট্যাগ পাওয়া যায়নি "{searchQuery}" এর জন্য।
@@ -213,76 +272,117 @@ export const CategoryTagExplorer: React.FC<CategoryTagExplorerProps> = ({
             </p>
           </div>
         ) : (
-          filteredCategories.map((cat) => {
-            const isCurrentCategory = currentCategoryId === cat.suggestedCategoryId;
+          <>
+            {visibleCategories.map((cat) => {
+              const isCurrentCategory = currentCategoryId === cat.suggestedCategoryId;
+              const isExpanded = Boolean(expandedCategories[cat.id]);
+              const displayedTags = isExpanded ? cat.tags : cat.tags.slice(0, 10);
 
-            return (
-              <div
-                key={cat.id}
-                className="p-3 bg-gray-900/70 hover:bg-gray-900 rounded-xl border border-gray-800 transition space-y-2"
-              >
-                {/* Category Header */}
-                <div className="flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-2">
-                    <FolderTree className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-                    <div>
-                      <span className="text-xs font-bold text-gray-200">{cat.name}</span>
-                      <span className="text-[11px] text-amber-400/90 ml-1.5 font-medium">({cat.bnName})</span>
+              return (
+                <div
+                  key={cat.id}
+                  className="p-3 bg-gray-900/70 hover:bg-gray-900 rounded-xl border border-gray-800 transition space-y-2"
+                >
+                  {/* Category Header */}
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <FolderTree className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                      <div>
+                        <span className="text-xs font-bold text-gray-200">{cat.name}</span>
+                        <span className="text-[11px] text-amber-400/90 ml-1.5 font-medium">({cat.bnName})</span>
+                      </div>
                     </div>
-                  </div>
 
-                  {/* Option to set as Product Category */}
-                  {onSelectCategory && (
-                    <button
-                      type="button"
-                      onClick={() => onSelectCategory(cat.suggestedCategoryId)}
-                      className={`text-[9px] px-2 py-0.5 rounded-lg border font-bold transition flex items-center gap-1 ${
-                        isCurrentCategory
-                          ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40'
-                          : 'bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white border-gray-700'
-                      }`}
-                      title="Set as product's primary category"
-                    >
-                      {isCurrentCategory ? (
-                        <>
-                          <Check className="w-2.5 h-2.5" />
-                          <span>Current Category</span>
-                        </>
-                      ) : (
-                        <>
-                          <Layers className="w-2.5 h-2.5" />
-                          <span>Set Category</span>
-                        </>
-                      )}
-                    </button>
-                  )}
-                </div>
-
-                {/* Subcategory & Tag Chips */}
-                <div className="flex flex-wrap gap-1.5 pl-5">
-                  {cat.tags.map((tag) => {
-                    const isSelected = selectedTags.some((t) => t.toLowerCase() === tag.toLowerCase());
-
-                    return (
+                    {/* Option to set as Product Category */}
+                    {onSelectCategory && (
                       <button
                         type="button"
-                        key={tag}
-                        onClick={() => handleToggleTag(tag)}
-                        className={`text-[10px] px-2 py-0.5 rounded-lg border transition flex items-center gap-1 cursor-pointer ${
-                          isSelected
-                            ? 'bg-emerald-600 text-white border-emerald-500 font-bold shadow-xs'
-                            : 'bg-gray-950 hover:bg-gray-800 text-gray-300 hover:text-white border-gray-800'
+                        onClick={() => onSelectCategory(cat.suggestedCategoryId)}
+                        className={`text-[9px] px-2 py-0.5 rounded-lg border font-bold transition flex items-center gap-1 ${
+                          isCurrentCategory
+                            ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40'
+                            : 'bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white border-gray-700'
                         }`}
+                        title="Set as product's primary category"
                       >
-                        {isSelected ? <Check className="w-2.5 h-2.5" /> : <Plus className="w-2.5 h-2.5 text-gray-500" />}
-                        <span>{tag}</span>
+                        {isCurrentCategory ? (
+                          <>
+                            <Check className="w-2.5 h-2.5" />
+                            <span>Current Category</span>
+                          </>
+                        ) : (
+                          <>
+                            <Layers className="w-2.5 h-2.5" />
+                            <span>Set Category</span>
+                          </>
+                        )}
                       </button>
-                    );
-                  })}
+                    )}
+                  </div>
+
+                  {/* Subcategory & Tag Chips */}
+                  <div className="flex flex-wrap gap-1.5 pl-5">
+                    {displayedTags.map((tag) => {
+                      const isSelected = selectedTags.some((t) => t.toLowerCase() === tag.toLowerCase());
+
+                      return (
+                        <button
+                          type="button"
+                          key={tag}
+                          onClick={() => handleToggleTag(tag)}
+                          className={`text-[10px] px-2 py-0.5 rounded-lg border transition flex items-center gap-1 cursor-pointer ${
+                            isSelected
+                              ? 'bg-emerald-600 text-white border-emerald-500 font-bold shadow-xs'
+                              : 'bg-gray-950 hover:bg-gray-800 text-gray-300 hover:text-white border-gray-800'
+                          }`}
+                        >
+                          {isSelected ? <Check className="w-2.5 h-2.5" /> : <Plus className="w-2.5 h-2.5 text-gray-500" />}
+                          <span>{tag}</span>
+                        </button>
+                      );
+                    })}
+
+                    {cat.tags.length > 10 && (
+                      <button
+                        type="button"
+                        onClick={() => toggleCategoryExpand(cat.id)}
+                        className="text-[10px] px-2 py-0.5 rounded-lg border border-amber-500/30 text-amber-400 hover:bg-amber-500/10 font-bold transition flex items-center gap-0.5 cursor-pointer"
+                      >
+                        {isExpanded ? (
+                          <>
+                            <ChevronUp className="w-3 h-3" />
+                            <span>Show Less</span>
+                          </>
+                        ) : (
+                          <>
+                            <ChevronDown className="w-3 h-3" />
+                            <span>+{cat.tags.length - 10} More Tags</span>
+                          </>
+                        )}
+                      </button>
+                    )}
+                  </div>
                 </div>
+              );
+            })}
+
+            {/* Progressive Load More Controls */}
+            {hasMore && (
+              <div className="pt-2 pb-1 text-center space-y-1">
+                <button
+                  type="button"
+                  onClick={handleLoadMore}
+                  className="w-full py-2.5 px-4 bg-gray-900 hover:bg-gray-800 text-amber-400 hover:text-amber-300 border border-amber-500/30 hover:border-amber-500/60 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 shadow-xs cursor-pointer active:scale-98"
+                >
+                  <span>আরও ১৫টি ক্যাটাগরি লোড করুন (অবশিষ্ট {filteredCategories.length - visibleCount}টি)</span>
+                  <ChevronDown className="w-3.5 h-3.5" />
+                </button>
+                <p className="text-[10px] text-gray-500">
+                  Showing {visibleCategories.length} of {filteredCategories.length} categories (ধাপে ধাপে লোড হচ্ছে যাতে ব্রাউজার মেমোরি হালকা থাকে)
+                </p>
               </div>
-            );
-          })
+            )}
+          </>
         )}
       </div>
     </div>
