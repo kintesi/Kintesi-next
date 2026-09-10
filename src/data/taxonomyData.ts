@@ -2,25 +2,340 @@ export interface TaxonomyCategory {
   id: string;
   name: string;
   bnName: string;
-  sector: 'gadgets' | 'fashion_men' | 'fashion_women' | 'groceries' | 'beauty' | 'home' | 'kids' | 'sports' | 'general';
+  sector: 'personal_care' | 'health_wellness' | 'gadgets' | 'fashion_men' | 'fashion_women' | 'jewelry_watches' | 'beauty' | 'groceries' | 'home' | 'kids' | 'sports' | 'automotive' | 'books_stationery' | 'pets' | 'general';
   suggestedCategoryId: string;
   tags: string[];
 }
 
 export const SECTOR_TABS = [
-  { id: 'all', label: '🌐 All Categories (সকল ক্যাটাগরি)' },
-  { id: 'gadgets', label: '⚡ Gadgets & Tech (গ্যাজেট)' },
-  { id: 'fashion_men', label: "👔 Men's Fashion (পুরুষদের পোশাক)" },
-  { id: 'fashion_women', label: "👗 Women's Fashion (নারীদের ফ্যাশন)" },
-  { id: 'groceries', label: '🍃 Groceries & Food (খাবার ও মুদি)' },
-  { id: 'beauty', label: '✨ Beauty & Cosmetics (প্রসাধন)' },
-  { id: 'home', label: '🏠 Home & Kitchen (গৃহস্থালি)' },
-  { id: 'kids', label: '👶 Baby & Kids (বাচ্চাদের পণ্য)' },
-  { id: 'sports', label: '⚽ Sports & Fitness (খেলাধুলা)' },
+  {
+    "id": "all",
+    "label": "🌐 All Categories (সকল ক্যাটাগরি)"
+  },
+  {
+    "id": "personal_care",
+    "label": "🧴 Personal Care & Intimate (ব্যক্তিগত যত্ন ও হাইজিন)"
+  },
+  {
+    "id": "health_wellness",
+    "label": "💊 Health & First Aid (স্বাস্থ্য ও ফার্স্ট এইড)"
+  },
+  {
+    "id": "gadgets",
+    "label": "⚡ Gadgets & Tech (গ্যাজেট ও টেক)"
+  },
+  {
+    "id": "fashion_men",
+    "label": "👔 Men's Fashion (পুরুষদের ফ্যাশন)"
+  },
+  {
+    "id": "fashion_women",
+    "label": "👗 Women's Fashion (নারীদের ফ্যাশন)"
+  },
+  {
+    "id": "jewelry_watches",
+    "label": "⌚ Watches & Jewelry (ঘড়ি ও গহনা)"
+  },
+  {
+    "id": "beauty",
+    "label": "✨ Beauty & Cosmetics (প্রসাধন)"
+  },
+  {
+    "id": "groceries",
+    "label": "🍃 Groceries & Food (খাবার ও মুদি)"
+  },
+  {
+    "id": "home",
+    "label": "🏠 Home & Kitchen (গৃহস্থালি ও কিচেন)"
+  },
+  {
+    "id": "kids",
+    "label": "👶 Baby & Kids (বাচ্চাদের পণ্য)"
+  },
+  {
+    "id": "sports",
+    "label": "⚽ Sports & Fitness (খেলাধুলা ও ফিটনেস)"
+  },
+  {
+    "id": "automotive",
+    "label": "🏍️ Bike & Car (বাইক ও গাড়ি)"
+  },
+  {
+    "id": "books_stationery",
+    "label": "📚 Books & Stationery (বই ও স্টেশনারি)"
+  },
+  {
+    "id": "pets",
+    "label": "🐾 Pet Care (পোষা প্রাণী)"
+  }
 ] as const;
 
 export const TAXONOMY_DATA: TaxonomyCategory[] = [
+  {
+    id: "shaving-beard-grooming",
+    name: "Shaving, Beard Care & Trimmers",
+    bnName: "শেভিং, বিয়ার্ড কেয়ার ও ট্রিমার",
+    sector: "personal_care",
+    suggestedCategoryId: "beauty-skincare",
+    tags: ["shaving cream","shaving foam","shaving gel","razor","razor blade","safety razor","disposable razor","aftershave","after shave lotion","beard oil","beard balm","beard serum","beard growth oil","trimmer","beard trimmer","electric shaver","shaving brush","gillette","clipper","grooming kit","শেভিং ফোম","শেভিং ক্রিম","রেজর","ব্লেড","আফটার শেভ","দাড়ি কামানোর রেজর","দাড়ি কাটার ট্রিমার","বিয়ার্ড অয়েল","ট্রিমার","শেভার","বিয়ার্ড গ্রুমিং","শেভিং ব্রাশ","জিলট","দাড়ির যত্ন"]
+  },
+
+  {
+    id: "sanitary-pads-feminine-hygiene",
+    name: "Sanitary Napkins, Tampons & Period Care",
+    bnName: "স্যানিটারি ন্যাপকিন, প্যাড ও পিরিয়ড কেয়ার",
+    sector: "personal_care",
+    suggestedCategoryId: "beauty-skincare",
+    tags: ["sanitary pad","sanitary napkin","ultra thin pad","heavy flow pad","wings pad","cottony soft pad","menstrual pad","tampon","panty liner","period care","period panties","overnight pad","whisper","stayfree","senora","freedom","joya","femi9","anion pad","স্যানিটারি প্যাড","স্যানিটারি ন্যাপকিন","পিরিয়ড প্যাড","মেনস্ট্রুয়াল প্যাড","উইংস প্যাড","প্যান্টি লাইনার","ট্যাম্পন","পিরিয়ড কেয়ার","স্যানিটারি তোয়ালে","পিরিয়ড প্যান্টি","মেয়েদের প্যাড"]
+  },
+
+  {
+    id: "menstrual-cups-intimate-wash",
+    name: "Menstrual Cups & Intimate Wash",
+    bnName: "মেনস্ট্রুয়াল কাপ ও ইন্টিমেট ওয়াশ",
+    sector: "personal_care",
+    suggestedCategoryId: "beauty-skincare",
+    tags: ["menstrual cup","silicone menstrual cup","reusable menstrual cup","intimate wash","feminine wash","v-wash","ph balanced wash","intimate hygiene","intimate wipes","cleansing foam","vagina wash","মেনস্ট্রুয়াল কাপ","ইন্টিমেট ওয়াশ","ভি ওয়াশ","ফেমিনিন ওয়াশ","পিএইচ ব্যালেন্স ওয়াশ","ইন্টিমেট ওয়াইপস","মেয়েদের ইন্টিমেট কেয়ার","সিলিকন কাপ","গোপন অঙ্গের পরিচ্ছন্নতা"]
+  },
+
+  {
+    id: "sexual-wellness-contraception",
+    name: "Condoms, Lubricants & Sexual Wellness",
+    bnName: "কনডম, লুব্রিকেন্ট ও সেক্সুয়াল ওয়েলনেস",
+    sector: "personal_care",
+    suggestedCategoryId: "beauty-skincare",
+    tags: ["condoms","dotted condoms","ribbed condoms","thin condoms","ultra thin condom","extra lubricated condom","flavored condom","delay spray","climax control spray","personal lubricant","water based lubricant","silicone lube","durex","moods","sensations","pleasure","sexual wellness","protection","contraceptive","safe sex","pregnancy test kit","strip test","কনডম","ডটেড কনডম","আল্ট্রা থিন কনডম","লুব্রিকেটেড কনডম","লুব্রিকেন্ট জেল","পার্সোনাল লুব্রিকেন্ট","ডিলে স্প্রে","সেক্সুয়াল ওয়েলনেস","জন্মনিয়ন্ত্রণ","প্রটেকশন","প্রেগন্যান্সি টেস্ট কিট","ডুরেক্স"]
+  },
+
+  {
+    id: "mens-intimate-grooming",
+    name: "Men's Intimate & Groin Grooming",
+    bnName: "পুরুষদের ইন্টিমেট ও গ্রুমিং কেয়ার",
+    sector: "personal_care",
+    suggestedCategoryId: "beauty-skincare",
+    tags: ["mens intimate wash","intimate wash for men","manscaping trimmer","ball trimmer","groin trimmer","pubic hair trimmer","anti chafing cream","chafing stick","groin wash","sweat defense powder","body hair trimmer","men intimate hygiene","পুরুষদের ইন্টিমেট ওয়াশ","গ্রোইন ট্রিমার","মেনস পার্সোনাল কেয়ার","পুরুষদের গোপন অঙ্গের পরিচ্ছন্নতা","বডি হেয়ার ট্রিমার","অ্যান্টি চ্যাফিং ক্রিম","মেনস হাইজিন"]
+  },
+
+  {
+    id: "oral-dental-care",
+    name: "Toothbrushes, Toothpaste & Dental Care",
+    bnName: "টুথব্রাশ, টুথপেস্ট ও ডেন্টাল কেয়ার",
+    sector: "personal_care",
+    suggestedCategoryId: "beauty-skincare",
+    tags: ["toothbrush","electric toothbrush","charcoal toothbrush","soft bristle toothbrush","bamboo toothbrush","toothpaste","fluoride toothpaste","herbal toothpaste","sensitive toothpaste","whitening toothpaste","sensodyne","colgate","closeup","pepsodent","mouthwash","listerine","dental floss","floss picks","tongue cleaner","teeth whitening kit","টুথব্রাশ","ইলেকট্রিক টুথব্রাশ","টুথপেস্ট","মাউথওয়াশ","দাঁতের মাজন","ডেন্টাল ফ্লস","সেনসোডাইন","কোলগেট","ক্লোজআপ","দাঁত সাদা করার কিট","জিহ্বা পরিষ্কারক","মাড়ির যত্ন"]
+  },
+
+  {
+    id: "bath-body-wash",
+    name: "Bath Soaps, Shower Gels & Scrubs",
+    bnName: "সাবান, বডি ওয়াশ ও বাথ স্ক্রাব",
+    sector: "personal_care",
+    suggestedCategoryId: "beauty-skincare",
+    tags: ["soap","bath soap","beauty soap","antibacterial soap","organic soap","handmade soap","body wash","shower gel","moisturizing body wash","body scrub","exfoliating scrub","coffee scrub","loofah","bath sponge","back scrubber","bath salt","dove soap","dettol soap","lifebuoy","সাবান","বডি ওয়াশ","শাওয়ার জেল","গোসলের সাবান","ডোভ সাবান","ডেটল সাবান","বডি স্ক্রাব","লোফা","বাথ স্পঞ্জ","বডি এক্সফোলিয়েটর"]
+  },
+
+  {
+    id: "deodorants-rollons",
+    name: "Deodorants, Roll-ons & Antiperspirants",
+    bnName: "ডিওডোরেন্ট, রোল-অন ও বডি স্প্রে",
+    sector: "personal_care",
+    suggestedCategoryId: "beauty-skincare",
+    tags: ["deodorant","roll on","underarm roll on","antiperspirant","deodorant stick","body spray","fragrance spray","armpit lightening","sweat control","48h fresh","nivea roll on","rexona","fogg","axe","ডিওডোরেন্ট","রোল অন","আন্ডারআর্ম রোল অন","ঘামের দুর্গন্ধ নাশক","বডি স্প্রে","আন্ডারআর্ম ব্রাইটনিং","ঘাম প্রতিরোধক","বগল ফর্সাকারী রোল অন"]
+  },
+
+  {
+    id: "hair-removal-waxing",
+    name: "Hair Removal Creams, Wax & Epilators",
+    bnName: "হেয়ার রিমুভাল ক্রিম, ওয়াক্স ও এপিলেটর",
+    sector: "personal_care",
+    suggestedCategoryId: "beauty-skincare",
+    tags: ["hair removal cream","depilatory cream","veet cream","wax strips","cold wax","hot wax","wax beans","epilator","bikini razor","eyebrow razor","facial hair remover","derma planning","painless hair remover","হেয়ার রিমুভাল ক্রিম","ভিট ক্রিম","ওয়াক্স স্ট্রিপ","ওয়াক্সিং কিট","এপিলেটর","বিকিনি রেজর","ফেসিয়াল হেয়ার রিমুভার","লোম দূর করার ক্রিম"]
+  },
+
+  {
+    id: "mens-innerwear-boxers",
+    name: "Men's Boxers, Briefs & Vests",
+    bnName: "পুরুষদের বক্সার, আন্ডারওয়্যার ও গেঞ্জি",
+    sector: "personal_care",
+    suggestedCategoryId: "mens-fashion",
+    tags: ["boxers","boxer briefs","briefs","trunks","cotton underwear","seamless underwear","sando genji","vest","sleeveless vest","undershirt","innerwear","thermal innerwear","calvin klein","jockey","rupa","বক্সার","ব্রিফ","আন্ডারওয়্যার","জাঙ্গিয়া","স্যান্ডো গেঞ্জি","ভেস্ট","কটন আন্ডারওয়্যার","পুরুষদের ইনারওয়্যার","অন্তর্বাস"]
+  },
+
+  {
+    id: "womens-innerwear-lingerie",
+    name: "Women's Bras, Panties & Shapewear",
+    bnName: "ব্রা, প্যান্টি, নাইটি ও নারীদের ইনারওয়্যার",
+    sector: "personal_care",
+    suggestedCategoryId: "womens-fashion",
+    tags: ["bra","padded bra","non padded bra","push up bra","sports bra","t-shirt bra","seamless bra","cotton bra","nursing bra","panties","seamless panty","hipsters","thongs","boy shorts","shapewear","tummy tucker","body shaper","nighty","nightdress","lingerie","slip","camisole","ব্রা","প্যাডেড ব্রা","স্পোর্টস ব্রা","টি-শার্ট ব্রা","সুতি ব্রা","প্যান্টি","সিমলেস প্যান্টি","শেপওয়্যার","টামি টাকার","নাইটি","নারীদের অন্তর্বাস","স্লিপ"]
+  },
+
+  {
+    id: "hand-foot-care",
+    name: "Foot Creams, Crack Creams & Nail Care",
+    bnName: "পা ফাটার ক্রিম, হ্যান্ড ক্রিম ও নেইল কেয়ার",
+    sector: "personal_care",
+    suggestedCategoryId: "beauty-skincare",
+    tags: ["crack cream","heel balm","foot cream","foot scrubber","pumice stone","nail cutter","nail clipper","manicure set","pedicure kit","hand cream","hand wash","liquid soap","hand sanitizer","পা ফাটার ক্রিম","হিল বাম","ফুট স্ক্রাবার","নেইল কাটার","ম্যানিকিউর কিট","পেডিকিউর সেট","হ্যান্ড ক্রিম","হ্যান্ড ওয়াশ","হাত ও পায়ের যত্ন"]
+  },
+
+  {
+    id: "first-aid-medical-supplies",
+    name: "First Aid, Antiseptics & Bandages",
+    bnName: "ফার্স্ট এইড, স্যাভলন ও প্রাথমিক চিকিৎসা",
+    sector: "health_wellness",
+    suggestedCategoryId: "groceries-daily-essentials",
+    tags: ["first aid box","first aid kit","antiseptic liquid","savlon","dettol","band aid","adhesive bandage","cotton roll","sterile gauze","surgical tape","burn cream","burn heal","antiseptic ointment","povidone iodine","surgical mask","n95 mask","gloves","ফার্স্ট এইড বক্স","প্রাথমিক চিকিৎসা","স্যাভলন","ডেটল","ব্যান্ড এইড","গজ ব্যান্ডেজ","তুলো","কাঁচি","পোড়া ক্ষতের ক্রিম","অ্যান্টিসেপটিক মলম","মাস্ক","সার্জিক্যাল মাস্ক"]
+  },
+
+  {
+    id: "health-monitors-devices",
+    name: "BP Monitors, Thermometers & Nebulizers",
+    bnName: "বিপি মেশিন, থার্মোমিটার ও মেডিক্যাল ডিভাইস",
+    sector: "health_wellness",
+    suggestedCategoryId: "smartphones-tablets",
+    tags: ["digital thermometer","mercury thermometer","blood pressure monitor","bp machine","omron bp machine","pulse oximeter","glucometer","blood sugar test strips","nebulizer","nebulizer machine","hot water bag","ice bag","weighing scale","body weight machine","heating pad","ডিজিটাল থার্মোমিটার","বিপি মেশিন","প্রেশার মাপার যন্ত্র","পালস অক্সিমিটার","গ্লুকোমিটার","সুগার টেস্ট স্ট্রিপ","নেবুলাইজার","হট ওয়াটার ব্যাগ","ওজন মাপার মেশিন"]
+  },
+
+  {
+    id: "vitamins-supplements-nutrition",
+    name: "Vitamins, Fish Oil & Dietary Supplements",
+    bnName: "মাল্টিভিটামিন, ফিশ অয়েল ও সাপ্লিমেন্ট",
+    sector: "health_wellness",
+    suggestedCategoryId: "groceries-daily-essentials",
+    tags: ["multivitamin","vitamin c","vitamin c 1000mg","vitamin d3","calcium tablet","zinc supplement","omega 3","fish oil","cod liver oil","biotin","biotin 10000mcg","collagen peptides","whey protein","creatine","immunity booster","dietary supplement","iron supplement","folic acid","মাল্টিভিটামিন","ভিটামিন সি","ভিটামিন ডি","জিংক","ক্যালসিয়াম","ওমেগা ৩","ফিশ অয়েল","বায়োটিন","কোলাজেন","প্রোটিন সাপ্লিমেন্ট","রোগ প্রতিরোধ ক্ষমতা"]
+  },
+
+  {
+    id: "herbal-ayurvedic-superfoods",
+    name: "Organic Superfoods, Honey & Herbal Oil",
+    bnName: "খাঁটি মধু, কালোজিরা তেল ও অর্গানিক সুপারফুড",
+    sector: "health_wellness",
+    suggestedCategoryId: "groceries-daily-essentials",
+    tags: ["black seed oil","kalonji oil","pure honey","raw honey","sundarban honey","khalisa honey","chia seeds","isabgol husk","flax seeds","moringa powder","spirulina","tulsi powder","amla juice","triphala","organic ghee","mustard oil","apple cider vinegar","কালোজিরা তেল","খাঁটি মধু","সুন্দরবনের মধু","চিয়া সিড","ইসবগুলের ভুসি","তিসি বীজ","সজিনা পাতা গুঁড়া","মোরিঙ্গা","খাঁটি সরিষার তেল","অর্গানিক ঘি","ঘৃতকুমারী","আমলকী"]
+  },
+
+  {
+    id: "pain-relief-ortho-supports",
+    name: "Pain Sprays, Balms & Orthopedic Supports",
+    bnName: "ব্যথানাশক স্প্রে, বাম ও অর্থোপেডিক বেল্ট",
+    sector: "health_wellness",
+    suggestedCategoryId: "beauty-skincare",
+    tags: ["pain relief spray","moov spray","iodex","tiger balm","volini gel","muscle pain relief","knee cap","knee brace","back pain belt","lumbar support belt","posture corrector","cervical collar","wrist support","ankle brace","orthopedic belt","ব্যথানাশক স্প্রে","মুভ স্প্রে","টাইগার বাম","ব্যথার মলম","নি ক্যাপ","হাঁটু সাপোর্ট","কোমর ব্যথার বেল্ট","ঘাড়ের কলার","কব্জির সাপোর্ট","পেইন কিলার স্প্রে"]
+  },
+
+  {
+    id: "mens-luxury-watches",
+    name: "Men's Formal, Quartz & Mechanical Watches",
+    bnName: "পুরুষদের ফরমাল ও মেকানিক্যাল ঘড়ি",
+    sector: "jewelry_watches",
+    suggestedCategoryId: "smartphones-tablets",
+    tags: ["men watch","luxury watch","quartz watch","mechanical watch","leather strap watch","stainless steel watch","chronograph watch","curren watch","naviforce","skmei","casio watch","ঘড়ি","হাতের ঘড়ি","পুরুষদের ঘড়ি","লেদার বেল্ট ঘড়ি","মেটাল ঘড়ি","ওয়াটারপ্রুফ ঘড়ি"]
+  },
+
+  {
+    id: "womens-watches-bracelets",
+    name: "Women's Elegant Watches & Charm Bracelets",
+    bnName: "নারীদের ঘড়ি ও ব্রেসলেট",
+    sector: "jewelry_watches",
+    suggestedCategoryId: "smartphones-tablets",
+    tags: ["women watch","ladies watch","rose gold watch","magnetic strap watch","bracelet watch","charm bracelet","women bracelet","মেয়েদের ঘড়ি","লেডিস ঘড়ি","রোজ গোল্ড ঘড়ি","ব্রেসলেট"]
+  },
+
+  {
+    id: "necklaces-chokers",
+    name: "Necklaces, Chokers & Pendants",
+    bnName: "নেকলেস, চোকার ও লকেট",
+    sector: "jewelry_watches",
+    suggestedCategoryId: "womens-fashion",
+    tags: ["necklace","choker","gold plated necklace","pearl necklace","pendant","chain with pendant","oxidized necklace","party necklace","নেকলেস","গলার মালা","লকেট","চোকার","মুক্তার মালা"]
+  },
+
+  {
+    id: "earrings-jhumka-tops",
+    name: "Earrings, Jhumkas & Stud Tops",
+    bnName: "কানের দুল, ঝুমকা ও টপস",
+    sector: "jewelry_watches",
+    suggestedCategoryId: "womens-fashion",
+    tags: ["earrings","jhumka","kundan jhumka","chandbali","stud earrings","tassel earrings","hoop earrings","কানের দুল","ঝুমকা","কুন্দন ঝুমকা","টপস","দুল"]
+  },
+
+  {
+    id: "bangles-rings-nosepins",
+    name: "Bangles, Rings, Hijab Pins & Nose Pins",
+    bnName: "চুড়ি, আংটি, হিজাব পিন ও নোজ পিন",
+    sector: "jewelry_watches",
+    suggestedCategoryId: "womens-fashion",
+    tags: ["bangles","glass bangles","metal bangles","churi","finger ring","adjustable ring","nose pin","hijab pin","magnetic hijab pin","brooch","চুড়ি","কাঁচের চুড়ি","আংটি","নাকফুল","নোজ পিন","হিজাব পিন","ব্রোচ"]
+  },
+
+  {
+    id: "bike-riding-gear-helmets",
+    name: "Helmets, Riding Gloves & Raincoats",
+    bnName: "হেলমেট, রাইডিং গ্লাভস ও রেইনকোট",
+    sector: "automotive",
+    suggestedCategoryId: "footwear-sneakers",
+    tags: ["helmet","full face helmet","riding gloves","bike gloves","bike raincoat","waterproof raincoat","riding jacket","knee guard","elbow guard","balaclava","riding boots","shoe cover","হেলমেট","রাইডিং গ্লাভস","বাইকার রেইনকোট","রেইনকোট","বাইক জ্যাকেট","নি গার্ড","রাইডিং গিয়ার"]
+  },
+
+  {
+    id: "bike-accessories-care",
+    name: "Bike Covers, Phone Holders & Security Locks",
+    bnName: "বাইক কভার, মোবাইল হোল্ডার ও লক",
+    sector: "automotive",
+    suggestedCategoryId: "smartphones-tablets",
+    tags: ["bike cover","waterproof bike cover","bike mobile holder","mobile mount","disc lock","alarm disc lock","cable lock","engine oil","motul engine oil","chain lube","chain cleaner","bike polish","বাইক কভার","মোবাইল হোল্ডার","ডিস্ক লক","বাইক সিকিউরিটি লক","ইঞ্জিন অয়েল","চেইন লুব","বাইক পলিশ"]
+  },
+
+  {
+    id: "car-accessories-care",
+    name: "Car Chargers, Perfumes & Dash Cams",
+    bnName: "কার চার্জার, পারফিউম ও ড্যাশক্যাম",
+    sector: "automotive",
+    suggestedCategoryId: "smartphones-tablets",
+    tags: ["car charger","fast car charger","car air freshener","car perfume","car phone holder","dash cam","dash camera","car vacuum cleaner","microfiber cloth","car wash shampoo","neck pillow","কার চার্জার","কার পারফিউম","এয়ার ফ্রেশনার","ড্যাশক্যাম","কার ভ্যাকুয়াম","মাইক্রোফাইবার কাপড়"]
+  },
+
+  {
+    id: "books-islamic-literature",
+    name: "Islamic Books, Novels & Self-Help",
+    bnName: "ইসলামিক বই, উপন্যাস ও আত্মউন্নয়ন",
+    sector: "books_stationery",
+    suggestedCategoryId: "home-kitchen",
+    tags: ["books","islamic books","quran sharif","tafsir","hadith books","self development books","motivational books","bangla novel","humayun ahmed","thriller books","english learning books","বই","ইসলামিক বই","কোরআন শরীফ","তাফসির","হাদিস","আত্মউন্নয়নমূলক বই","উপন্যাস","গল্পের বই"]
+  },
+
+  {
+    id: "stationery-office-art",
+    name: "Diaries, Notebooks, Pens & Art Supplies",
+    bnName: "ডায়েরি, নোটবুক, কলম ও স্টেশনারি",
+    sector: "books_stationery",
+    suggestedCategoryId: "home-kitchen",
+    tags: ["diary","notebook","hardcover notebook","gel pen","ballpoint pen","fountain pen","highlighter","permanent marker","whiteboard marker","sticky notes","calculator","file folder","color pencils","ডায়েরি","নোটবুক","খাতা","জেল পেন","কলম","হাইলাইটার","মার্কার","স্টিকি নোটস","ক্যালকুলেটর"]
+  },
+
+  {
+    id: "cat-food-litter-care",
+    name: "Cat Food, Cat Litter & Accessories",
+    bnName: "ক্যাট ফুড, ক্যাট লিটার ও বিড়ালের যত্ন",
+    sector: "pets",
+    suggestedCategoryId: "groceries-daily-essentials",
+    tags: ["cat food","dry cat food","wet cat food","whiskas","drools","smartheart","cat litter","bentonite litter","litter box","litter scoop","cat collar","cat harness","cat shampoo","cat toys","ক্যাট ফুড","বিড়ালের খাবার","ক্যাট লিটার","লিটার বক্স","বিড়ালের বেল্ট","বিড়ালের শ্যাম্পু","বিড়ালের খেলনা"]
+  },
+
+  {
+    id: "dog-bird-fish-supplies",
+    name: "Dog Food, Bird Seeds & Aquarium Supplies",
+    bnName: "ডগ ফুড, পাখির খাবার ও অ্যাকোয়ারিয়াম",
+    sector: "pets",
+    suggestedCategoryId: "groceries-daily-essentials",
+    tags: ["dog food","pedigree","dog collar","dog leash","bird food","bird seed mix","fish food","aquarium filter","air pump","aquarium heater","fish tank accessories","ডগ ফুড","কুকুরের খাবার","পাখির খাবার","ফিশ ফুড","মাছের খাবার","অ্যাকোয়ারিয়াম ফিল্টার"]
+  },
+
   // ==========================================
+  // EXISTING CORE CATALOG CATEGORIES
+  // ==========================================
+// ==========================================
   // GADGETS & ELECTRONICS
   // ==========================================
   {

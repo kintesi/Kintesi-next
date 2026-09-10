@@ -90,7 +90,7 @@ export const CategoryTagExplorer: React.FC<CategoryTagExplorerProps> = ({
             </h4>
           </div>
           <p className="text-[11px] text-gray-400 mt-0.5">
-            সার্চ করুন ২০,০০০+ ই-কমার্স ক্যাটাগরি ও কীওয়ার্ড ট্যাগ অথবা এক ক্লিকে ট্যাগ ও ক্যাটাগরি যুক্ত করুন
+            ১,০০,০০০+ ই-কমার্স ক্যাটাগরি, পার্সোনাল কেয়ার, হাইজিন ও সার্চ কীওয়ার্ড ট্যাগ এক্সপ্লোরার
           </p>
         </div>
 
@@ -159,12 +159,12 @@ export const CategoryTagExplorer: React.FC<CategoryTagExplorerProps> = ({
         </button>
       </form>
 
-      {/* Instant Search Bar for 20,000 Taxonomy & Categories */}
+      {/* Instant Search Bar for 100,000 Taxonomy & Categories */}
       <div className="relative">
         <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
         <input
           type="text"
-          placeholder="🔎 Search categories, subcategories & tags (e.g. tws, panjabi, saree, organic oil, smartwatch, শাড়ি)..."
+          placeholder="🔎 Search 100,000+ keywords & tags (e.g. shaving, pad, condom, boxer, panjabi, smartwatch, শাড়ি, টুথব্রাশ, ট্রিমার)..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="w-full bg-gray-900/90 border border-gray-700 rounded-xl pl-10 pr-10 py-2.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
