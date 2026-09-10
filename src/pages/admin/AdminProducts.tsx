@@ -48,6 +48,7 @@ export const AdminProducts: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [specMode, setSpecMode] = useState<'auto' | 'gadgets' | 'fashion' | 'groceries' | 'none'>('auto');
+  const [activeModalTab, setActiveModalTab] = useState<'general' | 'variants' | 'specs' | 'delivery' | 'tags'>('general');
 
   const getCategorySpecMode = (catId: string): 'gadgets' | 'fashion' | 'groceries' => {
     const c = (catId || '').toLowerCase();
@@ -244,6 +245,7 @@ export const AdminProducts: React.FC = () => {
       specVal3: '',
       tags: '',
     });
+    setActiveModalTab('general');
     setIsModalOpen(true);
   };
 
@@ -325,6 +327,7 @@ export const AdminProducts: React.FC = () => {
       specVal3: specEntries[2]?.[1] || '',
       tags: (prod.tags || []).join(', '),
     });
+    setActiveModalTab('general');
     setIsModalOpen(true);
   };
 
@@ -972,11 +975,45 @@ export const AdminProducts: React.FC = () => {
             </div>
           </div>
 
+          {/* Minimal Studio Segmented Tabs */}
+          <div className="flex items-center gap-1 border-b border-gray-800 bg-gray-900/60 px-4 sm:px-8 py-2 overflow-x-auto no-scrollbar shrink-0">
+            {[
+              { id: 'general', label: '📦 General & Pricing', desc: 'Title, Price & Photos' },
+              { id: 'variants', label: '🎨 Sizes & Colors', count: formData.selectedSizes.length + formData.colors.length },
+              { id: 'specs', label: '📋 Description & Specs', desc: 'Details & Specs' },
+              { id: 'delivery', label: '🚚 Delivery & Payment', desc: 'Shipping & Payment' },
+              { id: 'tags', label: '🏷️ Search Tags & Taxonomy', desc: 'Keywords' },
+            ].map((tab) => {
+              const isActive = activeModalTab === tab.id;
+              return (
+                <button
+                  type="button"
+                  key={tab.id}
+                  onClick={() => setActiveModalTab(tab.id as any)}
+                  className={`px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 shrink-0 ${
+                    isActive
+                      ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 shadow-xs'
+                      : 'text-gray-400 hover:text-gray-200 hover:bg-gray-800/60 border border-transparent'
+                  }`}
+                >
+                  <span>{tab.label}</span>
+                  {tab.count !== undefined && tab.count > 0 && (
+                    <span className="px-1.5 py-0.5 rounded-full bg-emerald-500/30 text-emerald-300 text-[10px] font-black">
+                      {tab.count}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+
           {/* Studio Scrollable Full-Page Body */}
           <div className="flex-1 overflow-y-auto p-4 sm:p-8 bg-gray-950">
             <form id="admin-product-studio-form" onSubmit={handleSubmit} className="max-w-5xl mx-auto space-y-6 pb-12">
-              
-              {/* Section 1: Basic Identifiers */}
+              {/* Tab 1: General & Pricing */}
+              {activeModalTab === 'general' && (
+                <div className="space-y-6 animate-fadeIn">
+                  {/* Section 1: Basic Identifiers */}
               <div className="space-y-4 bg-gray-950/60 p-4 rounded-2xl border border-gray-800/80">
                 <h4 className="text-xs font-black uppercase tracking-wider text-emerald-400 flex items-center gap-1.5">
                   <Tag className="w-4 h-4" /> Basic Identifiers & Brand
@@ -1117,8 +1154,7 @@ export const AdminProducts: React.FC = () => {
                   </p>
                 </div>
               </div>
-
-              {/* Section 2: Pricing, Discount % & Stock */}
+                  {/* Section 2: Pricing, Discount % & Stock */}
               <div className="space-y-4 bg-gray-950/60 p-4 rounded-2xl border border-gray-800/80">
                 <h4 className="text-xs font-black uppercase tracking-wider text-amber-400 flex items-center gap-1.5">
                   <Percent className="w-4 h-4" /> Pricing, Percentage Discount & Inventory
@@ -1180,8 +1216,7 @@ export const AdminProducts: React.FC = () => {
                   </div>
                 )}
               </div>
-
-              {/* Section 3: High-Res Multi-Image Uploads */}
+                  {/* Section 3: High-Res Multi-Image Uploads */}
               <div className="space-y-4 bg-gray-950/60 p-4 rounded-2xl border border-gray-800/80">
                 <div className="flex items-center justify-between">
                   <h4 className="text-xs font-black uppercase tracking-wider text-blue-400 flex items-center gap-1.5">
@@ -1223,8 +1258,35 @@ export const AdminProducts: React.FC = () => {
                   />
                 </div>
               </div>
+                  {/* Section 9: Badges & Toggles */}
+              <div className="flex items-center gap-6 bg-gray-950/60 p-4 rounded-2xl border border-gray-800/80">
+                <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-gray-300">
+                  <input
+                    type="checkbox"
+                    checked={formData.is_featured}
+                    onChange={(e) => setFormData({ ...formData, is_featured: e.target.checked })}
+                    className="w-4 h-4 rounded border-gray-700 text-emerald-600 focus:ring-emerald-500"
+                  />
+                  <span>🌟 Feature on Homepage Spotlight</span>
+                </label>
 
-              {/* Section 4: Sizes & Colors Variants */}
+                <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-gray-300">
+                  <input
+                    type="checkbox"
+                    checked={formData.is_trending}
+                    onChange={(e) => setFormData({ ...formData, is_trending: e.target.checked })}
+                    className="w-4 h-4 rounded border-gray-700 text-amber-500 focus:ring-amber-500"
+                  />
+                  <span>🔥 Mark as Trending Best-Seller</span>
+                </label>
+              </div>
+                </div>
+              )}
+
+              {/* Tab 2: Sizes & Colors */}
+              {activeModalTab === 'variants' && (
+                <div className="space-y-6 animate-fadeIn">
+                  {/* Section 4: Sizes & Colors Variants */}
               <div className="space-y-4 bg-gray-950/60 p-4 rounded-2xl border border-gray-800/80">
                 <h4 className="text-xs font-black uppercase tracking-wider text-purple-400 flex items-center gap-1.5">
                   <Layers className="w-4 h-4" /> Sizes & Color Variants
@@ -1358,8 +1420,54 @@ export const AdminProducts: React.FC = () => {
                   </div>
                 </div>
               </div>
+                </div>
+              )}
 
-              {/* Section 5: Dynamic Category-Aware Specifications */}
+              {/* Tab 3: Description & Specs */}
+              {activeModalTab === 'specs' && (
+                <div className="space-y-6 animate-fadeIn">
+                  {/* Section 6: Key Highlights & Description */}
+              <div className="space-y-4 bg-gray-950/60 p-4 rounded-2xl border border-gray-800/80">
+                <h4 className="text-xs font-black uppercase tracking-wider text-teal-400 flex items-center gap-1.5">
+                  <ListPlus className="w-4 h-4" /> Key Bullet Highlights & Description
+                </h4>
+
+                <div className="space-y-2">
+                  <input
+                    type="text"
+                    placeholder="Highlight 1: e.g. 100% Genuine Certified Quality"
+                    value={formData.highlight1}
+                    onChange={(e) => setFormData({ ...formData, highlight1: e.target.value })}
+                    className="w-full bg-gray-900 border border-gray-700 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-emerald-500"
+                  />
+                  <input
+                    type="text"
+                    placeholder="Highlight 2: e.g. High Performance Battery Life"
+                    value={formData.highlight2}
+                    onChange={(e) => setFormData({ ...formData, highlight2: e.target.value })}
+                    className="w-full bg-gray-900 border border-gray-700 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-emerald-500"
+                  />
+                  <input
+                    type="text"
+                    placeholder="Highlight 3: e.g. 7-Day Free Replacement Policy"
+                    value={formData.highlight3}
+                    onChange={(e) => setFormData({ ...formData, highlight3: e.target.value })}
+                    className="w-full bg-gray-900 border border-gray-700 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-emerald-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-gray-300 mb-1">Detailed Description</label>
+                  <textarea
+                    rows={4}
+                    placeholder="Provide full storytelling, craftsmanship, ingredients/specs, and usage instructions..."
+                    value={formData.description}
+                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                    className="w-full bg-gray-900 border border-gray-700 rounded-xl p-3.5 text-xs text-white focus:outline-none focus:border-emerald-500 leading-relaxed"
+                  />
+                </div>
+              </div>
+                  {/* Section 5: Dynamic Category-Aware Specifications */}
               <div className="space-y-4 bg-gray-950/60 p-4 rounded-2xl border border-gray-800/80">
                 {/* Section Top Header & Mode Switcher */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-2 border-b border-gray-800">
@@ -1911,50 +2019,13 @@ export const AdminProducts: React.FC = () => {
                   </div>
                 )}
               </div>
-
-              {/* Section 6: Key Highlights & Description */}
-              <div className="space-y-4 bg-gray-950/60 p-4 rounded-2xl border border-gray-800/80">
-                <h4 className="text-xs font-black uppercase tracking-wider text-teal-400 flex items-center gap-1.5">
-                  <ListPlus className="w-4 h-4" /> Key Bullet Highlights & Description
-                </h4>
-
-                <div className="space-y-2">
-                  <input
-                    type="text"
-                    placeholder="Highlight 1: e.g. 100% Genuine Certified Quality"
-                    value={formData.highlight1}
-                    onChange={(e) => setFormData({ ...formData, highlight1: e.target.value })}
-                    className="w-full bg-gray-900 border border-gray-700 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-emerald-500"
-                  />
-                  <input
-                    type="text"
-                    placeholder="Highlight 2: e.g. High Performance Battery Life"
-                    value={formData.highlight2}
-                    onChange={(e) => setFormData({ ...formData, highlight2: e.target.value })}
-                    className="w-full bg-gray-900 border border-gray-700 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-emerald-500"
-                  />
-                  <input
-                    type="text"
-                    placeholder="Highlight 3: e.g. 7-Day Free Replacement Policy"
-                    value={formData.highlight3}
-                    onChange={(e) => setFormData({ ...formData, highlight3: e.target.value })}
-                    className="w-full bg-gray-900 border border-gray-700 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-emerald-500"
-                  />
                 </div>
+              )}
 
-                <div>
-                  <label className="block text-xs font-bold text-gray-300 mb-1">Detailed Description</label>
-                  <textarea
-                    rows={4}
-                    placeholder="Provide full storytelling, craftsmanship, ingredients/specs, and usage instructions..."
-                    value={formData.description}
-                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                    className="w-full bg-gray-900 border border-gray-700 rounded-xl p-3.5 text-xs text-white focus:outline-none focus:border-emerald-500 leading-relaxed"
-                  />
-                </div>
-              </div>
-
-              {/* Section 6: Special Delivery Note & Instructions (ডেলিভারি নোট ও বিশেষ সতর্কতা) */}
+              {/* Tab 4: Delivery & Payment */}
+              {activeModalTab === 'delivery' && (
+                <div className="space-y-6 animate-fadeIn">
+                  {/* Section 6: Special Delivery Note & Instructions (ডেলিভারি নোট ও বিশেষ সতর্কতা) */}
               <div className="space-y-3 bg-gray-950/60 p-4 rounded-2xl border border-gray-800/80">
                 <div className="flex items-center justify-between">
                   <h4 className="text-xs font-black uppercase tracking-wider text-amber-400 flex items-center gap-1.5">
@@ -2015,8 +2086,7 @@ export const AdminProducts: React.FC = () => {
                   </div>
                 </div>
               </div>
-
-              {/* Section 7: Allowed Payment Gateways & Custom Methods (পেমেন্ট গেটওয়ে ও মেথড) */}
+                  {/* Section 7: Allowed Payment Gateways & Custom Methods (পেমেন্ট গেটওয়ে ও মেথড) */}
               <div className="space-y-4 bg-gray-950/60 p-4 rounded-2xl border border-gray-800/80">
                 <div className="flex items-center justify-between">
                   <h4 className="text-xs font-black uppercase tracking-wider text-emerald-400 flex items-center gap-1.5">
@@ -2104,33 +2174,13 @@ export const AdminProducts: React.FC = () => {
                   />
                 </div>
               </div>
+                </div>
+              )}
 
-
-
-              {/* Section 9: Badges & Toggles */}
-              <div className="flex items-center gap-6 bg-gray-950/60 p-4 rounded-2xl border border-gray-800/80">
-                <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-gray-300">
-                  <input
-                    type="checkbox"
-                    checked={formData.is_featured}
-                    onChange={(e) => setFormData({ ...formData, is_featured: e.target.checked })}
-                    className="w-4 h-4 rounded border-gray-700 text-emerald-600 focus:ring-emerald-500"
-                  />
-                  <span>🌟 Feature on Homepage Spotlight</span>
-                </label>
-
-                <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-gray-300">
-                  <input
-                    type="checkbox"
-                    checked={formData.is_trending}
-                    onChange={(e) => setFormData({ ...formData, is_trending: e.target.checked })}
-                    className="w-4 h-4 rounded border-gray-700 text-amber-500 focus:ring-amber-500"
-                  />
-                  <span>🔥 Mark as Trending Best-Seller</span>
-                </label>
-              </div>
-
-              {/* Section 8: Search Keywords, Tags & 20,000 Category Explorer */}
+              {/* Tab 5: Search Tags & Taxonomy */}
+              {activeModalTab === 'tags' && (
+                <div className="space-y-6 animate-fadeIn">
+                  {/* Section 8: Search Keywords, Tags & 20,000 Category Explorer */}
               <CategoryTagExplorer
                 selectedTags={formData.tags ? formData.tags.split(',').map((t) => t.trim()).filter(Boolean) : []}
                 onChangeTags={(newTags) => setFormData({ ...formData, tags: newTags.join(', ') })}
@@ -2140,9 +2190,11 @@ export const AdminProducts: React.FC = () => {
                   toast.success(`Product category updated to: ${catId}`);
                 }}
               />
+                </div>
+              )}
 
-              {/* Submit / Action Buttons */}
-              <div className="flex items-center justify-between gap-3 pt-4 border-t border-gray-800">
+              {/* Submit / Action Buttons with Tab Navigation */}
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-6 border-t border-gray-800 mt-6">
                 <div>
                   {editingProduct && isSuperAdmin && (
                     <button
@@ -2155,6 +2207,37 @@ export const AdminProducts: React.FC = () => {
                     >
                       <Trash2 className="w-4 h-4" />
                       <span>Delete Product</span>
+                    </button>
+                  )}
+                </div>
+
+                {/* Tab Next / Prev Stepper */}
+                <div className="flex items-center gap-2">
+                  {activeModalTab !== 'general' && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const tabOrder = ['general', 'variants', 'specs', 'delivery', 'tags'];
+                        const idx = tabOrder.indexOf(activeModalTab);
+                        if (idx > 0) setActiveModalTab(tabOrder[idx - 1] as any);
+                      }}
+                      className="px-3.5 py-2 bg-gray-900 hover:bg-gray-800 text-gray-300 border border-gray-700 font-bold rounded-xl text-xs transition flex items-center gap-1 cursor-pointer"
+                    >
+                      <span>← Previous</span>
+                    </button>
+                  )}
+
+                  {activeModalTab !== 'tags' && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const tabOrder = ['general', 'variants', 'specs', 'delivery', 'tags'];
+                        const idx = tabOrder.indexOf(activeModalTab);
+                        if (idx < tabOrder.length - 1) setActiveModalTab(tabOrder[idx + 1] as any);
+                      }}
+                      className="px-3.5 py-2 bg-gray-900 hover:bg-gray-800 text-emerald-400 border border-emerald-500/30 font-bold rounded-xl text-xs transition flex items-center gap-1 cursor-pointer"
+                    >
+                      <span>Next Tab →</span>
                     </button>
                   )}
                 </div>
