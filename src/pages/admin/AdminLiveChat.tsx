@@ -9,6 +9,8 @@ import {
   Search,
   ShoppingBag,
   Package,
+  Maximize2,
+  Minimize2,
 } from 'lucide-react';
 import { UserAvatar } from '../../components/common/UserAvatar';
 
@@ -19,7 +21,19 @@ export const AdminLiveChat: React.FC = () => {
   const [selectedConversationId, setSelectedConversationId] = useState<string>('');
   const [replyText, setReplyText] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  const [isFullScreen, setIsFullScreen] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Handle ESC key to exit fullscreen mode
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isFullScreen) {
+        setIsFullScreen(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isFullScreen]);
 
   // Set default selected conversation
   useEffect(() => {
@@ -77,10 +91,16 @@ export const AdminLiveChat: React.FC = () => {
   });
 
   return (
-    <div className="bg-gray-900 h-full w-full flex flex-col md:flex-row overflow-hidden select-none">
+    <div
+      className={`bg-gray-900 w-full flex flex-col md:flex-row overflow-hidden select-none transition-all ${
+        isFullScreen
+          ? 'fixed inset-0 z-[99999] w-screen h-screen'
+          : 'h-full flex-1 min-h-0'
+      }`}
+    >
       
       {/* LEFT: Customer List Sidebar (Simple & Minimal) */}
-      <div className="w-full md:w-80 lg:w-96 bg-gray-950 border-r border-gray-800/80 flex flex-col shrink-0 h-full">
+      <div className="w-full md:w-80 lg:w-96 bg-gray-950 border-r border-gray-800/80 flex flex-col shrink-0 h-full min-h-0">
         
         {/* Search Header */}
         <div className="p-4 border-b border-gray-800/80">
@@ -89,9 +109,24 @@ export const AdminLiveChat: React.FC = () => {
               <MessageCircle className="w-4 h-4 text-emerald-400" />
               <span>Live Inquiries</span>
             </h2>
-            <span className="text-[10px] font-bold px-2 py-0.5 bg-emerald-500/10 text-emerald-400 rounded-full border border-emerald-500/20">
-              {conversations.length} Active
-            </span>
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-bold px-2 py-0.5 bg-emerald-500/10 text-emerald-400 rounded-full border border-emerald-500/20">
+                {conversations.length} Active
+              </span>
+              <button
+                type="button"
+                onClick={() => setIsFullScreen((prev) => !prev)}
+                className="p-1.5 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg transition"
+                title={isFullScreen ? 'Exit Full Screen (Esc)' : 'Maximize Full Screen'}
+                aria-label={isFullScreen ? 'Exit Full Screen' : 'Maximize Full Screen'}
+              >
+                {isFullScreen ? (
+                  <Minimize2 className="w-3.5 h-3.5 text-emerald-400" />
+                ) : (
+                  <Maximize2 className="w-3.5 h-3.5 text-emerald-400" />
+                )}
+              </button>
+            </div>
           </div>
 
           <div className="relative">
@@ -174,20 +209,51 @@ export const AdminLiveChat: React.FC = () => {
               </div>
             </div>
 
-            <button
-              onClick={() => {
-                if (confirm(`Delete conversation with ${activeThread.customerName}?`)) {
-                  deleteConversation(activeThread.conversationId);
-                }
-              }}
-              className="p-2 text-gray-500 hover:text-rose-400 hover:bg-gray-800 rounded-xl transition"
-              title="Delete conversation"
-            >
-              <Trash2 className="w-4 h-4" />
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setIsFullScreen((prev) => !prev)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white transition text-xs font-semibold border border-gray-700/60 shadow-xs cursor-pointer active:scale-95"
+                title={isFullScreen ? 'Exit Full Screen (Esc)' : 'Maximize to Full Screen'}
+              >
+                {isFullScreen ? (
+                  <>
+                    <Minimize2 className="w-3.5 h-3.5 text-emerald-400" />
+                    <span className="text-[11px] font-bold">Exit Fullscreen</span>
+                  </>
+                ) : (
+                  <>
+                    <Maximize2 className="w-3.5 h-3.5 text-emerald-400" />
+                    <span className="text-[11px] font-bold">Full Screen</span>
+                  </>
+                )}
+              </button>
+
+              <button
+                onClick={() => {
+                  if (confirm(`Delete conversation with ${activeThread.customerName}?`)) {
+                    deleteConversation(activeThread.conversationId);
+                  }
+                }}
+                className="p-2 text-gray-500 hover:text-rose-400 hover:bg-gray-800 rounded-xl transition"
+                title="Delete conversation"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            </div>
           </div>
         ) : (
-          <div className="p-4 border-b border-gray-800 text-xs text-gray-500">Select a chat to begin</div>
+          <div className="p-4 border-b border-gray-800 flex items-center justify-between bg-gray-900/90 text-xs text-gray-500">
+            <span>Select a chat to begin</span>
+            <button
+              type="button"
+              onClick={() => setIsFullScreen((prev) => !prev)}
+              className="p-1.5 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg transition"
+              title={isFullScreen ? 'Exit Full Screen (Esc)' : 'Maximize Full Screen'}
+            >
+              {isFullScreen ? <Minimize2 className="w-4 h-4 text-emerald-400" /> : <Maximize2 className="w-4 h-4 text-emerald-400" />}
+            </button>
+          </div>
         )}
 
         {/* Message Stream */}

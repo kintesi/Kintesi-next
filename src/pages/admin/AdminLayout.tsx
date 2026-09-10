@@ -240,7 +240,7 @@ export const AdminLayout: React.FC = () => {
       </aside>
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className={`flex-1 flex flex-col min-w-0 ${isChat ? 'h-screen max-h-screen overflow-hidden' : ''}`}>
         
         {/* Desktop Top Header Bar with Burger Toggle */}
         <div className="hidden md:flex items-center justify-between px-6 py-2.5 bg-gray-950/70 border-b border-gray-800 backdrop-blur-md sticky top-0 z-20">
@@ -286,11 +286,11 @@ export const AdminLayout: React.FC = () => {
         <main
           className={`flex-1 bg-gray-900 ${
             isChat
-              ? 'p-0 h-[calc(100vh-45px)] overflow-hidden flex flex-col'
+              ? 'p-0 flex flex-col w-full h-full min-h-0 overflow-hidden'
               : 'overflow-y-auto p-4 sm:p-6 lg:p-8'
           }`}
         >
-          <div className="w-full max-w-[1750px] mx-auto">
+          <div className={isChat ? 'w-full h-full flex flex-col flex-1 min-h-0 overflow-hidden' : 'w-full max-w-[1750px] mx-auto'}>
             <Outlet />
           </div>
         </main>
