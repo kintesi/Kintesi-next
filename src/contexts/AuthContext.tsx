@@ -111,14 +111,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     let mounted = true;
 
+    const safetyTimer = setTimeout(() => {
+      if (mounted) {
+        setIsLoading(false);
+      }
+    }, 1500);
+
     async function initAuth() {
       try {
-        const { data: { session: initialSession } } = await supabase.auth.getSession();
+        const sessionPromise = supabase.auth.getSession();
+        const timeoutPromise = new Promise<any>((res) =>
+          setTimeout(() => res({ data: { session: null } }), 1500)
+        );
+        const { data: { session: initialSession } } = await Promise.race([sessionPromise, timeoutPromise]);
+
         if (mounted) {
           setSession(initialSession);
           setUser(initialSession?.user ?? null);
           if (initialSession?.user) {
-            await fetchProfile(initialSession.user);
+            // Fetch profile non-blocking
+            fetchProfile(initialSession.user).catch((e) => console.warn('Profile fetch note:', e));
           }
         }
       } catch (err) {
@@ -126,6 +138,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       } finally {
         if (mounted) {
           setIsLoading(false);
+          clearTimeout(safetyTimer);
         }
       }
     }
@@ -138,7 +151,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(currentUser);
 
       if (currentUser) {
-        await fetchProfile(currentUser);
+        fetchProfile(currentUser).catch((e) => console.warn('Auth change profile fetch note:', e));
       } else {
         setProfile(null);
       }

@@ -110,7 +110,6 @@ export const ProductDetailPage: React.FC = () => {
 
   useEffect(() => {
     async function loadProduct() {
-      setLoading(true);
       try {
         const savedCustom: Product[] = JSON.parse(localStorage.getItem('kintesi_custom_products') || '[]');
         const customMatch = savedCustom.find(
@@ -124,6 +123,10 @@ export const ProductDetailPage: React.FC = () => {
           setSelectedImage(localProd.images?.[0] || '/logo.webp');
           if (localProd.sizes && localProd.sizes.length > 0) setSelectedSize(localProd.sizes[0]);
           if (localProd.colors && localProd.colors.length > 0) setSelectedColor(localProd.colors[0].name);
+          // Show instantly from cache without waiting for remote DB
+          setLoading(false);
+        } else {
+          setLoading(true);
         }
 
         const isUUID = (str?: string) =>
@@ -136,12 +139,18 @@ export const ProductDetailPage: React.FC = () => {
           query = query.eq('slug', slug);
         }
 
-        let { data, error } = await query.maybeSingle();
+        const fetchTimeout = (ms = 3500) =>
+          new Promise<{ data: null; error: any }>((res) => setTimeout(() => res({ data: null, error: null }), ms));
+
+        let { data, error } = await Promise.race([query.maybeSingle(), fetchTimeout(3500)]);
 
         // If not found yet and slug was not UUID, also query by id for string/numeric IDs
         if (!data) {
           try {
-            const { data: byId } = await supabase.from('products').select('*').eq('id', slug).maybeSingle();
+            const { data: byId } = await Promise.race([
+              supabase.from('products').select('*').eq('id', slug).maybeSingle(),
+              fetchTimeout(2500)
+            ]);
             if (byId) data = byId;
           } catch (e) {}
         }
@@ -204,8 +213,11 @@ export const ProductDetailPage: React.FC = () => {
           if (mergedProduct.colors && mergedProduct.colors.length > 0) setSelectedColor(mergedProduct.colors[0].name);
         }
 
-        // Fetch all products for related recommendation
-        const { data: all } = await supabase.from('products').select('*');
+        // Fetch all products for related recommendation with timeout
+        const { data: all } = await Promise.race([
+          supabase.from('products').select('*'),
+          fetchTimeout(3000)
+        ]);
         const mergedAll = [...savedCustom, ...(all || []), ...INITIAL_PRODUCTS];
         // Unique by id/slug
         const uniqueAll = Array.from(new Map(mergedAll.map((p) => [p.slug || p.id, p])).values());

@@ -201,12 +201,16 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   useEffect(() => {
     async function loadRemoteSettings() {
       try {
-        const { data, error } = await supabase
+        const remotePromise = supabase
           .from('store_settings')
           .select('*')
           .order('updated_at', { ascending: false })
           .limit(1)
           .maybeSingle();
+        const timeoutPromise = new Promise<any>((res) =>
+          setTimeout(() => res({ data: null, error: null }), 2500)
+        );
+        const { data, error } = await Promise.race([remotePromise, timeoutPromise]);
 
         if (data && !error) {
           const remoteBanners = data.banners || data.settings_payload?.banners;

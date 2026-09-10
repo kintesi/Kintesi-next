@@ -118,23 +118,15 @@ export const HomePage: React.FC = () => {
   const [timeLeft, setTimeLeft] = useState(calculateFlashTime());
 
   useEffect(() => {
-    const current = calculateFlashTime();
-    setTimeLeft(current);
-    if (current.isExpired && banners.showFlashSale) {
-      updateBanners({ showFlashSale: false });
-    }
+    setTimeLeft(calculateFlashTime());
   }, [banners.flashSaleEndsAt, banners.flashSaleHours]);
 
   useEffect(() => {
     const timer = setInterval(() => {
-      const current = calculateFlashTime();
-      setTimeLeft(current);
-      if (current.isExpired && banners.showFlashSale) {
-        updateBanners({ showFlashSale: false });
-      }
+      setTimeLeft(calculateFlashTime());
     }, 1000);
     return () => clearInterval(timer);
-  }, [banners.flashSaleEndsAt, banners.flashSaleHours, banners.showFlashSale]);
+  }, [banners.flashSaleEndsAt, banners.flashSaleHours]);
 
   const isFlashSaleActive = Boolean(
     banners.showFlashSale !== false &&
@@ -148,11 +140,15 @@ export const HomePage: React.FC = () => {
         setIsLoadingData(true);
         const savedCustom: Product[] = JSON.parse(localStorage.getItem('kintesi_custom_products') || '[]');
         
-        // Fetch categories and products concurrently for max speed
-        const [catRes, prodRes] = await Promise.all([
+        // Fetch categories and products concurrently with 3.5s timeout protection
+        const fetchPromise = Promise.all([
           supabase.from('categories').select('*'),
           supabase.from('products').select('*')
         ]);
+        const timeoutPromise = new Promise<[any, any]>((resolve) =>
+          setTimeout(() => resolve([{ data: null }, { data: null }]), 3500)
+        );
+        const [catRes, prodRes] = await Promise.race([fetchPromise, timeoutPromise]);
 
         if (catRes.data && catRes.data.length > 0) {
           setCategories(catRes.data);

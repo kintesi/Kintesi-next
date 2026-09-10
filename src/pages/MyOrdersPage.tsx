@@ -55,11 +55,13 @@ export const MyOrdersPage: React.FC = () => {
 
       setLoading(true);
       try {
-        const { data, error } = await supabase
+        const queryPromise = supabase
           .from('orders')
           .select('*')
           .eq('user_id', user.id)
           .order('created_at', { ascending: false });
+        const timeoutPromise = new Promise<any>((res) => setTimeout(() => res({ data: null }), 3000));
+        const { data } = await Promise.race([queryPromise, timeoutPromise]);
 
         if (data) {
           setOrders(data);
