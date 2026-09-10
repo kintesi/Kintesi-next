@@ -68,6 +68,7 @@ export interface Product {
   sku?: string;
   warranty?: string;
   delivery_note?: string;
+  dropshipping_url?: string;
   allowed_payment_methods?: string[]; // e.g. ['cod', 'bkash', 'nagad', 'card', 'bank']
   payment_instruction?: string;
   seller_payment?: SellerPaymentConfig;

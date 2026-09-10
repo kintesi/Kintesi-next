@@ -38,29 +38,27 @@ export const AddressProvider: React.FC<{ children: React.ReactNode }> = ({ child
           if (!error && data && data.length > 0) {
             loaded = data;
           }
-        }
 
-        // Fallback local storage (strictly real customer addresses only, zero mock data)
-        if (loaded.length === 0) {
-          const key = user ? `kintesi_addresses_${user.id}` : 'kintesi_guest_addresses';
-          const saved = localStorage.getItem(key);
-          if (saved) {
-            try {
-              const parsed: Address[] = JSON.parse(saved);
-              // Clean out any legacy mock demo addresses
-              loaded = parsed.filter(
-                (a) =>
-                  a &&
-                  !a.phone?.includes('01800123456') &&
-                  !a.street_address?.includes('House 14, Road 5')
-              );
-              if (loaded.length !== parsed.length) {
-                localStorage.setItem(key, JSON.stringify(loaded));
+          if (loaded.length === 0) {
+            const key = `kintesi_addresses_${user.id}`;
+            const saved = localStorage.getItem(key);
+            if (saved) {
+              try {
+                const parsed: Address[] = JSON.parse(saved);
+                loaded = parsed.filter(
+                  (a) =>
+                    a &&
+                    !a.phone?.includes('01800123456') &&
+                    !a.street_address?.includes('House 14, Road 5')
+                );
+              } catch {
+                loaded = [];
               }
-            } catch {
-              loaded = [];
             }
           }
+        } else {
+          // Without an account, Address Book is empty and inactive
+          loaded = [];
         }
 
         setAddresses(loaded);
@@ -74,14 +72,21 @@ export const AddressProvider: React.FC<{ children: React.ReactNode }> = ({ child
     loadAddresses();
   }, [user]);
 
-  // Save to localStorage whenever addresses change
+  // Save to localStorage whenever addresses change (only for logged-in users)
   const persistLocally = (updated: Address[]) => {
     setAddresses(updated);
-    const key = user ? `kintesi_addresses_${user.id}` : 'kintesi_guest_addresses';
-    localStorage.setItem(key, JSON.stringify(updated));
+    if (user) {
+      const key = `kintesi_addresses_${user.id}`;
+      localStorage.setItem(key, JSON.stringify(updated));
+    }
   };
 
   const addAddress = async (addressData: Omit<Address, 'id' | 'created_at'>) => {
+    if (!user) {
+      toast.error('An account is required to save an address to your Address Book. Please sign in or register.');
+      return;
+    }
+
     const newId = 'addr-' + Date.now();
     const isFirst = addresses.length === 0;
     const shouldBeDefault = addressData.is_default || isFirst;
@@ -94,7 +99,7 @@ export const AddressProvider: React.FC<{ children: React.ReactNode }> = ({ child
     const newAddress: Address = {
       ...addressData,
       id: newId,
-      user_id: user?.id || null,
+      user_id: user.id,
       is_default: shouldBeDefault,
       created_at: new Date().toISOString(),
     };
@@ -102,11 +107,9 @@ export const AddressProvider: React.FC<{ children: React.ReactNode }> = ({ child
     const nextAddresses = [newAddress, ...updatedList];
     persistLocally(nextAddresses);
 
-    if (user) {
-      try {
-        await supabase.from('addresses').insert([newAddress]);
-      } catch {}
-    }
+    try {
+      await supabase.from('addresses').insert([newAddress]);
+    } catch {}
     toast.success(`Saved new address (${newAddress.label})`);
   };
 

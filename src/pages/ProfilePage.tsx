@@ -23,6 +23,7 @@ import {
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { BD_DISTRICTS, getThanasByDistrict } from '../data/bangladeshDistricts';
+import { AuthModal } from '../components/auth/AuthModal';
 
 export const ProfilePage: React.FC = () => {
   const { user, profile, isAdmin, isSuperAdmin, signOut } = useAuth();
@@ -37,6 +38,7 @@ export const ProfilePage: React.FC = () => {
 
   const [activeTab, setActiveTab] = useState<'addresses' | 'profile'>('addresses');
   const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [editingAddress, setEditingAddress] = useState<Address | null>(null);
 
   // Address form state (starts completely clean)
@@ -54,6 +56,12 @@ export const ProfilePage: React.FC = () => {
   });
 
   const handleOpenAdd = () => {
+    if (!user) {
+      toast.error('An account is required to add or save addresses. Please sign in.');
+      setIsAuthModalOpen(true);
+      return;
+    }
+
     setEditingAddress(null);
     setAddressForm({
       label: 'Home',
@@ -77,46 +85,61 @@ export const ProfilePage: React.FC = () => {
     const districtName = rawCity.replace(/\s*\(.*?\)/, '').trim() || 'Dhaka';
     const thanaName = thanaMatch ? thanaMatch[1].trim() : '';
 
-    const validThanas = getThanasByDistrict(districtName);
-    const isKnownThana = validThanas.includes(thanaName);
-
     setAddressForm({
       label: addr.label,
       recipient_name: addr.recipient_name,
       phone: addr.phone,
       street_address: addr.street_address,
       city: districtName,
-      thana: isKnownThana ? thanaName : (validThanas[0] || ''),
-      customThana: !isKnownThana && thanaName ? thanaName : '',
-      isCustomThana: !isKnownThana && !!thanaName,
+      thana: thanaName,
+      customThana: '',
+      isCustomThana: false,
       postal_code: addr.postal_code || '',
       is_default: addr.is_default,
     });
     setIsAddressModalOpen(true);
   };
 
-  const handleAddressSubmit = async (e: React.FormEvent) => {
+  const handleSaveAddress = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!addressForm.recipient_name || !addressForm.phone || !addressForm.street_address) {
-      toast.error('Please fill in all required fields');
+    if (!user) {
+      toast.error('An account is required to save an address. Please log in.');
+      setIsAuthModalOpen(true);
       return;
     }
 
-    const selectedThana = addressForm.isCustomThana ? addressForm.customThana.trim() : addressForm.thana;
-    const finalAddressPayload = {
+    if (!addressForm.recipient_name.trim()) {
+      toast.error('Recipient name is required');
+      return;
+    }
+    if (!addressForm.phone.trim()) {
+      toast.error('Contact phone number is required');
+      return;
+    }
+    if (!addressForm.street_address.trim()) {
+      toast.error('Street/delivery address is required');
+      return;
+    }
+
+    const finalThana = addressForm.isCustomThana ? addressForm.customThana : addressForm.thana;
+    const finalCity = finalThana
+      ? `${addressForm.city} (${finalThana})`
+      : addressForm.city;
+
+    const payload = {
       label: addressForm.label,
-      recipient_name: addressForm.recipient_name,
-      phone: addressForm.phone,
-      street_address: addressForm.street_address,
-      city: `${addressForm.city}${selectedThana ? ` (${selectedThana})` : ''}`,
-      postal_code: addressForm.postal_code,
+      recipient_name: addressForm.recipient_name.trim(),
+      phone: addressForm.phone.trim(),
+      street_address: addressForm.street_address.trim(),
+      city: finalCity,
+      postal_code: addressForm.postal_code.trim(),
       is_default: addressForm.is_default,
     };
 
     if (editingAddress) {
-      await updateAddress(editingAddress.id, finalAddressPayload);
+      await updateAddress(editingAddress.id, payload);
     } else {
-      await addAddress(finalAddressPayload);
+      await addAddress(payload);
     }
     setIsAddressModalOpen(false);
   };
@@ -126,6 +149,37 @@ export const ProfilePage: React.FC = () => {
     if (label.toLowerCase() === 'office') return <Briefcase className="w-4 h-4 text-blue-600" />;
     return <Building2 className="w-4 h-4 text-purple-600" />;
   };
+
+  if (!user) {
+    return (
+      <div className="max-w-xl mx-auto px-4 py-20 text-center space-y-6">
+        <div className="w-20 h-20 rounded-3xl bg-rose-50 border border-rose-200 text-rose-600 flex items-center justify-center mx-auto shadow-md">
+          <MapPin className="w-10 h-10" />
+        </div>
+        <div className="space-y-2">
+          <h2 className="text-2xl font-black text-gray-900">Account Required for Address Book</h2>
+          <p className="text-sm text-gray-500 max-w-md mx-auto leading-relaxed">
+            Without an account, delivery addresses cannot be added or stored. Please log in or create an account to view and manage your saved Address Book.
+          </p>
+        </div>
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+          <button
+            onClick={() => setIsAuthModalOpen(true)}
+            className="w-full sm:w-auto px-7 py-3.5 bg-rose-600 hover:bg-rose-700 text-white font-black rounded-xl text-xs transition shadow-lg shadow-rose-600/25 active:scale-95 cursor-pointer"
+          >
+            Sign In / Register Now
+          </button>
+          <Link
+            to="/shop"
+            className="w-full sm:w-auto px-6 py-3.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-xl text-xs transition"
+          >
+            Continue Shopping
+          </Link>
+        </div>
+        <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16 space-y-8">
@@ -374,7 +428,7 @@ export const ProfilePage: React.FC = () => {
             </div>
 
             {/* Modal Scrollable Body */}
-            <form id="address-modal-form" onSubmit={handleAddressSubmit} className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-4 text-xs">
+            <form id="address-modal-form" onSubmit={handleSaveAddress} className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-4 text-xs">
               
               {/* Address Label Pills */}
               <div>

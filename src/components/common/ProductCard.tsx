@@ -49,7 +49,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
 
       {/* Product Image */}
       <Link
-        to={`/product/${product.slug || product.id}`}
+        to={`/product/${product.id}`}
         className="block relative aspect-square bg-white border-b border-rose-50 overflow-hidden p-3"
       >
         <img
@@ -76,7 +76,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
           </div>
 
           {/* Title */}
-          <Link to={`/product/${product.slug || product.id}`} className="block">
+          <Link to={`/product/${product.id}`} className="block">
             <h3 className="font-bold text-gray-900 text-xs sm:text-sm leading-snug line-clamp-2 hover:text-rose-600 transition">
               {product.title}
             </h3>

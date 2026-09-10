@@ -54,6 +54,7 @@ export const ProductDetailPage: React.FC = () => {
   const [selectedColor, setSelectedColor] = useState<string>('');
   const [quantity, setQuantity] = useState(1);
   const [loading, setLoading] = useState(true);
+  const [showStickyBar, setShowStickyBar] = useState(false);
 
   // Review state - Clean verified reviews only
   const [reviews, setReviews] = useState<any[]>([]);
@@ -62,6 +63,15 @@ export const ProductDetailPage: React.FC = () => {
   const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
   const [deliveryCity, setDeliveryCity] = useState('Dhaka');
   const [isChangingLocation, setIsChangingLocation] = useState(false);
+
+  // Mobile Sticky Bottom Bar Scroll Listener
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowStickyBar(window.scrollY > 320);
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   useEffect(() => {
     if (defaultAddress) {
@@ -104,7 +114,8 @@ export const ProductDetailPage: React.FC = () => {
         const customMatch = savedCustom.find(
           (p) => (p.slug === slug || p.id === slug) && !p.id?.startsWith('prod-')
         );
-        const localProd = customMatch;
+        const initialMatch = INITIAL_PRODUCTS.find((p) => p.slug === slug || p.id === slug);
+        const localProd = customMatch || initialMatch;
 
         if (localProd) {
           setProduct(localProd);
@@ -123,7 +134,15 @@ export const ProductDetailPage: React.FC = () => {
           query = query.eq('slug', slug);
         }
 
-        const { data, error } = await query.maybeSingle();
+        let { data, error } = await query.maybeSingle();
+
+        // If not found yet and slug was not UUID, also query by id for string/numeric IDs
+        if (!data) {
+          try {
+            const { data: byId } = await supabase.from('products').select('*').eq('id', slug).maybeSingle();
+            if (byId) data = byId;
+          } catch (e) {}
+        }
 
         if (error) {
           console.warn('Supabase product query fallback:', error.message);
@@ -248,7 +267,7 @@ export const ProductDetailPage: React.FC = () => {
   };
 
   return (
-    <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 space-y-16">
+    <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 space-y-16 pb-24 md:pb-12">
       
       {/* Breadcrumb */}
       <nav className="text-xs font-semibold text-gray-400 flex items-center gap-2">
@@ -1038,6 +1057,60 @@ export const ProductDetailPage: React.FC = () => {
             ))}
           </div>
         </section>
+      )}
+
+      {/* Mobile Sticky Buy Now & Add to Cart Bottom Bar */}
+      {product && showStickyBar && (
+        <aside 
+          aria-label="Quick mobile action bar"
+          className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-gray-200/90 shadow-[0_-4px_25px_rgba(0,0,0,0.12)] p-2.5 px-3 flex items-center justify-between gap-2.5 md:hidden animate-in slide-in-from-bottom duration-200"
+        >
+          {/* Mini product thumbnail & price */}
+          <div className="flex items-center gap-2.5 min-w-0 flex-1">
+            <img
+              src={product.images?.[0] || '/logo.webp'}
+              alt={product.title}
+              className="w-10 h-10 rounded-xl object-contain bg-gray-50 border border-gray-200 p-0.5 shrink-0"
+            />
+            <div className="min-w-0 flex-1">
+              <div className="flex items-baseline gap-1.5 leading-tight">
+                <span className="text-sm font-black text-emerald-700">
+                  {formatPrice(currentPrice)}
+                </span>
+                {product.discount_price && (
+                  <span className="text-[10px] text-gray-400 line-through">
+                    {formatPrice(product.price)}
+                  </span>
+                )}
+              </div>
+              <p className="text-[11px] text-gray-700 font-bold truncate leading-tight mt-0.5">
+                {product.title}
+              </p>
+            </div>
+          </div>
+
+          {/* Sticky action buttons */}
+          <div className="flex items-center gap-1.5 shrink-0">
+            <button
+              type="button"
+              onClick={handleAddToCart}
+              disabled={product.stock <= 0}
+              className="h-10 px-3.5 bg-gray-900 hover:bg-black text-white font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 active:scale-95 transition disabled:opacity-50 shadow-xs"
+            >
+              <ShoppingCart className="w-3.5 h-3.5" />
+              <span>কার্ট</span>
+            </button>
+            <button
+              type="button"
+              onClick={handleBuyNow}
+              disabled={product.stock <= 0}
+              className="h-10 px-4 bg-emerald-600 hover:bg-emerald-700 text-white font-black rounded-xl text-xs flex items-center justify-center gap-1.5 active:scale-95 transition disabled:opacity-50 shadow-md shadow-emerald-600/30"
+            >
+              <Zap className="w-3.5 h-3.5" />
+              <span>অর্ডার করুন</span>
+            </button>
+          </div>
+        </aside>
       )}
 
     </div>

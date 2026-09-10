@@ -737,7 +737,7 @@ export const AdminBanners: React.FC = () => {
                       spotlightPrice: price,
                       spotlightDiscountPrice: discount,
                       spotlightImage: (prod.images && prod.images[0]) || prev.spotlightImage,
-                      spotlightBtnLink: `/product/${prod.slug || prod.id}`,
+                      spotlightBtnLink: `/product/${prod.id}`,
                       spotlightStockText: prod.stock ? `${prod.stock} Left in Stock` : 'Limited Stock',
                       spotlightSavingsText: savings,
                       spotlightBadge: '🔥 Deal of the Day',

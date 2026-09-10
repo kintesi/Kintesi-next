@@ -170,7 +170,7 @@ export const CheckoutPage: React.FC = () => {
 
     setLoading(true);
 
-    if (isAddingNewAddress && saveToAddressBook) {
+    if (user && isAddingNewAddress && saveToAddressBook) {
       addAddress({
         label: 'Other',
         recipient_name: name,
@@ -573,17 +573,36 @@ export const CheckoutPage: React.FC = () => {
                   />
                 </div>
 
-                <div className="sm:col-span-2 flex items-center gap-2 pt-2">
-                  <input
-                    type="checkbox"
-                    id="save_addr"
-                    checked={saveToAddressBook}
-                    onChange={(e) => setSaveToAddressBook(e.target.checked)}
-                    className="w-4 h-4 accent-emerald-600 rounded"
-                  />
-                  <label htmlFor="save_addr" className="text-xs font-bold text-gray-700 cursor-pointer">
-                    Save this address in my Address Book for future orders
-                  </label>
+                <div className="sm:col-span-2 pt-2">
+                  {user ? (
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        id="save_addr"
+                        checked={saveToAddressBook}
+                        onChange={(e) => setSaveToAddressBook(e.target.checked)}
+                        className="w-4 h-4 accent-emerald-600 rounded"
+                      />
+                      <label htmlFor="save_addr" className="text-xs font-bold text-gray-700 cursor-pointer">
+                        Save this address in my Address Book for future orders
+                      </label>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2 text-xs text-gray-500 bg-gray-50 p-2.5 rounded-xl border border-gray-100">
+                      <MapPin className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                      <span>
+                        Want to save this address?{' '}
+                        <button
+                          type="button"
+                          onClick={() => setIsAuthOpen(true)}
+                          className="text-emerald-600 font-bold hover:underline"
+                        >
+                          Log in or create an account
+                        </button>{' '}
+                        to use the Address Book.
+                      </span>
+                    </div>
+                  )}
                 </div>
               </div>
             )}

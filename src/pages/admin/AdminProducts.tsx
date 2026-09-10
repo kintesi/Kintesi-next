@@ -31,6 +31,7 @@ import {
   Cpu,
   Zap,
   Ban,
+  ExternalLink,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { ImageUploader } from '../../components/common/ImageUploader';
@@ -91,6 +92,7 @@ export const AdminProducts: React.FC = () => {
     brand: '',
     warranty: '',
     delivery_note: '',
+    dropshipping_url: '',
     allowed_payment_methods: ['cod', 'bkash', 'nagad', 'rocket', 'bank'] as string[],
     payment_instruction: '',
     use_custom_seller_payment: false,
@@ -208,6 +210,7 @@ export const AdminProducts: React.FC = () => {
       brand: '',
       warranty: '',
       delivery_note: '',
+      dropshipping_url: '',
       allowed_payment_methods: ['cod', 'bkash', 'nagad', 'rocket', 'bank'],
       payment_instruction: '',
       use_custom_seller_payment: false,
@@ -286,6 +289,7 @@ export const AdminProducts: React.FC = () => {
       brand: prod.brand || 'Kintesi',
       warranty: prod.warranty || '',
       delivery_note: prod.delivery_note || '',
+      dropshipping_url: prod.dropshipping_url || '',
       allowed_payment_methods: prod.allowed_payment_methods && prod.allowed_payment_methods.length > 0
         ? prod.allowed_payment_methods
         : ['cod', 'bkash', 'nagad', 'card'],
@@ -483,6 +487,7 @@ export const AdminProducts: React.FC = () => {
       sku: formData.sku.trim(),
       warranty: cleanedWarranty,
       delivery_note: formData.delivery_note.trim(),
+      dropshipping_url: formData.dropshipping_url.trim() || null,
       allowed_payment_methods: formData.allowed_payment_methods.length > 0
         ? formData.allowed_payment_methods
         : ['cod', 'bkash', 'nagad', 'rocket', 'bank'],
@@ -793,9 +798,16 @@ export const AdminProducts: React.FC = () => {
                           />
                           <div className="max-w-xs">
                             <p className="font-bold text-white line-clamp-1">{prod.title}</p>
-                            <p className="text-[10px] text-gray-400 font-mono mt-0.5">
-                              SKU: {prod.sku || 'N/A'} • {prod.images?.length || 1} Images
-                            </p>
+                            <div className="flex items-center gap-1.5 flex-wrap mt-0.5">
+                              <span className="text-[10px] text-gray-400 font-mono">
+                                SKU: {prod.sku || 'N/A'} • {prod.images?.length || 1} Images
+                              </span>
+                              {prod.dropshipping_url && (
+                                <span className="text-[9px] font-black bg-indigo-500/20 text-indigo-300 px-1.5 py-0.2 rounded border border-indigo-500/30">
+                                  🔗 Dropship
+                                </span>
+                              )}
+                            </div>
                           </div>
                         </div>
                       </td>
@@ -868,6 +880,18 @@ export const AdminProducts: React.FC = () => {
 
                       <td className="p-4 text-right">
                         <div className="flex items-center justify-end gap-1.5">
+                          {prod.dropshipping_url && (
+                            <a
+                              href={prod.dropshipping_url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="px-2.5 py-1.5 bg-indigo-500/15 hover:bg-indigo-500/25 border border-indigo-500/30 text-indigo-300 hover:text-white rounded-xl transition flex items-center gap-1 text-[11px] font-bold shadow-xs"
+                              title={`সাপ্লায়ার লিংক ওপেন করুন:\n${prod.dropshipping_url}`}
+                            >
+                              <ExternalLink className="w-3.5 h-3.5 text-indigo-400" />
+                              <span className="hidden xl:inline">সাপ্লায়ার লিংক</span>
+                            </a>
+                          )}
                           <button
                             onClick={() => handleOpenEditModal(prod)}
                             className="p-2 hover:bg-gray-800 text-emerald-400 rounded-xl transition"
@@ -1062,6 +1086,42 @@ export const AdminProducts: React.FC = () => {
                       ))}
                     </div>
                   </div>
+                </div>
+
+                {/* Dropshipping & Supplier Source Link (Admin Only) */}
+                <div className="pt-2 border-t border-gray-800/80">
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="text-xs font-bold text-indigo-400 flex items-center gap-1.5">
+                      <Globe className="w-3.5 h-3.5 text-indigo-400" />
+                      <span>Dropshipping / Supplier Source Link (ড্রপশিপিং ও সাপ্লায়ার লিংক)</span>
+                    </label>
+                    <span className="text-[10px] bg-indigo-500/15 text-indigo-300 font-bold px-2 py-0.5 rounded-md border border-indigo-500/30">
+                      🔒 শুধুমাত্র অ্যাডমিনের জন্য
+                    </span>
+                  </div>
+                  <div className="relative">
+                    <input
+                      type="url"
+                      placeholder="e.g. https://aliexpress.com/item/... অথবা Daraz, 1688, Amazon সাপ্লায়ার প্রোডাক্ট লিংক"
+                      value={formData.dropshipping_url}
+                      onChange={(e) => setFormData({ ...formData, dropshipping_url: e.target.value })}
+                      className="w-full bg-gray-900 border border-indigo-500/30 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-indigo-400 font-mono pl-9"
+                    />
+                    <Globe className="w-4 h-4 text-indigo-400 absolute left-3 top-3 pointer-events-none" />
+                    {formData.dropshipping_url && (
+                      <a
+                        href={formData.dropshipping_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="absolute right-2 top-2 px-2.5 py-1 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-[10px] font-bold flex items-center gap-1 transition shadow-xs"
+                      >
+                        <ExternalLink className="w-3 h-3" /> টেস্ট ওপেন
+                      </a>
+                    )}
+                  </div>
+                  <p className="text-[11px] text-gray-400 mt-1">
+                    অনলাইন বা অন্য কোনো প্ল্যাটফর্ম থেকে প্রোডাক্ট সোর্স করলে এখানে লিংক সেভ রাখুন। অ্যাডমিন টেবিল থেকে ১-ক্লিকে সাপ্লায়ারের পেজ ওপেন করে স্টক বা অর্ডার ম্যানেজ করতে পারবেন।
+                  </p>
                 </div>
               </div>
 

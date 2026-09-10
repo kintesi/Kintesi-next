@@ -267,7 +267,7 @@ export const Navbar: React.FC = () => {
                       {searchFilteredProducts.map((prod) => (
                         <Link
                           key={prod.id}
-                          to={`/product/${prod.slug || prod.id}`}
+                          to={`/product/${prod.id}`}
                           onClick={() => setShowSearchResults(false)}
                           className="flex items-center gap-3 p-2.5 hover:bg-rose-50/40 transition"
                         >
@@ -505,10 +505,21 @@ export const Navbar: React.FC = () => {
             </div>
 
             <div className="flex items-center gap-4 text-xs font-semibold">
-              <Link to="/profile" className="text-rose-700 hover:text-rose-800 flex items-center gap-1">
+              <button
+                type="button"
+                onClick={() => {
+                  if (user) {
+                    navigate('/profile');
+                  } else {
+                    setIsAuthOpen(true);
+                  }
+                }}
+                className="text-rose-700 hover:text-rose-800 flex items-center gap-1 cursor-pointer bg-transparent border-none p-0 text-xs font-semibold"
+                title={user ? 'Manage Address Book' : 'Login required to access Address Book'}
+              >
                 <MapPin className="w-3 h-3" />
                 <span>Address Book</span>
-              </Link>
+              </button>
               <span className="text-rose-200">•</span>
               <Link to="/orders" className="text-gray-500 hover:text-gray-800">
                 Track Order
