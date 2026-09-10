@@ -70,7 +70,7 @@ const getFlashThemeClasses = (theme?: string) => {
 };
 
 export const HomePage: React.FC = () => {
-  const { settings } = useSettings();
+  const { settings, updateBanners } = useSettings();
   const banners = settings.banners;
 
   const [products, setProducts] = useState<Product[]>(() => {
@@ -88,36 +88,58 @@ export const HomePage: React.FC = () => {
   const [categories, setCategories] = useState<Category[]>(() => {
     try {
       const saved = localStorage.getItem('kintesi_custom_categories');
-      return saved ? JSON.parse(saved) : INITIAL_CATEGORIES;
+      if (saved) {
+        return JSON.parse(saved);
+      }
+      return [];
     } catch {
-      return INITIAL_CATEGORIES;
+      return [];
     }
   });
   const [isLoadingData, setIsLoadingData] = useState(false);
   const [activeTab, setActiveTab] = useState<'all' | 'groceries' | 'fashion' | 'tech'>('all');
 
-  // Flash sale countdown timer state
-  const [timeLeft, setTimeLeft] = useState({
-    hours: banners.flashSaleHours || 4,
-    minutes: 59,
-    seconds: 31,
-  });
+  // Flash sale countdown timer state (Accurate timestamp-based with Auto-Off on expiry)
+  const calculateFlashTime = () => {
+    if (!banners.flashSaleEndsAt) {
+      return { hours: banners.flashSaleHours || 4, minutes: 0, seconds: 0, isExpired: false };
+    }
+    const diff = new Date(banners.flashSaleEndsAt).getTime() - Date.now();
+    if (diff <= 0) {
+      return { hours: 0, minutes: 0, seconds: 0, isExpired: true };
+    }
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+    return { hours, minutes, seconds, isExpired: false };
+  };
+
+  const [timeLeft, setTimeLeft] = useState(calculateFlashTime());
 
   useEffect(() => {
-    setTimeLeft((prev) => ({ ...prev, hours: banners.flashSaleHours || 4 }));
-  }, [banners.flashSaleHours]);
+    const current = calculateFlashTime();
+    setTimeLeft(current);
+    if (current.isExpired && banners.showFlashSale) {
+      updateBanners({ showFlashSale: false });
+    }
+  }, [banners.flashSaleEndsAt, banners.flashSaleHours]);
 
   useEffect(() => {
     const timer = setInterval(() => {
-      setTimeLeft((prev) => {
-        if (prev.seconds > 0) return { ...prev, seconds: prev.seconds - 1 };
-        if (prev.minutes > 0) return { ...prev, minutes: 59, seconds: 59 };
-        if (prev.hours > 0) return { ...prev, hours: prev.hours - 1, minutes: 59, seconds: 59 };
-        return { hours: banners.flashSaleHours || 4, minutes: 0, seconds: 0 };
-      });
+      const current = calculateFlashTime();
+      setTimeLeft(current);
+      if (current.isExpired && banners.showFlashSale) {
+        updateBanners({ showFlashSale: false });
+      }
     }, 1000);
     return () => clearInterval(timer);
-  }, [banners.flashSaleHours]);
+  }, [banners.flashSaleEndsAt, banners.flashSaleHours, banners.showFlashSale]);
+
+  const isFlashSaleActive = Boolean(
+    banners.showFlashSale !== false &&
+    !timeLeft.isExpired &&
+    (!banners.flashSaleEndsAt || new Date(banners.flashSaleEndsAt).getTime() > Date.now())
+  );
 
   useEffect(() => {
     async function loadData() {
@@ -321,7 +343,7 @@ export const HomePage: React.FC = () => {
         </div>
 
         {/* 2b. Mobile Flash Sale Countdown & Deals */}
-        {banners.showFlashSale !== false && (
+        {isFlashSaleActive && (
           <div className="px-3 space-y-3">
             <div className={`bg-gradient-to-r ${getFlashThemeClasses(banners.flashSaleTheme)} rounded-2xl p-4 text-white shadow-md space-y-2`}>
               <div className="flex items-center justify-between">
@@ -363,39 +385,41 @@ export const HomePage: React.FC = () => {
         )}
 
         {/* 3. Trendy Collections Grid */}
-        <div className="px-3 space-y-2.5">
-          <div className="flex items-center justify-between">
-            <h3 className="text-sm font-black text-gray-900">Trendy Collections</h3>
-            <Link to="/shop" className="text-xs text-rose-600 font-bold flex items-center">
-              <span>View All</span>
-              <ChevronRight className="w-3.5 h-3.5" />
-            </Link>
-          </div>
+        {banners.showFeaturedProducts !== false && (
+          <div className="px-3 space-y-2.5">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-black text-gray-900">{banners.featuredProductsTitle || 'Trendy Collections'}</h3>
+              <Link to="/shop" className="text-xs text-rose-600 font-bold flex items-center">
+                <span>View All</span>
+                <ChevronRight className="w-3.5 h-3.5" />
+              </Link>
+            </div>
 
-          {products.length === 0 ? (
-            isLoadingData ? (
+            {products.length === 0 ? (
+              isLoadingData ? (
+                <div className="grid grid-cols-2 gap-2.5">
+                  {[1, 2, 3, 4].map((n) => (
+                    <ProductSkeleton key={n} />
+                  ))}
+                </div>
+              ) : (
+                <div className="bg-white rounded-2xl p-6 text-center space-y-2 border border-gray-100 shadow-xs">
+                  <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center mx-auto">
+                    <Package className="w-5 h-5" />
+                  </div>
+                  <p className="text-xs font-bold text-gray-800">No Products Yet</p>
+                  <p className="text-[10px] text-gray-400">Add products from your Admin Panel</p>
+                </div>
+              )
+            ) : (
               <div className="grid grid-cols-2 gap-2.5">
-                {[1, 2, 3, 4].map((n) => (
-                  <ProductSkeleton key={n} />
+                {products.map((product) => (
+                  <ProductCard key={product.id} product={product} />
                 ))}
               </div>
-            ) : (
-              <div className="bg-white rounded-2xl p-6 text-center space-y-2 border border-gray-100 shadow-xs">
-                <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center mx-auto">
-                  <Package className="w-5 h-5" />
-                </div>
-                <p className="text-xs font-bold text-gray-800">No Products Yet</p>
-                <p className="text-[10px] text-gray-400">Add products from your Admin Panel</p>
-              </div>
-            )
-          ) : (
-            <div className="grid grid-cols-2 gap-2.5">
-              {products.map((product) => (
-                <ProductCard key={product.id} product={product} />
-              ))}
-            </div>
-          )}
-        </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* ========================================================
@@ -595,7 +619,7 @@ export const HomePage: React.FC = () => {
         )}
 
         {/* 3. Desktop Flash Sale */}
-        {banners.showFlashSale !== false && (
+        {isFlashSaleActive && (
           <section className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
             <div className={`bg-gradient-to-r ${getFlashThemeClasses(banners.flashSaleTheme)} rounded-3xl p-8 text-white mb-6 shadow-lg flex items-center justify-between`}>
               <div className="space-y-1">
@@ -654,68 +678,70 @@ export const HomePage: React.FC = () => {
         )}
 
         {/* 4. Desktop Featured Tabs */}
-        <section className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
-          <div className="flex items-center justify-between border-b border-rose-100 pb-4">
-            <div>
-              <h2 className="text-2xl font-black text-gray-900 tracking-tight">Featured Products</h2>
-              <p className="text-xs text-gray-500 mt-0.5">Top-rated selections for home, fashion, and tech</p>
-            </div>
+        {banners.showFeaturedProducts !== false && (
+          <section className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+            <div className="flex items-center justify-between border-b border-rose-100 pb-4">
+              <div>
+                <h2 className="text-2xl font-black text-gray-900 tracking-tight">{banners.featuredProductsTitle || 'Featured Products'}</h2>
+                <p className="text-xs text-gray-500 mt-0.5">{banners.featuredProductsSubtitle || 'Top-rated selections for home, fashion, and tech'}</p>
+              </div>
 
-            <div className="flex gap-2 text-xs font-bold">
-              {[
-                { key: 'all', label: 'All Items' },
-                { key: 'groceries', label: 'Groceries & Home' },
-                { key: 'fashion', label: 'Fashion & Footwear' },
-                { key: 'tech', label: 'Tech & Gadgets' },
-              ].map((tab) => (
-                <button
-                  key={tab.key}
-                  onClick={() => setActiveTab(tab.key as any)}
-                  className={`px-3.5 py-2 rounded-xl transition ${
-                    activeTab === tab.key
-                      ? 'bg-gray-950 text-white shadow-sm'
-                      : 'bg-white text-gray-600 border border-rose-100/90 hover:border-rose-300 hover:bg-rose-50/40'
-                  }`}
-                >
-                  {tab.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {tabFilteredProducts.length === 0 ? (
-            isLoadingData ? (
-              <div className="grid grid-cols-4 gap-6">
-                {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => (
-                  <ProductSkeleton key={n} />
+              <div className="flex gap-2 text-xs font-bold">
+                {[
+                  { key: 'all', label: 'All Items' },
+                  { key: 'groceries', label: 'Groceries & Home' },
+                  { key: 'fashion', label: 'Fashion & Footwear' },
+                  { key: 'tech', label: 'Tech & Gadgets' },
+                ].map((tab) => (
+                  <button
+                    key={tab.key}
+                    onClick={() => setActiveTab(tab.key as any)}
+                    className={`px-3.5 py-2 rounded-xl transition ${
+                      activeTab === tab.key
+                        ? 'bg-gray-950 text-white shadow-sm'
+                        : 'bg-white text-gray-600 border border-rose-100/90 hover:border-rose-300 hover:bg-rose-50/40'
+                    }`}
+                  >
+                    {tab.label}
+                  </button>
                 ))}
               </div>
-            ) : (
-              <div className="py-16 text-center space-y-3 bg-white rounded-3xl border border-rose-100 p-8 shadow-xs">
-                <div className="w-12 h-12 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center mx-auto border border-rose-100">
-                  <ShoppingBag className="w-6 h-6" />
-                </div>
-                <h3 className="text-base font-bold text-gray-900">Your Store Catalog is Ready</h3>
-                <p className="text-xs text-gray-500 max-w-sm mx-auto">
-                  No products in this department yet. Add products from your Admin Panel to showcase them here.
-                </p>
-                <Link
-                  to="/admin/products"
-                  className="inline-flex items-center gap-2 px-5 py-2.5 bg-rose-600 text-white font-bold rounded-xl text-xs shadow-md shadow-rose-600/20 hover:bg-rose-700 transition"
-                >
-                  <Plus className="w-4 h-4" />
-                  <span>Add Products in Admin</span>
-                </Link>
-              </div>
-            )
-          ) : (
-            <div className="grid grid-cols-4 gap-6">
-              {tabFilteredProducts.map((product) => (
-                <ProductCard key={product.id} product={product} />
-              ))}
             </div>
-          )}
-        </section>
+
+            {tabFilteredProducts.length === 0 ? (
+              isLoadingData ? (
+                <div className="grid grid-cols-4 gap-6">
+                  {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => (
+                    <ProductSkeleton key={n} />
+                  ))}
+                </div>
+              ) : (
+                <div className="py-16 text-center space-y-3 bg-white rounded-3xl border border-rose-100 p-8 shadow-xs">
+                  <div className="w-12 h-12 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center mx-auto border border-rose-100">
+                    <ShoppingBag className="w-6 h-6" />
+                  </div>
+                  <h3 className="text-base font-bold text-gray-900">Your Store Catalog is Ready</h3>
+                  <p className="text-xs text-gray-500 max-w-sm mx-auto">
+                    No products in this department yet. Add products from your Admin Panel to showcase them here.
+                  </p>
+                  <Link
+                    to="/admin/products"
+                    className="inline-flex items-center gap-2 px-5 py-2.5 bg-rose-600 text-white font-bold rounded-xl text-xs shadow-md shadow-rose-600/20 hover:bg-rose-700 transition"
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span>Add Products in Admin</span>
+                  </Link>
+                </div>
+              )
+            ) : (
+              <div className="grid grid-cols-4 gap-6">
+                {tabFilteredProducts.map((product) => (
+                  <ProductCard key={product.id} product={product} />
+                ))}
+              </div>
+            )}
+          </section>
+        )}
 
       </div>
 

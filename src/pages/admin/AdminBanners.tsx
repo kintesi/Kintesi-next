@@ -25,6 +25,7 @@ import {
   Radio,
   ExternalLink,
   Package,
+  ShoppingBag,
 } from 'lucide-react';
 
 export const AdminBanners: React.FC = () => {
@@ -35,6 +36,7 @@ export const AdminBanners: React.FC = () => {
   const [isSavingHero, setIsSavingHero] = useState(false);
   const [isSavingSpotlight, setIsSavingSpotlight] = useState(false);
   const [isSavingFlash, setIsSavingFlash] = useState(false);
+  const [isSavingFeatured, setIsSavingFeatured] = useState(false);
   const [catalogProducts, setCatalogProducts] = useState<Product[]>([]);
 
   useEffect(() => {
@@ -63,8 +65,15 @@ export const AdminBanners: React.FC = () => {
 
   const handleSubmit = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
+    const hours = Math.max(1, Math.min(72, Number(form.flashSaleHours) || 4));
+    let endsAt = form.flashSaleEndsAt;
+    if (form.showFlashSale && (!endsAt || new Date(endsAt).getTime() <= Date.now())) {
+      endsAt = new Date(Date.now() + hours * 60 * 60 * 1000).toISOString();
+    }
     const sanitized: BannerSettings = {
       ...form,
+      flashSaleHours: hours,
+      flashSaleEndsAt: endsAt,
       topAnnouncementText: cleanAnnouncementText(form.topAnnouncementText),
     };
     setForm(sanitized);
@@ -137,19 +146,54 @@ export const AdminBanners: React.FC = () => {
   const handleSaveFlashOnly = async () => {
     setIsSavingFlash(true);
     try {
+      const hours = Math.max(1, Math.min(72, Number(form.flashSaleHours) || 4));
+      let endsAt = form.flashSaleEndsAt;
+      if (form.showFlashSale && (!endsAt || new Date(endsAt).getTime() <= Date.now())) {
+        endsAt = new Date(Date.now() + hours * 60 * 60 * 1000).toISOString();
+      }
       await updateBanners({
         showFlashSale: Boolean(form.showFlashSale),
         flashSaleTag: form.flashSaleTag || '',
         flashSaleTitle: form.flashSaleTitle || '',
         flashSaleSubtitle: form.flashSaleSubtitle || '',
-        flashSaleHours: Math.max(1, Math.min(72, Number(form.flashSaleHours) || 4)),
+        flashSaleHours: hours,
         flashSaleTheme: form.flashSaleTheme || 'sunset',
+        flashSaleEndsAt: endsAt,
       });
+      setForm((prev) => ({ ...prev, flashSaleHours: hours, flashSaleEndsAt: endsAt }));
       toast.success('Flash Sale Banner saved & published!');
     } catch {
       toast.error('Failed to save Flash Sale banner');
     } finally {
       setIsSavingFlash(false);
+    }
+  };
+
+  const handleRestartFlashCountdown = () => {
+    const hours = Math.max(1, Math.min(72, Number(form.flashSaleHours) || 4));
+    const newEndsAt = new Date(Date.now() + hours * 60 * 60 * 1000).toISOString();
+    setForm((prev) => ({
+      ...prev,
+      showFlashSale: true,
+      flashSaleHours: hours,
+      flashSaleEndsAt: newEndsAt,
+    }));
+    toast.info(`Flash Sale timer reset to ${hours} hours from now! Click "Save" to publish live.`);
+  };
+
+  const handleSaveFeaturedOnly = async () => {
+    setIsSavingFeatured(true);
+    try {
+      await updateBanners({
+        showFeaturedProducts: form.showFeaturedProducts !== false,
+        featuredProductsTitle: form.featuredProductsTitle || 'Featured Products',
+        featuredProductsSubtitle: form.featuredProductsSubtitle || 'Top-rated selections for home, fashion, and tech',
+      });
+      toast.success('Featured Products section saved & published!');
+    } catch {
+      toast.error('Failed to save Featured Products section');
+    } finally {
+      setIsSavingFeatured(false);
     }
   };
 
@@ -264,12 +308,35 @@ export const AdminBanners: React.FC = () => {
             </span>
 
             <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold border ${
-              form.showFlashSale
+              form.showFlashSale && (!form.flashSaleEndsAt || new Date(form.flashSaleEndsAt).getTime() > Date.now())
+                ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
+                : form.showFlashSale && form.flashSaleEndsAt && new Date(form.flashSaleEndsAt).getTime() <= Date.now()
+                ? 'bg-amber-500/10 border-amber-500/30 text-amber-400'
+                : 'bg-gray-800 border-gray-700 text-gray-500'
+            }`}>
+              <span className={`w-1.5 h-1.5 rounded-full ${
+                form.showFlashSale && (!form.flashSaleEndsAt || new Date(form.flashSaleEndsAt).getTime() > Date.now())
+                  ? 'bg-emerald-400'
+                  : form.showFlashSale
+                  ? 'bg-amber-400'
+                  : 'bg-gray-500'
+              }`} />
+              Flash Sale: {
+                form.showFlashSale && (!form.flashSaleEndsAt || new Date(form.flashSaleEndsAt).getTime() > Date.now())
+                  ? 'Active'
+                  : form.showFlashSale
+                  ? 'Expired (Auto-Off)'
+                  : 'Hidden'
+              }
+            </span>
+
+            <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold border ${
+              form.showFeaturedProducts !== false
                 ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
                 : 'bg-gray-800 border-gray-700 text-gray-500'
             }`}>
-              <span className={`w-1.5 h-1.5 rounded-full ${form.showFlashSale ? 'bg-emerald-400' : 'bg-gray-500'}`} />
-              Flash Sale: {form.showFlashSale ? 'Active' : 'Hidden'}
+              <span className={`w-1.5 h-1.5 rounded-full ${form.showFeaturedProducts !== false ? 'bg-emerald-400' : 'bg-gray-500'}`} />
+              Featured Section: {form.showFeaturedProducts !== false ? 'Active' : 'Hidden'}
             </span>
           </div>
         </div>
@@ -730,7 +797,7 @@ export const AdminBanners: React.FC = () => {
                   <span>3. Super Flash Sale Countdown Banner</span>
                 </h2>
                 <p className="text-xs text-gray-400 mt-0.5">
-                  Control countdown timer, heading, subtitle, and color theme
+                  নির্ধারিত সময় শেষ হলে ফ্ল্যাশ সেল স্বয়ংক্রিয়ভাবে বন্ধ (Auto-Off) হয়ে যাবে
                 </p>
               </div>
 
@@ -739,10 +806,24 @@ export const AdminBanners: React.FC = () => {
                   <input
                     type="checkbox"
                     checked={form.showFlashSale}
-                    onChange={(e) => setForm({ ...form, showFlashSale: e.target.checked })}
+                    onChange={(e) => {
+                      const next = e.target.checked;
+                      const hours = Math.max(1, Math.min(72, Number(form.flashSaleHours) || 4));
+                      setForm({
+                        ...form,
+                        showFlashSale: next,
+                        flashSaleEndsAt: next
+                          ? (!form.flashSaleEndsAt || new Date(form.flashSaleEndsAt).getTime() <= Date.now()
+                              ? new Date(Date.now() + hours * 60 * 60 * 1000).toISOString()
+                              : form.flashSaleEndsAt)
+                          : form.flashSaleEndsAt,
+                      });
+                    }}
                     className="accent-amber-500 w-4 h-4 rounded cursor-pointer"
                   />
-                  <span className="font-bold text-gray-200">Enable Flash Sale</span>
+                  <span className="font-bold text-gray-200">
+                    {form.showFlashSale ? 'Flash Sale ON' : 'Flash Sale OFF'}
+                  </span>
                 </label>
 
                 <button
@@ -758,6 +839,44 @@ export const AdminBanners: React.FC = () => {
               </div>
             </div>
 
+            {/* Expiry & Countdown Status Alert */}
+            {form.showFlashSale && (
+              <div className={`p-4 rounded-2xl border text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
+                form.flashSaleEndsAt && new Date(form.flashSaleEndsAt).getTime() <= Date.now()
+                  ? 'bg-rose-950/40 border-rose-800/60 text-rose-300'
+                  : 'bg-amber-950/30 border-amber-800/50 text-amber-300'
+              }`}>
+                <div className="flex items-start gap-2.5">
+                  <Timer className={`w-4 h-4 shrink-0 mt-0.5 ${
+                    form.flashSaleEndsAt && new Date(form.flashSaleEndsAt).getTime() <= Date.now()
+                      ? 'text-rose-400'
+                      : 'text-amber-400'
+                  }`} />
+                  <div>
+                    <p className="font-bold text-white">
+                      {form.flashSaleEndsAt && new Date(form.flashSaleEndsAt).getTime() <= Date.now()
+                        ? '⏳ সময় শেষ (Expired) - স্টোরফ্রন্টে ফ্ল্যাশ সেল অটোমেটিক অফ রয়েছে'
+                        : '⚡ ফ্ল্যাশ সেল টাইমার সক্রিয় রয়েছে'}
+                    </p>
+                    <p className="text-[11px] text-gray-300 mt-0.5">
+                      {form.flashSaleEndsAt
+                        ? `নির্ধারিত শেষ সময়: ${new Date(form.flashSaleEndsAt).toLocaleString()}`
+                        : 'টাইমার সেট করা নেই'}
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleRestartFlashCountdown}
+                  className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 bg-amber-400 hover:bg-amber-300 text-gray-950 font-bold rounded-xl text-xs shadow transition active:scale-95"
+                >
+                  <RotateCcw className="w-3.5 h-3.5" />
+                  <span>Restart Countdown ({form.flashSaleHours || 4}h)</span>
+                </button>
+              </div>
+            )}
+
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 text-xs">
               <div>
                 <label className="block font-bold text-gray-300 uppercase mb-1.5">Tag Badge</label>
@@ -771,16 +890,45 @@ export const AdminBanners: React.FC = () => {
               </div>
 
               <div>
-                <label className="block font-bold text-gray-300 uppercase mb-1.5">Countdown Hours</label>
+                <label className="block font-bold text-gray-300 uppercase mb-1.5">Countdown Hours (ঘণ্টা)</label>
                 <input
                   type="number"
                   min="1"
                   max="72"
                   value={form.flashSaleHours || ''}
-                  onChange={(e) => setForm({ ...form, flashSaleHours: Number(e.target.value) })}
+                  onChange={(e) => {
+                    const hrs = Number(e.target.value);
+                    setForm({ ...form, flashSaleHours: hrs });
+                  }}
                   placeholder="4"
                   className="w-full px-4 py-2.5 bg-gray-900 border border-gray-700 rounded-xl text-white font-bold focus:border-amber-400 focus:outline-none"
                 />
+                {/* Preset quick buttons */}
+                <div className="flex items-center gap-1 mt-1.5 flex-wrap">
+                  {[2, 4, 6, 12, 24, 48].map((h) => (
+                    <button
+                      key={h}
+                      type="button"
+                      onClick={() => {
+                        const newEndsAt = new Date(Date.now() + h * 60 * 60 * 1000).toISOString();
+                        setForm({
+                          ...form,
+                          showFlashSale: true,
+                          flashSaleHours: h,
+                          flashSaleEndsAt: newEndsAt,
+                        });
+                        toast.info(`Flash Sale set to ${h} hours from now! Click "Save" to apply.`);
+                      }}
+                      className={`px-1.5 py-0.5 rounded text-[10px] font-bold border transition ${
+                        form.flashSaleHours === h
+                          ? 'bg-amber-500 text-gray-950 border-amber-400'
+                          : 'bg-gray-900 text-gray-400 border-gray-700 hover:text-white'
+                      }`}
+                    >
+                      {h}h
+                    </button>
+                  ))}
+                </div>
               </div>
 
               <div>
@@ -817,6 +965,92 @@ export const AdminBanners: React.FC = () => {
                   placeholder="Hurry up! Special prices end when the timer reaches zero."
                   className="w-full px-4 py-2.5 bg-gray-900 border border-gray-700 rounded-xl text-white font-medium focus:border-amber-400 focus:outline-none"
                 />
+              </div>
+            </div>
+          </div>
+
+          {/* Section 4: Featured Products Section */}
+          <div className="bg-gray-800/80 rounded-3xl border border-gray-700/80 p-6 sm:p-7 space-y-5 shadow-xl">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-gray-700 pb-4">
+              <div>
+                <h2 className="text-base sm:text-lg font-bold text-white flex items-center gap-2">
+                  <ShoppingBag className="w-5 h-5 text-rose-400" />
+                  <span>4. Featured Products Section (ফিচার্ড প্রোডাক্টস সেকশন)</span>
+                </h2>
+                <p className="text-xs text-gray-400 mt-0.5">
+                  হোমপেজের Featured Products সেকশনটি অন অথবা অফ রাখুন এবং সেকশনের টাইটেল পরিবর্তন করুন
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <label className="flex items-center gap-2 cursor-pointer bg-gray-900 px-3.5 py-1.5 rounded-xl border border-gray-700 hover:border-gray-600 text-xs transition">
+                  <input
+                    type="checkbox"
+                    checked={form.showFeaturedProducts !== false}
+                    onChange={(e) => setForm({ ...form, showFeaturedProducts: e.target.checked })}
+                    className="accent-rose-500 w-4 h-4 rounded cursor-pointer"
+                  />
+                  <span className="font-bold text-gray-200">
+                    {form.showFeaturedProducts !== false ? 'Section ON' : 'Section OFF'}
+                  </span>
+                </label>
+
+                <button
+                  type="button"
+                  onClick={handleSaveFeaturedOnly}
+                  disabled={isSavingFeatured || isLoading}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-rose-600 hover:bg-rose-500 text-white font-black rounded-xl text-xs transition shadow-md active:scale-95 disabled:opacity-50"
+                  title="Save only featured products section"
+                >
+                  <Save className="w-3.5 h-3.5" />
+                  <span>{isSavingFeatured ? 'Saving...' : 'Save'}</span>
+                </button>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 text-xs">
+              <div>
+                <label className="block font-bold text-gray-300 uppercase mb-1.5">Section Main Heading</label>
+                <input
+                  type="text"
+                  value={form.featuredProductsTitle || ''}
+                  onChange={(e) => setForm({ ...form, featuredProductsTitle: e.target.value })}
+                  placeholder="Featured Products"
+                  className="w-full px-4 py-2.5 bg-gray-900 border border-gray-700 rounded-xl text-white font-bold focus:border-rose-400 focus:outline-none"
+                />
+                <p className="text-[10px] text-gray-400 mt-1">Default: Featured Products</p>
+              </div>
+
+              <div>
+                <label className="block font-bold text-gray-300 uppercase mb-1.5">Section Subtitle</label>
+                <input
+                  type="text"
+                  value={form.featuredProductsSubtitle || ''}
+                  onChange={(e) => setForm({ ...form, featuredProductsSubtitle: e.target.value })}
+                  placeholder="Top-rated selections for home, fashion, and tech"
+                  className="w-full px-4 py-2.5 bg-gray-900 border border-gray-700 rounded-xl text-white font-medium focus:border-rose-400 focus:outline-none"
+                />
+                <p className="text-[10px] text-gray-400 mt-1">Default: Top-rated selections for home, fashion, and tech</p>
+              </div>
+            </div>
+
+            <div className={`p-4 rounded-2xl border text-xs flex items-start gap-3 ${
+              form.showFeaturedProducts !== false
+                ? 'bg-emerald-950/30 border-emerald-800/50 text-emerald-300'
+                : 'bg-gray-900/60 border-dashed border-gray-700 text-gray-400'
+            }`}>
+              <CheckCircle2 className={`w-4 h-4 shrink-0 mt-0.5 ${form.showFeaturedProducts !== false ? 'text-emerald-400' : 'text-gray-500'}`} />
+              <div>
+                <p className="font-bold text-white">
+                  {form.showFeaturedProducts !== false
+                    ? 'Featured Products Section is ENABLED'
+                    : 'Featured Products Section is DISABLED'}
+                </p>
+                <p className="text-[11px] mt-0.5 text-gray-300">
+                  {form.showFeaturedProducts !== false
+                    ? 'হোমপেজে অল আইটেমস, ফ্যাশন, গ্রোসারি ও টেক ক্যাটাগরি ট্যাবসহ এই সেকশনটি দর্শকদের কাছে দেখা যাবে।'
+                    : 'এই সেকশনটি বন্ধ রাখলে হোমপেজ থেকে সম্পূর্ণ Featured Products ও ফিল্টার ট্যাবগুলো সম্পূর্ণরূপে লুকানো থাকবে।'}
+                </p>
               </div>
             </div>
           </div>
@@ -968,13 +1202,32 @@ export const AdminBanners: React.FC = () => {
             <div className="space-y-1.5 pt-1">
               <div className="flex items-center justify-between text-[11px] font-bold text-gray-400 uppercase">
                 <span>Flash Sale Countdown Banner</span>
-                <span className={form.showFlashSale ? 'text-emerald-400' : 'text-gray-500'}>
-                  {form.showFlashSale ? '● Visible' : '○ Hidden'}
+                <span className={
+                  form.showFlashSale && (!form.flashSaleEndsAt || new Date(form.flashSaleEndsAt).getTime() > Date.now())
+                    ? 'text-emerald-400'
+                    : form.showFlashSale
+                    ? 'text-amber-400'
+                    : 'text-gray-500'
+                }>
+                  {form.showFlashSale && (!form.flashSaleEndsAt || new Date(form.flashSaleEndsAt).getTime() > Date.now())
+                    ? '● Visible (Active)'
+                    : form.showFlashSale
+                    ? '○ Expired (Auto-Off)'
+                    : '○ Hidden'}
                 </span>
               </div>
 
               {form.showFlashSale ? (
-                <div className={`bg-gradient-to-r ${getFlashThemeClasses(form.flashSaleTheme)} rounded-2xl p-4 text-white shadow-lg space-y-2.5`}>
+                <div className={`bg-gradient-to-r ${getFlashThemeClasses(form.flashSaleTheme)} rounded-2xl p-4 text-white shadow-lg space-y-2.5 relative overflow-hidden`}>
+                  {form.flashSaleEndsAt && new Date(form.flashSaleEndsAt).getTime() <= Date.now() && (
+                    <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px] flex items-center justify-center text-center p-3 z-10">
+                      <div className="bg-rose-950/90 border border-rose-500/50 rounded-xl p-2.5 space-y-1">
+                        <p className="text-xs font-bold text-rose-300">Countdown Expired</p>
+                        <p className="text-[10px] text-gray-300">Auto-hidden from storefront visitors</p>
+                      </div>
+                    </div>
+                  )}
+
                   <div className="flex items-center justify-between">
                     <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-white/20 backdrop-blur-md rounded-full text-[10px] font-black uppercase">
                       <Flame className="w-3 h-3 fill-white" />
@@ -984,7 +1237,7 @@ export const AdminBanners: React.FC = () => {
                     {/* Timer preview */}
                     <div className="flex items-center gap-1 text-[10px] font-mono font-bold bg-black/40 px-2 py-0.5 rounded-lg border border-white/20">
                       <Timer className="w-3 h-3 text-amber-300 mr-0.5" />
-                      <span>04h : 59m : 30s</span>
+                      <span>{String(form.flashSaleHours || 4).padStart(2, '0')}h : 00m : 00s</span>
                     </div>
                   </div>
 
@@ -1000,6 +1253,44 @@ export const AdminBanners: React.FC = () => {
               ) : (
                 <div className="bg-gray-900/60 border border-dashed border-gray-700 text-gray-500 text-xs py-2 px-3 rounded-xl text-center">
                   Flash Sale Banner is turned OFF
+                </div>
+              )}
+            </div>
+
+            {/* 5. Live Featured Products Preview */}
+            <div className="space-y-1.5 pt-1">
+              <div className="flex items-center justify-between text-[11px] font-bold text-gray-400 uppercase">
+                <span>Featured Products Section</span>
+                <span className={form.showFeaturedProducts !== false ? 'text-emerald-400' : 'text-gray-500'}>
+                  {form.showFeaturedProducts !== false ? '● Visible' : '○ Hidden'}
+                </span>
+              </div>
+
+              {form.showFeaturedProducts !== false ? (
+                <div className="bg-gray-900 border border-gray-700/80 rounded-2xl p-3.5 space-y-2">
+                  <div className="flex items-center justify-between border-b border-gray-800 pb-2">
+                    <div>
+                      <h5 className="text-xs font-black text-white">
+                        {form.featuredProductsTitle || 'Featured Products'}
+                      </h5>
+                      <p className="text-[10px] text-gray-400">
+                        {form.featuredProductsSubtitle || 'Top-rated selections for home, fashion, and tech'}
+                      </p>
+                    </div>
+                    <span className="text-[9px] text-rose-400 font-bold bg-rose-500/10 px-2 py-0.5 rounded border border-rose-500/20">
+                      View All
+                    </span>
+                  </div>
+                  <div className="flex gap-1.5 overflow-x-auto text-[9px] font-bold text-gray-400">
+                    <span className="bg-white text-gray-950 px-2 py-0.5 rounded-md">All Items</span>
+                    <span className="bg-gray-800 px-2 py-0.5 rounded-md border border-gray-700">Groceries</span>
+                    <span className="bg-gray-800 px-2 py-0.5 rounded-md border border-gray-700">Fashion</span>
+                    <span className="bg-gray-800 px-2 py-0.5 rounded-md border border-gray-700">Tech</span>
+                  </div>
+                </div>
+              ) : (
+                <div className="bg-gray-900/60 border border-dashed border-gray-700 text-gray-500 text-xs py-2 px-3 rounded-xl text-center">
+                  Featured Products Section is turned OFF
                 </div>
               )}
             </div>

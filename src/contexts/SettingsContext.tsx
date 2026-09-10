@@ -41,6 +41,12 @@ export interface BannerSettings {
   flashSaleSubtitle: string;
   flashSaleHours: number;
   flashSaleTheme: 'sunset' | 'emerald' | 'cyber' | 'dark';
+  flashSaleEndsAt?: string;
+
+  // Featured Products Section
+  showFeaturedProducts?: boolean;
+  featuredProductsTitle?: string;
+  featuredProductsSubtitle?: string;
 }
 
 export interface StoreSettings {
@@ -92,6 +98,11 @@ export const DEFAULT_BANNERS: BannerSettings = {
   flashSaleSubtitle: 'Limited stock flash offers with up to 50% discount. Order before time runs out!',
   flashSaleHours: 6,
   flashSaleTheme: 'sunset',
+  flashSaleEndsAt: '',
+
+  showFeaturedProducts: true,
+  featuredProductsTitle: 'Featured Products',
+  featuredProductsSubtitle: 'Top-rated selections for home, fashion, and tech',
 };
 
 const DEFAULT_SETTINGS: StoreSettings = {
