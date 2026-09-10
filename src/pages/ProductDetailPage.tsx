@@ -164,17 +164,17 @@ export const ProductDetailPage: React.FC = () => {
 
           const mergedProduct: Product = {
             ...data,
-            sizes: parsedSizes,
-            colors: parsedColors,
-            highlights: parsedHighlights.length > 0 ? parsedHighlights : [
+            sizes: (data.sizes && data.sizes.length > 0) ? parsedSizes : (customMatch?.sizes || parsedSizes),
+            colors: (data.colors && data.colors.length > 0) ? parsedColors : (customMatch?.colors || parsedColors),
+            highlights: (parsedHighlights && parsedHighlights.length > 0) ? parsedHighlights : (customMatch?.highlights || [
               '100% Genuine Brand Product Guarantee with Invoice',
               'Fast 24-48h Dispatch with Live Tracking',
               '7 Days Hassle-Free Replacement Policy'
-            ],
-            sku: customMatch?.sku || data.sku || localProd?.sku || '',
-            warranty: customMatch?.warranty ?? data.warranty ?? localProd?.warranty ?? '',
-            delivery_note: customMatch?.delivery_note ?? data.delivery_note ?? localProd?.delivery_note ?? '',
-            images: (customMatch?.images && customMatch.images.length > 0) ? customMatch.images : (data.images && data.images.length > 0 ? data.images : localProd?.images || ['/logo.webp']),
+            ]),
+            sku: (data.sku && data.sku.trim()) ? data.sku : (customMatch?.sku || localProd?.sku || ''),
+            warranty: data.warranty !== undefined && data.warranty !== null ? data.warranty : (customMatch?.warranty ?? localProd?.warranty ?? ''),
+            delivery_note: data.delivery_note !== undefined && data.delivery_note !== null ? data.delivery_note : (customMatch?.delivery_note ?? localProd?.delivery_note ?? ''),
+            images: (data.images && data.images.length > 0) ? data.images : (customMatch?.images || localProd?.images || ['/logo.webp']),
           };
 
           setProduct(mergedProduct);
@@ -718,136 +718,200 @@ export const ProductDetailPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Section 1: Comprehensive Specifications & Technical Details Card */}
-      {Boolean(
-        product.fabric ||
-        product.fit_type ||
-        product.gender ||
-        product.origin ||
-        product.warranty ||
-        product.care_instructions ||
-        (product.specifications && Object.keys(product.specifications).length > 0)
-      ) && (
-        <section className="bg-white rounded-3xl border border-gray-100 p-6 sm:p-10 shadow-sm space-y-6">
-          <div className="border-b border-gray-100 pb-4 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className={`w-10 h-10 rounded-2xl flex items-center justify-center ${
-                product.category_id?.includes('smartphones') ||
-                product.category_id?.includes('laptops') ||
-                product.category_id?.includes('audio') ||
-                product.category_id?.includes('cameras') ||
-                product.category_id?.includes('watches') ||
-                product.category_id?.includes('gadget') ||
-                product.category_id?.includes('tech')
-                  ? 'bg-cyan-50 text-cyan-600'
-                  : 'bg-emerald-50 text-emerald-600'
-              }`}>
-                {product.category_id?.includes('smartphones') ||
-                product.category_id?.includes('laptops') ||
-                product.category_id?.includes('audio') ||
-                product.category_id?.includes('cameras') ||
-                product.category_id?.includes('watches') ||
-                product.category_id?.includes('gadget') ||
-                product.category_id?.includes('tech') ? (
-                  <Cpu className="w-5 h-5" />
-                ) : (
-                  <Shirt className="w-5 h-5" />
+      {/* Section 1: Comprehensive Specifications & Technical Details Card (Strictly Isolated by Category Mode) */}
+      {(() => {
+        const cat = (product.category_id || '').toLowerCase();
+        const hasHardwareSpecs = Boolean(product.specifications && Object.keys(product.specifications).length > 0);
+
+        const isGadget = Boolean(
+          hasHardwareSpecs ||
+          cat.includes('smartphones') ||
+          cat.includes('laptops') ||
+          cat.includes('audio') ||
+          cat.includes('cameras') ||
+          cat.includes('watches') ||
+          cat.includes('gadget') ||
+          cat.includes('electronic') ||
+          cat.includes('tech')
+        );
+
+        const isGroceries = Boolean(
+          !isGadget && (
+            cat.includes('groceries') ||
+            cat.includes('food') ||
+            cat.includes('daily-essentials') ||
+            cat.includes('pantry')
+          )
+        );
+
+        const isFashion = Boolean(
+          !isGadget && !isGroceries && (
+            cat.includes('fashion') ||
+            cat.includes('footwear') ||
+            cat.includes('apparel') ||
+            cat.includes('clothing') ||
+            cat.includes('saree') ||
+            cat.includes('kurti') ||
+            cat.includes('shoes') ||
+            product.fabric ||
+            product.fit_type ||
+            product.gender
+          )
+        );
+
+        // Check if there is any specification to show for this specific mode
+        const shouldShow = isGadget
+          ? Boolean(product.warranty || product.origin || hasHardwareSpecs)
+          : isGroceries
+          ? Boolean(product.fabric || product.warranty || product.origin || product.care_instructions || product.fit_type)
+          : isFashion
+          ? Boolean(product.fabric || product.fit_type || product.gender || product.origin || product.care_instructions)
+          : false;
+
+        if (!shouldShow) return null;
+
+        return (
+          <section className="bg-white rounded-3xl border border-gray-100 p-6 sm:p-10 shadow-sm space-y-6">
+            <div className="border-b border-gray-100 pb-4 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div
+                  className={`w-10 h-10 rounded-2xl flex items-center justify-center ${
+                    isGadget
+                      ? 'bg-cyan-50 text-cyan-600'
+                      : isGroceries
+                      ? 'bg-emerald-50 text-emerald-600'
+                      : 'bg-pink-50 text-pink-600'
+                  }`}
+                >
+                  {isGadget ? (
+                    <Cpu className="w-5 h-5" />
+                  ) : isGroceries ? (
+                    <Sparkles className="w-5 h-5" />
+                  ) : (
+                    <Shirt className="w-5 h-5" />
+                  )}
+                </div>
+                <div>
+                  <h3 className="text-lg font-black text-gray-900">
+                    {isGadget
+                      ? 'Technical Specifications & Hardware Details'
+                      : isGroceries
+                      ? 'Food & Grocery Specifications (খাদ্য ও পুষ্টি বিবরণ)'
+                      : 'Specifications & Material Details (পোশাক ও ফ্যাশন বিবরণ)'}
+                  </h3>
+                  <p className="text-xs text-gray-500">
+                    {isGadget
+                      ? 'Hardware performance, connectivity & official warranty'
+                      : isGroceries
+                      ? 'Net weight, shelf life, storage & origin'
+                      : 'Fabric craftsmanship, fit type & care instructions'}
+                  </p>
+                </div>
+              </div>
+              <span className="px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-xs font-bold font-mono">
+                SKU: {product.sku || 'KT-' + product.id.slice(0, 6).toUpperCase()}
+              </span>
+            </div>
+
+            {/* 1. GADGET & HARDWARE DETAILS ONLY */}
+            {isGadget && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-xs">
+                {product.warranty && (
+                  <div className="p-4 bg-cyan-50/40 rounded-2xl space-y-1 border border-cyan-100">
+                    <span className="text-cyan-700 font-bold uppercase text-[10px] tracking-wider">Official Warranty</span>
+                    <p className="font-black text-gray-900 text-sm">{product.warranty}</p>
+                  </div>
+                )}
+                {product.origin && (
+                  <div className="p-4 bg-gray-50 rounded-2xl space-y-1 border border-gray-100">
+                    <span className="text-gray-400 font-bold uppercase text-[10px] tracking-wider">Device Origin / Variant</span>
+                    <p className="font-black text-gray-900 text-sm">{product.origin}</p>
+                  </div>
+                )}
+                {product.specifications &&
+                  Object.entries(product.specifications).map(([key, val]) => (
+                    <div key={key} className="p-4 bg-gray-50 rounded-2xl space-y-1 border border-gray-100">
+                      <span className="text-gray-400 font-bold uppercase text-[10px] tracking-wider">{key}</span>
+                      <p className="font-black text-gray-900 text-sm">{val}</p>
+                    </div>
+                  ))}
+              </div>
+            )}
+
+            {/* 2. FASHION & APPAREL DETAILS ONLY */}
+            {isFashion && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-xs">
+                {product.fabric && (
+                  <div className="p-4 bg-gray-50 rounded-2xl space-y-1 border border-gray-100">
+                    <span className="text-gray-400 font-bold uppercase text-[10px] tracking-wider">Fabric / Material</span>
+                    <p className="font-black text-gray-900 text-sm">{product.fabric}</p>
+                  </div>
+                )}
+                {product.fit_type && (
+                  <div className="p-4 bg-gray-50 rounded-2xl space-y-1 border border-gray-100">
+                    <span className="text-gray-400 font-bold uppercase text-[10px] tracking-wider">Fit Type</span>
+                    <p className="font-black text-gray-900 text-sm">{product.fit_type}</p>
+                  </div>
+                )}
+                {product.gender && (
+                  <div className="p-4 bg-gray-50 rounded-2xl space-y-1 border border-gray-100">
+                    <span className="text-gray-400 font-bold uppercase text-[10px] tracking-wider">Department</span>
+                    <p className="font-black text-gray-900 text-sm">{product.gender}</p>
+                  </div>
+                )}
+                {product.origin && (
+                  <div className="p-4 bg-gray-50 rounded-2xl space-y-1 border border-gray-100">
+                    <span className="text-gray-400 font-bold uppercase text-[10px] tracking-wider">Origin</span>
+                    <p className="font-black text-gray-900 text-sm">{product.origin}</p>
+                  </div>
+                )}
+                {product.care_instructions && (
+                  <div className="p-4 bg-gray-50 rounded-2xl space-y-1 border border-gray-100 sm:col-span-2">
+                    <span className="text-gray-400 font-bold uppercase text-[10px] tracking-wider">Care Instructions</span>
+                    <p className="font-bold text-gray-800 text-xs leading-relaxed">{product.care_instructions}</p>
+                  </div>
                 )}
               </div>
-              <div>
-                <h3 className="text-lg font-black text-gray-900">
-                  {product.category_id?.includes('smartphones') ||
-                  product.category_id?.includes('laptops') ||
-                  product.category_id?.includes('audio') ||
-                  product.category_id?.includes('cameras') ||
-                  product.category_id?.includes('watches') ||
-                  product.category_id?.includes('gadget') ||
-                  product.category_id?.includes('tech')
-                    ? 'Technical Specifications & Hardware Details'
-                    : 'Specifications & Material Details'}
-                </h3>
-                <p className="text-xs text-gray-500">
-                  {product.category_id?.includes('smartphones') ||
-                  product.category_id?.includes('laptops') ||
-                  product.category_id?.includes('audio') ||
-                  product.category_id?.includes('cameras') ||
-                  product.category_id?.includes('watches') ||
-                  product.category_id?.includes('gadget') ||
-                  product.category_id?.includes('tech')
-                    ? 'Hardware performance, connectivity & official warranty'
-                    : 'Fabric craftsmanship, dimensions & technical data'}
-                </p>
-              </div>
-            </div>
-            <span className="px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-xs font-bold font-mono">
-              SKU: {product.sku || 'KT-' + product.id.slice(0, 6).toUpperCase()}
-            </span>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-xs">
-            {product.warranty && (
-              <div className="p-4 bg-gray-50 rounded-2xl space-y-1 border border-gray-100">
-                <span className="text-gray-400 font-bold uppercase text-[10px] tracking-wider">Official Warranty</span>
-                <p className="font-black text-gray-900 text-sm">{product.warranty}</p>
-              </div>
             )}
 
-            {product.fabric && (
-              <div className="p-4 bg-gray-50 rounded-2xl space-y-1 border border-gray-100">
-                <span className="text-gray-400 font-bold uppercase text-[10px] tracking-wider">
-                  {product.category_id?.includes('smartphones') ||
-                  product.category_id?.includes('laptops') ||
-                  product.category_id?.includes('audio') ||
-                  product.category_id?.includes('cameras') ||
-                  product.category_id?.includes('watches') ||
-                  product.category_id?.includes('gadget') ||
-                  product.category_id?.includes('tech')
-                    ? 'Build & Protection'
-                    : 'Fabric / Material'}
-                </span>
-                <p className="font-black text-gray-900 text-sm">{product.fabric}</p>
+            {/* 3. GROCERIES & FOOD DETAILS ONLY */}
+            {isGroceries && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-xs">
+                {product.fabric && (
+                  <div className="p-4 bg-emerald-50/40 rounded-2xl space-y-1 border border-emerald-100">
+                    <span className="text-emerald-700 font-bold uppercase text-[10px] tracking-wider">Net Weight / Volume</span>
+                    <p className="font-black text-gray-900 text-sm">{product.fabric}</p>
+                  </div>
+                )}
+                {product.warranty && (
+                  <div className="p-4 bg-gray-50 rounded-2xl space-y-1 border border-gray-100">
+                    <span className="text-gray-400 font-bold uppercase text-[10px] tracking-wider">Shelf Life / Expiry</span>
+                    <p className="font-black text-gray-900 text-sm">{product.warranty}</p>
+                  </div>
+                )}
+                {product.origin && (
+                  <div className="p-4 bg-gray-50 rounded-2xl space-y-1 border border-gray-100">
+                    <span className="text-gray-400 font-bold uppercase text-[10px] tracking-wider">Origin / Sourced From</span>
+                    <p className="font-black text-gray-900 text-sm">{product.origin}</p>
+                  </div>
+                )}
+                {product.fit_type && (
+                  <div className="p-4 bg-gray-50 rounded-2xl space-y-1 border border-gray-100">
+                    <span className="text-gray-400 font-bold uppercase text-[10px] tracking-wider">Certification / Quality</span>
+                    <p className="font-black text-gray-900 text-sm">{product.fit_type}</p>
+                  </div>
+                )}
+                {product.care_instructions && (
+                  <div className="p-4 bg-gray-50 rounded-2xl space-y-1 border border-gray-100 sm:col-span-2">
+                    <span className="text-gray-400 font-bold uppercase text-[10px] tracking-wider">Storage Instructions</span>
+                    <p className="font-bold text-gray-800 text-xs leading-relaxed">{product.care_instructions}</p>
+                  </div>
+                )}
               </div>
             )}
-
-            {product.fit_type && (
-              <div className="p-4 bg-gray-50 rounded-2xl space-y-1 border border-gray-100">
-                <span className="text-gray-400 font-bold uppercase text-[10px] tracking-wider">Fit Type</span>
-                <p className="font-black text-gray-900 text-sm">{product.fit_type}</p>
-              </div>
-            )}
-
-            {product.gender && (
-              <div className="p-4 bg-gray-50 rounded-2xl space-y-1 border border-gray-100">
-                <span className="text-gray-400 font-bold uppercase text-[10px] tracking-wider">Department</span>
-                <p className="font-black text-gray-900 text-sm">{product.gender}</p>
-              </div>
-            )}
-
-            {product.origin && (
-              <div className="p-4 bg-gray-50 rounded-2xl space-y-1 border border-gray-100">
-                <span className="text-gray-400 font-bold uppercase text-[10px] tracking-wider">Origin / Variant</span>
-                <p className="font-black text-gray-900 text-sm">{product.origin}</p>
-              </div>
-            )}
-
-            {product.care_instructions && (
-              <div className="p-4 bg-gray-50 rounded-2xl space-y-1 border border-gray-100 sm:col-span-2">
-                <span className="text-gray-400 font-bold uppercase text-[10px] tracking-wider">Care & Maintenance</span>
-                <p className="font-bold text-gray-800 text-xs leading-relaxed">{product.care_instructions}</p>
-              </div>
-            )}
-
-            {/* Dynamic Specifications */}
-            {product.specifications &&
-              Object.entries(product.specifications).map(([key, val]) => (
-                <div key={key} className="p-4 bg-gray-50 rounded-2xl space-y-1 border border-gray-100">
-                  <span className="text-gray-400 font-bold uppercase text-[10px] tracking-wider">{key}</span>
-                  <p className="font-black text-gray-900 text-sm">{val}</p>
-                </div>
-              ))}
-          </div>
-        </section>
-      )}
+          </section>
+        );
+      })()}
 
       {/* Section 2: Detailed Description & Key Highlights */}
       <section className="bg-white rounded-3xl border border-gray-100 p-6 sm:p-10 shadow-sm space-y-6">

@@ -34,6 +34,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { ImageUploader } from '../../components/common/ImageUploader';
+import { CategoryTagExplorer } from '../../components/admin/CategoryTagExplorer';
 
 const POPULAR_SIZES = ['S', 'M', 'L', 'XL', 'XXL', '64GB', '128GB', '256GB', '512GB', '1TB', '500g', '1kg', '5L'];
 
@@ -259,6 +260,20 @@ export const AdminProducts: React.FC = () => {
     const existingPercent = calculateDiscount(prod.price, prod.discount_price);
     const specEntries = Object.entries(prod.specifications || {});
 
+    const cat = (prod.category_id || '').toLowerCase();
+    const hasHardwareSpecs = Boolean(prod.specifications && Object.keys(prod.specifications).length > 0);
+    let detectedMode: 'gadgets' | 'fashion' | 'groceries' | 'none' = 'gadgets';
+    if (hasHardwareSpecs || cat.includes('gadget') || cat.includes('smartphones') || cat.includes('tech') || cat.includes('electronic')) {
+      detectedMode = 'gadgets';
+    } else if (cat.includes('groceries') || cat.includes('food') || cat.includes('pantry') || cat.includes('daily-essentials')) {
+      detectedMode = 'groceries';
+    } else if (cat.includes('fashion') || cat.includes('apparel') || cat.includes('footwear') || cat.includes('shoes')) {
+      detectedMode = 'fashion';
+    } else {
+      detectedMode = getCategorySpecMode(cat);
+    }
+    setSpecMode(detectedMode);
+
     setFormData({
       title: prod.title || '',
       slug: prod.slug || '',
@@ -411,13 +426,51 @@ export const AdminProducts: React.FC = () => {
     const autoKeywords = [
       ...userTags,
       formData.title.toLowerCase(),
-      formData.brand.toLowerCase(),
-      formData.fabric.toLowerCase(),
-      formData.gender.toLowerCase(),
+      currentSpecMode === 'fashion' ? formData.fabric.toLowerCase() : '',
+      currentSpecMode === 'fashion' ? formData.gender.toLowerCase() : '',
     ];
     const uniqueTags = Array.from(new Set(autoKeywords.filter(Boolean)));
 
-    const productPayload: Partial<Product> = {
+    // Strict niche specification isolation: When a mode is active, completely clear/disable all other niche fields
+    let cleanedFabric = '';
+    let cleanedFitType = '';
+    let cleanedCare = '';
+    let cleanedGender = '';
+    let cleanedWarranty = formData.warranty.trim();
+    let cleanedSpecs: Record<string, string> = {};
+
+    if (currentSpecMode === 'gadgets') {
+      cleanedSpecs = specsObj;
+      cleanedFabric = '';
+      cleanedFitType = '';
+      cleanedCare = '';
+      cleanedGender = '';
+      // Warranty and origin stay as gadget warranty & origin
+    } else if (currentSpecMode === 'fashion') {
+      cleanedSpecs = {};
+      cleanedFabric = formData.fabric.trim();
+      cleanedFitType = formData.fit_type.trim();
+      cleanedCare = formData.care_instructions.trim();
+      cleanedGender = formData.gender.trim();
+      cleanedWarranty = ''; // No gadget warranty for fashion
+    } else if (currentSpecMode === 'groceries') {
+      cleanedSpecs = {};
+      cleanedFabric = formData.fabric.trim(); // Net Weight/Volume
+      cleanedFitType = formData.fit_type.trim(); // Certification
+      cleanedCare = formData.care_instructions.trim(); // Storage
+      cleanedWarranty = formData.warranty.trim(); // Shelf Life
+      cleanedGender = '';
+    } else {
+      // 'none'
+      cleanedSpecs = {};
+      cleanedFabric = '';
+      cleanedFitType = '';
+      cleanedCare = '';
+      cleanedGender = '';
+      cleanedWarranty = '';
+    }
+
+    const productPayload: any = {
       title: formData.title.trim(),
       slug: slug,
       description: formData.description.trim(),
@@ -428,40 +481,21 @@ export const AdminProducts: React.FC = () => {
       images: imageList.length > 0 ? imageList : ['/logo.webp'],
       brand: formData.brand.trim() || 'Kintesi',
       sku: formData.sku.trim(),
-      warranty: formData.warranty.trim(),
+      warranty: cleanedWarranty,
       delivery_note: formData.delivery_note.trim(),
       allowed_payment_methods: formData.allowed_payment_methods.length > 0
         ? formData.allowed_payment_methods
         : ['cod', 'bkash', 'nagad', 'rocket', 'bank'],
       payment_instruction: formData.payment_instruction.trim(),
-      seller_payment: formData.use_custom_seller_payment
-        ? {
-            use_custom_payment: true,
-            seller_name: formData.seller_name.trim(),
-            seller_phone: formData.seller_phone.trim(),
-            bkash_number: formData.seller_bkash_number.trim(),
-            bkash_type: formData.seller_bkash_type,
-            nagad_number: formData.seller_nagad_number.trim(),
-            nagad_type: formData.seller_nagad_type,
-            rocket_number: formData.seller_rocket_number.trim(),
-            rocket_type: formData.seller_rocket_type,
-            bank_name: formData.seller_bank_name.trim(),
-            bank_account_name: formData.seller_bank_account_name.trim(),
-            bank_account_number: formData.seller_bank_account_number.trim(),
-            bank_branch: formData.seller_bank_branch.trim(),
-            bank_routing_number: formData.seller_bank_routing_number.trim(),
-            custom_payment_note: formData.seller_custom_payment_note.trim(),
-          }
-        : {},
       highlights: highlightsList,
-      fabric: currentSpecMode === 'none' ? '' : formData.fabric.trim(),
-      fit_type: currentSpecMode === 'fashion' ? formData.fit_type.trim() : '',
-      care_instructions: (currentSpecMode === 'fashion' || currentSpecMode === 'groceries') ? formData.care_instructions.trim() : '',
+      fabric: cleanedFabric,
+      fit_type: cleanedFitType,
+      care_instructions: cleanedCare,
       origin: currentSpecMode === 'none' ? '' : formData.origin.trim(),
-      gender: currentSpecMode === 'fashion' ? formData.gender.trim() : '',
-      specifications: currentSpecMode === 'none' ? {} : specsObj,
+      gender: cleanedGender,
+      specifications: cleanedSpecs,
       tags: uniqueTags,
-      sizes: formData.selectedSizes,
+      sizes: currentSpecMode === 'none' ? [] : formData.selectedSizes,
       colors: formData.colors,
       is_featured: formData.is_featured,
       is_trending: formData.is_trending,
@@ -485,7 +519,7 @@ export const AdminProducts: React.FC = () => {
 
         if (error) {
           console.warn('Supabase update retry with core fields:', error.message);
-          // Fallback to core columns in case new columns are not yet created in SQL
+          // Fallback retaining all valid schema columns including delivery_note
           const corePayload = {
             title: productPayload.title,
             slug: productPayload.slug,
@@ -496,6 +530,21 @@ export const AdminProducts: React.FC = () => {
             stock: productPayload.stock,
             images: productPayload.images,
             brand: productPayload.brand,
+            sku: productPayload.sku,
+            warranty: productPayload.warranty,
+            delivery_note: productPayload.delivery_note,
+            highlights: productPayload.highlights,
+            fabric: productPayload.fabric,
+            fit_type: productPayload.fit_type,
+            care_instructions: productPayload.care_instructions,
+            origin: productPayload.origin,
+            gender: productPayload.gender,
+            specifications: productPayload.specifications,
+            tags: productPayload.tags,
+            sizes: productPayload.sizes,
+            colors: productPayload.colors,
+            allowed_payment_methods: productPayload.allowed_payment_methods,
+            payment_instruction: productPayload.payment_instruction,
             is_featured: productPayload.is_featured,
             is_trending: productPayload.is_trending,
           };
@@ -529,6 +578,21 @@ export const AdminProducts: React.FC = () => {
             stock: productPayload.stock,
             images: productPayload.images,
             brand: productPayload.brand,
+            sku: productPayload.sku,
+            warranty: productPayload.warranty,
+            delivery_note: productPayload.delivery_note,
+            highlights: productPayload.highlights,
+            fabric: productPayload.fabric,
+            fit_type: productPayload.fit_type,
+            care_instructions: productPayload.care_instructions,
+            origin: productPayload.origin,
+            gender: productPayload.gender,
+            specifications: productPayload.specifications,
+            tags: productPayload.tags,
+            sizes: productPayload.sizes,
+            colors: productPayload.colors,
+            allowed_payment_methods: productPayload.allowed_payment_methods,
+            payment_instruction: productPayload.payment_instruction,
             is_featured: productPayload.is_featured,
             is_trending: productPayload.is_trending,
           };
@@ -1263,7 +1327,16 @@ export const AdminProducts: React.FC = () => {
                   <div className="flex flex-wrap items-center gap-1 bg-gray-900 p-1 rounded-xl border border-gray-800">
                     <button
                       type="button"
-                      onClick={() => setSpecMode('gadgets')}
+                      onClick={() => {
+                        setSpecMode('gadgets');
+                        setFormData((prev) => ({
+                          ...prev,
+                          fabric: '',
+                          fit_type: '',
+                          care_instructions: '',
+                          gender: 'Unisex',
+                        }));
+                      }}
                       className={`px-2.5 py-1 rounded-lg text-[10px] font-bold transition flex items-center gap-1 ${
                         currentSpecMode === 'gadgets'
                           ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 shadow-xs'
@@ -1274,7 +1347,19 @@ export const AdminProducts: React.FC = () => {
                     </button>
                     <button
                       type="button"
-                      onClick={() => setSpecMode('fashion')}
+                      onClick={() => {
+                        setSpecMode('fashion');
+                        setFormData((prev) => ({
+                          ...prev,
+                          specKey1: '',
+                          specVal1: '',
+                          specKey2: '',
+                          specVal2: '',
+                          specKey3: '',
+                          specVal3: '',
+                          warranty: '',
+                        }));
+                      }}
                       className={`px-2.5 py-1 rounded-lg text-[10px] font-bold transition flex items-center gap-1 ${
                         currentSpecMode === 'fashion'
                           ? 'bg-pink-500/20 text-pink-300 border border-pink-500/40 shadow-xs'
@@ -1285,7 +1370,19 @@ export const AdminProducts: React.FC = () => {
                     </button>
                     <button
                       type="button"
-                      onClick={() => setSpecMode('groceries')}
+                      onClick={() => {
+                        setSpecMode('groceries');
+                        setFormData((prev) => ({
+                          ...prev,
+                          specKey1: '',
+                          specVal1: '',
+                          specKey2: '',
+                          specVal2: '',
+                          specKey3: '',
+                          specVal3: '',
+                          gender: '',
+                        }));
+                      }}
                       className={`px-2.5 py-1 rounded-lg text-[10px] font-bold transition flex items-center gap-1 ${
                         currentSpecMode === 'groceries'
                           ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 shadow-xs'
@@ -1296,7 +1393,24 @@ export const AdminProducts: React.FC = () => {
                     </button>
                     <button
                       type="button"
-                      onClick={() => setSpecMode('none')}
+                      onClick={() => {
+                        setSpecMode('none');
+                        setFormData((prev) => ({
+                          ...prev,
+                          specKey1: '',
+                          specVal1: '',
+                          specKey2: '',
+                          specVal2: '',
+                          specKey3: '',
+                          specVal3: '',
+                          fabric: '',
+                          fit_type: '',
+                          care_instructions: '',
+                          gender: '',
+                          warranty: '',
+                          origin: '',
+                        }));
+                      }}
                       className={`px-2 py-1 rounded-lg text-[10px] font-bold transition flex items-center gap-1 ${
                         currentSpecMode === 'none'
                           ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40 shadow-xs'
@@ -1963,44 +2077,16 @@ export const AdminProducts: React.FC = () => {
                 </label>
               </div>
 
-              {/* Section 7: Search Keywords & SEO Tags */}
-              <div className="space-y-3 bg-gray-950/60 p-4 rounded-2xl border border-gray-800/80">
-                <div className="flex items-center justify-between">
-                  <h4 className="text-xs font-black uppercase tracking-wider text-amber-400 flex items-center gap-1.5">
-                    <Tag className="w-4 h-4" /> Search Keywords & Tags (সার্চ কীওয়ার্ড ও ট্যাগ)
-                  </h4>
-                  <span className="text-[10px] text-gray-400">Separate terms with comma</span>
-                </div>
-                <input
-                  type="text"
-                  placeholder="e.g. sharee, saree, sari, শাড়ি, kota cotton, indian saree, party wear, fashion"
-                  value={formData.tags}
-                  onChange={(e) => setFormData({ ...formData, tags: e.target.value })}
-                  className="w-full bg-gray-900 border border-gray-700 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-emerald-500"
-                />
-                {/* Instant tag suggestion chips */}
-                <div className="flex flex-wrap gap-1.5 pt-1">
-                  <span className="text-[10px] text-gray-500 font-bold self-center mr-1">Quick Add:</span>
-                  {[
-                    'sharee', 'saree', 'শাড়ি', 'kota cotton', 'silk', 'panjabi', 'পাঞ্জাবি',
-                    'kurti', 'party wear', 'casual', 'designer', 'cotton', 'summer', 'winter', 'gadget', 'shoes'
-                  ].map((tg) => (
-                    <button
-                      type="button"
-                      key={tg}
-                      onClick={() => {
-                        const current = formData.tags ? formData.tags.split(',').map(t => t.trim()).filter(Boolean) : [];
-                        if (!current.includes(tg)) {
-                          setFormData({ ...formData, tags: [...current, tg].join(', ') });
-                        }
-                      }}
-                      className="text-[10px] bg-gray-900 hover:bg-gray-800 text-amber-300 hover:text-amber-200 px-2 py-0.5 rounded-lg border border-amber-900/50 transition"
-                    >
-                      + {tg}
-                    </button>
-                  ))}
-                </div>
-              </div>
+              {/* Section 8: Search Keywords, Tags & 20,000 Category Explorer */}
+              <CategoryTagExplorer
+                selectedTags={formData.tags ? formData.tags.split(',').map((t) => t.trim()).filter(Boolean) : []}
+                onChangeTags={(newTags) => setFormData({ ...formData, tags: newTags.join(', ') })}
+                currentCategoryId={formData.category_id}
+                onSelectCategory={(catId) => {
+                  setFormData({ ...formData, category_id: catId });
+                  toast.success(`Product category updated to: ${catId}`);
+                }}
+              />
 
               {/* Submit / Action Buttons */}
               <div className="flex items-center justify-between gap-3 pt-4 border-t border-gray-800">
