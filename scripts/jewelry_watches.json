@@ -1,0 +1,117 @@
+[
+  {
+    "id": "mens-luxury-watches",
+    "name": "Men's Formal, Quartz & Mechanical Watches",
+    "bnName": "পুরুষদের ফরমাল ও মেকানিক্যাল ঘড়ি",
+    "sector": "jewelry_watches",
+    "suggestedCategoryId": "smartphones-tablets",
+    "tags": [
+      "men watch",
+      "luxury watch",
+      "quartz watch",
+      "mechanical watch",
+      "leather strap watch",
+      "stainless steel watch",
+      "chronograph watch",
+      "curren watch",
+      "naviforce",
+      "skmei",
+      "casio watch",
+      "ঘড়ি",
+      "হাতের ঘড়ি",
+      "পুরুষদের ঘড়ি",
+      "লেদার বেল্ট ঘড়ি",
+      "মেটাল ঘড়ি",
+      "ওয়াটারপ্রুফ ঘড়ি"
+    ]
+  },
+  {
+    "id": "womens-watches-bracelets",
+    "name": "Women's Elegant Watches & Charm Bracelets",
+    "bnName": "নারীদের ঘড়ি ও ব্রেসলেট",
+    "sector": "jewelry_watches",
+    "suggestedCategoryId": "smartphones-tablets",
+    "tags": [
+      "women watch",
+      "ladies watch",
+      "rose gold watch",
+      "magnetic strap watch",
+      "bracelet watch",
+      "charm bracelet",
+      "women bracelet",
+      "মেয়েদের ঘড়ি",
+      "লেডিস ঘড়ি",
+      "রোজ গোল্ড ঘড়ি",
+      "ব্রেসলেট"
+    ]
+  },
+  {
+    "id": "necklaces-chokers",
+    "name": "Necklaces, Chokers & Pendants",
+    "bnName": "নেকলেস, চোকার ও লকেট",
+    "sector": "jewelry_watches",
+    "suggestedCategoryId": "womens-fashion",
+    "tags": [
+      "necklace",
+      "choker",
+      "gold plated necklace",
+      "pearl necklace",
+      "pendant",
+      "chain with pendant",
+      "oxidized necklace",
+      "party necklace",
+      "নেকলেস",
+      "গলার মালা",
+      "লকেট",
+      "চোকার",
+      "মুক্তার মালা"
+    ]
+  },
+  {
+    "id": "earrings-jhumka-tops",
+    "name": "Earrings, Jhumkas & Stud Tops",
+    "bnName": "কানের দুল, ঝুমকা ও টপস",
+    "sector": "jewelry_watches",
+    "suggestedCategoryId": "womens-fashion",
+    "tags": [
+      "earrings",
+      "jhumka",
+      "kundan jhumka",
+      "chandbali",
+      "stud earrings",
+      "tassel earrings",
+      "hoop earrings",
+      "কানের দুল",
+      "ঝুমকা",
+      "কুন্দন ঝুমকা",
+      "টপস",
+      "দুল"
+    ]
+  },
+  {
+    "id": "bangles-rings-nosepins",
+    "name": "Bangles, Rings, Hijab Pins & Nose Pins",
+    "bnName": "চুড়ি, আংটি, হিজাব পিন ও নোজ পিন",
+    "sector": "jewelry_watches",
+    "suggestedCategoryId": "womens-fashion",
+    "tags": [
+      "bangles",
+      "glass bangles",
+      "metal bangles",
+      "churi",
+      "finger ring",
+      "adjustable ring",
+      "nose pin",
+      "hijab pin",
+      "magnetic hijab pin",
+      "brooch",
+      "চুড়ি",
+      "কাঁচের চুড়ি",
+      "আংটি",
+      "নাকফুল",
+      "নোজ পিন",
+      "হিজাব পিন",
+      "ব্রোচ"
+    ]
+  }
+]
