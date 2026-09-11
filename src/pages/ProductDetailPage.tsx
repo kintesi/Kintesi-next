@@ -204,445 +204,440 @@ export const ProductDetailPage: React.FC = () => {
   };
 
   return (
-    <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 space-y-12 pb-24 md:pb-12">
-      
-      {/* Breadcrumb */}
-      <nav className="text-xs font-semibold text-gray-400 flex items-center gap-2">
-        <Link to="/" className="hover:text-rose-600">Home</Link>
-        <span>/</span>
-        <Link to="/shop" className="hover:text-rose-600">Shop</Link>
-        <span>/</span>
-        <span className="text-gray-800 truncate max-w-xs">{product.title}</span>
-      </nav>
-
-      {/* Product Main Section: 2 Balanced Columns (Gallery 6 cols | Details & Delivery Buy Box 6 cols) */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-start">
+    <div className="bg-[#f6f7f9] sm:bg-transparent min-h-screen py-3 sm:py-8 pb-28 md:pb-12">
+      <div className="max-w-[1440px] mx-auto px-2.5 sm:px-6 lg:px-8 space-y-3 sm:space-y-8">
         
-        {/* Left Column: Image Gallery (6 cols) */}
-        <div className="lg:col-span-6 space-y-4">
-          <div className="aspect-square bg-white rounded-3xl border border-gray-100 overflow-hidden shadow-sm p-4 sm:p-6 flex items-center justify-center relative">
-            <img
-              src={selectedImage || product.images[0] || '/logo.webp'}
-              alt={product.title}
-              className="w-full h-full object-contain hover:scale-105 transition-transform duration-300"
-            />
-            {discountPercent > 0 && (
-              <span className="absolute top-4 left-4 px-3 py-1 bg-rose-600 text-white font-extrabold text-xs rounded-full shadow-md">
-                {discountPercent}% OFF
-              </span>
-            )}
-            {product.images && product.images.length > 1 && (
-              <div className="absolute bottom-4 right-4 bg-black/60 backdrop-blur-xs text-white text-[11px] font-medium px-2.5 py-0.5 rounded-full shadow-xs">
-                {(product.images.indexOf(selectedImage) !== -1 ? product.images.indexOf(selectedImage) + 1 : 1)} / {product.images.length}
-              </div>
-            )}
-          </div>
+        {/* Breadcrumb */}
+        <nav className="text-xs font-semibold text-gray-400 flex items-center gap-2 px-1">
+          <Link to="/" className="hover:text-rose-600">Home</Link>
+          <span>/</span>
+          <Link to="/shop" className="hover:text-rose-600">Shop</Link>
+          <span>/</span>
+          <span className="text-gray-800 truncate max-w-xs">{product.title}</span>
+        </nav>
 
-          {/* Thumbnail list */}
-          {product.images && product.images.length > 1 && (
-            <div className="flex gap-3 overflow-x-auto pb-2">
-              {product.images.map((img, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => setSelectedImage(img)}
-                  className={`w-20 h-20 rounded-2xl bg-white border-2 overflow-hidden flex-shrink-0 transition ${
-                    selectedImage === img ? 'border-emerald-600 shadow-md scale-95' : 'border-gray-100 opacity-70 hover:opacity-100'
-                  }`}
-                >
-                  <img src={img} alt="thumbnail" className="w-full h-full object-cover" />
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Right Column: Product Buy Box & Delivery (6 cols) */}
-        <div className="lg:col-span-6 space-y-6">
+        {/* Product Main Section: 2 Balanced Columns (Gallery 6 cols | Details & Delivery Buy Box 6 cols) */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 sm:gap-6 lg:gap-10 items-start">
           
-          {/* Header & Title */}
-          <div>
-            <div className="flex items-center justify-between gap-4 mb-2">
-              <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
-                <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-rose-700 bg-rose-50 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full border border-rose-200/80 whitespace-nowrap shrink-0">
-                  {product.brand || 'Kintesi'}
+          {/* Left Column: Image Gallery (6 cols) */}
+          <div className="lg:col-span-6 space-y-3">
+            <div className="aspect-square bg-white rounded-2xl sm:rounded-3xl border border-gray-100 overflow-hidden shadow-xs p-4 sm:p-6 flex items-center justify-center relative">
+              <img
+                src={selectedImage || product.images[0] || '/logo.webp'}
+                alt={product.title}
+                className="w-full h-full object-contain hover:scale-105 transition-transform duration-300"
+              />
+              {discountPercent > 0 && (
+                <span className="absolute top-3 left-3 sm:top-4 sm:left-4 px-2.5 py-0.5 sm:px-3 sm:py-1 bg-rose-600 text-white font-extrabold text-[11px] sm:text-xs rounded-full shadow-xs">
+                  {discountPercent}% OFF
                 </span>
-                {product.sku && (
-                  <span className="text-[10px] sm:text-xs font-mono text-gray-500 bg-gray-100 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full whitespace-nowrap shrink-0">
-                    SKU: {product.sku}
-                  </span>
-                )}
-                {product.warranty && (
-                  <span className="text-[10px] sm:text-xs font-bold text-amber-800 bg-amber-50 border border-amber-200 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full inline-flex items-center gap-1 whitespace-nowrap shrink-0">
-                    <ShieldCheck className="w-3 h-3 text-amber-600 shrink-0" />
-                    <span>{product.warranty}</span>
-                  </span>
-                )}
-              </div>
-
-              <button
-                onClick={() => {
-                  navigator.clipboard.writeText(window.location.href);
-                  toast.success('Product link copied to clipboard!');
-                }}
-                className="text-gray-400 hover:text-gray-700 p-2 rounded-xl hover:bg-gray-100 transition"
-                title="Share link"
-              >
-                <Share2 className="w-4 h-4" />
-              </button>
-            </div>
-
-            <h1 className="text-2xl sm:text-3xl font-black text-gray-900 leading-snug">
-              {product.title}
-            </h1>
-
-            {/* Ratings */}
-            <div className="flex items-center gap-3 mt-3">
-              <div className="flex items-center gap-0.5 text-amber-400">
-                {[...Array(5)].map((_, i) => (
-                  <Star
-                    key={i}
-                    className={`w-4 h-4 ${
-                      reviews.length > 0
-                        ? 'fill-amber-400 text-amber-400'
-                        : 'fill-amber-400/30 text-amber-400/40'
-                    }`}
-                  />
-                ))}
-              </div>
-              <span className="text-sm font-bold text-gray-800">
-                {reviews.length > 0
-                  ? (reviews.reduce((acc, r) => acc + (r.rating || 5), 0) / reviews.length).toFixed(1)
-                  : '5.0'}
-              </span>
-              <span className="text-xs text-gray-400">
-                {reviews.length > 0
-                  ? `(${reviews.length} verified rating${reviews.length > 1 ? 's' : ''})`
-                  : '(No reviews yet)'}
-              </span>
-            </div>
-          </div>
-
-          {/* Pricing */}
-          <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100 flex items-baseline gap-4">
-            <span className="text-3xl sm:text-4xl font-black text-emerald-700">
-              {formatPrice(currentPrice)}
-            </span>
-            {product.discount_price && (
-              <span className="text-base sm:text-lg text-gray-400 line-through font-semibold">
-                {formatPrice(product.price)}
-              </span>
-            )}
-            {discountPercent > 0 && (
-              <span className="text-xs font-bold text-rose-600 bg-rose-50 px-2.5 py-1 rounded-lg">
-                Save {formatPrice(product.price - product.discount_price!)}
-              </span>
-            )}
-          </div>
-
-          {/* Color Selection */}
-          {product.colors && product.colors.length > 0 && (
-            <div className="space-y-2">
-              <div className="flex items-center justify-between text-xs font-bold">
-                <span className="text-gray-700 uppercase">Select Color:</span>
-                <span className="text-emerald-700 font-extrabold">{selectedColor}</span>
-              </div>
-              <div className="flex items-center gap-3">
-                {product.colors.map((c) => {
-                  const isSelected = selectedColor === c.name;
-                  return (
-                    <button
-                      key={c.name}
-                      onClick={() => setSelectedColor(c.name)}
-                      className={`group relative p-1 rounded-full border-2 transition ${
-                        isSelected ? 'border-emerald-600 ring-2 ring-emerald-600/30' : 'border-transparent'
-                      }`}
-                      title={c.name}
-                    >
-                      <span
-                        className="block w-6 h-6 rounded-full border border-black/10 shadow-xs"
-                        style={{ backgroundColor: c.hex }}
-                      />
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
-          {/* Size Selection (Fashion & Shoes) */}
-          {product.sizes && product.sizes.length > 0 && (
-            <div className="space-y-2">
-              <div className="flex items-center justify-between text-xs font-bold">
-                <span className="text-gray-700 uppercase">Select Size:</span>
-                <span className="text-emerald-700 font-extrabold">{selectedSize}</span>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {product.sizes.map((sz) => {
-                  const isSelected = selectedSize === sz;
-                  return (
-                    <button
-                      key={sz}
-                      onClick={() => setSelectedSize(sz)}
-                      className={`px-4 py-2 rounded-xl text-xs font-bold border transition ${
-                        isSelected
-                          ? 'border-emerald-600 bg-emerald-600 text-white shadow-xs'
-                          : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300'
-                      }`}
-                    >
-                      {sz}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
-          {/* Stock Availability */}
-          <div className="flex items-center gap-2 text-xs font-bold">
-            {product.stock > 0 ? (
-              <div className="flex items-center gap-2 text-emerald-700">
-                <span className="w-2.5 h-2.5 bg-emerald-500 rounded-full animate-ping" />
-                <span>In Stock ({product.stock} units available)</span>
-              </div>
-            ) : (
-              <span className="text-rose-600">Out of Stock</span>
-            )}
-          </div>
-
-          {/* Delivery & Address Destination Box (Truthful - No guessed address) */}
-          <div className="bg-emerald-50/40 rounded-2xl border border-emerald-100 p-4 space-y-3">
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-emerald-900 font-bold uppercase tracking-wider text-[11px] flex items-center gap-1.5">
-                <MapPin className="w-4 h-4 text-emerald-600" />
-                <span>Delivery Destination:</span>
-              </span>
-              {hasSavedAddress && addresses.length > 1 && (
-                <button
-                  type="button"
-                  onClick={() => setIsChangingLocation(!isChangingLocation)}
-                  className="text-xs text-emerald-700 hover:text-emerald-800 font-bold underline cursor-pointer"
-                >
-                  {isChangingLocation ? 'Done' : 'Switch Address'}
-                </button>
+              )}
+              {product.images && product.images.length > 1 && (
+                <div className="absolute bottom-3 right-3 sm:bottom-4 sm:right-4 bg-black/60 backdrop-blur-xs text-white text-[11px] font-medium px-2.5 py-0.5 rounded-full shadow-xs">
+                  {(product.images.indexOf(selectedImage) !== -1 ? product.images.indexOf(selectedImage) + 1 : 1)} / {product.images.length}
+                </div>
               )}
             </div>
 
-            {hasSavedAddress && activeAddress ? (
-              // User has a real saved address in Address Book
-              isChangingLocation ? (
-                <div className="pt-1 space-y-2.5">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-gray-800">Select from Address Book:</span>
-                    <Link
-                      to="/profile"
-                      className="text-[11px] text-emerald-600 hover:text-emerald-700 font-bold underline"
-                    >
-                      + Manage Addresses
-                    </Link>
-                  </div>
-                  <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
-                    {addresses.map((addr) => {
-                      const isSelected = selectedAddressId === addr.id;
-                      const addrIsDhaka = (addr.city || '').toLowerCase().includes('dhaka');
-                      const fee = addrIsDhaka
-                        ? (settings.deliveryFeeInsideDhaka || 60)
-                        : (settings.deliveryFeeOutsideDhaka || 120);
+            {/* Thumbnail list */}
+            {product.images && product.images.length > 1 && (
+              <div className="flex gap-2.5 overflow-x-auto pb-1 px-0.5">
+                {product.images.map((img, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => setSelectedImage(img)}
+                    className={`w-16 h-16 sm:w-20 sm:h-20 rounded-xl sm:rounded-2xl bg-white border-2 overflow-hidden flex-shrink-0 transition cursor-pointer ${
+                      selectedImage === img ? 'border-emerald-600 shadow-sm scale-95' : 'border-gray-200/80 opacity-70 hover:opacity-100'
+                    }`}
+                  >
+                    <img src={img} alt="thumbnail" className="w-full h-full object-cover" />
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
 
+          {/* Right Column: Structured E-Commerce Cards (6 cols) */}
+          <div className="lg:col-span-6 space-y-3 sm:space-y-4">
+            
+            {/* Card 1: Pricing, Title & Rating (Daraz-style clean header card) */}
+            <div className="bg-white rounded-2xl sm:rounded-3xl border border-gray-100 p-4 sm:p-6 shadow-xs space-y-3">
+              
+              {/* Price row: Big prominent price + original strikethrough + discount badge */}
+              <div className="flex flex-wrap items-baseline gap-2.5 sm:gap-3">
+                <span className="text-2xl sm:text-3xl font-black text-rose-600">
+                  {formatPrice(currentPrice)}
+                </span>
+                {product.discount_price && (
+                  <span className="text-sm sm:text-base text-gray-400 line-through font-semibold">
+                    {formatPrice(product.price)}
+                  </span>
+                )}
+                {discountPercent > 0 && (
+                  <span className="text-xs font-extrabold text-rose-700 bg-rose-50 border border-rose-200/80 px-2 py-0.5 rounded-md">
+                    -{discountPercent}% OFF
+                  </span>
+                )}
+              </div>
+
+              {/* Product Title */}
+              <h1 className="text-base sm:text-xl lg:text-2xl font-bold text-gray-900 leading-snug">
+                {product.title}
+              </h1>
+
+              {/* Badges & Rating Bar */}
+              <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-gray-100 text-xs">
+                <div className="flex flex-wrap items-center gap-2">
+                  <div className="flex items-center gap-1">
+                    <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                    <span className="font-bold text-gray-900">
+                      {reviews.length > 0
+                        ? (reviews.reduce((acc, r) => acc + (r.rating || 5), 0) / reviews.length).toFixed(1)
+                        : '5.0'}
+                    </span>
+                    <span className="text-gray-400 text-[11px]">
+                      ({reviews.length})
+                    </span>
+                  </div>
+
+                  <span className="text-gray-200">•</span>
+
+                  <span className="font-medium text-gray-600">
+                    Brand: <strong className="text-gray-900">{product.brand || 'Kintesi'}</strong>
+                  </span>
+
+                  {product.warranty && (
+                    <>
+                      <span className="text-gray-200 hidden sm:inline">•</span>
+                      <span className="text-[11px] font-bold text-amber-800 bg-amber-50 px-2 py-0.5 rounded border border-amber-200/60 hidden sm:inline-flex items-center gap-1">
+                        <ShieldCheck className="w-3 h-3 text-amber-600" />
+                        <span>{product.warranty}</span>
+                      </span>
+                    </>
+                  )}
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    navigator.clipboard.writeText(window.location.href);
+                    toast.success('Product link copied to clipboard!');
+                  }}
+                  className="text-gray-400 hover:text-gray-700 p-1.5 rounded-lg hover:bg-gray-100 transition inline-flex items-center gap-1 cursor-pointer"
+                  title="Share link"
+                >
+                  <Share2 className="w-3.5 h-3.5" />
+                  <span className="text-[11px] font-medium hidden sm:inline">Share</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Card 2: Variations (Color, Size), Quantity & Purchase Actions */}
+            <div className="bg-white rounded-2xl sm:rounded-3xl border border-gray-100 p-4 sm:p-6 shadow-xs space-y-4">
+              
+              {/* Color Selection */}
+              {product.colors && product.colors.length > 0 && (
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between text-xs font-bold">
+                    <span className="text-gray-500 uppercase tracking-wider text-[11px]">Color Family:</span>
+                    <span className="text-gray-900 font-extrabold">{selectedColor}</span>
+                  </div>
+                  <div className="flex items-center gap-2.5 flex-wrap">
+                    {product.colors.map((c) => {
+                      const isSelected = selectedColor === c.name;
                       return (
                         <button
-                          key={addr.id}
+                          key={c.name}
                           type="button"
-                          onClick={() => handleSelectAddress(addr)}
-                          className={`w-full text-left p-2.5 rounded-xl border transition flex items-start justify-between gap-2 cursor-pointer ${
-                            isSelected
-                              ? 'border-emerald-600 bg-emerald-50 ring-2 ring-emerald-600/30 shadow-xs'
-                              : 'border-gray-200 bg-white hover:border-gray-300'
+                          onClick={() => setSelectedColor(c.name)}
+                          className={`group relative p-1 rounded-full border-2 transition cursor-pointer ${
+                            isSelected ? 'border-emerald-600 ring-2 ring-emerald-600/30' : 'border-transparent'
                           }`}
+                          title={c.name}
                         >
-                          <div className="min-w-0 flex-1">
-                            <div className="flex items-center gap-1.5 mb-0.5">
-                              <span className={`text-[9px] font-black uppercase px-1.5 py-0.5 rounded ${
-                                addr.label === 'Home' ? 'bg-blue-100 text-blue-800' : 'bg-purple-100 text-purple-800'
-                              }`}>
-                                {addr.label || 'Saved'}
-                              </span>
-                              <span className="text-xs font-bold text-gray-900 truncate">
-                                {addr.recipient_name} ({addr.city})
-                              </span>
-                            </div>
-                            <p className="text-[11px] text-gray-500 truncate">
-                              {addr.street_address}
-                            </p>
-                          </div>
-                          <div className="text-right shrink-0">
-                            <span className="text-xs font-black text-emerald-700 block">
-                              {isFreeDeliveryEligible ? 'FREE' : formatPrice(fee)}
-                            </span>
-                            <span className="text-[9px] text-gray-400">
-                              {addrIsDhaka ? '24-48h' : '2-3d'}
-                            </span>
-                          </div>
+                          <span
+                            className="block w-6 h-6 rounded-full border border-black/10 shadow-xs"
+                            style={{ backgroundColor: c.hex }}
+                          />
                         </button>
                       );
                     })}
                   </div>
                 </div>
-              ) : (
-                <div className="flex items-center justify-between text-xs bg-white p-3.5 rounded-xl border border-emerald-100/80 shadow-xs">
-                  <div className="min-w-0 flex-1 pr-2">
-                    <div className="flex items-center gap-1.5 mb-0.5">
-                      <span className={`text-[10px] font-black uppercase px-1.5 py-0.5 rounded ${
-                        activeAddress.label === 'Home' ? 'bg-blue-100 text-blue-800' : 'bg-purple-100 text-purple-800'
-                      }`}>
-                        {activeAddress.label || 'Saved'}
-                      </span>
-                      <span className="font-extrabold text-gray-900 truncate text-xs">
-                        {activeAddress.city}
-                      </span>
-                    </div>
-                    <p className="text-[11px] text-gray-500 truncate">
-                      {activeAddress.recipient_name} • {activeAddress.street_address}
-                    </p>
+              )}
+
+              {/* Size Selection */}
+              {product.sizes && product.sizes.length > 0 && (
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between text-xs font-bold">
+                    <span className="text-gray-500 uppercase tracking-wider text-[11px]">Size:</span>
+                    <span className="text-gray-900 font-extrabold">{selectedSize}</span>
                   </div>
-                  <div className="text-right shrink-0">
-                    <span className="font-black text-emerald-700 text-sm block">
-                      {effectiveDeliveryFee === 0 ? 'FREE' : formatPrice(effectiveDeliveryFee)}
-                    </span>
-                    <span className="text-[10px] text-gray-400 block font-medium">
-                      {isDhaka ? '24-48h Delivery' : '2-3 Days Courier'}
-                    </span>
+                  <div className="flex flex-wrap gap-2">
+                    {product.sizes.map((sz) => {
+                      const isSelected = selectedSize === sz;
+                      return (
+                        <button
+                          key={sz}
+                          type="button"
+                          onClick={() => setSelectedSize(sz)}
+                          className={`px-3.5 py-1.5 rounded-xl text-xs font-bold border transition cursor-pointer ${
+                            isSelected
+                              ? 'border-emerald-600 bg-emerald-600 text-white shadow-xs'
+                              : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300'
+                          }`}
+                        >
+                          {sz}
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
-              )
-            ) : (
-              // Truthful fallback: No address set in Address Book. No guessing!
-              <div className="bg-white p-3.5 rounded-xl border border-gray-200/90 shadow-xs space-y-2.5">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="space-y-0.5">
-                    <p className="text-xs font-bold text-gray-900">
-                      আপনার অ্যাড্রেস বুকে কোনো ঠিকানা সেট করা নেই
-                    </p>
-                    <p className="text-[11px] text-gray-500">
-                      সঠিক ডেলিভারি চার্জ ও সময় দেখতে ঠিকানা যুক্ত করুন
-                    </p>
-                  </div>
-                  {user ? (
-                    <Link
-                      to="/profile"
-                      className="shrink-0 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-lg transition shadow-xs inline-flex items-center gap-1"
-                    >
-                      <span>+ Set Address</span>
-                    </Link>
-                  ) : (
+              )}
+
+              {/* Quantity Selector & Stock Availability */}
+              <div className="flex items-center justify-between gap-4 pt-1">
+                <div className="space-y-1">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-gray-500 block">Quantity</span>
+                  <div className="flex items-center border border-gray-200 rounded-xl bg-white shadow-xs overflow-hidden">
                     <button
                       type="button"
-                      onClick={() => openAuthModal('login')}
-                      className="shrink-0 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-lg transition shadow-xs inline-flex items-center gap-1 cursor-pointer"
+                      onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                      className="p-2 hover:bg-gray-100 text-gray-600 transition cursor-pointer"
+                      aria-label="Decrease quantity"
                     >
-                      <span>Login to Set</span>
+                      <Minus className="w-3.5 h-3.5" />
                     </button>
+                    <span className="px-3.5 text-xs font-bold text-gray-800">{quantity}</span>
+                    <button
+                      type="button"
+                      onClick={() => setQuantity(Math.min(product.stock, quantity + 1))}
+                      disabled={quantity >= product.stock}
+                      className="p-2 hover:bg-gray-100 text-gray-600 transition cursor-pointer disabled:opacity-30"
+                      aria-label="Increase quantity"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+
+                <div className="text-right">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-gray-500 block">Availability</span>
+                  {product.stock > 0 ? (
+                    <span className="text-xs font-bold text-emerald-700 flex items-center gap-1.5 justify-end mt-1">
+                      <span className="w-2 h-2 bg-emerald-500 rounded-full inline-block" />
+                      <span>In Stock ({product.stock} units)</span>
+                    </span>
+                  ) : (
+                    <span className="text-xs font-bold text-rose-600 mt-1 block">Out of Stock</span>
                   )}
                 </div>
-
-                <div className="pt-2 border-t border-gray-100 flex items-center justify-between text-[11px] text-gray-500">
-                  <span>Inside Dhaka: <strong className="text-gray-800">৳{settings.deliveryFeeInsideDhaka || 60}</strong></span>
-                  <span>•</span>
-                  <span>Outside Dhaka: <strong className="text-gray-800">৳{settings.deliveryFeeOutsideDhaka || 120}</strong></span>
-                  <span>•</span>
-                  <span className="text-emerald-700 font-bold">Free on ৳{settings.freeShippingThreshold || 1000}+</span>
-                </div>
               </div>
-            )}
 
-            <div className="flex items-center gap-4 text-xs text-gray-600 pt-1">
-              <span className="flex items-center gap-1 font-semibold text-gray-700">
-                <CreditCard className="w-3.5 h-3.5 text-emerald-600" />
-                <span>Cash on Delivery Available</span>
-              </span>
-              <span>•</span>
-              <span className="flex items-center gap-1 font-semibold text-gray-700">
-                <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-                <span>100% Authentic</span>
-              </span>
+              {/* Main Action Buttons (Desktop & Mobile - Always accessible) */}
+              <div className="grid grid-cols-2 gap-2.5 pt-2">
+                <button
+                  type="button"
+                  onClick={handleAddToCart}
+                  disabled={product.stock <= 0}
+                  className="py-3 px-4 bg-gray-900 hover:bg-black text-white font-bold rounded-xl transition shadow-sm flex items-center justify-center gap-2 disabled:opacity-50 active:scale-95 text-xs sm:text-sm cursor-pointer"
+                >
+                  <ShoppingCart className="w-4 h-4" />
+                  <span>Add to Cart</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleBuyNow}
+                  disabled={product.stock <= 0}
+                  className="py-3 px-4 bg-gradient-to-r from-rose-600 to-rose-700 hover:from-rose-500 hover:to-rose-600 text-white font-bold rounded-xl transition shadow-md shadow-rose-600/20 flex items-center justify-center gap-2 disabled:opacity-50 active:scale-95 text-xs sm:text-sm cursor-pointer"
+                >
+                  <Zap className="w-4 h-4 fill-current" />
+                  <span>Buy Now</span>
+                </button>
+              </div>
             </div>
 
-            {/* Custom Product Delivery Note & Guidelines */}
-            {product.delivery_note && (
-              <div className="mt-3 p-3.5 bg-amber-50/90 border-2 border-amber-300/90 rounded-2xl space-y-1 shadow-xs">
-                <div className="flex items-center gap-1.5 text-amber-900 font-extrabold text-xs">
-                  <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
-                  <span>Delivery Note & Special Instruction (ডেলিভারি নোট):</span>
-                </div>
-                <p className="text-xs text-amber-950 font-medium leading-relaxed pl-5.5 whitespace-pre-line">
-                  {product.delivery_note}
-                </p>
-              </div>
-            )}
-          </div>
-
-          {/* Quantity and Order Actions (Desktop Only - Mobile uses Dynamic Island bottom bar) */}
-          <div className="hidden md:block space-y-4 pt-2">
-            <div className="flex items-center gap-4">
-              <span className="text-xs font-bold uppercase tracking-wider text-gray-500">Quantity</span>
-              <div className="flex items-center border border-gray-200 rounded-xl bg-white shadow-xs overflow-hidden">
-                <button
-                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                  className="p-2.5 hover:bg-gray-100 text-gray-600 transition cursor-pointer"
-                >
-                  <Minus className="w-4 h-4" />
-                </button>
-                <span className="px-4 text-sm font-bold text-gray-800">{quantity}</span>
-                <button
-                  onClick={() => setQuantity(Math.min(product.stock, quantity + 1))}
-                  className="p-2.5 hover:bg-gray-100 text-gray-600 transition cursor-pointer"
-                >
-                  <Plus className="w-4 h-4" />
-                </button>
-              </div>
-
-              {quantity > 1 && (
-                <span className="text-xs text-gray-500 font-semibold">
-                  Subtotal: <strong className="text-rose-700">{formatPrice(currentPrice * quantity)}</strong>
+            {/* Card 3: Delivery & Service Protection (Truthful - No guessed address) */}
+            <div className="bg-white rounded-2xl sm:rounded-3xl border border-gray-100 p-4 sm:p-6 shadow-xs space-y-3.5">
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-gray-900 font-bold uppercase tracking-wider text-[11px] flex items-center gap-1.5">
+                  <MapPin className="w-4 h-4 text-emerald-600" />
+                  <span>Delivery Destination</span>
                 </span>
+                {hasSavedAddress && addresses.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => setIsChangingLocation(!isChangingLocation)}
+                    className="text-xs text-emerald-700 hover:text-emerald-800 font-bold underline cursor-pointer"
+                  >
+                    {isChangingLocation ? 'Done' : 'Switch Address'}
+                  </button>
+                )}
+              </div>
+
+              {hasSavedAddress && activeAddress ? (
+                // User has a real saved address in Address Book
+                isChangingLocation ? (
+                  <div className="pt-1 space-y-2.5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-gray-800">Select from Address Book:</span>
+                      <Link
+                        to="/profile"
+                        className="text-[11px] text-emerald-600 hover:text-emerald-700 font-bold underline"
+                      >
+                        + Manage Addresses
+                      </Link>
+                    </div>
+                    <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+                      {addresses.map((addr) => {
+                        const isSelected = selectedAddressId === addr.id;
+                        const addrIsDhaka = (addr.city || '').toLowerCase().includes('dhaka');
+                        const fee = addrIsDhaka
+                          ? (settings.deliveryFeeInsideDhaka || 60)
+                          : (settings.deliveryFeeOutsideDhaka || 120);
+
+                        return (
+                          <button
+                            key={addr.id}
+                            type="button"
+                            onClick={() => handleSelectAddress(addr)}
+                            className={`w-full text-left p-2.5 rounded-xl border transition flex items-start justify-between gap-2 cursor-pointer ${
+                              isSelected
+                                ? 'border-emerald-600 bg-emerald-50 ring-2 ring-emerald-600/30 shadow-xs'
+                                : 'border-gray-200 bg-white hover:border-gray-300'
+                            }`}
+                          >
+                            <div className="min-w-0 flex-1">
+                              <div className="flex items-center gap-1.5 mb-0.5">
+                                <span className={`text-[9px] font-black uppercase px-1.5 py-0.5 rounded ${
+                                  addr.label === 'Home' ? 'bg-blue-100 text-blue-800' : 'bg-purple-100 text-purple-800'
+                                }`}>
+                                  {addr.label || 'Saved'}
+                                </span>
+                                <span className="text-xs font-bold text-gray-900 truncate">
+                                  {addr.recipient_name} ({addr.city})
+                                </span>
+                              </div>
+                              <p className="text-[11px] text-gray-500 truncate">
+                                {addr.street_address}
+                              </p>
+                            </div>
+                            <div className="text-right shrink-0">
+                              <span className="text-xs font-black text-emerald-700 block">
+                                {isFreeDeliveryEligible ? 'FREE' : formatPrice(fee)}
+                              </span>
+                              <span className="text-[9px] text-gray-400">
+                                {addrIsDhaka ? '24-48h' : '2-3d'}
+                              </span>
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-between text-xs bg-gray-50/80 p-3.5 rounded-xl border border-gray-200/70">
+                    <div className="min-w-0 flex-1 pr-2">
+                      <div className="flex items-center gap-1.5 mb-0.5">
+                        <span className={`text-[10px] font-black uppercase px-1.5 py-0.5 rounded ${
+                          activeAddress.label === 'Home' ? 'bg-blue-100 text-blue-800' : 'bg-purple-100 text-purple-800'
+                        }`}>
+                          {activeAddress.label || 'Saved'}
+                        </span>
+                        <span className="font-extrabold text-gray-900 truncate text-xs">
+                          {activeAddress.city}
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-gray-500 truncate">
+                        {activeAddress.recipient_name} • {activeAddress.street_address}
+                      </p>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <span className="font-black text-emerald-700 text-sm block">
+                        {effectiveDeliveryFee === 0 ? 'FREE' : formatPrice(effectiveDeliveryFee)}
+                      </span>
+                      <span className="text-[10px] text-gray-400 block font-medium">
+                        {isDhaka ? '24-48h Delivery' : '2-3 Days Courier'}
+                      </span>
+                    </div>
+                  </div>
+                )
+              ) : (
+                // Truthful fallback: No address set in Address Book. No guessing!
+                <div className="bg-gray-50/80 p-3.5 rounded-xl border border-gray-200/80 space-y-2.5">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="space-y-0.5">
+                      <p className="text-xs font-bold text-gray-900">
+                        আপনার অ্যাড্রেস বুকে কোনো ঠিকানা সেট করা নেই
+                      </p>
+                      <p className="text-[11px] text-gray-500">
+                        সঠিক ডেলিভারি চার্জ ও সময় দেখতে ঠিকানা যুক্ত করুন
+                      </p>
+                    </div>
+                    {user ? (
+                      <Link
+                        to="/profile"
+                        className="shrink-0 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-lg transition shadow-xs inline-flex items-center gap-1"
+                      >
+                        <span>+ Set Address</span>
+                      </Link>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => openAuthModal('login')}
+                        className="shrink-0 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-lg transition shadow-xs inline-flex items-center gap-1 cursor-pointer"
+                      >
+                        <span>Login to Set</span>
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="pt-2 border-t border-gray-200/70 flex items-center justify-between text-[11px] text-gray-500">
+                    <span>Inside Dhaka: <strong className="text-gray-800">৳{settings.deliveryFeeInsideDhaka || 60}</strong></span>
+                    <span>•</span>
+                    <span>Outside Dhaka: <strong className="text-gray-800">৳{settings.deliveryFeeOutsideDhaka || 120}</strong></span>
+                    <span>•</span>
+                    <span className="text-emerald-700 font-bold">Free on ৳{settings.freeShippingThreshold || 1000}+</span>
+                  </div>
+                </div>
+              )}
+
+              {/* Service Guarantees */}
+              <div className="grid grid-cols-3 gap-2 pt-2 border-t border-gray-100 text-center">
+                <div className="p-2 bg-gray-50 rounded-xl space-y-0.5">
+                  <CreditCard className="w-4 h-4 text-emerald-600 mx-auto" />
+                  <p className="text-[11px] font-bold text-gray-800">Cash on Delivery</p>
+                  <p className="text-[9px] text-gray-400">Available</p>
+                </div>
+                <div className="p-2 bg-gray-50 rounded-xl space-y-0.5">
+                  <ShieldCheck className="w-4 h-4 text-emerald-600 mx-auto" />
+                  <p className="text-[11px] font-bold text-gray-800">100% Authentic</p>
+                  <p className="text-[9px] text-gray-400">Verified</p>
+                </div>
+                <div className="p-2 bg-gray-50 rounded-xl space-y-0.5">
+                  <RotateCcw className="w-4 h-4 text-emerald-600 mx-auto" />
+                  <p className="text-[11px] font-bold text-gray-800">7 Days Return</p>
+                  <p className="text-[9px] text-gray-400">Guarantee</p>
+                </div>
+              </div>
+
+              {/* Custom Delivery Note */}
+              {product.delivery_note && (
+                <div className="p-3 bg-amber-50/90 border border-amber-200 rounded-xl space-y-1">
+                  <div className="flex items-center gap-1.5 text-amber-900 font-extrabold text-xs">
+                    <AlertTriangle className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                    <span>Delivery Note (ডেলিভারি নোট):</span>
+                  </div>
+                  <p className="text-xs text-amber-950 font-medium leading-relaxed pl-5 whitespace-pre-line">
+                    {product.delivery_note}
+                  </p>
+                </div>
               )}
             </div>
 
-            {/* Main Action Buttons */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-              <button
-                onClick={handleAddToCart}
-                disabled={product.stock <= 0}
-                className="py-4 px-6 bg-gray-900 hover:bg-black text-white font-bold rounded-2xl transition shadow-md flex items-center justify-center gap-2 disabled:opacity-50 active:scale-95 text-sm cursor-pointer"
-              >
-                <ShoppingCart className="w-5 h-5" />
-                <span>Add to Cart</span>
-              </button>
-
-              <button
-                onClick={handleBuyNow}
-                disabled={product.stock <= 0}
-                className="py-4 px-6 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-2xl transition shadow-lg shadow-rose-600/30 flex items-center justify-center gap-2 disabled:opacity-50 active:scale-95 text-sm cursor-pointer"
-              >
-                <Zap className="w-5 h-5" />
-                <span>Buy It Now</span>
-              </button>
-            </div>
-          </div>
-
-            {/* Wishlist & Chat with Seller Buttons */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-              <button
-                onClick={() => toggleWishlist(product)}
-                className={`py-3 px-4 rounded-2xl text-xs font-bold border transition flex items-center justify-center gap-2 ${
-                  isInWishlist(product.id)
-                    ? 'border-rose-200 bg-rose-50 text-rose-600'
-                    : 'border-gray-200 text-gray-700 hover:bg-gray-50'
-                }`}
-              >
-                <Heart className={`w-4 h-4 ${isInWishlist(product.id) ? 'fill-rose-500 text-rose-500' : ''}`} />
-                <span>{isInWishlist(product.id) ? 'Saved in Wishlist' : 'Add to Wishlist'}</span>
-              </button>
-
+            {/* Card 4: Quick Assistance & Seller Chat */}
+            <div className="bg-white rounded-2xl sm:rounded-3xl border border-gray-100 p-3 sm:p-4 shadow-xs grid grid-cols-2 gap-2">
               <button
                 type="button"
                 onClick={() => {
@@ -661,34 +656,28 @@ export const ProductDetailPage: React.FC = () => {
                     },
                   });
                 }}
-                className="py-3 px-4 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 font-bold text-xs rounded-2xl transition flex items-center justify-center gap-2 shadow-xs active:scale-95 cursor-pointer"
+                className="py-2.5 px-3 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200/90 font-bold text-xs rounded-xl transition flex items-center justify-center gap-1.5 shadow-xs active:scale-95 cursor-pointer"
               >
                 <MessageCircle className="w-4 h-4 text-emerald-600" />
-                <span>Chat with Seller</span>
+                <span>Chat Seller</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => toggleWishlist(product)}
+                className={`py-2.5 px-3 rounded-xl text-xs font-bold border transition flex items-center justify-center gap-1.5 cursor-pointer active:scale-95 ${
+                  isInWishlist(product.id)
+                    ? 'border-rose-200 bg-rose-50 text-rose-600'
+                    : 'border-gray-200 text-gray-700 hover:bg-gray-50'
+                }`}
+              >
+                <Heart className={`w-4 h-4 ${isInWishlist(product.id) ? 'fill-rose-500 text-rose-500' : ''}`} />
+                <span>{isInWishlist(product.id) ? 'Saved' : 'Wishlist'}</span>
               </button>
             </div>
 
-          {/* Quick Perks Bar */}
-          <div className="grid grid-cols-3 gap-3 pt-4 border-t border-gray-100 text-center">
-            <div className="p-3 bg-gray-50 rounded-2xl">
-              <Truck className="w-5 h-5 text-emerald-600 mx-auto mb-1" />
-              <p className="text-xs font-bold text-gray-800">Fast Delivery</p>
-              <p className="text-[10px] text-gray-400">{isDhaka ? '24-48 Hours' : '2-3 Days'}</p>
-            </div>
-            <div className="p-3 bg-gray-50 rounded-2xl">
-              <ShieldCheck className="w-5 h-5 text-emerald-600 mx-auto mb-1" />
-              <p className="text-xs font-bold text-gray-800">Authentic</p>
-              <p className="text-[10px] text-gray-400">100% Genuine</p>
-            </div>
-            <div className="p-3 bg-gray-50 rounded-2xl">
-              <RotateCcw className="w-5 h-5 text-emerald-600 mx-auto mb-1" />
-              <p className="text-xs font-bold text-gray-800">Easy Return</p>
-              <p className="text-[10px] text-gray-400">7 Days Guarantee</p>
-            </div>
           </div>
-
         </div>
-      </div>
 
       {/* Section 1: Comprehensive Specifications & Technical Details Card (Strictly Isolated by Category Mode) */}
       {(() => {
@@ -1011,6 +1000,8 @@ export const ProductDetailPage: React.FC = () => {
           </div>
         </section>
       )}
+
+      </div>
 
       {/* Apple-style Dynamic Bottom Island for Mobile (Ultra-Premium White Glassmorphic) */}
       {product && (
