@@ -34,6 +34,7 @@ import {
   Clock,
   CreditCard,
   ChevronDown,
+  ChevronRight,
   MessageCircle,
   AlertTriangle,
   Cpu,
@@ -58,6 +59,33 @@ export const ProductDetailPage: React.FC = () => {
   const [quantity, setQuantity] = useState(1);
   const [loading, setLoading] = useState(true);
   const [showStickyBar, setShowStickyBar] = useState(false);
+
+  // Mobile Daraz-style Navigation Tabs
+  const [activeTab, setActiveTab] = useState<'overview' | 'reviews' | 'specs' | 'recommendations'>('overview');
+
+  const handleTabClick = (tab: 'overview' | 'reviews' | 'specs' | 'recommendations') => {
+    setActiveTab(tab);
+    const targetId =
+      tab === 'overview'
+        ? 'm-sec-overview'
+        : tab === 'reviews'
+        ? 'm-sec-reviews'
+        : tab === 'specs'
+        ? 'm-sec-specs'
+        : 'm-sec-recommendations';
+    const el = document.getElementById(targetId);
+    if (el) {
+      const offset = 48;
+      const bodyRect = document.body.getBoundingClientRect().top;
+      const elementRect = el.getBoundingClientRect().top;
+      const elementPosition = elementRect - bodyRect;
+      const offsetPosition = elementPosition - offset;
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth',
+      });
+    }
+  };
 
   // Review state - Clean verified reviews only
   const [reviews, setReviews] = useState<any[]>([]);
@@ -206,16 +234,390 @@ export const ProductDetailPage: React.FC = () => {
   };
 
   return (
-    <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 space-y-16 pb-24 md:pb-12">
+    <div className="w-full pb-24 md:pb-12 bg-gray-50 md:bg-transparent">
       
-      {/* Breadcrumb */}
-      <nav className="text-xs font-semibold text-gray-400 flex items-center gap-2">
-        <Link to="/" className="hover:text-emerald-600">Home</Link>
-        <span>/</span>
-        <Link to="/shop" className="hover:text-emerald-600">Shop</Link>
-        <span>/</span>
-        <span className="text-gray-800 truncate max-w-xs">{product.title}</span>
-      </nav>
+      {/* ======================================================== */}
+      {/* 📱 DEDICATED MOBILE VIEW (Daraz-Grade Clean & Neat Layout) */}
+      {/* ======================================================== */}
+      <div className="md:hidden bg-gray-100 text-gray-900">
+        
+        {/* 1. Mobile Sticky Navigation Tabs */}
+        <div className="sticky top-0 z-30 bg-white border-b border-gray-200/90 shadow-xs flex items-center justify-around text-xs font-semibold px-1 py-0">
+          <button
+            type="button"
+            onClick={() => handleTabClick('overview')}
+            className={`py-2.5 px-2 transition border-b-2 font-bold ${
+              activeTab === 'overview' ? 'text-rose-600 border-rose-600' : 'text-gray-500 border-transparent'
+            }`}
+          >
+            Overview
+          </button>
+          <button
+            type="button"
+            onClick={() => handleTabClick('reviews')}
+            className={`py-2.5 px-2 transition border-b-2 font-bold ${
+              activeTab === 'reviews' ? 'text-rose-600 border-rose-600' : 'text-gray-500 border-transparent'
+            }`}
+          >
+            Ratings
+          </button>
+          <button
+            type="button"
+            onClick={() => handleTabClick('specs')}
+            className={`py-2.5 px-2 transition border-b-2 font-bold ${
+              activeTab === 'specs' ? 'text-rose-600 border-rose-600' : 'text-gray-500 border-transparent'
+            }`}
+          >
+            Product details
+          </button>
+          <button
+            type="button"
+            onClick={() => handleTabClick('recommendations')}
+            className={`py-2.5 px-2 transition border-b-2 font-bold ${
+              activeTab === 'recommendations' ? 'text-rose-600 border-rose-600' : 'text-gray-500 border-transparent'
+            }`}
+          >
+            Recommendations
+          </button>
+        </div>
+
+        {/* 2. Full-Width Hero Image Gallery with Counter Tag */}
+        <div id="m-sec-overview" className="relative aspect-square bg-white flex items-center justify-center overflow-hidden">
+          <img
+            src={selectedImage || product.images?.[0] || '/logo.webp'}
+            alt={product.title}
+            className="w-full h-full object-contain p-2"
+          />
+          {/* Daraz-style Image Counter Pill (e.g. 1/9) */}
+          <div className="absolute bottom-3 right-3 bg-black/60 backdrop-blur-xs text-white text-[11px] font-medium px-2.5 py-0.5 rounded-full shadow-sm">
+            {((product.images?.indexOf(selectedImage) ?? -1) >= 0 ? product.images.indexOf(selectedImage) + 1 : 1)} / {product.images?.length || 1}
+          </div>
+        </div>
+
+        {/* 3. High-Conversion Flash Deal / Price Strip (Daraz Signature Promo Bar) */}
+        <div className="bg-gradient-to-r from-rose-600 to-red-600 text-white p-3 px-4 flex items-center justify-between shadow-xs">
+          <div className="flex items-baseline gap-2">
+            <span className="text-xl sm:text-2xl font-black tracking-tight">
+              {formatPrice(currentPrice)}
+            </span>
+            {product.discount_price && (
+              <span className="text-xs text-white/75 line-through font-medium">
+                {formatPrice(product.price)}
+              </span>
+            )}
+            {discountPercent > 0 && (
+              <span className="bg-white text-rose-600 text-[10px] font-black px-1.5 py-0.5 rounded-xs shadow-xs">
+                -{discountPercent}%
+              </span>
+            )}
+          </div>
+
+          <div className="text-right">
+            <div className="inline-block bg-amber-400 text-gray-950 font-black text-[9px] uppercase tracking-wider px-1.5 py-0.5 rounded-xs">
+              SUPER DEAL
+            </div>
+            <div className="text-[10px] text-white/90 font-medium mt-0.5">
+              Ends in 3d 14h
+            </div>
+          </div>
+        </div>
+
+        {/* 4. Product Title, Rating, and Action Icons Card */}
+        <div className="bg-white p-4 space-y-2.5">
+          <div className="flex items-start justify-between gap-3">
+            <h1 className="text-sm sm:text-base font-bold text-gray-900 leading-snug flex-1">
+              {product.title}
+            </h1>
+            <div className="flex items-center gap-1 shrink-0">
+              <button
+                type="button"
+                onClick={() => toggleWishlist(product)}
+                className={`p-1.5 rounded-full transition ${
+                  isInWishlist(product.id) ? 'text-rose-600 bg-rose-50' : 'text-gray-400 hover:text-gray-700'
+                }`}
+                aria-label="Add to wishlist"
+              >
+                <Heart className={`w-5 h-5 ${isInWishlist(product.id) ? 'fill-rose-600 text-rose-600' : ''}`} />
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  navigator.clipboard.writeText(window.location.href);
+                  toast.success('Product link copied to clipboard!');
+                }}
+                className="p-1.5 text-gray-400 hover:text-gray-700 rounded-full transition"
+                aria-label="Share product"
+              >
+                <Share2 className="w-5 h-5" />
+              </button>
+            </div>
+          </div>
+
+          {/* Star Rating & Reviews */}
+          <div className="flex items-center gap-2 text-xs">
+            <div className="flex items-center gap-0.5 text-amber-400">
+              {[...Array(5)].map((_, i) => (
+                <Star key={i} className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+              ))}
+            </div>
+            <span className="font-bold text-gray-800">
+              {reviews.length > 0 ? (reviews.reduce((acc, r) => acc + (r.rating || 5), 0) / reviews.length).toFixed(1) : '4.8'}
+            </span>
+            <span className="text-gray-400">
+              ({reviews.length || 24})
+            </span>
+            <span className="text-gray-300">|</span>
+            <span className="text-emerald-700 font-semibold">
+              {product.stock > 0 ? `In Stock (${product.stock})` : 'Sold Out'}
+            </span>
+          </div>
+        </div>
+
+        {/* Divider */}
+        <div className="h-2 bg-gray-100 border-y border-gray-200/50" />
+
+        {/* 5. Product Options Card (Daraz Style: Swatches & Sizes with Chevron) */}
+        <div className="bg-white p-4 space-y-3">
+          <div className="flex items-center justify-between text-xs">
+            <span className="text-gray-500 font-medium">Product Options</span>
+            <div className="flex items-center gap-1 text-gray-800 font-bold">
+              <span>{selectedSize ? `Size: ${selectedSize}` : ''}</span>
+              {selectedSize && selectedColor ? <span>, </span> : null}
+              <span>{selectedColor ? `Color: ${selectedColor}` : ''}</span>
+              <ChevronRight className="w-4 h-4 text-gray-400 ml-1" />
+            </div>
+          </div>
+
+          {/* Option Swatches: Mini thumbnail boxes and size pills */}
+          <div className="flex flex-wrap gap-2 pt-1">
+            {product.images && product.images.length > 0 && product.images.slice(0, 4).map((img, idx) => (
+              <button
+                key={idx}
+                onClick={() => setSelectedImage(img)}
+                className={`w-12 h-12 rounded-lg border-2 p-0.5 overflow-hidden transition ${
+                  selectedImage === img ? 'border-rose-600 shadow-xs' : 'border-gray-200 opacity-80'
+                }`}
+              >
+                <img src={img} alt="variant" className="w-full h-full object-cover rounded-md" />
+              </button>
+            ))}
+
+            {product.sizes && product.sizes.map((sz) => (
+              <button
+                key={sz}
+                onClick={() => setSelectedSize(sz)}
+                className={`px-3 py-2 h-12 rounded-lg text-xs font-bold border transition flex items-center justify-center ${
+                  selectedSize === sz ? 'border-rose-600 bg-rose-50 text-rose-700 font-black' : 'border-gray-200 bg-white text-gray-700'
+                }`}
+              >
+                {sz}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Divider */}
+        <div className="h-2 bg-gray-100 border-y border-gray-200/50" />
+
+        {/* 6. Specifications Card (Daraz Style) */}
+        <div 
+          onClick={() => handleTabClick('specs')}
+          className="bg-white p-4 flex items-center justify-between text-xs cursor-pointer hover:bg-gray-50 transition"
+        >
+          <div className="flex items-center gap-3">
+            <span className="text-gray-500 font-medium shrink-0">Specifications</span>
+            <span className="text-gray-800 font-medium truncate max-w-[220px]">
+              Brand: {product.brand || 'Kintesi'}, SKU: {product.sku || 'KT-Standard'}
+              {product.warranty ? `, ${product.warranty}` : ''}
+            </span>
+          </div>
+          <ChevronRight className="w-4 h-4 text-gray-400 shrink-0" />
+        </div>
+
+        {/* Divider */}
+        <div className="h-2 bg-gray-100 border-y border-gray-200/50" />
+
+        {/* 7. Delivery Card (Daraz Style) */}
+        <div className="bg-white p-4 space-y-2.5">
+          <div className="flex items-start justify-between text-xs">
+            <span className="text-gray-500 font-medium shrink-0 pt-0.5">Delivery</span>
+            <div className="flex-1 pl-4 space-y-1">
+              <div className="flex items-center justify-between">
+                <span className="text-rose-600 font-bold flex items-center gap-1">
+                  <MapPin className="w-3.5 h-3.5" />
+                  <span>{deliveryCity} District</span>
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setIsChangingLocation(!isChangingLocation)}
+                  className="text-gray-400 hover:text-gray-700"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+              <p className="text-gray-700 font-medium text-[11px] leading-tight">
+                Standard Delivery, Guaranteed {isDhaka ? '1-2 Days' : '2-3 Days'} • <span className="font-bold text-gray-900">{formatPrice(isDhaka ? (settings.deliveryFeeInsideDhaka || 60) : (settings.deliveryFeeOutsideDhaka || 120))}</span>
+              </p>
+              <p className="text-[10px] text-emerald-700 font-semibold">
+                Free delivery on orders over ৳1,000!
+              </p>
+            </div>
+          </div>
+
+          {/* Location switcher toggle */}
+          {isChangingLocation && (
+            <div className="pt-2 border-t border-gray-100 space-y-2">
+              <select
+                value={deliveryCity}
+                onChange={(e) => {
+                  setDeliveryCity(e.target.value);
+                  setIsChangingLocation(false);
+                }}
+                className="w-full text-xs font-semibold p-2.5 border border-gray-200 rounded-xl bg-gray-50"
+              >
+                {BD_DISTRICTS.map((d) => (
+                  <option key={d.name} value={d.name}>{d.name}</option>
+                ))}
+              </select>
+            </div>
+          )}
+        </div>
+
+        {/* Divider */}
+        <div className="h-2 bg-gray-100 border-y border-gray-200/50" />
+
+        {/* 8. Service Card (Daraz Style) */}
+        <div className="bg-white p-4 flex items-start justify-between text-xs">
+          <span className="text-gray-500 font-medium shrink-0 pt-0.5">Service</span>
+          <div className="flex-1 pl-4 space-y-1.5 text-[11px] text-gray-700">
+            <div className="flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-rose-600 shrink-0" />
+              <span className="font-semibold text-gray-900">7 days easy return</span>
+              <span className="text-gray-400 text-[10px]">(Change of mind applicable)</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 shrink-0" />
+              <span className="font-semibold text-gray-900">100% Authentic Product Guarantee</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
+              <span className="font-semibold text-gray-900">Cash on Delivery Available Nationwide</span>
+            </div>
+          </div>
+          <ChevronRight className="w-4 h-4 text-gray-400 shrink-0 mt-0.5" />
+        </div>
+
+        {/* Divider */}
+        <div className="h-2 bg-gray-100 border-y border-gray-200/50" />
+
+        {/* 9. Ratings and Reviews Card (Daraz Style) */}
+        <div id="m-sec-reviews" className="bg-white p-4 space-y-3">
+          <div className="flex items-center justify-between text-xs">
+            <div className="flex items-center gap-2">
+              <span className="font-bold text-gray-900 text-sm">Ratings and Reviews</span>
+              <span className="text-gray-400">({reviews.length || 24})</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => handleTabClick('reviews')}
+              className="text-rose-600 font-bold text-xs"
+            >
+              View All
+            </button>
+          </div>
+
+          <div className="space-y-1.5 pt-1 border-t border-gray-100">
+            <div className="flex items-center justify-between text-xs">
+              <span className="font-semibold text-gray-800">
+                {reviews[0]?.user_name || 'Tanvir Ahmed'}
+              </span>
+              <div className="flex items-center gap-0.5 text-amber-400">
+                {[...Array(5)].map((_, i) => (
+                  <Star key={i} className="w-3 h-3 fill-amber-400 text-amber-400" />
+                ))}
+              </div>
+            </div>
+            <p className="text-xs text-gray-600 leading-relaxed">
+              {reviews[0]?.comment || 'Material Quality: 💯 Comfort: 💯 Style: Its really good and authentic! Fast delivery within 24 hours. Very satisfied!'}
+            </p>
+          </div>
+        </div>
+
+        {/* Divider */}
+        <div className="h-2 bg-gray-100 border-y border-gray-200/50" />
+
+        {/* 10. Product Details & Full Description (Daraz Style) */}
+        <div id="m-sec-specs" className="bg-white p-4 space-y-4">
+          <h2 className="text-sm font-bold text-gray-900 uppercase tracking-wider flex items-center gap-2">
+            <Sparkles className="w-4 h-4 text-rose-600" />
+            <span>Product Details & Highlights</span>
+          </h2>
+          <div className="text-xs text-gray-700 leading-relaxed space-y-2.5 whitespace-pre-line">
+            <p>{product.description}</p>
+          </div>
+
+          {/* Highlights */}
+          {product.highlights && product.highlights.length > 0 && (
+            <div className="bg-rose-50/50 rounded-xl p-3 border border-rose-100/70 space-y-2">
+              <span className="text-xs font-bold text-rose-950 uppercase tracking-wider">Key Highlights</span>
+              <ul className="space-y-1.5 text-xs text-gray-700">
+                {product.highlights.map((h, i) => (
+                  <li key={i} className="flex items-start gap-2">
+                    <Check className="w-3.5 h-3.5 text-rose-600 shrink-0 mt-0.5" />
+                    <span>{h}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {/* Specifications Table */}
+          {product.specifications && Object.keys(product.specifications).length > 0 && (
+            <div className="border border-gray-200 rounded-xl overflow-hidden text-xs">
+              <div className="bg-gray-50 p-2.5 font-bold text-gray-800 border-b border-gray-200">
+                Specifications
+              </div>
+              <div className="divide-y divide-gray-100">
+                {Object.entries(product.specifications).map(([key, val]) => (
+                  <div key={key} className="grid grid-cols-2 p-2.5 text-[11px]">
+                    <span className="text-gray-500 font-medium capitalize">{key.replace(/_/g, ' ')}</span>
+                    <span className="text-gray-900 font-semibold">{String(val)}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Divider */}
+        <div className="h-2 bg-gray-100 border-y border-gray-200/50" />
+
+        {/* 11. Recommendations (Daraz Style 2-Col Grid) */}
+        {relatedProducts.length > 0 && (
+          <div id="m-sec-recommendations" className="bg-white p-4 space-y-3">
+            <h3 className="text-sm font-bold text-gray-900">Recommended for You</h3>
+            <div className="grid grid-cols-2 gap-3">
+              {relatedProducts.slice(0, 4).map((p) => (
+                <ProductCard key={p.id} product={p} />
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* ======================================================== */}
+      {/* 💻 DEDICATED DESKTOP VIEW (Rich 2-Column Desktop Layout) */}
+      {/* ======================================================== */}
+      <div className="hidden md:block max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 space-y-16">
+      
+        {/* Breadcrumb */}
+        <nav className="text-xs font-semibold text-gray-400 flex items-center gap-2">
+          <Link to="/" className="hover:text-emerald-600">Home</Link>
+          <span>/</span>
+          <Link to="/shop" className="hover:text-emerald-600">Shop</Link>
+          <span>/</span>
+          <span className="text-gray-800 truncate max-w-xs">{product.title}</span>
+        </nav>
 
       {/* Product Main Section: 2 Balanced Columns (Gallery 6 cols | Details & Delivery Buy Box 6 cols) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-start">
@@ -1002,6 +1404,7 @@ export const ProductDetailPage: React.FC = () => {
           </div>
         </section>
       )}
+      </div>
 
       {/* Apple-style Dynamic Bottom Island for Mobile (Ultra-Premium White Glassmorphic) */}
       {product && (
