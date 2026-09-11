@@ -120,24 +120,24 @@ export const Footer: React.FC = () => {
           <div className="space-y-3">
             <h4 className="text-white font-bold text-sm uppercase tracking-wider">Payment Methods</h4>
             <p className="text-xs text-gray-400">We accept secure cashless payments & COD:</p>
-            <div className="flex flex-wrap items-center gap-2.5 pt-1">
-              <div className="h-9 px-3 bg-white rounded-xl flex items-center justify-center shadow-md border border-gray-100 hover:scale-105 transition" title="bKash">
-                <BkashLogo className="h-6 w-auto" />
+            <div className="grid grid-cols-3 gap-2 pt-1 w-fit">
+              <div className="w-[60px] h-[36px] bg-white rounded-xl flex items-center justify-center p-1.5 shadow-sm border border-gray-200/80 hover:scale-105 transition" title="bKash">
+                <BkashLogo className="max-h-5 max-w-[44px] object-contain" />
               </div>
-              <div className="h-9 px-3 bg-white rounded-xl flex items-center justify-center shadow-md border border-gray-100 hover:scale-105 transition" title="Nagad">
-                <NagadLogo className="h-6 w-auto" />
+              <div className="w-[60px] h-[36px] bg-white rounded-xl flex items-center justify-center p-1.5 shadow-sm border border-gray-200/80 hover:scale-105 transition" title="Nagad">
+                <NagadLogo className="max-h-5 max-w-[44px] object-contain" />
               </div>
-              <div className="h-9 px-3 bg-white rounded-xl flex items-center justify-center shadow-md border border-gray-100 hover:scale-105 transition" title="DBBL Rocket">
-                <RocketLogo className="h-6 w-auto" />
+              <div className="w-[60px] h-[36px] bg-white rounded-xl flex items-center justify-center p-1.5 shadow-sm border border-gray-200/80 hover:scale-105 transition" title="DBBL Rocket">
+                <RocketLogo className="max-h-4.5 max-w-[44px] object-contain" />
               </div>
-              <div className="h-9 px-3 bg-white rounded-xl flex items-center justify-center shadow-md border border-gray-100 hover:scale-105 transition" title="Visa">
-                <VisaLogo className="h-5 w-auto" />
+              <div className="w-[60px] h-[36px] bg-white rounded-xl flex items-center justify-center p-1.5 shadow-sm border border-gray-200/80 hover:scale-105 transition" title="Visa">
+                <VisaLogo className="max-h-4 max-w-[44px] object-contain" />
               </div>
-              <div className="h-9 px-3 bg-white rounded-xl flex items-center justify-center shadow-md border border-gray-100 hover:scale-105 transition" title="Mastercard">
-                <MastercardLogo className="h-5 w-auto" />
+              <div className="w-[60px] h-[36px] bg-white rounded-xl flex items-center justify-center p-1.5 shadow-sm border border-gray-200/80 hover:scale-105 transition" title="Mastercard">
+                <MastercardLogo className="max-h-5 max-w-[44px] object-contain" />
               </div>
-              <div className="h-9 px-3 bg-rose-700 text-white rounded-xl flex items-center justify-center shadow-md border border-rose-600/50 text-[11px] font-black uppercase tracking-wider hover:scale-105 transition" title="Cash on Delivery">
-                <span>৳ COD</span>
+              <div className="w-[60px] h-[36px] bg-rose-700 text-white rounded-xl flex items-center justify-center p-1 shadow-sm border border-rose-600/50 hover:scale-105 transition" title="Cash on Delivery">
+                <span className="text-[11px] font-black uppercase tracking-wider text-center leading-none">৳ COD</span>
               </div>
             </div>
           </div>
