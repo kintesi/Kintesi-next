@@ -146,8 +146,18 @@ export const Footer: React.FC = () => {
       {/* Bottom Bar */}
       <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 pt-8 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between text-xs text-gray-500 gap-4">
         <p>© {new Date().getFullYear()} Kintesi. All rights reserved.</p>
-        <p className="flex items-center gap-1">
-          Designed with <Heart className="w-3.5 h-3.5 text-rose-500 fill-rose-500" /> for modern e-commerce.
+        <p className="flex items-center gap-1.5">
+          <span>Developed with</span>
+          <Heart className="w-3.5 h-3.5 text-rose-500 fill-rose-500 inline" />
+          <span>by</span>
+          <a 
+            href="https://seocorerank.com" 
+            target="_blank" 
+            rel="noopener noreferrer" 
+            className="font-bold text-gray-800 hover:text-rose-600 transition underline underline-offset-2"
+          >
+            SEOCoreRank
+          </a>
         </p>
       </div>
     </footer>
