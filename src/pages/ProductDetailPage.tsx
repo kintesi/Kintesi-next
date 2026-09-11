@@ -207,15 +207,6 @@ export const ProductDetailPage: React.FC = () => {
     <div className="bg-[#f6f7f9] sm:bg-transparent min-h-screen py-3 sm:py-8 pb-28 md:pb-12">
       <div className="max-w-[1440px] mx-auto px-2.5 sm:px-6 lg:px-8 space-y-3 sm:space-y-8">
         
-        {/* Breadcrumb */}
-        <nav className="text-xs font-semibold text-gray-400 flex items-center gap-2 px-1">
-          <Link to="/" className="hover:text-rose-600">Home</Link>
-          <span>/</span>
-          <Link to="/shop" className="hover:text-rose-600">Shop</Link>
-          <span>/</span>
-          <span className="text-gray-800 truncate max-w-xs">{product.title}</span>
-        </nav>
-
         {/* Product Main Section: 2 Balanced Columns (Gallery 6 cols | Details & Delivery Buy Box 6 cols) */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 sm:gap-6 lg:gap-10 items-start">
           
@@ -1004,7 +995,7 @@ export const ProductDetailPage: React.FC = () => {
       </div>
 
       {/* Apple-style Dynamic Bottom Island for Mobile (Ultra-Premium White Glassmorphic) */}
-      {product && (
+      {product && showStickyBar && (
         <aside 
           aria-label="Dynamic Bottom Island for Quick Purchase"
           className="fixed bottom-3 left-3 right-3 max-w-md mx-auto z-40 bg-white/95 backdrop-blur-2xl border border-gray-200/90 text-gray-900 shadow-[0_14px_45px_rgba(0,0,0,0.14)] rounded-full p-2 px-3 flex items-center justify-between gap-2.5 md:hidden animate-in slide-in-from-bottom duration-300 ring-1 ring-black/[0.04]"
