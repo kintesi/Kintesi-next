@@ -341,17 +341,6 @@ export const Navbar: React.FC = () => {
                 <span>{subtotal > 0 ? formatPrice(subtotal) : 'Cart'}</span>
               </button>
 
-              {/* Direct Admin Link */}
-              {isAdmin && (
-                <Link
-                  to="/admin"
-                  className="h-9 px-3 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded-xl font-bold text-xs transition flex items-center gap-1.5 border border-rose-200/80"
-                >
-                  <ShieldCheck className="w-3.5 h-3.5 text-rose-600" />
-                  <span>Admin</span>
-                </Link>
-              )}
-
               {/* User Account / Profile */}
               {user ? (
                 <div ref={profileRef} className="relative">
