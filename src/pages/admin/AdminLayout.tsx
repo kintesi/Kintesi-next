@@ -287,10 +287,10 @@ export const AdminLayout: React.FC = () => {
           className={`flex-1 bg-gray-900 ${
             isChat
               ? 'p-0 flex flex-col w-full h-full min-h-0 overflow-hidden'
-              : 'overflow-y-auto p-4 sm:p-6 lg:p-8'
+              : 'overflow-y-auto p-4 sm:p-6 lg:p-8 w-full flex flex-col'
           }`}
         >
-          <div className={isChat ? 'w-full h-full flex flex-col flex-1 min-h-0 overflow-hidden' : 'w-full max-w-[1750px] mx-auto'}>
+          <div className={isChat ? 'w-full h-full flex flex-col flex-1 min-h-0 overflow-hidden' : 'w-full min-h-full flex flex-col flex-1'}>
             <Outlet />
           </div>
         </main>

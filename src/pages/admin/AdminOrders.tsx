@@ -121,7 +121,7 @@ export const AdminOrders: React.FC = () => {
   });
 
   return (
-    <div className="space-y-6">
+    <div className="w-full space-y-6 pb-20">
       
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -149,7 +149,7 @@ export const AdminOrders: React.FC = () => {
           ))}
         </div>
 
-        <div className="relative max-w-xs w-full">
+        <div className="relative max-w-md w-full">
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
           <input
             type="text"
@@ -299,7 +299,7 @@ export const AdminOrders: React.FC = () => {
       {/* Order Detail Modal */}
       {selectedOrder && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
-          <div className="bg-gray-900 border border-gray-700 rounded-3xl p-6 sm:p-8 max-w-xl w-full max-h-[90vh] overflow-y-auto space-y-6 text-white shadow-2xl">
+          <div className="bg-gray-900 border border-gray-700 rounded-3xl p-6 sm:p-8 max-w-3xl w-full max-h-[90vh] overflow-y-auto space-y-6 text-white shadow-2xl">
             <div className="flex items-center justify-between border-b border-gray-800 pb-4">
               <div>
                 <h3 className="text-lg font-black text-white">Order #{selectedOrder.order_number}</h3>

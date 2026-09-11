@@ -73,7 +73,7 @@ export const AdminPaymentSettings: React.FC = () => {
   }
 
   return (
-    <div className="max-w-4xl space-y-8 text-white">
+    <div className="w-full space-y-8 text-white pb-20">
       <div>
         <h1 className="text-2xl sm:text-3xl font-black flex items-center gap-3">
           <CreditCard className="w-8 h-8 text-emerald-400" />

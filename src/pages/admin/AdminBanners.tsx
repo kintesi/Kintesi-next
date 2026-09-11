@@ -325,7 +325,7 @@ export const AdminBanners: React.FC = () => {
   };
 
   return (
-    <div className="w-full max-w-[1750px] mx-auto space-y-8 text-white pb-20">
+    <div className="w-full space-y-8 text-white pb-20">
       
       {/* Top Banner Header with Status Summary & Primary Actions */}
       <div className="bg-gradient-to-r from-gray-900 via-gray-900 to-gray-950 border border-gray-800 rounded-3xl p-6 sm:p-8 shadow-2xl flex flex-col lg:flex-row lg:items-center justify-between gap-6">
@@ -435,10 +435,10 @@ export const AdminBanners: React.FC = () => {
       </div>
 
       {/* Main 2-Column Responsive Grid Layout */}
-      <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start w-full">
         
-        {/* Left Column: Configuration Forms (7 cols / 58% on desktop) */}
-        <div className="xl:col-span-7 space-y-6">
+        {/* Left Column: Configuration Forms */}
+        <div className="lg:col-span-7 xl:col-span-7 2xl:col-span-8 space-y-6">
 
           {/* Section 0: Top Announcement Bar & Offer Broadcast */}
           <div className="bg-gray-800/80 rounded-3xl border border-gray-700/80 p-6 sm:p-7 space-y-5 shadow-xl">
@@ -1218,8 +1218,8 @@ export const AdminBanners: React.FC = () => {
 
         </div>
 
-        {/* Right Column: Real-time Live Visual Preview Studio (5 cols / 42% on desktop, sticky) */}
-        <div className="xl:col-span-5 space-y-6 xl:sticky xl:top-14">
+        {/* Right Column: Real-time Live Visual Preview Studio */}
+        <div className="lg:col-span-5 xl:col-span-5 2xl:col-span-4 space-y-6 lg:sticky lg:top-14">
           
           <div className="bg-gray-800/90 rounded-3xl border border-gray-700/90 p-6 space-y-5 shadow-2xl backdrop-blur-md">
             <div className="flex items-center justify-between border-b border-gray-700 pb-3.5">

@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { useCoupons } from '../../contexts/CouponContext';
 import { Coupon } from '../../types';
 import {
@@ -131,7 +131,7 @@ export const AdminCoupons: React.FC = () => {
   const activeCount = coupons.filter((c) => c.is_active).length;
 
   return (
-    <div className="space-y-8 text-white pb-20 max-w-7xl">
+    <div className="w-full space-y-8 text-white pb-20">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>

@@ -697,7 +697,7 @@ export const AdminProducts: React.FC = () => {
   );
 
   return (
-    <div className="space-y-6">
+    <div className="w-full space-y-6 pb-20">
       
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -1009,7 +1009,7 @@ export const AdminProducts: React.FC = () => {
 
           {/* Studio Scrollable Full-Page Body */}
           <div className="flex-1 overflow-y-auto p-4 sm:p-8 bg-gray-950">
-            <form id="admin-product-studio-form" onSubmit={handleSubmit} className="max-w-5xl mx-auto space-y-6 pb-12">
+            <form id="admin-product-studio-form" onSubmit={handleSubmit} className="w-full max-w-7xl mx-auto space-y-6 pb-12">
               {/* Tab 1: General & Pricing */}
               {activeModalTab === 'general' && (
                 <div className="space-y-6 animate-fadeIn">

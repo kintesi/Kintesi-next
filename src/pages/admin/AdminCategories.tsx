@@ -92,7 +92,7 @@ export const AdminCategories: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="w-full space-y-8 text-white pb-20">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-black text-white">Store Categories</h1>
@@ -108,7 +108,7 @@ export const AdminCategories: React.FC = () => {
       </div>
 
       {/* Categories Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5 gap-6 w-full">
         {categories.map((cat) => (
           <div
             key={cat.slug || cat.id}
