@@ -1003,22 +1003,22 @@ export const ProductDetailPage: React.FC = () => {
         </section>
       )}
 
-      {/* Apple-style Dynamic Bottom Island for Mobile */}
+      {/* Apple-style Dynamic Bottom Island for Mobile (Ultra-Premium White Glassmorphic) */}
       {product && (
         <aside 
           aria-label="Dynamic Bottom Island for Quick Purchase"
-          className="fixed bottom-3 left-3 right-3 max-w-md mx-auto z-40 bg-gray-950/95 backdrop-blur-xl border border-white/15 text-white shadow-[0_12px_40px_rgba(0,0,0,0.5)] rounded-full p-2 px-3 flex items-center justify-between gap-2 md:hidden animate-in slide-in-from-bottom duration-300 ring-1 ring-white/10"
+          className="fixed bottom-3 left-3 right-3 max-w-md mx-auto z-40 bg-white/95 backdrop-blur-2xl border border-gray-200/90 text-gray-900 shadow-[0_14px_45px_rgba(0,0,0,0.14)] rounded-full p-2 px-3 flex items-center justify-between gap-2.5 md:hidden animate-in slide-in-from-bottom duration-300 ring-1 ring-black/[0.04]"
         >
           {/* Mini product thumbnail & price */}
           <div className="flex items-center gap-2 min-w-0 flex-1">
             <img
               src={product.images?.[0] || '/logo.webp'}
               alt={product.title}
-              className="w-9 h-9 rounded-full object-cover bg-white/10 border border-white/20 p-0.5 shrink-0"
+              className="w-9 h-9 rounded-full object-cover bg-gray-50 border border-gray-200/90 p-0.5 shrink-0 shadow-xs"
             />
             <div className="min-w-0 flex-1">
               <div className="flex items-baseline gap-1.5 leading-tight">
-                <span className="text-xs font-black text-emerald-400">
+                <span className="text-xs font-black text-rose-600">
                   {formatPrice(currentPrice)}
                 </span>
                 {product.discount_price && (
@@ -1027,44 +1027,44 @@ export const ProductDetailPage: React.FC = () => {
                   </span>
                 )}
               </div>
-              <p className="text-[10px] text-gray-300 font-medium truncate leading-tight mt-0.5">
+              <p className="text-[10px] text-gray-700 font-bold truncate leading-tight mt-0.5">
                 {product.title}
               </p>
             </div>
           </div>
 
           {/* Inline mini quantity selector */}
-          <div className="flex items-center bg-white/10 rounded-full px-1.5 py-0.5 border border-white/10 shrink-0">
+          <div className="flex items-center bg-gray-100/90 rounded-full px-1.5 py-0.5 border border-gray-200/80 shrink-0 shadow-inner">
             <button
               type="button"
               onClick={() => setQuantity(Math.max(1, quantity - 1))}
-              className="w-5 h-5 rounded-full flex items-center justify-center text-gray-300 hover:text-white hover:bg-white/20 transition active:scale-90"
+              className="w-5 h-5 rounded-full flex items-center justify-center text-gray-600 hover:text-gray-900 hover:bg-white transition active:scale-90 cursor-pointer"
               aria-label="Decrease quantity"
             >
               <Minus className="w-2.5 h-2.5" />
             </button>
-            <span className="w-4 text-center text-xs font-bold text-white">
+            <span className="w-4 text-center text-xs font-black text-gray-900">
               {quantity}
             </span>
             <button
               type="button"
               onClick={() => setQuantity(Math.min(product.stock, quantity + 1))}
               disabled={quantity >= product.stock}
-              className="w-5 h-5 rounded-full flex items-center justify-center text-gray-300 hover:text-white hover:bg-white/20 transition active:scale-90 disabled:opacity-30"
+              className="w-5 h-5 rounded-full flex items-center justify-center text-gray-600 hover:text-gray-900 hover:bg-white transition active:scale-90 disabled:opacity-30 cursor-pointer"
               aria-label="Increase quantity"
             >
               <Plus className="w-2.5 h-2.5" />
             </button>
           </div>
 
-          {/* Island Action buttons: Cart & Order */}
+          {/* Island Action buttons: Cart & Order (English Premium UI) */}
           <div className="flex items-center gap-1.5 shrink-0">
             <button
               type="button"
               onClick={handleAddToCart}
               disabled={product.stock <= 0}
-              className="w-8 h-8 bg-white/10 hover:bg-white/20 text-white rounded-full flex items-center justify-center active:scale-95 transition disabled:opacity-40 border border-white/10"
-              title="Add to cart"
+              className="w-8 h-8 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-full flex items-center justify-center active:scale-95 transition disabled:opacity-40 border border-gray-200/80 shadow-xs cursor-pointer"
+              title="Add to Cart"
             >
               <ShoppingCart className="w-3.5 h-3.5" />
             </button>
@@ -1072,10 +1072,10 @@ export const ProductDetailPage: React.FC = () => {
               type="button"
               onClick={handleBuyNow}
               disabled={product.stock <= 0}
-              className="h-8 px-3 bg-gradient-to-r from-rose-600 to-pink-600 hover:from-rose-500 hover:to-pink-500 text-white font-bold rounded-full text-xs flex items-center justify-center gap-1 active:scale-95 transition disabled:opacity-40 shadow-md shadow-rose-600/30"
+              className="h-8 px-3.5 bg-gradient-to-r from-rose-600 to-rose-700 hover:from-rose-500 hover:to-rose-600 text-white font-extrabold rounded-full text-xs flex items-center justify-center gap-1 active:scale-95 transition disabled:opacity-40 shadow-md shadow-rose-600/30 cursor-pointer"
             >
               <Zap className="w-3 h-3 fill-current" />
-              <span>{product.stock > 0 ? 'অর্ডার' : 'স্টক আউট'}</span>
+              <span>{product.stock > 0 ? 'Buy Now' : 'Sold Out'}</span>
             </button>
           </div>
         </aside>
