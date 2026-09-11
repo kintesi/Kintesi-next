@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { Product } from '../types';
 import { INITIAL_PRODUCTS } from '../data/mockData';
@@ -33,6 +33,7 @@ import {
   Clock,
   CreditCard,
   ChevronDown,
+  ChevronLeft,
   ChevronRight,
   MessageCircle,
   AlertTriangle,
@@ -66,14 +67,80 @@ export const ProductDetailPage: React.FC = () => {
   const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
   const [isChangingLocation, setIsChangingLocation] = useState(false);
 
-  // Mobile Sticky Bottom Bar Scroll Listener
+  // Ref for the on-page Buy Actions block (Quantity, Add to Cart, Buy Now)
+  const buyActionsRef = useRef<HTMLDivElement | null>(null);
+
+  // Touch Swipe Gesture State for Product Images
+  const [touchStartX, setTouchStartX] = useState<number | null>(null);
+  const [touchStartY, setTouchStartY] = useState<number | null>(null);
+
+  const productImages = product?.images && product.images.length > 0 ? product.images : [selectedImage || '/logo.webp'];
+  const currentImageIndex = productImages.indexOf(selectedImage) !== -1 ? productImages.indexOf(selectedImage) : 0;
+
+  const handleNextImage = () => {
+    if (productImages.length <= 1) return;
+    const nextIdx = (currentImageIndex + 1) % productImages.length;
+    setSelectedImage(productImages[nextIdx]);
+  };
+
+  const handlePrevImage = () => {
+    if (productImages.length <= 1) return;
+    const prevIdx = (currentImageIndex - 1 + productImages.length) % productImages.length;
+    setSelectedImage(productImages[prevIdx]);
+  };
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchStartX(e.touches[0].clientX);
+    setTouchStartY(e.touches[0].clientY);
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartX === null || touchStartY === null) return;
+    const touchEndX = e.changedTouches[0].clientX;
+    const touchEndY = e.changedTouches[0].clientY;
+
+    const diffX = touchStartX - touchEndX;
+    const diffY = touchStartY - touchEndY;
+
+    // Check if horizontal swipe is dominant and exceeds 35px threshold
+    if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 35) {
+      if (diffX > 0) {
+        // Swiped Left -> Next image
+        handleNextImage();
+      } else {
+        // Swiped Right -> Previous image
+        handlePrevImage();
+      }
+    }
+
+    setTouchStartX(null);
+    setTouchStartY(null);
+  };
+
+  // Dynamic Island is hidden as long as on-page Buy Actions block is visible on display.
+  // It ONLY shows when this block has scrolled off the top of the screen (not on display).
   useEffect(() => {
     const handleScroll = () => {
-      setShowStickyBar(window.scrollY > 320);
+      if (!buyActionsRef.current) {
+        setShowStickyBar(window.scrollY > 400);
+        return;
+      }
+      const rect = buyActionsRef.current.getBoundingClientRect();
+      const isVisibleOnDisplay = rect.top < window.innerHeight && rect.bottom > 0;
+
+      // When visible on display -> hide dynamic island.
+      // When NOT visible and user has scrolled past it downwards (rect.bottom <= 0) -> show dynamic island!
+      setShowStickyBar(!isVisibleOnDisplay && rect.bottom <= 0);
     };
+
     window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+    window.addEventListener('resize', handleScroll, { passive: true });
+    handleScroll();
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('resize', handleScroll);
+    };
+  }, [product]);
 
   useEffect(() => {
     if (defaultAddress) {
@@ -210,23 +277,48 @@ export const ProductDetailPage: React.FC = () => {
         {/* Product Main Section: 2 Balanced Columns (Gallery 6 cols | Details & Delivery Buy Box 6 cols) */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 sm:gap-6 lg:gap-10 items-start">
           
-          {/* Left Column: Image Gallery (6 cols) */}
+          {/* Left Column: Image Gallery with Touch Swipe Support (6 cols) */}
           <div className="lg:col-span-6 space-y-3">
-            <div className="aspect-square bg-white rounded-2xl sm:rounded-3xl border border-gray-100 overflow-hidden shadow-xs p-4 sm:p-6 flex items-center justify-center relative">
+            <div 
+              onTouchStart={handleTouchStart}
+              onTouchEnd={handleTouchEnd}
+              className="aspect-square bg-white rounded-2xl sm:rounded-3xl border border-gray-100 overflow-hidden shadow-xs p-4 sm:p-6 flex items-center justify-center relative select-none touch-pan-y group"
+            >
               <img
                 src={selectedImage || product.images[0] || '/logo.webp'}
                 alt={product.title}
-                className="w-full h-full object-contain hover:scale-105 transition-transform duration-300"
+                className="w-full h-full object-contain hover:scale-105 transition-transform duration-300 pointer-events-none"
               />
               {discountPercent > 0 && (
-                <span className="absolute top-3 left-3 sm:top-4 sm:left-4 px-2.5 py-0.5 sm:px-3 sm:py-1 bg-rose-600 text-white font-extrabold text-[11px] sm:text-xs rounded-full shadow-xs">
+                <span className="absolute top-3 left-3 sm:top-4 sm:left-4 px-2.5 py-0.5 sm:px-3 sm:py-1 bg-rose-600 text-white font-extrabold text-[11px] sm:text-xs rounded-full shadow-xs z-10">
                   {discountPercent}% OFF
                 </span>
               )}
-              {product.images && product.images.length > 1 && (
-                <div className="absolute bottom-3 right-3 sm:bottom-4 sm:right-4 bg-black/60 backdrop-blur-xs text-white text-[11px] font-medium px-2.5 py-0.5 rounded-full shadow-xs">
-                  {(product.images.indexOf(selectedImage) !== -1 ? product.images.indexOf(selectedImage) + 1 : 1)} / {product.images.length}
-                </div>
+              {productImages.length > 1 && (
+                <>
+                  {/* Subtle navigation chevrons */}
+                  <button
+                    type="button"
+                    onClick={(e) => { e.stopPropagation(); handlePrevImage(); }}
+                    className="absolute left-2.5 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/85 hover:bg-white text-gray-800 shadow-md flex items-center justify-center transition active:scale-90 cursor-pointer z-10 opacity-90 sm:opacity-0 sm:group-hover:opacity-100"
+                    aria-label="Previous image"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={(e) => { e.stopPropagation(); handleNextImage(); }}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/85 hover:bg-white text-gray-800 shadow-md flex items-center justify-center transition active:scale-90 cursor-pointer z-10 opacity-90 sm:opacity-0 sm:group-hover:opacity-100"
+                    aria-label="Next image"
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+
+                  {/* Discrete swipe counter pill */}
+                  <div className="absolute bottom-3 right-3 sm:bottom-4 sm:right-4 bg-black/60 backdrop-blur-xs text-white text-[11px] font-medium px-2.5 py-0.5 rounded-full shadow-xs z-10 select-none">
+                    {currentImageIndex + 1} / {productImages.length}
+                  </div>
+                </>
               )}
             </div>
 
@@ -386,66 +478,69 @@ export const ProductDetailPage: React.FC = () => {
                 </div>
               )}
 
-              {/* Quantity Selector & Stock Availability */}
-              <div className="flex items-center justify-between gap-4 pt-1">
-                <div className="space-y-1">
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-gray-500 block">Quantity</span>
-                  <div className="flex items-center border border-gray-200 rounded-xl bg-white shadow-xs overflow-hidden">
-                    <button
-                      type="button"
-                      onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                      className="p-2 hover:bg-gray-100 text-gray-600 transition cursor-pointer"
-                      aria-label="Decrease quantity"
-                    >
-                      <Minus className="w-3.5 h-3.5" />
-                    </button>
-                    <span className="px-3.5 text-xs font-bold text-gray-800">{quantity}</span>
-                    <button
-                      type="button"
-                      onClick={() => setQuantity(Math.min(product.stock, quantity + 1))}
-                      disabled={quantity >= product.stock}
-                      className="p-2 hover:bg-gray-100 text-gray-600 transition cursor-pointer disabled:opacity-30"
-                      aria-label="Increase quantity"
-                    >
-                      <Plus className="w-3.5 h-3.5" />
-                    </button>
+              {/* Buy Actions Block (Quantity, Stock & Purchase Buttons) */}
+              <div ref={buyActionsRef} className="space-y-4">
+                {/* Quantity Selector & Stock Availability */}
+                <div className="flex items-center justify-between gap-4 pt-1">
+                  <div className="space-y-1">
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-gray-500 block">Quantity</span>
+                    <div className="flex items-center border border-gray-200 rounded-xl bg-white shadow-xs overflow-hidden">
+                      <button
+                        type="button"
+                        onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                        className="p-2 hover:bg-gray-100 text-gray-600 transition cursor-pointer"
+                        aria-label="Decrease quantity"
+                      >
+                        <Minus className="w-3.5 h-3.5" />
+                      </button>
+                      <span className="px-3.5 text-xs font-bold text-gray-800">{quantity}</span>
+                      <button
+                        type="button"
+                        onClick={() => setQuantity(Math.min(product.stock, quantity + 1))}
+                        disabled={quantity >= product.stock}
+                        className="p-2 hover:bg-gray-100 text-gray-600 transition cursor-pointer disabled:opacity-30"
+                        aria-label="Increase quantity"
+                      >
+                        <Plus className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="text-right">
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-gray-500 block">Availability</span>
+                    {product.stock > 0 ? (
+                      <span className="text-xs font-bold text-emerald-700 flex items-center gap-1.5 justify-end mt-1">
+                        <span className="w-2 h-2 bg-emerald-500 rounded-full inline-block" />
+                        <span>In Stock ({product.stock} units)</span>
+                      </span>
+                    ) : (
+                      <span className="text-xs font-bold text-rose-600 mt-1 block">Out of Stock</span>
+                    )}
                   </div>
                 </div>
 
-                <div className="text-right">
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-gray-500 block">Availability</span>
-                  {product.stock > 0 ? (
-                    <span className="text-xs font-bold text-emerald-700 flex items-center gap-1.5 justify-end mt-1">
-                      <span className="w-2 h-2 bg-emerald-500 rounded-full inline-block" />
-                      <span>In Stock ({product.stock} units)</span>
-                    </span>
-                  ) : (
-                    <span className="text-xs font-bold text-rose-600 mt-1 block">Out of Stock</span>
-                  )}
+                {/* Main Action Buttons (Desktop & Mobile - Always accessible) */}
+                <div className="grid grid-cols-2 gap-2.5 pt-2">
+                  <button
+                    type="button"
+                    onClick={handleAddToCart}
+                    disabled={product.stock <= 0}
+                    className="py-3 px-4 bg-gray-900 hover:bg-black text-white font-bold rounded-xl transition shadow-sm flex items-center justify-center gap-2 disabled:opacity-50 active:scale-95 text-xs sm:text-sm cursor-pointer"
+                  >
+                    <ShoppingCart className="w-4 h-4" />
+                    <span>Add to Cart</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleBuyNow}
+                    disabled={product.stock <= 0}
+                    className="py-3 px-4 bg-gradient-to-r from-rose-600 to-rose-700 hover:from-rose-500 hover:to-rose-600 text-white font-bold rounded-xl transition shadow-md shadow-rose-600/20 flex items-center justify-center gap-2 disabled:opacity-50 active:scale-95 text-xs sm:text-sm cursor-pointer"
+                  >
+                    <Zap className="w-4 h-4 fill-current" />
+                    <span>Buy Now</span>
+                  </button>
                 </div>
-              </div>
-
-              {/* Main Action Buttons (Desktop & Mobile - Always accessible) */}
-              <div className="grid grid-cols-2 gap-2.5 pt-2">
-                <button
-                  type="button"
-                  onClick={handleAddToCart}
-                  disabled={product.stock <= 0}
-                  className="py-3 px-4 bg-gray-900 hover:bg-black text-white font-bold rounded-xl transition shadow-sm flex items-center justify-center gap-2 disabled:opacity-50 active:scale-95 text-xs sm:text-sm cursor-pointer"
-                >
-                  <ShoppingCart className="w-4 h-4" />
-                  <span>Add to Cart</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={handleBuyNow}
-                  disabled={product.stock <= 0}
-                  className="py-3 px-4 bg-gradient-to-r from-rose-600 to-rose-700 hover:from-rose-500 hover:to-rose-600 text-white font-bold rounded-xl transition shadow-md shadow-rose-600/20 flex items-center justify-center gap-2 disabled:opacity-50 active:scale-95 text-xs sm:text-sm cursor-pointer"
-                >
-                  <Zap className="w-4 h-4 fill-current" />
-                  <span>Buy Now</span>
-                </button>
               </div>
             </div>
 
