@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useAuth } from './AuthContext';
 import { supabase, ADMIN_EMAIL } from '../lib/supabase';
+import { getProductsFromDB } from '../lib/dbService';
 import { toast } from 'sonner';
 
 export interface ChatProductContext {
@@ -76,7 +77,7 @@ const generateUUID = () => {
 };
 
 export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { user, profile, isAdmin } = useAuth();
+  const { user, profile, isAdmin, openAuthModal } = useAuth();
 
   // Client conversation ID persistent per customer
   const [clientConversationId] = useState<string>(() => {
@@ -295,6 +296,11 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [allMessages, profile]);
 
   const openChat = (context?: { product?: ChatProductContext; order?: ChatOrderContext }) => {
+    if (!user) {
+      toast.error('লাইভ চ্যাট করতে দয়া করে প্রথমে সাইন ইন বা রেজিস্ট্রেশন করুন।');
+      openAuthModal('login');
+      return;
+    }
     if (context?.product) setActiveProductContext(context.product);
     if (context?.order) setActiveOrderContext(context.order);
     setIsOpen(true);
@@ -369,33 +375,143 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.warn('Supabase chat message insert note:', err);
     }
 
-    // Check if this is the customer's very first message in this conversation
+    // Check if customer is asking about product stock, availability or general questions
+    const lowerText = text.toLowerCase();
+    const isStockQuery =
+      lowerText.includes('stock') ||
+      lowerText.includes('stok') ||
+      lowerText.includes('available') ||
+      lowerText.includes('avliable') ||
+      lowerText.includes('avlicable') ||
+      lowerText.includes('কয়টা') ||
+      lowerText.includes('কয়টা') ||
+      lowerText.includes('কত পিস') ||
+      lowerText.includes('স্টক') ||
+      lowerText.includes('এভেইলেবল') ||
+      lowerText.includes('অ্যাভেইলেবল') ||
+      lowerText.includes('পাওয়া যাবে') ||
+      lowerText.includes('pawa jabe') ||
+      lowerText.includes('ache') ||
+      lowerText.includes('ase') ||
+      lowerText.includes('আছে');
+
+    const isDeliveryQuery =
+      lowerText.includes('delivery') ||
+      lowerText.includes('shipping') ||
+      lowerText.includes('ডেলিভারি') ||
+      lowerText.includes('পৌঁছাবে') ||
+      lowerText.includes('কুরিয়ার');
+
+    const isPaymentQuery =
+      lowerText.includes('bkash') ||
+      lowerText.includes('nagad') ||
+      lowerText.includes('payment') ||
+      lowerText.includes('cod') ||
+      lowerText.includes('বিকাশ') ||
+      lowerText.includes('নগদ') ||
+      lowerText.includes('পেমেন্ট') ||
+      lowerText.includes('ক্যাশ');
+
+    const isReturnQuery =
+      lowerText.includes('return') ||
+      lowerText.includes('exchange') ||
+      lowerText.includes('রিটার্ন') ||
+      lowerText.includes('ফেরত');
+
     const hasPreviousCustomerMessages = allMessages.some(
       (m) => m.conversationId === activeConversationId && m.sender === 'customer'
     );
 
-    // Automated smart assistant response ONLY on the 1st message of the conversation
-    if (!hasPreviousCustomerMessages) {
+    // Fetch DB products asynchronously for real-time inventory verification
+    let allProds: any[] = [];
+    try {
+      allProds = await getProductsFromDB();
+    } catch {
+      allProds = [];
+    }
+
+    // Determine product context from this message or previous context in the conversation
+    const productCtx =
+      newMessage.productContext ||
+      allMessages
+        .slice()
+        .reverse()
+        .find((m) => m.conversationId === activeConversationId && m.productContext)?.productContext;
+
+    let matchedProd: any = null;
+    if (productCtx?.id) {
+      matchedProd = allProds.find((p) => p.id === productCtx.id);
+    }
+    if (!matchedProd && productCtx?.title) {
+      matchedProd = allProds.find((p) => p.title?.toLowerCase() === productCtx.title.toLowerCase());
+    }
+    if (!matchedProd) {
+      // Check SKU match (e.g. KT-B3B1A6)
+      matchedProd = allProds.find(
+        (p) => p.sku && p.sku.length >= 3 && lowerText.includes(p.sku.toLowerCase())
+      );
+    }
+    if (!matchedProd) {
+      // Check full title match
+      matchedProd = allProds.find(
+        (p) => p.title && lowerText.includes(p.title.toLowerCase())
+      );
+    }
+    if (!matchedProd) {
+      // Check keyword match in product title (words with >= 4 characters)
+      matchedProd = allProds.find((p) => {
+        if (!p.title) return false;
+        const words = p.title.toLowerCase().split(/[\s,.-]+/).filter((w: string) => w.length >= 4);
+        return words.length > 0 && words.some((w: string) => lowerText.includes(w));
+      });
+    }
+
+    let shouldAutoReply = false;
+    let replyText = '';
+
+    if (
+      matchedProd &&
+      (isStockQuery ||
+        lowerText.includes(matchedProd.title.toLowerCase()) ||
+        (matchedProd.sku && lowerText.includes(matchedProd.sku.toLowerCase())))
+    ) {
+      shouldAutoReply = true;
+      const livePrice = matchedProd.discount_price || matchedProd.price;
+      if (matchedProd.stock > 0) {
+        replyText = `📦 "${matchedProd.title}" আমাদের সেন্ট্রাল ইনভেন্টরিতে অ্যাভেইলেবল আছে!\n\n🔹 বর্তমান স্টক: ${matchedProd.stock} টি\n🔹 লাইভ প্রাইস: ৳${livePrice.toLocaleString()}\n${matchedProd.sku ? `🔹 SKU কোড: ${matchedProd.sku}\n` : ''}\nআপনি সরাসরি প্রোডাক্ট পেজ থেকে 'অর্ডার করুন' অথবা ক্যাশ অন ডেলিভারিতে অর্ডার করতে পারেন।`;
+      } else {
+        replyText = `❌ দুঃখিত, "${matchedProd.title}" বর্তমানে সম্পূর্ণ স্টক আউট (০ টি অ্যাভেইলেবল)। সেন্ট্রাল ইনভেন্টরিতে নতুন স্টক আসা মাত্রই ওয়েবসাইটে আপডেট দেওয়া হবে।`;
+      }
+    } else if (isStockQuery) {
+      shouldAutoReply = true;
+      replyText =
+        '📦 আমাদের স্টোরের সব প্রোডাক্টের রিয়েল-টাইম স্টক আপডেট রয়েছে। আপনি নির্দিষ্ট কোন প্রোডাক্টটির স্টক জানতে চাচ্ছেন? প্রোডাক্টটির নাম বা SKU কোড লিখে জানালে আমি সরাসরি ইনভেন্টরি চেক করে কয়টা অ্যাভেইলেবল আছে তা জানিয়ে দেব!';
+    } else if (isDeliveryQuery) {
+      shouldAutoReply = true;
+      replyText =
+        '🚚 ডেলিভারি সংক্রান্ত তথ্য:\n• ঢাকা সিটির ভেতরে: ৳৬০ (স্ট্যান্ডার্ড শিপিং)\n• ঢাকা সিটির বাইরে: ৳১২০ (কুরিয়ার ডেলিভারি)\n• ৳১,০০০ টাকার বেশি অর্ডারে ফ্রি ডেলিভারি!';
+    } else if (isPaymentQuery) {
+      shouldAutoReply = true;
+      replyText =
+        '💵 পেমেন্ট সুবিধা:\n• ক্যাশ অন ডেলিভারি (COD) সারাদেশে প্রযোজ্য\n• বিকাশ, নগদ, রকেট অথবা কার্ডের মাধ্যমে সরাসরি নিরাপদ পেমেন্ট করতে পারবেন।';
+    } else if (isReturnQuery) {
+      shouldAutoReply = true;
+      replyText =
+        '🔄 রিটার্ন ও এক্সচেঞ্জ পলিসি:\nপ্রোডাক্টে কোনো সমস্যা বা সাইজ এক্সচেঞ্জের প্রয়োজন হলে ডেলিভারির ৭ দিনের মধ্যে রিসিট ও আনবক্সিং ভিডিও সহ আমাদের সাথে যোগাযোগ করুন।';
+    } else if (!hasPreviousCustomerMessages) {
+      shouldAutoReply = true;
+      replyText =
+        'আসসালামু আলাইকুম / নমস্কার! Kintesi-তে আপনাকে স্বাগতম। আমি Kintesi AI অ্যাসিস্ট্যান্ট। যেকোনো প্রোডাক্টের স্টক, সাইজ, ডেলিভারি বা তথ্য জানতে আমাকে মেসেজ দিতে পারেন!';
+    }
+
+    if (shouldAutoReply && replyText) {
       setTimeout(async () => {
-        let replyText = 'Thank you for your message! Our store executive has received your inquiry and will reply shortly.';
-
-        const lower = text.toLowerCase();
-        if (lower.includes('stock') || lower.includes('available')) {
-          replyText = '✅ Yes! Listed products are 100% in stock in our central warehouse ready for fast dispatch.';
-        } else if (lower.includes('delivery') || lower.includes('time') || lower.includes('charge')) {
-          replyText = '🚚 Delivery within Dhaka is ৳60 (24-48 hours), and Outside Dhaka is ৳120 (2-3 business days). Orders over ৳1,000 get FREE Delivery!';
-        } else if (lower.includes('bkash') || lower.includes('nagad') || lower.includes('payment') || lower.includes('cod')) {
-          replyText = '💵 Cash on Delivery (COD) is available all over Bangladesh! You can also pay securely via bKash, Nagad, Rocket or Card.';
-        } else if (lower.includes('return') || lower.includes('exchange') || lower.includes('size')) {
-          replyText = '🔄 We offer a 7-day hassle-free return and size exchange guarantee on all products.';
-        }
-
         const autoReplyId = generateUUID();
         const autoReply: ChatMessage = {
           id: autoReplyId,
           conversationId: activeConversationId,
           sender: 'seller',
-          senderName: 'Kintesi Store Executive',
+          senderName: 'Kintesi AI Assistant',
           senderEmail: ADMIN_EMAIL,
           text: replyText,
           timestamp: new Date().toISOString(),
@@ -414,13 +530,13 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
             conversation_id: activeConversationId,
             user_id: null,
             sender: 'seller',
-            sender_name: 'Kintesi Store Executive',
+            sender_name: 'Kintesi AI Assistant',
             sender_email: ADMIN_EMAIL,
             text: replyText,
             read: isOpen,
           });
         } catch {}
-      }, 1200);
+      }, 900);
     }
   };
 

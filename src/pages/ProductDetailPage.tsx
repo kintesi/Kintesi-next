@@ -259,19 +259,19 @@ export const ProductDetailPage: React.FC = () => {
           {/* Header & Title */}
           <div>
             <div className="flex items-center justify-between gap-4 mb-2">
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200">
+              <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-rose-700 bg-rose-50 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full border border-rose-200/80 whitespace-nowrap shrink-0">
                   {product.brand || 'Kintesi'}
                 </span>
                 {product.sku && (
-                  <span className="text-xs font-mono text-gray-500 bg-gray-100 px-2.5 py-1 rounded-full">
+                  <span className="text-[10px] sm:text-xs font-mono text-gray-500 bg-gray-100 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full whitespace-nowrap shrink-0">
                     SKU: {product.sku}
                   </span>
                 )}
                 {product.warranty && (
-                  <span className="text-xs font-bold text-amber-800 bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-full flex items-center gap-1">
-                    <ShieldCheck className="w-3.5 h-3.5 text-amber-600" />
-                    {product.warranty}
+                  <span className="text-[10px] sm:text-xs font-bold text-amber-800 bg-amber-50 border border-amber-200 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full inline-flex items-center gap-1 whitespace-nowrap shrink-0">
+                    <ShieldCheck className="w-3 h-3 text-amber-600 shrink-0" />
+                    <span>{product.warranty}</span>
                   </span>
                 )}
               </div>
@@ -539,7 +539,7 @@ export const ProductDetailPage: React.FC = () => {
                     {effectiveDeliveryFee === 0 ? 'FREE' : formatPrice(effectiveDeliveryFee)}
                   </span>
                   <span className="text-[10px] text-gray-400 block font-medium">
-                    {isDhaka ? '24-48 Hours' : '2-3 Days'}
+                    {isDhaka ? 'Standard Shipping' : 'Courier Delivery'}
                   </span>
                 </div>
               </div>
@@ -571,21 +571,21 @@ export const ProductDetailPage: React.FC = () => {
             )}
           </div>
 
-          {/* Quantity and Order Actions */}
-          <div className="space-y-4 pt-2">
+          {/* Quantity and Order Actions (Desktop Only - Mobile uses Dynamic Island bottom bar) */}
+          <div className="hidden md:block space-y-4 pt-2">
             <div className="flex items-center gap-4">
               <span className="text-xs font-bold uppercase tracking-wider text-gray-500">Quantity</span>
               <div className="flex items-center border border-gray-200 rounded-xl bg-white shadow-xs overflow-hidden">
                 <button
                   onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                  className="p-2.5 hover:bg-gray-100 text-gray-600 transition"
+                  className="p-2.5 hover:bg-gray-100 text-gray-600 transition cursor-pointer"
                 >
                   <Minus className="w-4 h-4" />
                 </button>
                 <span className="px-4 text-sm font-bold text-gray-800">{quantity}</span>
                 <button
                   onClick={() => setQuantity(Math.min(product.stock, quantity + 1))}
-                  className="p-2.5 hover:bg-gray-100 text-gray-600 transition"
+                  className="p-2.5 hover:bg-gray-100 text-gray-600 transition cursor-pointer"
                 >
                   <Plus className="w-4 h-4" />
                 </button>
@@ -593,7 +593,7 @@ export const ProductDetailPage: React.FC = () => {
 
               {quantity > 1 && (
                 <span className="text-xs text-gray-500 font-semibold">
-                  Subtotal: <strong className="text-emerald-700">{formatPrice(currentPrice * quantity)}</strong>
+                  Subtotal: <strong className="text-rose-700">{formatPrice(currentPrice * quantity)}</strong>
                 </span>
               )}
             </div>
@@ -603,7 +603,7 @@ export const ProductDetailPage: React.FC = () => {
               <button
                 onClick={handleAddToCart}
                 disabled={product.stock <= 0}
-                className="py-4 px-6 bg-gray-900 hover:bg-black text-white font-bold rounded-2xl transition shadow-md flex items-center justify-center gap-2 disabled:opacity-50 active:scale-95 text-sm"
+                className="py-4 px-6 bg-gray-900 hover:bg-black text-white font-bold rounded-2xl transition shadow-md flex items-center justify-center gap-2 disabled:opacity-50 active:scale-95 text-sm cursor-pointer"
               >
                 <ShoppingCart className="w-5 h-5" />
                 <span>Add to Cart</span>
@@ -612,12 +612,13 @@ export const ProductDetailPage: React.FC = () => {
               <button
                 onClick={handleBuyNow}
                 disabled={product.stock <= 0}
-                className="py-4 px-6 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-2xl transition shadow-lg shadow-emerald-600/30 flex items-center justify-center gap-2 disabled:opacity-50 active:scale-95 text-sm"
+                className="py-4 px-6 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-2xl transition shadow-lg shadow-rose-600/30 flex items-center justify-center gap-2 disabled:opacity-50 active:scale-95 text-sm cursor-pointer"
               >
                 <Zap className="w-5 h-5" />
                 <span>Buy It Now</span>
               </button>
             </div>
+          </div>
 
             {/* Wishlist & Chat with Seller Buttons */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
@@ -635,7 +636,12 @@ export const ProductDetailPage: React.FC = () => {
 
               <button
                 type="button"
-                onClick={() =>
+                onClick={() => {
+                  if (!user) {
+                    toast.error('সেলার সাথে লাইভ চ্যাট করতে দয়া করে প্রথমে সাইন ইন বা রেজিস্ট্রেশন করুন।');
+                    openAuthModal('login');
+                    return;
+                  }
                   openChat({
                     product: {
                       id: product.id,
@@ -644,15 +650,14 @@ export const ProductDetailPage: React.FC = () => {
                       image: selectedImage || product.images?.[0],
                       sku: product.sku,
                     },
-                  })
-                }
+                  });
+                }}
                 className="py-3 px-4 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 font-bold text-xs rounded-2xl transition flex items-center justify-center gap-2 shadow-xs active:scale-95 cursor-pointer"
               >
                 <MessageCircle className="w-4 h-4 text-emerald-600" />
                 <span>Chat with Seller</span>
               </button>
             </div>
-          </div>
 
           {/* Quick Perks Bar */}
           <div className="grid grid-cols-3 gap-3 pt-4 border-t border-gray-100 text-center">
@@ -998,22 +1003,22 @@ export const ProductDetailPage: React.FC = () => {
         </section>
       )}
 
-      {/* Mobile Sticky Buy Now & Add to Cart Bottom Bar */}
-      {product && showStickyBar && (
+      {/* Apple-style Dynamic Bottom Island for Mobile */}
+      {product && (
         <aside 
-          aria-label="Quick mobile action bar"
-          className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-gray-200/90 shadow-[0_-4px_25px_rgba(0,0,0,0.12)] p-2.5 px-3 flex items-center justify-between gap-2.5 md:hidden animate-in slide-in-from-bottom duration-200"
+          aria-label="Dynamic Bottom Island for Quick Purchase"
+          className="fixed bottom-3 left-3 right-3 max-w-md mx-auto z-40 bg-gray-950/95 backdrop-blur-xl border border-white/15 text-white shadow-[0_12px_40px_rgba(0,0,0,0.5)] rounded-full p-2 px-3 flex items-center justify-between gap-2 md:hidden animate-in slide-in-from-bottom duration-300 ring-1 ring-white/10"
         >
           {/* Mini product thumbnail & price */}
-          <div className="flex items-center gap-2.5 min-w-0 flex-1">
+          <div className="flex items-center gap-2 min-w-0 flex-1">
             <img
               src={product.images?.[0] || '/logo.webp'}
               alt={product.title}
-              className="w-10 h-10 rounded-xl object-contain bg-gray-50 border border-gray-200 p-0.5 shrink-0"
+              className="w-9 h-9 rounded-full object-cover bg-white/10 border border-white/20 p-0.5 shrink-0"
             />
             <div className="min-w-0 flex-1">
               <div className="flex items-baseline gap-1.5 leading-tight">
-                <span className="text-sm font-black text-emerald-700">
+                <span className="text-xs font-black text-emerald-400">
                   {formatPrice(currentPrice)}
                 </span>
                 {product.discount_price && (
@@ -1022,31 +1027,55 @@ export const ProductDetailPage: React.FC = () => {
                   </span>
                 )}
               </div>
-              <p className="text-[11px] text-gray-700 font-bold truncate leading-tight mt-0.5">
+              <p className="text-[10px] text-gray-300 font-medium truncate leading-tight mt-0.5">
                 {product.title}
               </p>
             </div>
           </div>
 
-          {/* Sticky action buttons */}
+          {/* Inline mini quantity selector */}
+          <div className="flex items-center bg-white/10 rounded-full px-1.5 py-0.5 border border-white/10 shrink-0">
+            <button
+              type="button"
+              onClick={() => setQuantity(Math.max(1, quantity - 1))}
+              className="w-5 h-5 rounded-full flex items-center justify-center text-gray-300 hover:text-white hover:bg-white/20 transition active:scale-90"
+              aria-label="Decrease quantity"
+            >
+              <Minus className="w-2.5 h-2.5" />
+            </button>
+            <span className="w-4 text-center text-xs font-bold text-white">
+              {quantity}
+            </span>
+            <button
+              type="button"
+              onClick={() => setQuantity(Math.min(product.stock, quantity + 1))}
+              disabled={quantity >= product.stock}
+              className="w-5 h-5 rounded-full flex items-center justify-center text-gray-300 hover:text-white hover:bg-white/20 transition active:scale-90 disabled:opacity-30"
+              aria-label="Increase quantity"
+            >
+              <Plus className="w-2.5 h-2.5" />
+            </button>
+          </div>
+
+          {/* Island Action buttons: Cart & Order */}
           <div className="flex items-center gap-1.5 shrink-0">
             <button
               type="button"
               onClick={handleAddToCart}
               disabled={product.stock <= 0}
-              className="h-10 px-3.5 bg-gray-900 hover:bg-black text-white font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 active:scale-95 transition disabled:opacity-50 shadow-xs"
+              className="w-8 h-8 bg-white/10 hover:bg-white/20 text-white rounded-full flex items-center justify-center active:scale-95 transition disabled:opacity-40 border border-white/10"
+              title="Add to cart"
             >
               <ShoppingCart className="w-3.5 h-3.5" />
-              <span>কার্ট</span>
             </button>
             <button
               type="button"
               onClick={handleBuyNow}
               disabled={product.stock <= 0}
-              className="h-10 px-4 bg-emerald-600 hover:bg-emerald-700 text-white font-black rounded-xl text-xs flex items-center justify-center gap-1.5 active:scale-95 transition disabled:opacity-50 shadow-md shadow-emerald-600/30"
+              className="h-8 px-3 bg-gradient-to-r from-rose-600 to-pink-600 hover:from-rose-500 hover:to-pink-500 text-white font-bold rounded-full text-xs flex items-center justify-center gap-1 active:scale-95 transition disabled:opacity-40 shadow-md shadow-rose-600/30"
             >
-              <Zap className="w-3.5 h-3.5" />
-              <span>অর্ডার করুন</span>
+              <Zap className="w-3 h-3 fill-current" />
+              <span>{product.stock > 0 ? 'অর্ডার' : 'স্টক আউট'}</span>
             </button>
           </div>
         </aside>

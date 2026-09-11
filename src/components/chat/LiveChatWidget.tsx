@@ -1,5 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useChat } from '../../contexts/ChatContext';
+import { useAuth } from '../../contexts/AuthContext';
+import { toast } from 'sonner';
 import { formatPrice } from '../../lib/utils';
 import {
   MessageCircle,
@@ -36,6 +38,7 @@ export const LiveChatWidget: React.FC = () => {
     clearChat,
   } = useChat();
 
+  const { user, openAuthModal } = useAuth();
   const [inputMessage, setInputMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -74,7 +77,14 @@ export const LiveChatWidget: React.FC = () => {
       {/* Floating Chat Trigger Button */}
       {!isOpen && (
         <button
-          onClick={() => openChat()}
+          onClick={() => {
+            if (!user) {
+              toast.error('লাইভ চ্যাট করতে দয়া করে প্রথমে সাইন ইন বা রেজিস্ট্রেশন করুন।');
+              openAuthModal('login');
+              return;
+            }
+            openChat();
+          }}
           className="fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-30 p-3 sm:p-4 bg-rose-600 hover:bg-rose-700 text-white rounded-full shadow-2xl transition-all duration-300 hover:scale-110 active:scale-95 flex items-center justify-center group ring-4 ring-rose-600/20"
           aria-label="Open Live Chat with Seller"
         >
