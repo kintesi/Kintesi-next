@@ -48,13 +48,76 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+const AUTH_USER_KEY = 'kintesi_auth_user_session';
+const AUTH_PROFILE_KEY = 'kintesi_auth_profile_session';
+const EXPLICIT_SIGNOUT_KEY = 'kintesi_user_explicit_signout';
+
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<AppUser | null>(null);
-  const [session, setSession] = useState<any>(null);
-  const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  // Initialize state directly from persistent cache so user is instantly logged in on visit/reload
+  const [user, setUser] = useState<AppUser | null>(() => {
+    try {
+      if (localStorage.getItem(EXPLICIT_SIGNOUT_KEY) === 'true') return null;
+      const cached = localStorage.getItem(AUTH_USER_KEY);
+      if (cached) return JSON.parse(cached);
+    } catch {}
+    return null;
+  });
+
+  const [session, setSession] = useState<any>(() => {
+    try {
+      if (localStorage.getItem(EXPLICIT_SIGNOUT_KEY) === 'true') return null;
+      const cached = localStorage.getItem(AUTH_USER_KEY);
+      if (cached) return { user: JSON.parse(cached) };
+    } catch {}
+    return null;
+  });
+
+  const [profile, setProfile] = useState<UserProfile | null>(() => {
+    try {
+      if (localStorage.getItem(EXPLICIT_SIGNOUT_KEY) === 'true') return null;
+      const cached = localStorage.getItem(AUTH_PROFILE_KEY);
+      if (cached) return JSON.parse(cached);
+    } catch {}
+    return null;
+  });
+
+  // If already authenticated from persistent cache, do not block UI with full loading spinner
+  const [isLoading, setIsLoading] = useState<boolean>(() => {
+    try {
+      if (localStorage.getItem(EXPLICIT_SIGNOUT_KEY) === 'true') return false;
+      return !localStorage.getItem(AUTH_USER_KEY);
+    } catch {
+      return true;
+    }
+  });
+
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authModalMode, setAuthModalMode] = useState<'login' | 'signup'>('login');
+
+  const saveUserToStorage = (u: AppUser | null) => {
+    setUser(u);
+    setSession(u ? { user: u } : null);
+    try {
+      if (u) {
+        localStorage.setItem(AUTH_USER_KEY, JSON.stringify(u));
+        localStorage.removeItem(EXPLICIT_SIGNOUT_KEY);
+      } else {
+        localStorage.removeItem(AUTH_USER_KEY);
+      }
+    } catch {}
+  };
+
+  const saveProfileToStorage = (p: UserProfile | null) => {
+    setProfile(p);
+    try {
+      if (p) {
+        localStorage.setItem(AUTH_PROFILE_KEY, JSON.stringify(p));
+        localStorage.removeItem(EXPLICIT_SIGNOUT_KEY);
+      } else {
+        localStorage.removeItem(AUTH_PROFILE_KEY);
+      }
+    } catch {}
+  };
 
   const openAuthModal = (mode: 'login' | 'signup' = 'login') => {
     setAuthModalMode(mode);
@@ -113,11 +176,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (userDoc.exists()) {
         const data = userDoc.data() as UserProfile;
         const resolvedRole = isMasterAdmin || isStaffAdmin || data.role === 'admin' ? 'admin' : 'customer';
-        setProfile({
+        const finalProfile: UserProfile = {
           ...data,
           id: currentUser.id,
           role: resolvedRole,
-        });
+        };
+        saveProfileToStorage(finalProfile);
 
         if (resolvedRole === 'admin' && data.role !== 'admin') {
           await updateDoc(userDocRef, { role: 'admin' }).catch(() => {});
@@ -132,7 +196,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           role: resolvedRole,
           created_at: new Date().toISOString(),
         };
-        setProfile(newProfile);
+        saveProfileToStorage(newProfile);
         await setDoc(userDocRef, newProfile).catch(() => {});
         try {
           Promise.resolve(
@@ -152,7 +216,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.warn('Firebase profile fetch note:', err);
       // Fallback profile if offline
       const resolvedRole = isAdminUser(currentUser.email) ? 'admin' : 'customer';
-      setProfile({
+      saveProfileToStorage({
         id: currentUser.id,
         full_name: currentUser.user_metadata?.full_name || 'Customer',
         email: currentUser.email || '',
@@ -173,14 +237,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const unsubscribe = onAuthStateChanged(auth, async (fbUser) => {
       if (mounted) {
         if (fbUser) {
+          localStorage.removeItem(EXPLICIT_SIGNOUT_KEY);
           const mapped = mapFirebaseUser(fbUser);
-          setUser(mapped);
-          setSession({ user: mapped });
+          saveUserToStorage(mapped);
           fetchProfile(mapped).catch(() => {});
         } else {
-          setUser(null);
-          setSession(null);
-          setProfile(null);
+          // If Firebase reports null, only wipe user if explicit signout occurred
+          const wasExplicit = localStorage.getItem(EXPLICIT_SIGNOUT_KEY) === 'true';
+          if (wasExplicit) {
+            saveUserToStorage(null);
+            saveProfileToStorage(null);
+          } else {
+            // Check if we have persistent cached user - protect session from auto-logout!
+            const cachedUser = localStorage.getItem(AUTH_USER_KEY);
+            if (!cachedUser) {
+              saveUserToStorage(null);
+              saveProfileToStorage(null);
+            }
+          }
         }
         setIsLoading(false);
         clearTimeout(safetyTimer);
@@ -193,12 +267,44 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   }, []);
 
+  // Perpetual Session Keep-Alive: Refresh ID token periodically and on tab focus
+  useEffect(() => {
+    const keepSessionAlive = async () => {
+      if (auth.currentUser) {
+        try {
+          // Force refresh ID token in background to keep session perpetually alive
+          await auth.currentUser.getIdToken(true);
+        } catch (err) {
+          console.warn('Silent session keep-alive notice:', err);
+        }
+      }
+    };
+
+    // Refresh every 20 minutes (tokens normally expire in 60 minutes)
+    const interval = setInterval(keepSessionAlive, 20 * 60 * 1000);
+
+    // Refresh when user returns to or focuses the tab
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && auth.currentUser) {
+        keepSessionAlive();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('focus', handleVisibilityChange);
+
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('focus', handleVisibilityChange);
+    };
+  }, []);
+
   const signInWithGoogle = async () => {
     try {
+      localStorage.removeItem(EXPLICIT_SIGNOUT_KEY);
       const result = await signInWithPopup(auth, googleProvider);
       const mapped = mapFirebaseUser(result.user);
-      setUser(mapped);
-      setSession({ user: mapped });
+      saveUserToStorage(mapped);
       await fetchProfile(mapped);
       toast.success('Signed in with Google successfully!');
       closeAuthModal();
@@ -213,10 +319,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signInWithEmail = async (email: string, pass: string) => {
     try {
+      localStorage.removeItem(EXPLICIT_SIGNOUT_KEY);
       const result = await signInWithEmailAndPassword(auth, email.trim(), pass);
       const mapped = mapFirebaseUser(result.user);
-      setUser(mapped);
-      setSession({ user: mapped });
+      saveUserToStorage(mapped);
       await fetchProfile(mapped);
       toast.success('Logged in successfully!');
       return { error: null };
@@ -231,13 +337,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signUpWithEmail = async (email: string, pass: string, name: string) => {
     try {
+      localStorage.removeItem(EXPLICIT_SIGNOUT_KEY);
       const result = await createUserWithEmailAndPassword(auth, email.trim(), pass);
       await fbUpdateProfile(result.user, { displayName: name.trim() });
       const mapped = mapFirebaseUser(result.user);
       mapped.displayName = name.trim();
       mapped.user_metadata.full_name = name.trim();
-      setUser(mapped);
-      setSession({ user: mapped });
+      saveUserToStorage(mapped);
       await fetchProfile(mapped);
       toast.success('Account created successfully!');
       return { error: null };
@@ -251,11 +357,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const signOut = async () => {
-    await fbSignOut(auth);
-    setUser(null);
-    setSession(null);
-    setProfile(null);
-    toast.success('Logged out successfully');
+    try {
+      localStorage.setItem(EXPLICIT_SIGNOUT_KEY, 'true');
+      await fbSignOut(auth);
+    } catch (err) {
+      console.warn('SignOut error:', err);
+    } finally {
+      saveUserToStorage(null);
+      saveProfileToStorage(null);
+      toast.success('Logged out successfully');
+    }
   };
 
   const refreshProfile = async () => {
