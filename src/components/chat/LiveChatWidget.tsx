@@ -101,7 +101,7 @@ export const LiveChatWidget: React.FC = () => {
             <div className="flex items-center gap-3">
               <div className="relative">
                 <div className="w-10 h-10 rounded-2xl bg-white p-1 flex items-center justify-center shadow-xs border border-rose-100/40">
-                  <img src="/logo.png" alt="Kintesi" className="w-full h-full object-contain" />
+                  <img src="/logo.webp" alt="Kintesi" className="w-full h-full object-contain" />
                 </div>
                 <span className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-rose-500 border-2 border-gray-900 rounded-full" />
               </div>

@@ -3,7 +3,7 @@ import React from 'react';
 // 1. Exact bKash Official Logo
 export const BkashLogo: React.FC<{ className?: string }> = ({ className = 'h-6' }) => (
   <img
-    src="/payment/bkash.png"
+    src="/payment/bkash.webp"
     alt="bKash"
     className={`${className} object-contain`}
   />
@@ -12,7 +12,7 @@ export const BkashLogo: React.FC<{ className?: string }> = ({ className = 'h-6' 
 // 2. Exact Nagad Official Logo
 export const NagadLogo: React.FC<{ className?: string }> = ({ className = 'h-6' }) => (
   <img
-    src="/payment/nagad.png"
+    src="/payment/nagad.webp"
     alt="Nagad"
     className={`${className} object-contain`}
   />
@@ -21,7 +21,7 @@ export const NagadLogo: React.FC<{ className?: string }> = ({ className = 'h-6' 
 // 3. Exact DBBL Rocket Official Logo
 export const RocketLogo: React.FC<{ className?: string }> = ({ className = 'h-6' }) => (
   <img
-    src="/payment/rocket.png"
+    src="/payment/rocket.webp"
     alt="Rocket"
     className={`${className} object-contain`}
   />
@@ -30,7 +30,7 @@ export const RocketLogo: React.FC<{ className?: string }> = ({ className = 'h-6'
 // 4. Exact Visa Official Logo
 export const VisaLogo: React.FC<{ className?: string }> = ({ className = 'h-6' }) => (
   <img
-    src="/payment/visa.png"
+    src="/payment/visa.webp"
     alt="Visa"
     className={`${className} object-contain`}
   />
@@ -39,7 +39,7 @@ export const VisaLogo: React.FC<{ className?: string }> = ({ className = 'h-6' }
 // 5. Exact Mastercard Official Logo
 export const MastercardLogo: React.FC<{ className?: string }> = ({ className = 'h-6' }) => (
   <img
-    src="/payment/mastercard.png"
+    src="/payment/mastercard.webp"
     alt="Mastercard"
     className={`${className} object-contain`}
   />

@@ -95,7 +95,7 @@ export const InvoiceModal: React.FC<InvoiceProps> = ({ order, onClose }) => {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 border-b-2 border-gray-100 pb-8">
             <div className="flex items-center gap-3.5">
               <div className="w-14 h-14 rounded-2xl bg-white p-2 flex items-center justify-center border border-rose-100 shadow-xs">
-                <img src="/logo.png" alt="Kintesi" className="w-full h-full object-contain" />
+                <img src="/logo.webp" alt="Kintesi" className="w-full h-full object-contain" />
               </div>
               <div>
                 <h1 className="text-2xl font-black text-gray-900 tracking-tight">

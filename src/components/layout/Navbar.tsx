@@ -180,7 +180,7 @@ export const Navbar: React.FC = () => {
             <div className="flex items-center justify-between gap-2">
               <Link to="/" className="flex items-center flex-shrink-0 group">
                 <img 
-                  src="/navbar-logo.png" 
+                  src="/navbar-logo.webp" 
                   alt="Kintesi" 
                   className="h-7 w-auto max-w-[140px] object-contain transition-transform group-hover:scale-105" 
                 />
@@ -230,7 +230,7 @@ export const Navbar: React.FC = () => {
             {/* Logo Seamlessly Blended */}
             <Link to="/" className="flex items-center group flex-shrink-0 py-1">
               <img 
-                src="/navbar-logo.png" 
+                src="/navbar-logo.webp" 
                 alt="Kintesi" 
                 className="h-9 w-auto max-w-[170px] object-contain transition-transform duration-300 group-hover:scale-105 drop-shadow-xs" 
               />

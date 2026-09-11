@@ -27,12 +27,12 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
     if (!file) return;
 
     setIsUploading(true);
-    const toastId = toast.loading('Uploading image to Cloudinary...');
+    const toastId = toast.loading('Converting & uploading WebP image...');
 
     try {
       const uploadedUrl = await uploadToCloudinary(file);
       onChange(uploadedUrl);
-      toast.success('Image uploaded to Cloudinary successfully!', { id: toastId });
+      toast.success('WebP image uploaded successfully!', { id: toastId });
     } catch (err: any) {
       console.error('Upload error:', err);
       toast.error(err.message || 'Upload failed', { id: toastId });
@@ -82,7 +82,7 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
           <input
             ref={fileInputRef}
             type="file"
-            accept="image/*"
+            accept="image/webp,image/png,image/jpeg,image/*"
             onChange={handleFileChange}
             className="hidden"
           />

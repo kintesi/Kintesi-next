@@ -107,7 +107,7 @@ export const AdminLayout: React.FC = () => {
       <div className="p-5 border-b border-gray-800 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-2xl bg-white p-1 flex items-center justify-center shadow">
-            <img src="/logo.png" alt="Kintesi" className="w-full h-full object-contain" />
+            <img src="/logo.webp" alt="Kintesi" className="w-full h-full object-contain" />
           </div>
           <div>
             <h1 className="font-black text-white text-sm leading-tight">Kintesi Admin</h1>
@@ -196,7 +196,7 @@ export const AdminLayout: React.FC = () => {
           </button>
           <div className="flex items-center gap-2">
             <div className="w-7 h-7 rounded-lg bg-white p-0.5 flex items-center justify-center">
-              <img src="/logo.png" alt="Kintesi" className="w-full h-full object-contain" />
+              <img src="/logo.webp" alt="Kintesi" className="w-full h-full object-contain" />
             </div>
             <span className="font-black text-white text-sm">Kintesi Admin</span>
           </div>

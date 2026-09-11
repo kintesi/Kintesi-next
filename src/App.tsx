@@ -23,6 +23,11 @@ import { CheckoutPage } from './pages/CheckoutPage';
 import { OrderSuccessPage } from './pages/OrderSuccessPage';
 import { MyOrdersPage } from './pages/MyOrdersPage';
 import { ProfilePage } from './pages/ProfilePage';
+import { HelpCenterPage } from './pages/HelpCenterPage';
+import { ShippingDeliveryPage } from './pages/ShippingDeliveryPage';
+import { ReturnRefundPage } from './pages/ReturnRefundPage';
+import { TermsOfServicePage } from './pages/TermsOfServicePage';
+import { PrivacyPolicyPage } from './pages/PrivacyPolicyPage';
 
 // Admin Components & Pages
 import { AdminLayout } from './pages/admin/AdminLayout';
@@ -79,6 +84,12 @@ export function App() {
                         <Route path="/checkout" element={<CheckoutPage />} />
                         <Route path="/order-success/:orderId" element={<OrderSuccessPage />} />
                         <Route path="/orders" element={<MyOrdersPage />} />
+                        <Route path="/help" element={<HelpCenterPage />} />
+                        <Route path="/faq" element={<HelpCenterPage />} />
+                        <Route path="/shipping" element={<ShippingDeliveryPage />} />
+                        <Route path="/returns" element={<ReturnRefundPage />} />
+                        <Route path="/terms" element={<TermsOfServicePage />} />
+                        <Route path="/privacy" element={<PrivacyPolicyPage />} />
                       </Route>
 
                       {/* Admin Panel Routes */}

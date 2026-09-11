@@ -9,46 +9,46 @@ export const Footer: React.FC = () => {
   const phone = settings?.helplinePhone?.trim();
   const email = settings?.supportEmail?.trim();
   return (
-    <footer className="hidden md:block bg-gray-950 text-gray-400 pt-16 pb-12 border-t border-gray-800/80">
+    <footer className="hidden md:block bg-white text-gray-600 pt-16 pb-12 border-t border-rose-100/80 shadow-[0_-2px_15px_rgba(225,29,72,0.02)]">
       {/* Trust Badges */}
-      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 pb-12 border-b border-gray-800/80">
+      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 pb-12 border-b border-gray-100">
         <div className="grid grid-cols-4 gap-8">
-          <div className="flex items-center gap-4 p-4 rounded-2xl bg-gray-900/60 border border-gray-800/80">
-            <div className="p-3 bg-rose-500/10 text-rose-400 rounded-xl">
+          <div className="flex items-center gap-4 p-4 rounded-2xl bg-gray-50/80 border border-gray-100 hover:border-rose-200 transition shadow-xs">
+            <div className="p-3 bg-rose-50 text-rose-600 rounded-xl">
               <Truck className="w-6 h-6" />
             </div>
             <div>
-              <h4 className="text-white font-bold text-sm">Fast & Safe Delivery</h4>
+              <h4 className="text-gray-900 font-bold text-sm">Fast & Safe Delivery</h4>
               <p className="text-xs text-gray-500 mt-0.5">Express shipping all over Bangladesh</p>
             </div>
           </div>
 
-          <div className="flex items-center gap-4 p-4 rounded-2xl bg-gray-900/60 border border-gray-800/80">
-            <div className="p-3 bg-rose-500/10 text-rose-400 rounded-xl">
+          <div className="flex items-center gap-4 p-4 rounded-2xl bg-gray-50/80 border border-gray-100 hover:border-rose-200 transition shadow-xs">
+            <div className="p-3 bg-rose-50 text-rose-600 rounded-xl">
               <Shield className="w-6 h-6" />
             </div>
             <div>
-              <h4 className="text-white font-bold text-sm">100% Genuine Products</h4>
+              <h4 className="text-gray-900 font-bold text-sm">100% Genuine Products</h4>
               <p className="text-xs text-gray-500 mt-0.5">Official brand warranty guaranteed</p>
             </div>
           </div>
 
-          <div className="flex items-center gap-4 p-4 rounded-2xl bg-gray-900/60 border border-gray-800/80">
-            <div className="p-3 bg-rose-500/10 text-rose-400 rounded-xl">
+          <div className="flex items-center gap-4 p-4 rounded-2xl bg-gray-50/80 border border-gray-100 hover:border-rose-200 transition shadow-xs">
+            <div className="p-3 bg-rose-50 text-rose-600 rounded-xl">
               <RotateCcw className="w-6 h-6" />
             </div>
             <div>
-              <h4 className="text-white font-bold text-sm">7-Day Easy Return</h4>
+              <h4 className="text-gray-900 font-bold text-sm">7-Day Easy Return</h4>
               <p className="text-xs text-gray-500 mt-0.5">Hassle-free replacement policy</p>
             </div>
           </div>
 
-          <div className="flex items-center gap-4 p-4 rounded-2xl bg-gray-900/60 border border-gray-800/80">
-            <div className="p-3 bg-rose-500/10 text-rose-400 rounded-xl">
+          <div className="flex items-center gap-4 p-4 rounded-2xl bg-gray-50/80 border border-gray-100 hover:border-rose-200 transition shadow-xs">
+            <div className="p-3 bg-rose-50 text-rose-600 rounded-xl">
               <Headphones className="w-6 h-6" />
             </div>
             <div>
-              <h4 className="text-white font-bold text-sm">24/7 Expert Support</h4>
+              <h4 className="text-gray-900 font-bold text-sm">24/7 Expert Support</h4>
               <p className="text-xs text-gray-500 mt-0.5">Always ready to assist your orders</p>
             </div>
           </div>
@@ -61,32 +61,31 @@ export const Footer: React.FC = () => {
           
           {/* Company Info */}
           <div className="lg:col-span-2 space-y-4">
-            <Link to="/" className="flex items-center gap-3 group">
-              <div className="w-10 h-10 rounded-2xl bg-white p-1.5 flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform">
-                <img src="/logo.png" alt="Kintesi" className="w-full h-full object-contain" />
-              </div>
-              <span className="text-2xl font-black text-white">
-                Kin<span className="text-rose-500">tesi</span>
-              </span>
+            <Link to="/" className="inline-block group py-1">
+              <img 
+                src="/navbar-logo.webp" 
+                alt="Kintesi" 
+                className="h-9 w-auto max-w-[180px] object-contain transition-transform duration-300 group-hover:scale-105 drop-shadow-xs" 
+              />
             </Link>
-            <p className="text-xs leading-relaxed text-gray-400 max-w-sm">
+            <p className="text-xs leading-relaxed text-gray-500 max-w-sm">
               Kintesi is your trusted online lifestyle, fashion, gadgets and daily shopping marketplace in Bangladesh. Bringing you 100% authentic quality products with express doorstep delivery.
             </p>
-            <div className="space-y-2 text-xs text-gray-400">
+            <div className="space-y-2 text-xs text-gray-600">
               <div className="flex items-center gap-2">
-                <MapPin className="w-4 h-4 text-rose-400 flex-shrink-0" />
+                <MapPin className="w-4 h-4 text-rose-500 flex-shrink-0" />
                 <span>Dhaka, Bangladesh</span>
               </div>
               {phone && (
                 <div className="flex items-center gap-2">
-                  <Phone className="w-4 h-4 text-rose-400 flex-shrink-0" />
-                  <span>{phone}</span>
+                  <Phone className="w-4 h-4 text-rose-500 flex-shrink-0" />
+                  <a href={`tel:${phone}`} className="hover:text-rose-600 transition font-medium">{phone}</a>
                 </div>
               )}
               {email && (
                 <div className="flex items-center gap-2">
-                  <Mail className="w-4 h-4 text-rose-400 flex-shrink-0" />
-                  <span>{email}</span>
+                  <Mail className="w-4 h-4 text-rose-500 flex-shrink-0" />
+                  <a href={`mailto:${email}`} className="hover:text-rose-600 transition font-medium">{email}</a>
                 </div>
               )}
             </div>
@@ -94,46 +93,46 @@ export const Footer: React.FC = () => {
 
           {/* Quick Links */}
           <div>
-            <h4 className="text-white font-bold text-sm uppercase tracking-wider mb-4">Quick Links</h4>
+            <h4 className="text-gray-900 font-bold text-sm uppercase tracking-wider mb-4">Quick Links</h4>
             <ul className="space-y-2.5 text-xs">
-              <li><Link to="/shop" className="hover:text-rose-400 transition">All Products</Link></li>
-              <li><Link to="/shop?category=smartphones-tablets" className="hover:text-rose-400 transition">Smartphones</Link></li>
-              <li><Link to="/shop?category=laptops-computers" className="hover:text-rose-400 transition">Laptops</Link></li>
-              <li><Link to="/shop?category=audio-headphones" className="hover:text-rose-400 transition">Audio & Sound</Link></li>
-              <li><Link to="/orders" className="hover:text-rose-400 transition">Track Order</Link></li>
+              <li><Link to="/shop" className="text-gray-500 hover:text-rose-600 transition">All Products</Link></li>
+              <li><Link to="/shop?category=smartphones-tablets" className="text-gray-500 hover:text-rose-600 transition">Smartphones</Link></li>
+              <li><Link to="/shop?category=laptops-computers" className="text-gray-500 hover:text-rose-600 transition">Laptops</Link></li>
+              <li><Link to="/shop?category=audio-headphones" className="text-gray-500 hover:text-rose-600 transition">Audio & Sound</Link></li>
+              <li><Link to="/orders" className="text-gray-500 hover:text-rose-600 transition">Track Order</Link></li>
             </ul>
           </div>
 
           {/* Customer Care */}
           <div>
-            <h4 className="text-white font-bold text-sm uppercase tracking-wider mb-4">Customer Care</h4>
+            <h4 className="text-gray-900 font-bold text-sm uppercase tracking-wider mb-4">Customer Care</h4>
             <ul className="space-y-2.5 text-xs">
-              <li><a href="#" className="hover:text-rose-400 transition">Help Center & FAQ</a></li>
-              <li><a href="#" className="hover:text-rose-400 transition">Shipping & Delivery</a></li>
-              <li><a href="#" className="hover:text-rose-400 transition">Return & Refund Policy</a></li>
-              <li><a href="#" className="hover:text-rose-400 transition">Terms of Service</a></li>
-              <li><a href="#" className="hover:text-rose-400 transition">Privacy Policy</a></li>
+              <li><Link to="/help" className="text-gray-500 hover:text-rose-600 transition">Help Center & FAQ</Link></li>
+              <li><Link to="/shipping" className="text-gray-500 hover:text-rose-600 transition">Shipping & Delivery</Link></li>
+              <li><Link to="/returns" className="text-gray-500 hover:text-rose-600 transition">Return & Refund Policy</Link></li>
+              <li><Link to="/terms" className="text-gray-500 hover:text-rose-600 transition">Terms of Service</Link></li>
+              <li><Link to="/privacy" className="text-gray-500 hover:text-rose-600 transition">Privacy Policy</Link></li>
             </ul>
           </div>
 
           {/* Payment Methods */}
           <div className="space-y-3">
-            <h4 className="text-white font-bold text-sm uppercase tracking-wider">Payment Methods</h4>
-            <p className="text-xs text-gray-400">We accept secure cashless payments & COD:</p>
+            <h4 className="text-gray-900 font-bold text-sm uppercase tracking-wider">Payment Methods</h4>
+            <p className="text-xs text-gray-500">We accept secure cashless payments & COD:</p>
             <div className="grid grid-cols-3 gap-2 pt-1 w-fit">
-              <div className="w-[60px] h-[36px] bg-white rounded-xl flex items-center justify-center p-1.5 shadow-sm border border-gray-200/80 hover:scale-105 transition" title="bKash">
+              <div className="w-[60px] h-[36px] bg-white rounded-xl flex items-center justify-center p-1.5 shadow-sm border border-gray-200 hover:border-rose-300 hover:scale-105 transition" title="bKash">
                 <BkashLogo className="max-h-5 max-w-[44px] object-contain" />
               </div>
-              <div className="w-[60px] h-[36px] bg-white rounded-xl flex items-center justify-center p-1.5 shadow-sm border border-gray-200/80 hover:scale-105 transition" title="Nagad">
+              <div className="w-[60px] h-[36px] bg-white rounded-xl flex items-center justify-center p-1.5 shadow-sm border border-gray-200 hover:border-rose-300 hover:scale-105 transition" title="Nagad">
                 <NagadLogo className="max-h-5 max-w-[44px] object-contain" />
               </div>
-              <div className="w-[60px] h-[36px] bg-white rounded-xl flex items-center justify-center p-1.5 shadow-sm border border-gray-200/80 hover:scale-105 transition" title="DBBL Rocket">
+              <div className="w-[60px] h-[36px] bg-white rounded-xl flex items-center justify-center p-1.5 shadow-sm border border-gray-200 hover:border-rose-300 hover:scale-105 transition" title="DBBL Rocket">
                 <RocketLogo className="max-h-4.5 max-w-[44px] object-contain" />
               </div>
-              <div className="w-[60px] h-[36px] bg-white rounded-xl flex items-center justify-center p-1.5 shadow-sm border border-gray-200/80 hover:scale-105 transition" title="Visa">
+              <div className="w-[60px] h-[36px] bg-white rounded-xl flex items-center justify-center p-1.5 shadow-sm border border-gray-200 hover:border-rose-300 hover:scale-105 transition" title="Visa">
                 <VisaLogo className="max-h-4 max-w-[44px] object-contain" />
               </div>
-              <div className="w-[60px] h-[36px] bg-white rounded-xl flex items-center justify-center p-1.5 shadow-sm border border-gray-200/80 hover:scale-105 transition" title="Mastercard">
+              <div className="w-[60px] h-[36px] bg-white rounded-xl flex items-center justify-center p-1.5 shadow-sm border border-gray-200 hover:border-rose-300 hover:scale-105 transition" title="Mastercard">
                 <MastercardLogo className="max-h-5 max-w-[44px] object-contain" />
               </div>
               <div className="w-[60px] h-[36px] bg-rose-700 text-white rounded-xl flex items-center justify-center p-1 shadow-sm border border-rose-600/50 hover:scale-105 transition" title="Cash on Delivery">
@@ -145,7 +144,7 @@ export const Footer: React.FC = () => {
       </div>
 
       {/* Bottom Bar */}
-      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 pt-8 border-t border-gray-900 flex flex-col sm:flex-row items-center justify-between text-xs text-gray-500 gap-4">
+      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 pt-8 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between text-xs text-gray-500 gap-4">
         <p>© {new Date().getFullYear()} Kintesi. All rights reserved.</p>
         <p className="flex items-center gap-1">
           Designed with <Heart className="w-3.5 h-3.5 text-rose-500 fill-rose-500" /> for modern e-commerce.
