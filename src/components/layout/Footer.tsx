@@ -1,13 +1,12 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Mail, Phone, MapPin, Shield, Truck, RotateCcw, Headphones, Heart } from 'lucide-react';
+import { Phone, MapPin, Shield, Truck, RotateCcw, Headphones, Heart } from 'lucide-react';
 import { BkashLogo, NagadLogo, RocketLogo, VisaLogo, MastercardLogo } from '../common/PaymentLogos';
 import { useSettings } from '../../contexts/SettingsContext';
 
 export const Footer: React.FC = () => {
   const { settings } = useSettings();
   const phone = settings?.helplinePhone?.trim();
-  const email = settings?.supportEmail?.trim();
   return (
     <footer className="hidden md:block bg-white text-gray-600 pt-16 pb-12 border-t border-rose-100/80 shadow-[0_-2px_15px_rgba(225,29,72,0.02)]">
       {/* Trust Badges */}
@@ -80,12 +79,6 @@ export const Footer: React.FC = () => {
                 <div className="flex items-center gap-2">
                   <Phone className="w-4 h-4 text-rose-500 flex-shrink-0" />
                   <a href={`tel:${phone}`} className="hover:text-rose-600 transition font-medium">{phone}</a>
-                </div>
-              )}
-              {email && (
-                <div className="flex items-center gap-2">
-                  <Mail className="w-4 h-4 text-rose-500 flex-shrink-0" />
-                  <a href={`mailto:${email}`} className="hover:text-rose-600 transition font-medium">{email}</a>
                 </div>
               )}
             </div>

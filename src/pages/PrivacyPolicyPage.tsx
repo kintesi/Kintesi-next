@@ -5,7 +5,6 @@ import { useSettings } from '../contexts/SettingsContext';
 export const PrivacyPolicyPage: React.FC = () => {
   const { settings } = useSettings();
   const phone = settings?.helplinePhone?.trim() || '01902593390';
-  const email = settings?.supportEmail?.trim() || 'support@kintesi.com';
 
   return (
     <div className="min-h-screen bg-gray-50/50 py-10 md:py-16">
@@ -99,17 +98,13 @@ export const PrivacyPolicyPage: React.FC = () => {
           </section>
 
           <section className="pt-4 border-t border-gray-100">
-            <h3 className="font-bold text-gray-900 mb-1">Privacy Officer Contact</h3>
+            <h3 className="font-bold text-gray-900 mb-1">Privacy Inquiries</h3>
             <p className="text-xs text-gray-500">
-              For inquiries regarding this privacy policy or personal data inquiries, reach us at{' '}
-              <a href={`mailto:${email}`} className="text-rose-600 font-semibold underline">
-                {email}
-              </a>{' '}
-              or call{' '}
+              For questions regarding this privacy policy or personal data inquiries, reach our helpline at{' '}
               <a href={`tel:${phone}`} className="text-rose-600 font-semibold underline">
                 {phone}
-              </a>
-              .
+              </a>{' '}
+              or message our support desk directly via Live Customer Chat.
             </p>
           </section>
         </div>

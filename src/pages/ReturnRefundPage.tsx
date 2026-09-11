@@ -14,7 +14,6 @@ import { useSettings } from '../contexts/SettingsContext';
 export const ReturnRefundPage: React.FC = () => {
   const { settings } = useSettings();
   const phone = settings?.helplinePhone?.trim() || '01902593390';
-  const email = settings?.supportEmail?.trim() || 'support@kintesi.com';
 
   return (
     <div className="min-h-screen bg-gray-50/50 py-10 md:py-16">
@@ -161,10 +160,7 @@ export const ReturnRefundPage: React.FC = () => {
           <a href={`tel:${phone}`} className="font-bold text-rose-600 hover:underline">
             {phone}
           </a>{' '}
-          or write to{' '}
-          <a href={`mailto:${email}`} className="font-bold text-rose-600 hover:underline">
-            {email}
-          </a>
+          or connect with our support agents instantly via Live Chat.
         </div>
       </div>
     </div>

@@ -8,7 +8,6 @@ import {
   Truck,
   RotateCcw,
   Phone,
-  Mail,
   MessageSquare,
   Sparkles,
   ArrowRight,
@@ -27,13 +26,13 @@ const FAQS: FAQItem[] = [
     category: 'orders',
     question: 'How do I track my order status?',
     answer:
-      'You can easily track your order by visiting the "My Orders" page from your profile menu or clicking "Track Order" in the footer. You can also view live delivery timeline updates sent to your phone and email.',
+      'You can easily track your order by visiting the "My Orders" page from your profile menu or clicking "Track Order" in the footer. You can also view live courier tracking updates sent directly to your phone via SMS.',
   },
   {
     category: 'orders',
     question: 'Can I cancel or modify an order after placing it?',
     answer:
-      'Yes, you can cancel or modify your order while it is in the "Pending" status before dispatch. Once the parcel is shipped with our courier partner, it cannot be edited, but you can request an easy exchange or return upon delivery.',
+      'Yes, you can cancel or modify your order while it is in the "Pending" status before dispatch. Once the parcel is handed over to the courier, it cannot be modified, but you can inspect and refuse/exchange it upon delivery.',
   },
   {
     category: 'orders',
@@ -65,15 +64,15 @@ const FAQS: FAQItem[] = [
   // Shipping
   {
     category: 'shipping',
-    question: 'How long does delivery take inside and outside Dhaka?',
+    question: 'How is delivery handled across Bangladesh?',
     answer:
-      'Inside Dhaka city, deliveries typically arrive within 24 to 48 hours. For locations outside Dhaka and other districts, standard delivery takes 3 to 5 business days.',
+      'We partner with Bangladesh’s leading courier networks (Steadfast, Pathao, RedX). Since exact transit times vary due to road traffic and regional courier schedules, we avoid unrealistic hour promises. However, orders are dispatched promptly, and an SMS with a live tracking code is provided to monitor delivery progress.',
   },
   {
     category: 'shipping',
     question: 'What are the delivery charges?',
     answer:
-      'Standard delivery charge inside Dhaka is ৳60, and outside Dhaka is ৳120. Special promotional orders may qualify for free express shipping with coupon codes.',
+      'Standard delivery charge inside Dhaka is ৳60, Dhaka suburbs ৳100, and outside Dhaka across all districts is ৳120.',
   },
   {
     category: 'shipping',
@@ -108,7 +107,6 @@ const CATEGORIES = [
 export const HelpCenterPage: React.FC = () => {
   const { settings } = useSettings();
   const phone = settings?.helplinePhone?.trim() || '01902593390';
-  const email = settings?.supportEmail?.trim() || 'support@kintesi.com';
 
   const [activeCategory, setActiveCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -135,7 +133,7 @@ export const HelpCenterPage: React.FC = () => {
             How can we help you today?
           </h1>
           <p className="text-sm text-gray-500 mt-3">
-            Search our knowledge base for answers regarding orders, payments, delivery, and return policies.
+            Search our knowledge base for answers regarding orders, payments, delivery coverage, and return policies.
           </p>
 
           {/* Search Bar */}
@@ -217,59 +215,46 @@ export const HelpCenterPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Contact Support Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+        {/* Contact Support Cards (Phone & Live Chat only - No non-existent email) */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
           <div className="bg-white p-6 rounded-3xl border border-gray-200/80 shadow-xs flex flex-col justify-between">
             <div>
-              <div className="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center mb-4">
+              <div className="w-11 h-11 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center mb-4">
                 <Phone className="w-5 h-5" />
               </div>
-              <h3 className="font-bold text-sm text-gray-900">Phone Support</h3>
-              <p className="text-xs text-gray-500 mt-1">
-                Reach our customer care team directly for order inquiries.
+              <h3 className="font-bold text-base text-gray-900">Phone & Helpline Support</h3>
+              <p className="text-xs text-gray-500 mt-1.5 leading-relaxed">
+                Reach our customer care team directly via call or message for instant order and delivery inquiries.
               </p>
             </div>
             <a
               href={`tel:${phone}`}
-              className="mt-5 inline-flex items-center gap-1.5 text-xs font-bold text-rose-600 hover:text-rose-700"
+              className="mt-6 inline-flex items-center justify-between p-3.5 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded-2xl text-xs font-bold transition border border-rose-100"
             >
-              <span>{phone}</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </a>
-          </div>
-
-          <div className="bg-white p-6 rounded-3xl border border-gray-200/80 shadow-xs flex flex-col justify-between">
-            <div>
-              <div className="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center mb-4">
-                <Mail className="w-5 h-5" />
+              <span className="text-sm font-black">{phone}</span>
+              <div className="flex items-center gap-1 text-xs">
+                <span>Call Now</span>
+                <ArrowRight className="w-3.5 h-3.5" />
               </div>
-              <h3 className="font-bold text-sm text-gray-900">Email Inquiries</h3>
-              <p className="text-xs text-gray-500 mt-1">
-                Send us detailed queries regarding corporate or bulk orders.
-              </p>
-            </div>
-            <a
-              href={`mailto:${email}`}
-              className="mt-5 inline-flex items-center gap-1.5 text-xs font-bold text-rose-600 hover:text-rose-700"
-            >
-              <span>{email}</span>
-              <ArrowRight className="w-3.5 h-3.5" />
             </a>
           </div>
 
           <div className="bg-white p-6 rounded-3xl border border-gray-200/80 shadow-xs flex flex-col justify-between">
             <div>
-              <div className="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center mb-4">
+              <div className="w-11 h-11 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center mb-4">
                 <MessageSquare className="w-5 h-5" />
               </div>
-              <h3 className="font-bold text-sm text-gray-900">Live Customer Chat</h3>
-              <p className="text-xs text-gray-500 mt-1">
-                Instant answers with our active support agents right here.
+              <h3 className="font-bold text-base text-gray-900">Live Customer Chat</h3>
+              <p className="text-xs text-gray-500 mt-1.5 leading-relaxed">
+                Chat in real time with our support desk right here on the website for immediate responses.
               </p>
             </div>
-            <div className="mt-5 text-xs font-bold text-emerald-600 flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              <span>Agents Active (9 AM - 11 PM)</span>
+            <div className="mt-6 p-3.5 bg-gray-50 rounded-2xl border border-gray-100 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
+                <span className="text-xs font-bold text-gray-800">Support Desk Active</span>
+              </div>
+              <span className="text-[11px] text-gray-500 font-medium">9 AM - 11 PM</span>
             </div>
           </div>
         </div>

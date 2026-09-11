@@ -1,13 +1,13 @@
 import React from 'react';
 import {
   Truck,
-  Clock,
   ShieldCheck,
   MapPin,
   PackageCheck,
   AlertCircle,
   CheckCircle2,
-  Sparkles,
+  Phone,
+  MessageSquare,
 } from 'lucide-react';
 import { useSettings } from '../contexts/SettingsContext';
 
@@ -22,57 +22,66 @@ export const ShippingDeliveryPage: React.FC = () => {
         <div className="text-center max-w-2xl mx-auto mb-12">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-rose-50 border border-rose-100 text-rose-700 text-xs font-bold mb-4">
             <Truck className="w-3.5 h-3.5 text-rose-500" />
-            <span>Fast & Reliable Nationwide Delivery</span>
+            <span>Nationwide Courier Delivery</span>
           </div>
           <h1 className="text-3xl sm:text-4xl font-black text-gray-900 tracking-tight">
             Shipping & Delivery Policy
           </h1>
           <p className="text-sm text-gray-500 mt-3">
-            Everything you need to know about our delivery timelines, charges, coverage, and courier partners across Bangladesh.
+            Everything you need to know about our delivery coverage, shipping charges, and verified courier partners across Bangladesh.
           </p>
         </div>
 
-        {/* Timelines Cards */}
+        {/* Coverage & Shipping Charges Cards (No unrealistic time promises) */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-10">
-          <div className="bg-white p-6 rounded-3xl border border-gray-200/80 shadow-xs">
-            <div className="w-10 h-10 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center mb-4">
-              <Clock className="w-5 h-5" />
+          <div className="bg-white p-6 rounded-3xl border border-gray-200/80 shadow-xs flex flex-col justify-between">
+            <div>
+              <div className="w-10 h-10 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center mb-4">
+                <MapPin className="w-5 h-5" />
+              </div>
+              <span className="text-[11px] font-bold text-rose-600 uppercase tracking-wider">City Area</span>
+              <h3 className="font-bold text-base text-gray-900 mt-0.5">Inside Dhaka</h3>
+              <p className="text-xs text-gray-500 mt-2 leading-relaxed">
+                Covers all zones within Dhaka metropolitan area. Quick dispatch directly to your doorstep.
+              </p>
             </div>
-            <h3 className="font-bold text-base text-gray-900">Inside Dhaka</h3>
-            <p className="text-2xl font-black text-rose-600 mt-1">24 - 48 Hours</p>
-            <p className="text-xs text-gray-500 mt-2">
-              Standard delivery inside Dhaka metropolitan area. Same-day dispatch for orders confirmed before 12 PM.
-            </p>
-            <div className="mt-4 pt-4 border-t border-gray-100 text-xs font-semibold text-gray-700">
-              Delivery Fee: <span className="text-rose-600 font-bold">৳60</span>
-            </div>
-          </div>
-
-          <div className="bg-white p-6 rounded-3xl border border-gray-200/80 shadow-xs">
-            <div className="w-10 h-10 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center mb-4">
-              <MapPin className="w-5 h-5" />
-            </div>
-            <h3 className="font-bold text-base text-gray-900">Dhaka Suburbs</h3>
-            <p className="text-2xl font-black text-amber-600 mt-1">48 - 72 Hours</p>
-            <p className="text-xs text-gray-500 mt-2">
-              Covers Savar, Gazipur, Narayanganj, Tongi, Keraniganj and surrounding adjacent areas.
-            </p>
-            <div className="mt-4 pt-4 border-t border-gray-100 text-xs font-semibold text-gray-700">
-              Delivery Fee: <span className="text-amber-600 font-bold">৳100</span>
+            <div className="mt-6 pt-4 border-t border-gray-100 flex items-baseline justify-between">
+              <span className="text-xs text-gray-500 font-medium">Delivery Charge</span>
+              <span className="text-2xl font-black text-rose-600">৳60</span>
             </div>
           </div>
 
-          <div className="bg-white p-6 rounded-3xl border border-gray-200/80 shadow-xs">
-            <div className="w-10 h-10 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center mb-4">
-              <Truck className="w-5 h-5" />
+          <div className="bg-white p-6 rounded-3xl border border-gray-200/80 shadow-xs flex flex-col justify-between">
+            <div>
+              <div className="w-10 h-10 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center mb-4">
+                <MapPin className="w-5 h-5" />
+              </div>
+              <span className="text-[11px] font-bold text-amber-600 uppercase tracking-wider">Suburban Area</span>
+              <h3 className="font-bold text-base text-gray-900 mt-0.5">Dhaka Suburbs</h3>
+              <p className="text-xs text-gray-500 mt-2 leading-relaxed">
+                Covers Savar, Gazipur, Narayanganj, Tongi, Keraniganj and surrounding adjacent zones.
+              </p>
             </div>
-            <h3 className="font-bold text-base text-gray-900">Outside Dhaka</h3>
-            <p className="text-2xl font-black text-blue-600 mt-1">3 - 5 Days</p>
-            <p className="text-xs text-gray-500 mt-2">
-              All 64 districts, divisional cities, zilas, and upazilas across Bangladesh via top courier networks.
-            </p>
-            <div className="mt-4 pt-4 border-t border-gray-100 text-xs font-semibold text-gray-700">
-              Delivery Fee: <span className="text-blue-600 font-bold">৳120</span>
+            <div className="mt-6 pt-4 border-t border-gray-100 flex items-baseline justify-between">
+              <span className="text-xs text-gray-500 font-medium">Delivery Charge</span>
+              <span className="text-2xl font-black text-amber-600">৳100</span>
+            </div>
+          </div>
+
+          <div className="bg-white p-6 rounded-3xl border border-gray-200/80 shadow-xs flex flex-col justify-between">
+            <div>
+              <div className="w-10 h-10 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center mb-4">
+                <Truck className="w-5 h-5" />
+              </div>
+              <span className="text-[11px] font-bold text-blue-600 uppercase tracking-wider">All 64 Districts</span>
+              <h3 className="font-bold text-base text-gray-900 mt-0.5">Outside Dhaka</h3>
+              <p className="text-xs text-gray-500 mt-2 leading-relaxed">
+                Nationwide coverage across all divisional cities, zilas, and upazilas via partner couriers.
+              </p>
+            </div>
+            <div className="mt-6 pt-4 border-t border-gray-100 flex items-baseline justify-between">
+              <span className="text-xs text-gray-500 font-medium">Delivery Charge</span>
+              <span className="text-2xl font-black text-blue-600">৳120</span>
             </div>
           </div>
         </div>
@@ -82,10 +91,20 @@ export const ShippingDeliveryPage: React.FC = () => {
           <section>
             <div className="flex items-center gap-2.5 mb-3">
               <CheckCircle2 className="w-5 h-5 text-emerald-500 flex-shrink-0" />
-              <h2 className="text-lg font-bold text-gray-900">Order Verification & Dispatch</h2>
+              <h2 className="text-lg font-bold text-gray-900">Order Dispatch & Realistic Delivery</h2>
             </div>
             <p className="text-xs leading-relaxed text-gray-600">
-              After placing an order on Kintesi, our support team will promptly verify your order and shipping address via phone call or SMS if required. Once confirmed, your item is carefully packed with protective cushioning and handed over to our courier partner.
+              অর্ডার কনফার্ম করার পর আমরা দ্রুততম সময়ে পার্সেল প্রস্তুত করে কুরিয়ারে হস্তান্তর করি। বাংলাদেশে ট্রাফিক অবস্থা, আবহাওয়া এবং কুরিয়ার হাবের প্রসেসিংয়ের ওপর নির্ভর করে ডেলিভারি সময় নির্ধারিত হয়। তাই কোনো নির্দিষ্ট ফিক্সড সময়ের নিশ্চয়তা দেওয়া হয় না, তবে পার্সেলটি যথাসম্ভব দ্রুত আপনার ঠিকানায় পৌঁছাতে কুরিয়ার টিম কাজ করে।
+            </p>
+          </section>
+
+          <section>
+            <div className="flex items-center gap-2.5 mb-3">
+              <ShieldCheck className="w-5 h-5 text-blue-500 flex-shrink-0" />
+              <h2 className="text-lg font-bold text-gray-900">Delivery Partners & Live Tracking</h2>
+            </div>
+            <p className="text-xs leading-relaxed text-gray-600">
+              We partner with trusted courier services including Steadfast Courier, Pathao Logistics, and RedX. As soon as your order is dispatched, you will receive an SMS with your Consignment Tracking Code to monitor the live courier transit progress at any time.
             </p>
           </section>
 
@@ -95,30 +114,28 @@ export const ShippingDeliveryPage: React.FC = () => {
               <h2 className="text-lg font-bold text-gray-900">Open-Box Inspection on Delivery</h2>
             </div>
             <p className="text-xs leading-relaxed text-gray-600">
-              To guarantee total peace of mind, customers are allowed to open the outer courier parcel in front of the delivery agent to ensure the ordered item and color match before completing cash payment. If there is any visible defect, you can decline the parcel on the spot without hassle.
+              গ্রাহকের শতভাগ সন্তুষ্টি নিশ্চিত করতে ডেলিভারিম্যানের সামনেই পার্সেল খুলে প্রোডাক্টটি মিলিয়ে নেওয়ার সুযোগ রয়েছে। কোনো সমস্যা বা ত্রুটি পরিলক্ষিত হলে তৎক্ষণাৎ ডেলিভারিম্যানকে অবহিত করে পার্সেল রিটার্ন করতে পারবেন।
             </p>
           </section>
 
-          <section>
-            <div className="flex items-center gap-2.5 mb-3">
-              <ShieldCheck className="w-5 h-5 text-blue-500 flex-shrink-0" />
-              <h2 className="text-lg font-bold text-gray-900">Delivery Partners & Tracking</h2>
-            </div>
-            <p className="text-xs leading-relaxed text-gray-600">
-              We partner with Bangladesh’s leading logistics providers including Steadfast Courier, Pathao Logistics, RedX, and Paperfly. Once dispatched, you will receive an SMS containing your tracking consignment number to follow live progress.
-            </p>
-          </section>
-
-          <section className="bg-rose-50/60 p-5 rounded-2xl border border-rose-100">
+          {/* Direct Assistance Banner */}
+          <section className="bg-rose-50/60 p-5 rounded-2xl border border-rose-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="flex items-start gap-3">
               <AlertCircle className="w-5 h-5 text-rose-600 flex-shrink-0 mt-0.5" />
               <div>
-                <h4 className="text-xs font-bold text-rose-900">Special Weather & Holiday Delays</h4>
-                <p className="text-[11px] leading-relaxed text-rose-700 mt-1">
-                  During official national holidays, Eid festivals, severe adverse weather or regional political hartals, courier transit might experience an additional 24–48 hours delay. Our customer care hotline ({phone}) is always available to assist.
+                <h4 className="text-xs font-bold text-rose-900">Need Delivery Assistance?</h4>
+                <p className="text-[11px] leading-relaxed text-rose-700 mt-0.5">
+                  Call our helpline or message via Live Chat anytime for instant delivery updates.
                 </p>
               </div>
             </div>
+            <a
+              href={`tel:${phone}`}
+              className="px-4 py-2 bg-rose-600 text-white rounded-xl text-xs font-bold hover:bg-rose-700 transition flex items-center gap-1.5 flex-shrink-0 shadow-xs"
+            >
+              <Phone className="w-3.5 h-3.5" />
+              <span>{phone}</span>
+            </a>
           </section>
         </div>
       </div>

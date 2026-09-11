@@ -5,7 +5,6 @@ import { useSettings } from '../contexts/SettingsContext';
 export const TermsOfServicePage: React.FC = () => {
   const { settings } = useSettings();
   const phone = settings?.helplinePhone?.trim() || '01902593390';
-  const email = settings?.supportEmail?.trim() || 'support@kintesi.com';
 
   return (
     <div className="min-h-screen bg-gray-50/50 py-10 md:py-16">
@@ -100,15 +99,11 @@ export const TermsOfServicePage: React.FC = () => {
           <section className="pt-4 border-t border-gray-100">
             <h3 className="font-bold text-gray-900 mb-1">Contacting Us</h3>
             <p className="text-xs text-gray-500">
-              For any questions regarding these Terms, please contact us at{' '}
-              <a href={`mailto:${email}`} className="text-rose-600 font-semibold underline">
-                {email}
-              </a>{' '}
-              or call{' '}
+              For any questions regarding these Terms, please contact our helpline at{' '}
               <a href={`tel:${phone}`} className="text-rose-600 font-semibold underline">
                 {phone}
-              </a>
-              .
+              </a>{' '}
+              or connect with our support team via Live Customer Chat.
             </p>
           </section>
         </div>
