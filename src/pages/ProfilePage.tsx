@@ -632,14 +632,9 @@ export const ProfilePage: React.FC = () => {
                   EN
                 </div>
                 <div>
-                  <div className="flex items-center gap-2">
-                    <h3 className="text-xs font-bold text-gray-900">English</h3>
-                    <span className="px-2 py-0.5 bg-rose-100 text-rose-700 font-extrabold rounded-full text-[9px] uppercase tracking-wider">
-                      Default / Main
-                    </span>
-                  </div>
+                  <h3 className="text-xs font-bold text-gray-900">English</h3>
                   <p className="text-[11px] text-gray-500 mt-0.5">
-                    Browse the entire store in international standard English
+                    Browse the entire store in English
                   </p>
                 </div>
               </div>
@@ -655,7 +650,7 @@ export const ProfilePage: React.FC = () => {
               </div>
             </div>
 
-            {/* Option 2: বাংলা (Bangla) */}
+            {/* Option 2: বাংলা */}
             <div
               onClick={() => {
                 if (language !== 'bn') {
@@ -680,14 +675,9 @@ export const ProfilePage: React.FC = () => {
                   বাং
                 </div>
                 <div>
-                  <div className="flex items-center gap-2">
-                    <h3 className="text-xs font-bold text-gray-900">বাংলা (Bangla)</h3>
-                    <span className="px-2 py-0.5 bg-gray-100 text-gray-600 font-bold rounded-full text-[9px]">
-                      বাংলা সংস্করণ
-                    </span>
-                  </div>
+                  <h3 className="text-xs font-bold text-gray-900">বাংলা</h3>
                   <p className="text-[11px] text-gray-500 mt-0.5">
-                    সম্পূর্ণ ওয়েবসাইট এবং চেকআউট খাঁটি বাংলায় পরিচালনা করুন
+                    সম্পূর্ণ ওয়েবসাইট বাংলায় ব্রাউজ করুন
                   </p>
                 </div>
               </div>

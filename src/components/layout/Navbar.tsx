@@ -197,7 +197,7 @@ export const Navbar: React.FC = () => {
                   type="button"
                   onClick={toggleLanguage}
                   className="px-2 py-0.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200/80 rounded-lg text-[10px] font-black flex items-center gap-1 active:scale-95 transition cursor-pointer"
-                  title={language === 'en' ? 'বাংলা সংস্করণ' : 'English Version'}
+                  title={language === 'en' ? 'বাংলা' : 'English'}
                 >
                   <Globe className="w-2.5 h-2.5" />
                   <span>{language === 'en' ? 'বাং' : 'EN'}</span>
