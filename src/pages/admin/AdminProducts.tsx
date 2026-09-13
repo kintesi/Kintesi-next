@@ -491,7 +491,7 @@ export const AdminProducts: React.FC = () => {
       specVal2: specEntries[1]?.[1] || '',
       specKey3: specEntries[2]?.[0] || '',
       specVal3: specEntries[2]?.[1] || '',
-      tags: (prod.tags || []).join(', '),
+      tags: Array.isArray(prod.tags) ? prod.tags.join(', ') : (typeof prod.tags === 'string' ? prod.tags : ''),
     });
     setActiveModalTab('general');
     setIsModalOpen(true);
@@ -754,199 +754,212 @@ export const AdminProducts: React.FC = () => {
     setIsSavingProduct(true);
     const toastId = toast.loading(editingProduct ? 'Saving changes...' : 'Creating product...');
 
-    const priceNum = Number(effectivePrice);
-    const percentNum = Number(formData.discount_percent || 0);
-    let calculatedDiscountPrice: number | null = null;
-    if (percentNum > 0 && percentNum < 100) {
-      calculatedDiscountPrice = Math.round(priceNum - (priceNum * percentNum) / 100);
-    }
+    try {
+      const priceNum = Number(effectivePrice);
+      const percentNum = Number(formData.discount_percent || 0);
+      let calculatedDiscountPrice: number | null = null;
+      if (percentNum > 0 && percentNum < 100) {
+        calculatedDiscountPrice = Math.round(priceNum - (priceNum * percentNum) / 100);
+      }
 
-    const rawSlug = formData.slug?.trim() || cleanTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-');
-    const slug = rawSlug.replace(/^-+|-+$/g, '') || ('product-' + Date.now());
+      const rawSlug = formData.slug?.trim() || cleanTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+      const slug = rawSlug.replace(/^-+|-+$/g, '') || ('product-' + Date.now());
 
-    // Collect all valid image URLs across all color variants
-    const allImages: string[] = [];
-    (formData.colorVariants || []).forEach((cv) => {
-      [cv.imageUrl1, cv.imageUrl2, cv.imageUrl3, cv.imageUrl4].forEach((url) => {
-        const trimmed = (url || '').trim();
-        if (trimmed && !allImages.includes(trimmed)) {
-          allImages.push(trimmed);
+      // Collect all valid image URLs across all color variants
+      const allImages: string[] = [];
+      (formData.colorVariants || []).forEach((cv) => {
+        [cv.imageUrl1, cv.imageUrl2, cv.imageUrl3, cv.imageUrl4].forEach((url) => {
+          const trimmed = (url || '').trim();
+          if (trimmed && !allImages.includes(trimmed)) {
+            allImages.push(trimmed);
+          }
+        });
+      });
+
+      // Extract color variants with individual 4 photos, custom price, discount & stock
+      const compiledColors: ProductColorOption[] = [];
+      (formData.colorVariants || []).forEach((cv) => {
+        const name = (cv.colorName || '').trim();
+        const colorImages = [cv.imageUrl1, cv.imageUrl2, cv.imageUrl3, cv.imageUrl4]
+          .map((u) => (u || '').trim())
+          .filter(Boolean);
+
+        const colorPriceNum = cv.price && !isNaN(Number(cv.price)) ? Number(cv.price) : priceNum;
+        const colorDiscountNum = cv.discount_percent && !isNaN(Number(cv.discount_percent)) ? Number(cv.discount_percent) : percentNum;
+        let calculatedColorDiscountPrice: number | null = null;
+        if (colorPriceNum && colorDiscountNum > 0 && colorDiscountNum < 100) {
+          calculatedColorDiscountPrice = Math.round(colorPriceNum - (colorPriceNum * colorDiscountNum) / 100);
+        }
+        const colorStockNum = cv.stock && !isNaN(Number(cv.stock)) ? Number(cv.stock) : (formData.stock ? Number(formData.stock) : 10);
+
+        if (name || colorImages.length > 0) {
+          compiledColors.push({
+            name: name || 'Default',
+            hex: cv.colorHex || '#EC4899',
+            price: colorPriceNum,
+            discount_price: calculatedColorDiscountPrice,
+            discount_percent: colorDiscountNum > 0 ? colorDiscountNum : null,
+            stock: colorStockNum,
+            image: colorImages[0] || null,
+            images: colorImages,
+          });
         }
       });
-    });
 
-    // Extract color variants with individual 4 photos, custom price, discount & stock
-    const compiledColors: ProductColorOption[] = [];
-    (formData.colorVariants || []).forEach((cv) => {
-      const name = (cv.colorName || '').trim();
-      const colorImages = [cv.imageUrl1, cv.imageUrl2, cv.imageUrl3, cv.imageUrl4]
-        .map((u) => (u || '').trim())
-        .filter(Boolean);
+      const highlightsList = [formData.highlight1, formData.highlight2, formData.highlight3]
+        .map((h) => (h || '').trim())
+        .filter((h) => h.length > 0);
 
-      const colorPriceNum = cv.price && !isNaN(Number(cv.price)) ? Number(cv.price) : priceNum;
-      const colorDiscountNum = cv.discount_percent && !isNaN(Number(cv.discount_percent)) ? Number(cv.discount_percent) : percentNum;
-      let calculatedColorDiscountPrice: number | null = null;
-      if (colorPriceNum && colorDiscountNum > 0 && colorDiscountNum < 100) {
-        calculatedColorDiscountPrice = Math.round(colorPriceNum - (colorPriceNum * colorDiscountNum) / 100);
+      const specsObj: Record<string, string> = {};
+      if (formData.specKey1?.trim() && formData.specVal1?.trim()) specsObj[formData.specKey1.trim()] = formData.specVal1.trim();
+      if (formData.specKey2?.trim() && formData.specVal2?.trim()) specsObj[formData.specKey2.trim()] = formData.specVal2.trim();
+      if (formData.specKey3?.trim() && formData.specVal3?.trim()) specsObj[formData.specKey3.trim()] = formData.specVal3.trim();
+
+      const userTags = Array.isArray(formData.tags)
+        ? (formData.tags as any[]).map((t) => String(t || '').trim()).filter(Boolean)
+        : (typeof formData.tags === 'string' && formData.tags
+            ? formData.tags.split(',').map((t) => t.trim()).filter(Boolean)
+            : []);
+
+      const autoKeywords = [
+        ...userTags,
+        cleanTitle.toLowerCase(),
+        currentSpecMode === 'fashion' ? (formData.fabric || '').toLowerCase() : '',
+        currentSpecMode === 'fashion' ? (formData.gender || '').toLowerCase() : '',
+      ];
+      const uniqueTags = Array.from(new Set(autoKeywords.filter(Boolean)));
+
+      let cleanedFabric = '';
+      let cleanedFitType = '';
+      let cleanedCare = '';
+      let cleanedGender = '';
+      let cleanedWarranty = (formData.warranty || '').trim();
+      let cleanedSpecs: Record<string, string> = {};
+
+      if (currentSpecMode === 'gadgets') {
+        cleanedSpecs = specsObj;
+        cleanedFabric = '';
+        cleanedFitType = '';
+        cleanedCare = '';
+        cleanedGender = '';
+      } else if (currentSpecMode === 'fashion') {
+        cleanedSpecs = {};
+        cleanedFabric = (formData.fabric || '').trim();
+        cleanedFitType = (formData.fit_type || '').trim();
+        cleanedCare = (formData.care_instructions || '').trim();
+        cleanedGender = (formData.gender || '').trim();
+        cleanedWarranty = '';
+      } else if (currentSpecMode === 'groceries') {
+        cleanedSpecs = {};
+        cleanedFabric = (formData.fabric || '').trim();
+        cleanedFitType = (formData.fit_type || '').trim();
+        cleanedCare = (formData.care_instructions || '').trim();
+        cleanedWarranty = (formData.warranty || '').trim();
+        cleanedGender = '';
+      } else {
+        cleanedSpecs = {};
+        cleanedFabric = '';
+        cleanedFitType = '';
+        cleanedCare = '';
+        cleanedGender = '';
+        cleanedWarranty = '';
       }
-      const colorStockNum = cv.stock && !isNaN(Number(cv.stock)) ? Number(cv.stock) : (formData.stock ? Number(formData.stock) : 10);
 
-      if (name || colorImages.length > 0) {
-        compiledColors.push({
-          name: name || 'Default',
-          hex: cv.colorHex || '#EC4899',
-          price: colorPriceNum,
-          discount_price: calculatedColorDiscountPrice,
-          discount_percent: colorDiscountNum > 0 ? colorDiscountNum : null,
-          stock: colorStockNum,
-          image: colorImages[0] || null,
-          images: colorImages,
-        });
-      }
-    });
+      const effectiveStock = Number(formData.stock) || (compiledColors.reduce((sum, c) => sum + (c.stock || 0), 0) || 10);
 
-    const highlightsList = [formData.highlight1, formData.highlight2, formData.highlight3]
-      .map((h) => (h || '').trim())
-      .filter((h) => h.length > 0);
-
-    const specsObj: Record<string, string> = {};
-    if (formData.specKey1?.trim() && formData.specVal1?.trim()) specsObj[formData.specKey1.trim()] = formData.specVal1.trim();
-    if (formData.specKey2?.trim() && formData.specVal2?.trim()) specsObj[formData.specKey2.trim()] = formData.specVal2.trim();
-    if (formData.specKey3?.trim() && formData.specVal3?.trim()) specsObj[formData.specKey3.trim()] = formData.specVal3.trim();
-
-    const userTags = formData.tags
-      ? formData.tags.split(',').map((t) => t.trim()).filter(Boolean)
-      : [];
-    const autoKeywords = [
-      ...userTags,
-      cleanTitle.toLowerCase(),
-      currentSpecMode === 'fashion' ? (formData.fabric || '').toLowerCase() : '',
-      currentSpecMode === 'fashion' ? (formData.gender || '').toLowerCase() : '',
-    ];
-    const uniqueTags = Array.from(new Set(autoKeywords.filter(Boolean)));
-
-    let cleanedFabric = '';
-    let cleanedFitType = '';
-    let cleanedCare = '';
-    let cleanedGender = '';
-    let cleanedWarranty = (formData.warranty || '').trim();
-    let cleanedSpecs: Record<string, string> = {};
-
-    if (currentSpecMode === 'gadgets') {
-      cleanedSpecs = specsObj;
-      cleanedFabric = '';
-      cleanedFitType = '';
-      cleanedCare = '';
-      cleanedGender = '';
-    } else if (currentSpecMode === 'fashion') {
-      cleanedSpecs = {};
-      cleanedFabric = (formData.fabric || '').trim();
-      cleanedFitType = (formData.fit_type || '').trim();
-      cleanedCare = (formData.care_instructions || '').trim();
-      cleanedGender = (formData.gender || '').trim();
-      cleanedWarranty = '';
-    } else if (currentSpecMode === 'groceries') {
-      cleanedSpecs = {};
-      cleanedFabric = (formData.fabric || '').trim();
-      cleanedFitType = (formData.fit_type || '').trim();
-      cleanedCare = (formData.care_instructions || '').trim();
-      cleanedWarranty = (formData.warranty || '').trim();
-      cleanedGender = '';
-    } else {
-      cleanedSpecs = {};
-      cleanedFabric = '';
-      cleanedFitType = '';
-      cleanedCare = '';
-      cleanedGender = '';
-      cleanedWarranty = '';
-    }
-
-    const effectiveStock = Number(formData.stock) || (compiledColors.reduce((sum, c) => sum + (c.stock || 0), 0) || 10);
-
-    const productPayload: any = {
-      title: cleanTitle,
-      slug: slug,
-      description: (formData.description || '').trim(),
-      price: priceNum,
-      discount_price: calculatedDiscountPrice,
-      category_id: formData.category_id || categories[0]?.slug || 'mens-fashion',
-      stock: effectiveStock,
-      images: allImages.length > 0 ? allImages : ['/logo.webp'],
-      brand: (formData.brand || '').trim() || 'Kintesi',
-      sku: (formData.sku || '').trim() || ('KT-' + (editingProduct?.id || Date.now().toString()).slice(0, 6).toUpperCase()),
-      warranty: cleanedWarranty,
-      delivery_note: (formData.delivery_note || '').trim(),
-      dropshipping_url: (formData.dropshipping_url || '').trim() || null,
-      allowed_payment_methods: formData.allowed_payment_methods && formData.allowed_payment_methods.length > 0
-        ? formData.allowed_payment_methods
-        : ['cod', 'bkash', 'nagad', 'card'],
-      payment_instruction: (formData.payment_instruction || '').trim(),
-      highlights: highlightsList,
-      fabric: cleanedFabric,
-      fit_type: cleanedFitType,
-      care_instructions: cleanedCare,
-      origin: currentSpecMode === 'none' ? '' : (formData.origin || '').trim() || 'Made in Bangladesh',
-      gender: cleanedGender || 'Unisex',
-      specifications: {
-        ...cleanedSpecs,
+      const productPayload: any = {
+        title: cleanTitle,
+        slug: slug,
+        description: (formData.description || '').trim(),
+        price: priceNum,
+        discount_price: calculatedDiscountPrice,
+        category_id: formData.category_id || categories[0]?.slug || 'mens-fashion',
+        stock: effectiveStock,
+        images: allImages.length > 0 ? allImages : ['/logo.webp'],
+        brand: (formData.brand || '').trim() || 'Kintesi',
+        sku: (formData.sku || '').trim() || ('KT-' + (editingProduct?.id || Date.now().toString()).slice(0, 6).toUpperCase()),
+        warranty: cleanedWarranty,
+        delivery_note: (formData.delivery_note || '').trim(),
+        dropshipping_url: (formData.dropshipping_url || '').trim() || null,
+        allowed_payment_methods: formData.allowed_payment_methods && formData.allowed_payment_methods.length > 0
+          ? formData.allowed_payment_methods
+          : ['cod', 'bkash', 'nagad', 'card'],
+        payment_instruction: (formData.payment_instruction || '').trim(),
+        highlights: highlightsList,
+        fabric: cleanedFabric,
+        fit_type: cleanedFitType,
+        care_instructions: cleanedCare,
+        origin: currentSpecMode === 'none' ? '' : (formData.origin || '').trim() || 'Made in Bangladesh',
+        gender: cleanedGender || 'Unisex',
+        specifications: {
+          ...cleanedSpecs,
+          custom_attributes: formData.customAttributes || [],
+        },
+        tags: uniqueTags,
+        sizes: currentSpecMode === 'none' ? [] : (formData.selectedSizes || []),
+        colors: compiledColors,
         custom_attributes: formData.customAttributes || [],
-      },
-      tags: uniqueTags,
-      sizes: currentSpecMode === 'none' ? [] : (formData.selectedSizes || []),
-      colors: compiledColors,
-      custom_attributes: formData.customAttributes || [],
-      is_featured: !!formData.is_featured,
-      is_trending: !!formData.is_trending,
-      rating: editingProduct?.rating || 5.0,
-      review_count: editingProduct?.review_count || 0,
-    };
+        is_featured: !!formData.is_featured,
+        is_trending: !!formData.is_trending,
+        rating: editingProduct?.rating || 5.0,
+        review_count: editingProduct?.review_count || 0,
+      };
 
-    const targetId = editingProduct?.id || ('local-' + Date.now());
-    const completeProduct: Product = {
-      id: targetId,
-      ...productPayload,
-    } as Product;
+      const targetId = editingProduct?.id || ('local-' + Date.now());
+      const completeProduct: Product = {
+        id: targetId,
+        ...productPayload,
+      } as Product;
 
-    // 1. INSTANT LOCAL REACTIVITY (0ms - Closes modal immediately so user is never stuck!)
-    const savedCustom: Product[] = JSON.parse(localStorage.getItem('kintesi_custom_products') || '[]');
-    const existingIdx = savedCustom.findIndex(
-      (p) => (editingProduct && p.id === editingProduct.id) || p.slug === slug
-    );
-
-    let updatedCustom: Product[];
-    if (existingIdx >= 0) {
-      updatedCustom = [...savedCustom];
-      updatedCustom[existingIdx] = completeProduct;
-    } else {
-      updatedCustom = [completeProduct, ...savedCustom];
-    }
-
-    localStorage.setItem('kintesi_custom_products', JSON.stringify(updatedCustom));
-    window.dispatchEvent(new Event('kintesi_products_updated'));
-
-    setProducts((prev) => {
-      const idx = prev.findIndex((p) => (editingProduct && p.id === editingProduct.id) || p.slug === slug);
-      if (idx >= 0) {
-        const next = [...prev];
-        next[idx] = completeProduct;
-        return next;
-      }
-      return [completeProduct, ...prev];
-    });
-
-    setIsModalOpen(false);
-    setIsSavingProduct(false);
-    toast.success('Product saved successfully!', { id: toastId });
-
-    // 2. BACKGROUND CLOUD SYNC (Non-blocking: saves to Supabase and Firestore in background)
-    Promise.resolve().then(async () => {
+      // 1. INSTANT LOCAL REACTIVITY (0ms - Closes modal immediately so user is never stuck!)
       try {
-        await saveProductToDB(completeProduct);
-        loadProducts();
-      } catch (cloudErr) {
-        console.warn('Background cloud product save notice:', cloudErr);
+        const savedCustom: Product[] = JSON.parse(localStorage.getItem('kintesi_custom_products') || '[]');
+        const existingIdx = savedCustom.findIndex(
+          (p) => (editingProduct && p.id === editingProduct.id) || p.slug === slug
+        );
+
+        let updatedCustom: Product[];
+        if (existingIdx >= 0) {
+          updatedCustom = [...savedCustom];
+          updatedCustom[existingIdx] = completeProduct;
+        } else {
+          updatedCustom = [completeProduct, ...savedCustom];
+        }
+
+        localStorage.setItem('kintesi_custom_products', JSON.stringify(updatedCustom));
+        window.dispatchEvent(new Event('kintesi_products_updated'));
+      } catch (locErr) {
+        console.warn('localStorage update notice in handleSubmit:', locErr);
       }
-    });
+
+      setProducts((prev) => {
+        const idx = prev.findIndex((p) => (editingProduct && p.id === editingProduct.id) || p.slug === slug);
+        if (idx >= 0) {
+          const next = [...prev];
+          next[idx] = completeProduct;
+          return next;
+        }
+        return [completeProduct, ...prev];
+      });
+
+      setIsModalOpen(false);
+      toast.success(editingProduct ? 'Changes saved successfully!' : 'Product created successfully!', { id: toastId });
+
+      // 2. BACKGROUND CLOUD SYNC (Non-blocking: saves to Supabase and Firestore in background)
+      Promise.resolve().then(async () => {
+        try {
+          await saveProductToDB(completeProduct);
+          loadProducts();
+        } catch (cloudErr) {
+          console.warn('Background cloud product save notice:', cloudErr);
+        }
+      });
+    } catch (err: any) {
+      console.error('Save product error:', err);
+      toast.error(err?.message || 'Failed to save product. Please check form inputs.', { id: toastId });
+    } finally {
+      setIsSavingProduct(false);
+    }
   };
 
   const handleDelete = async (prod: Product) => {
@@ -2728,7 +2741,13 @@ export const AdminProducts: React.FC = () => {
                 <div className="space-y-6 animate-fadeIn">
                   {/* Section 8: Search Keywords, Tags & 20,000 Category Explorer */}
               <CategoryTagExplorer
-                selectedTags={formData.tags ? formData.tags.split(',').map((t) => t.trim()).filter(Boolean) : []}
+                selectedTags={
+                  Array.isArray(formData.tags)
+                    ? (formData.tags as any[]).map((t) => String(t || '').trim()).filter(Boolean)
+                    : typeof formData.tags === 'string' && formData.tags
+                    ? formData.tags.split(',').map((t) => t.trim()).filter(Boolean)
+                    : []
+                }
                 onChangeTags={(newTags) => setFormData({ ...formData, tags: newTags.join(', ') })}
                 currentCategoryId={formData.category_id}
                 onSelectCategory={(catId) => {

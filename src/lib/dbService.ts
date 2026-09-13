@@ -85,10 +85,14 @@ export async function getProductsFromDB(): Promise<Product[]> {
 
 export async function saveProductToDB(product: Product): Promise<void> {
   // 1. Instant local reactivity (0ms)
-  const localSaved: Product[] = JSON.parse(localStorage.getItem('kintesi_custom_products') || '[]');
-  const updated = [product, ...localSaved.filter((p) => p.id !== product.id && p.slug !== product.slug)];
-  localStorage.setItem('kintesi_custom_products', JSON.stringify(updated));
-  window.dispatchEvent(new Event('kintesi_products_updated'));
+  try {
+    const localSaved: Product[] = JSON.parse(localStorage.getItem('kintesi_custom_products') || '[]');
+    const updated = [product, ...localSaved.filter((p) => p.id !== product.id && p.slug !== product.slug)];
+    localStorage.setItem('kintesi_custom_products', JSON.stringify(updated));
+    window.dispatchEvent(new Event('kintesi_products_updated'));
+  } catch (storageErr) {
+    console.warn('Local storage cache update warning in saveProductToDB:', storageErr);
+  }
 
   const isUUID = (str?: string) =>
     str ? /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str) : false;
