@@ -80,6 +80,8 @@ CREATE TABLE IF NOT EXISTS public.products (
   allowed_payment_methods JSONB DEFAULT '["cod", "bkash", "nagad", "card"]'::JSONB,
   payment_instruction TEXT,
   warranty_badge_enabled BOOLEAN DEFAULT true,
+  custom_attributes JSONB DEFAULT '[]'::JSONB,
+  dropshipping_url TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
@@ -394,7 +396,15 @@ INSERT INTO public.categories (name, slug, description, image_url, icon) VALUES
   ('Audio & Headphones', 'audio-headphones', 'Noise cancelling headphones, wireless earbuds & soundbars', '', 'Headphones'),
   ('Smart Watches & Fitness', 'smart-watches', 'Apple Watch, Garmin fitness trackers & luxury straps', '', 'Watch'),
   ('Health & Baby Care', 'health-baby-care', 'Baby diapers, organic baby foods, vitamins & wellness', '', 'HeartPulse'),
-  ('Sports & Fitness Equipment', 'sports-fitness', 'Gym dumbbells, yoga mats, resistance bands & active gear', '', 'Dumbbell')
+  ('Sports & Fitness Equipment', 'sports-fitness', 'Gym dumbbells, yoga mats, resistance bands & active gear', '', 'Dumbbell'),
+  ('Menstrual Heating & Period Care', 'menstrual-heating-period-care', 'Rechargeable menstrual heating belts, wireless warming vibration massage pads & uterus cramp relief devices', '', 'HeartPulse'),
+  ('Posture Correctors & Spine Care', 'orthopedic-posture-spine-care', 'Upper back posture correctors, clavicle spine alignment braces, lumbar decompression belts & orthopedic supports', '', 'ShieldCheck'),
+  ('Beauty, Laser & Therapy Gadgets', 'beauty-skincare-therapy-gadgets', 'IPL laser hair removal handsets, LED photon facial rejuvenation masks, ultrasonic skin scrubbers & RF lifting devices', '', 'Sparkles'),
+  ('Electric Pain Relief & Physiotherapy', 'pain-relief-physiotherapy-devices', 'TENS EMS pulse electrotherapy massagers, electric infrared knee pads, cervical neck traction & deep tissue massage guns', '', 'Zap'),
+  ('Sleep Wellness & Anti-Snoring', 'sleep-wellness-anti-snoring', 'Micro-electric smart anti-snoring devices, silicone nasal vents, sleep sound therapy machines & blackout 3D Bluetooth eye masks', '', 'Moon'),
+  ('Maternity & Postpartum Care', 'maternity-postpartum-mother-care', 'Wearable hands-free electric breast pumps, 3-in-1 postpartum recovery abdominal binders, milk warmers & maternity cushions', '', 'Heart'),
+  ('Smart Lifestyle & Problem Solvers', 'smart-lifestyle-problem-solvers', 'Rechargeable fabric lint shavers, ultrasonic jewelry cleaners, portable electric mini sealers & silicone drain hair catchers', '', 'Cpu'),
+  ('Electric Pedicure & Foot Care', 'foot-care-pedicure-tools', 'Waterproof electric hard skin callus removers, silicone heel anti-crack protectors, electric foot baths & acupressure mats', '', 'Footprints')
 ON CONFLICT (slug) DO NOTHING;
 
 -- ==============================================================================
