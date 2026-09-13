@@ -171,6 +171,11 @@ export const HomePage: React.FC = () => {
     return products.filter((p) => Boolean(p.is_featured));
   }, [products]);
 
+  const isFeaturedActive = Boolean(
+    banners.showFeaturedProducts !== false &&
+    featuredProducts.length > 0
+  );
+
   // 2. Personalized & Periodically Rotated Products (Matches user search, category visits, and dynamically shifts order every 2 hours)
   const personalizedProducts = useMemo(() => {
     return getPersonalizedAndRotatedProducts(products, 2);
@@ -338,7 +343,34 @@ export const HomePage: React.FC = () => {
           </div>
         )}
 
-        {/* 2. Mobile Flash Sale Countdown & Deals */}
+        {/* 2. FEATURED PRODUCTS (SHOWN UP ABOVE ONLY IF ADMIN ENABLED & MARKED PRODUCTS) */}
+        {isFeaturedActive && (
+          <div className="px-3 space-y-2.5 pt-1">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1.5">
+                <Star className="w-4 h-4 fill-rose-600 text-rose-600" />
+                <h3 className="text-sm font-bold text-gray-900">
+                  {banners.featuredProductsTitle || 'Featured Products'}
+                </h3>
+              </div>
+              <Link to="/shop?featured=true" className="text-xs text-rose-600 font-bold flex items-center">
+                <span>View All</span>
+                <ChevronRight className="w-3.5 h-3.5" />
+              </Link>
+            </div>
+            {banners.featuredProductsSubtitle && (
+              <p className="text-[11px] text-gray-500 -mt-1">{banners.featuredProductsSubtitle}</p>
+            )}
+
+            <div className="grid grid-cols-2 gap-2.5">
+              {featuredProducts.slice(0, 6).map((product) => (
+                <ProductCard key={product.id} product={product} />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* 3. Mobile Flash Sale Countdown & Deals */}
         {isFlashSaleActive && (
           <div className="px-3 space-y-3">
             <FlashSaleBanner
@@ -365,28 +397,6 @@ export const HomePage: React.FC = () => {
                 <p className="text-[10px] text-gray-400">Add discounted products in admin to showcase them here!</p>
               </div>
             )}
-          </div>
-        )}
-
-        {/* 3. FEATURED PRODUCTS (ONLY SHOWN IF ADMIN EXPLICITLY MARKED PRODUCTS AS FEATURED) */}
-        {featuredProducts.length > 0 && (
-          <div className="px-3 space-y-2.5 pt-1">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-1.5">
-                <Star className="w-4 h-4 fill-rose-600 text-rose-600" />
-                <h3 className="text-sm font-bold text-gray-900">Featured Products</h3>
-              </div>
-              <Link to="/shop?featured=true" className="text-xs text-rose-600 font-bold flex items-center">
-                <span>View All</span>
-                <ChevronRight className="w-3.5 h-3.5" />
-              </Link>
-            </div>
-
-            <div className="grid grid-cols-2 gap-2.5">
-              {featuredProducts.slice(0, 6).map((product) => (
-                <ProductCard key={product.id} product={product} />
-              ))}
-            </div>
           </div>
         )}
 
@@ -643,7 +653,40 @@ export const HomePage: React.FC = () => {
           </section>
         )}
 
-        {/* 2. Desktop Flash Sale */}
+        {/* 2. DESKTOP FEATURED PRODUCTS (SHOWN UP ABOVE ONLY IF ADMIN ENABLED & MARKED PRODUCTS) */}
+        {isFeaturedActive && (
+          <section className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 space-y-5">
+            <div className="flex items-center justify-between border-b border-rose-100 pb-3">
+              <div>
+                <div className="flex items-center gap-2">
+                  <Star className="w-5 h-5 fill-rose-600 text-rose-600" />
+                  <h2 className="text-xl font-bold text-gray-900 tracking-tight">
+                    {banners.featuredProductsTitle || 'Featured Products'}
+                  </h2>
+                </div>
+                {banners.featuredProductsSubtitle && (
+                  <p className="text-xs text-gray-500 mt-0.5">{banners.featuredProductsSubtitle}</p>
+                )}
+              </div>
+
+              <Link
+                to="/shop?featured=true"
+                className="text-xs font-bold text-rose-600 hover:text-rose-700 transition flex items-center gap-1"
+              >
+                <span>View All ({featuredProducts.length})</span>
+                <ChevronRight className="w-4 h-4" />
+              </Link>
+            </div>
+
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+              {featuredProducts.slice(0, 8).map((product) => (
+                <ProductCard key={product.id} product={product} />
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* 3. Desktop Flash Sale */}
         {isFlashSaleActive && (
           <section className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
             <FlashSaleBanner
@@ -681,32 +724,6 @@ export const HomePage: React.FC = () => {
                 </Link>
               </div>
             )}
-          </section>
-        )}
-
-        {/* 3. DESKTOP FEATURED PRODUCTS (ONLY SHOWN IF ADMIN EXPLICITLY MARKED PRODUCTS AS FEATURED) */}
-        {featuredProducts.length > 0 && (
-          <section className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 space-y-5">
-            <div className="flex items-center justify-between border-b border-rose-100 pb-3">
-              <div className="flex items-center gap-2">
-                <Star className="w-5 h-5 fill-rose-600 text-rose-600" />
-                <h2 className="text-xl font-bold text-gray-900 tracking-tight">Featured Products</h2>
-              </div>
-
-              <Link
-                to="/shop?featured=true"
-                className="text-xs font-bold text-rose-600 hover:text-rose-700 transition flex items-center gap-1"
-              >
-                <span>View All ({featuredProducts.length})</span>
-                <ChevronRight className="w-4 h-4" />
-              </Link>
-            </div>
-
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-              {featuredProducts.slice(0, 8).map((product) => (
-                <ProductCard key={product.id} product={product} />
-              ))}
-            </div>
           </section>
         )}
 
