@@ -1015,16 +1015,16 @@ export const CheckoutPage: React.FC = () => {
             {/* Item preview list (Strictly selected items) */}
             <div className="divide-y divide-gray-100 max-h-64 overflow-y-auto space-y-3 pr-2">
               {checkoutItems.map((item) => {
-                const itemPrice = item.product.discount_price || item.product.price;
+                const itemPrice = item.product?.discount_price || item.product?.price || 0;
                 return (
-                  <div key={`${item.product.id}-${item.selectedColor || ''}-${item.selectedSize || ''}`} className="pt-3 flex items-center gap-3">
+                  <div key={`${item.product?.id || 'item'}-${item.selectedColor || ''}-${item.selectedSize || ''}`} className="pt-3 flex items-center gap-3">
                     <img
-                      src={item.product.images[0] || '/logo.webp'}
-                      alt={item.product.title}
+                      src={item.product?.images?.[0] || '/logo.webp'}
+                      alt={item.product?.title || 'Product'}
                       className="w-14 h-14 object-cover rounded-xl bg-gray-50 border border-gray-100 flex-shrink-0"
                     />
                     <div className="flex-1 min-w-0">
-                      <h4 className="text-xs font-semibold text-gray-800 line-clamp-1">{item.product.title}</h4>
+                      <h4 className="text-xs font-semibold text-gray-800 line-clamp-1">{item.product?.title || 'Product'}</h4>
                       <div className="text-[10px] text-gray-400 flex items-center gap-2 mt-0.5">
                         {item.selectedSize && <span>{language === 'bn' ? `সাইজ: ${item.selectedSize}` : `Size: ${item.selectedSize}`}</span>}
                         {item.selectedColor && <span>{language === 'bn' ? `কালার: ${item.selectedColor}` : `Color: ${item.selectedColor}`}</span>}
@@ -1036,8 +1036,8 @@ export const CheckoutPage: React.FC = () => {
                           <button
                             type="button"
                             onClick={() => {
-                              if (item.quantity > 1) {
-                                updateQuantity(item.product.id, item.quantity - 1);
+                              if (item.quantity > 1 && item.product?.id) {
+                                updateQuantity(item.product.id, item.quantity - 1, item.selectedColor, item.selectedSize);
                               }
                             }}
                             disabled={item.quantity <= 1}
@@ -1052,11 +1052,11 @@ export const CheckoutPage: React.FC = () => {
                           <button
                             type="button"
                             onClick={() => {
-                              if (item.quantity < (item.product.stock || 99)) {
-                                updateQuantity(item.product.id, item.quantity + 1);
+                              if (item.quantity < (item.product?.stock || 99) && item.product?.id) {
+                                updateQuantity(item.product.id, item.quantity + 1, item.selectedColor, item.selectedSize);
                               }
                             }}
-                            disabled={item.quantity >= (item.product.stock || 99)}
+                            disabled={item.quantity >= (item.product?.stock || 99)}
                             className="p-1 hover:bg-gray-200 text-gray-600 disabled:opacity-30 transition cursor-pointer"
                             aria-label="Increase quantity"
                           >

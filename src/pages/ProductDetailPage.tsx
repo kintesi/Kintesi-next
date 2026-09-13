@@ -268,7 +268,7 @@ export const ProductDetailPage: React.FC = () => {
         sku: product.sku,
       });
     }
-  }, [product, currentPrice, selectedImage, setActiveProductContext]);
+  }, [product?.id, currentPrice, selectedImage]);
 
   const handleAddToCart = () => {
     if (!user) {
@@ -609,6 +609,26 @@ export const ProductDetailPage: React.FC = () => {
                     <span>{language === 'bn' ? 'এখনই কিনুন' : 'Buy Now'}</span>
                   </button>
                 </div>
+
+                {/* Instant Live Chat Inquiry Button */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    openChat({
+                      product: {
+                        id: product.id,
+                        title: product.title,
+                        price: currentPrice,
+                        image: selectedImage || product.images?.[0] || '/logo.webp',
+                        sku: product.sku,
+                      },
+                    });
+                  }}
+                  className="w-full mt-2.5 py-2.5 px-3 bg-gray-50 hover:bg-rose-50/70 text-gray-700 hover:text-rose-700 font-bold rounded-xl border border-gray-200/80 hover:border-rose-200 transition-all flex items-center justify-center gap-2 text-xs cursor-pointer group"
+                >
+                  <MessageCircle className="w-3.5 h-3.5 text-rose-600 group-hover:scale-110 transition-transform" />
+                  <span>{language === 'bn' ? 'প্রোডাক্ট সম্পর্কে চ্যাট করুন' : 'Chat with Seller about this item'}</span>
+                </button>
               </div>
             </div>
 
@@ -1208,16 +1228,42 @@ export const ProductDetailPage: React.FC = () => {
             </button>
           </div>
 
-          {/* Island Action buttons: Cart & Order (English Premium UI) */}
+          {/* Island Action buttons: Cart, Chat & Order */}
           <div className="flex items-center gap-1.5 shrink-0">
+            <button
+              type="button"
+              onClick={() => {
+                openChat({
+                  product: {
+                    id: product.id,
+                    title: product.title,
+                    price: currentPrice,
+                    image: selectedImage || product.images?.[0] || '/logo.webp',
+                    sku: product.sku,
+                  },
+                });
+              }}
+              className="w-8 h-8 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-full flex items-center justify-center active:scale-95 transition border border-rose-200/80 shadow-xs cursor-pointer"
+              title={language === 'bn' ? 'চ্যাট করুন' : 'Chat with Seller'}
+            >
+              <MessageCircle className="w-3.5 h-3.5" />
+            </button>
             <button
               type="button"
               onClick={handleAddToCart}
               disabled={product.stock <= 0}
-              className="w-8 h-8 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-full flex items-center justify-center active:scale-95 transition disabled:opacity-40 border border-gray-200/80 shadow-xs cursor-pointer"
+              className={`w-8 h-8 rounded-full flex items-center justify-center active:scale-95 transition disabled:opacity-40 border shadow-xs cursor-pointer ${
+                isAddedAnimation
+                  ? 'bg-emerald-600 text-white border-emerald-600 shadow-emerald-600/30'
+                  : 'bg-gray-100 hover:bg-gray-200 text-gray-800 border-gray-200/80'
+              }`}
               title="Add to Cart"
             >
-              <ShoppingCart className="w-3.5 h-3.5" />
+              {isAddedAnimation ? (
+                <Check className="w-3.5 h-3.5 stroke-[3] animate-bounce" />
+              ) : (
+                <ShoppingCart className="w-3.5 h-3.5" />
+              )}
             </button>
             <button
               type="button"
@@ -1226,7 +1272,7 @@ export const ProductDetailPage: React.FC = () => {
               className="h-8 px-3.5 bg-gradient-to-r from-rose-600 to-rose-700 hover:from-rose-500 hover:to-rose-600 text-white font-extrabold rounded-full text-xs flex items-center justify-center gap-1 active:scale-95 transition disabled:opacity-40 shadow-md shadow-rose-600/30 cursor-pointer"
             >
               <Zap className="w-3 h-3 fill-current" />
-              <span>{product.stock > 0 ? 'Buy Now' : 'Sold Out'}</span>
+              <span>{product.stock > 0 ? (language === 'bn' ? 'কিনুন' : 'Buy Now') : (language === 'bn' ? 'স্টক আউট' : 'Sold Out')}</span>
             </button>
           </div>
         </aside>

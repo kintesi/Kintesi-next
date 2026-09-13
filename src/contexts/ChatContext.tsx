@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 import { useAuth } from './AuthContext';
 import { supabase, ADMIN_EMAIL } from '../lib/supabase';
 import { getProductsFromDB } from '../lib/dbService';
+import { INITIAL_PRODUCTS } from '../data/mockData';
 import { toast } from 'sonner';
 
 export interface ChatProductContext {
@@ -297,11 +298,6 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [allMessages, profile]);
 
   const openChat = (context?: { product?: ChatProductContext; order?: ChatOrderContext }) => {
-    if (!user) {
-      toast.error('লাইভ চ্যাট করতে দয়া করে প্রথমে সাইন ইন বা রেজিস্ট্রেশন করুন।');
-      openAuthModal('login');
-      return;
-    }
     if (context?.product) setActiveProductContext(context.product);
     if (context?.order) setActiveOrderContext(context.order);
     setIsOpen(true);
@@ -450,20 +446,26 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     let matchedProd: any = null;
     if (productCtx?.id) {
-      matchedProd = allProds.find((p) => p.id === productCtx.id);
+      matchedProd = allProds.find((p) => p.id === productCtx.id) ||
+        INITIAL_PRODUCTS.find((p) => p.id === productCtx.id || p.slug === productCtx.id);
     }
     if (!matchedProd && productCtx?.title) {
-      matchedProd = allProds.find((p) => p.title?.toLowerCase() === productCtx.title.toLowerCase());
+      matchedProd = allProds.find((p) => p.title?.toLowerCase() === productCtx.title.toLowerCase()) ||
+        INITIAL_PRODUCTS.find((p) => p.title?.toLowerCase() === productCtx.title.toLowerCase());
     }
     if (!matchedProd) {
       // Check SKU match (e.g. KT-B3B1A6)
       matchedProd = allProds.find(
+        (p) => p.sku && p.sku.length >= 3 && lowerText.includes(p.sku.toLowerCase())
+      ) || INITIAL_PRODUCTS.find(
         (p) => p.sku && p.sku.length >= 3 && lowerText.includes(p.sku.toLowerCase())
       );
     }
     if (!matchedProd) {
       // Check full title match
       matchedProd = allProds.find(
+        (p) => p.title && lowerText.includes(p.title.toLowerCase())
+      ) || INITIAL_PRODUCTS.find(
         (p) => p.title && lowerText.includes(p.title.toLowerCase())
       );
     }
@@ -473,7 +475,21 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (!p.title) return false;
         const words = p.title.toLowerCase().split(/[\s,.-]+/).filter((w: string) => w.length >= 4);
         return words.length > 0 && words.some((w: string) => lowerText.includes(w));
+      }) || INITIAL_PRODUCTS.find((p) => {
+        if (!p.title) return false;
+        const words = p.title.toLowerCase().split(/[\s,.-]+/).filter((w: string) => w.length >= 4);
+        return words.length > 0 && words.some((w: string) => lowerText.includes(w));
       });
+    }
+    if (!matchedProd && productCtx) {
+      matchedProd = {
+        id: productCtx.id,
+        title: productCtx.title,
+        price: productCtx.price || 0,
+        discount_price: productCtx.price,
+        stock: 25,
+        sku: productCtx.sku || 'KT-PROD',
+      };
     }
 
     let shouldAutoReply = false;

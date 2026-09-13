@@ -10,7 +10,7 @@ interface CartContextType {
   cart: CartItem[];
   addToCart: (product: Product, quantity?: number, color?: string, size?: string) => void;
   removeFromCart: (productId: string) => void;
-  updateQuantity: (productId: string, quantity: number) => void;
+  updateQuantity: (productId: string, quantity: number, color?: string, size?: string) => void;
   clearCart: () => void;
   isCartOpen: boolean;
   setIsCartOpen: (open: boolean) => void;
@@ -284,19 +284,27 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     toast.info('Item removed from cart');
   };
 
-  const updateQuantity = (productId: string, quantity: number) => {
+  const updateQuantity = (productId: string, quantity: number, color?: string, size?: string) => {
     if (quantity <= 0) {
       removeFromCart(productId);
       return;
     }
 
+    const normColor = (color || '').trim();
+    const normSize = (size || '').trim();
+
     const updatedCart = cart.map((item) => {
       if (item?.product?.id === productId) {
-        if (quantity > (item.product.stock || 999)) {
-          toast.error(`Only ${item.product.stock} items available in stock!`);
-          return item;
+        const itemColor = (item.selectedColor || '').trim();
+        const itemSize = (item.selectedSize || '').trim();
+        const matchesVariant = !color && !size ? true : (itemColor === normColor && itemSize === normSize);
+        if (matchesVariant) {
+          if (quantity > (item.product.stock || 999)) {
+            toast.error(`Only ${item.product.stock} items available in stock!`);
+            return item;
+          }
+          return { ...item, quantity };
         }
-        return { ...item, quantity };
       }
       return item;
     });

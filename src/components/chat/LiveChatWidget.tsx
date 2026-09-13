@@ -5,6 +5,8 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { toast } from 'sonner';
 import { formatPrice } from '../../lib/utils';
+import { INITIAL_PRODUCTS } from '../../data/mockData';
+import { getProductsFromDB } from '../../lib/dbService';
 import {
   MessageCircle,
   X,
@@ -33,6 +35,7 @@ export const LiveChatWidget: React.FC = () => {
     unreadCount,
     activeProductContext,
     activeOrderContext,
+    setActiveProductContext,
     openChat,
     closeChat,
     toggleChat,
@@ -47,6 +50,40 @@ export const LiveChatWidget: React.FC = () => {
   const [inputMessage, setInputMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Auto-resolve and attach product context whenever navigating to /product/:slug
+  useEffect(() => {
+    if (!isProductPage) return;
+    const slug = location.pathname.replace('/product/', '').split('/')[0]?.trim();
+    if (!slug) return;
+
+    if (!activeProductContext || activeProductContext.id !== slug) {
+      // Find from initial products or db
+      const localMatch = INITIAL_PRODUCTS.find((p) => p.slug === slug || p.id === slug);
+      if (localMatch) {
+        setActiveProductContext({
+          id: localMatch.id,
+          title: localMatch.title,
+          price: localMatch.discount_price || localMatch.price,
+          image: localMatch.images?.[0] || '/logo.webp',
+          sku: localMatch.sku,
+        });
+      } else {
+        getProductsFromDB().then((prods) => {
+          const found = prods.find((p) => p.slug === slug || p.id === slug);
+          if (found) {
+            setActiveProductContext({
+              id: found.id,
+              title: found.title,
+              price: found.discount_price || found.price,
+              image: found.images?.[0] || '/logo.webp',
+              sku: found.sku,
+            });
+          }
+        }).catch(() => {});
+      }
+    }
+  }, [isProductPage, location.pathname, activeProductContext?.id]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -81,15 +118,6 @@ export const LiveChatWidget: React.FC = () => {
       {!isOpen && (
         <button
           onClick={() => {
-            if (!user) {
-              toast.error(
-                language === 'bn'
-                  ? 'লাইভ চ্যাট করতে দয়া করে প্রথমে সাইন ইন বা রেজিস্ট্রেশন করুন।'
-                  : 'Please sign in or register first to start live chat.'
-              );
-              openAuthModal('login');
-              return;
-            }
             openChat(activeProductContext ? { product: activeProductContext } : undefined);
           }}
           className="fixed bottom-28 right-4 sm:bottom-6 sm:right-6 z-40 p-3 sm:p-4 bg-rose-600 hover:bg-rose-700 text-white rounded-full shadow-2xl transition-all duration-300 hover:scale-110 active:scale-95 flex items-center justify-center group ring-4 ring-rose-600/20"
