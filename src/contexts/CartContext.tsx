@@ -8,7 +8,14 @@ import { db } from '../lib/firebase';
 
 interface CartContextType {
   cart: CartItem[];
-  addToCart: (product: Product, quantity?: number, color?: string, size?: string) => void;
+  addToCart: (
+    product: Product,
+    quantity?: number,
+    color?: string,
+    size?: string,
+    customPrice?: number,
+    variantImage?: string
+  ) => void;
   removeFromCart: (productId: string) => void;
   updateQuantity: (productId: string, quantity: number, color?: string, size?: string) => void;
   clearCart: () => void;
@@ -58,12 +65,20 @@ export const sanitizeCartItems = (rawList: any): CartItem[] => {
       if (!cleaned[existingIndex].selectedSize && size) {
         cleaned[existingIndex].selectedSize = size;
       }
+      if (item.customPrice) {
+        cleaned[existingIndex].customPrice = item.customPrice;
+      }
+      if (item.variantImage) {
+        cleaned[existingIndex].variantImage = item.variantImage;
+      }
     } else {
       cleaned.push({
         product: prod,
         quantity: qty,
         selectedColor: item.selectedColor,
         selectedSize: item.selectedSize,
+        customPrice: item.customPrice,
+        variantImage: item.variantImage,
       });
     }
   }
@@ -224,7 +239,14 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, [appliedCoupon]);
 
-  const addToCart = (product: Product, quantity = 1, color?: string, size?: string) => {
+  const addToCart = (
+    product: Product,
+    quantity = 1,
+    color?: string,
+    size?: string,
+    customPrice?: number,
+    variantImage?: string
+  ) => {
     if (!user) {
       const lang = localStorage.getItem('kintesi_language') || 'en';
       toast.error(
@@ -264,6 +286,12 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (!newCart[existingIndex].selectedSize && size) {
         newCart[existingIndex].selectedSize = size;
       }
+      if (customPrice) {
+        newCart[existingIndex].customPrice = customPrice;
+      }
+      if (variantImage) {
+        newCart[existingIndex].variantImage = variantImage;
+      }
       toast.success(`Updated ${product.title} quantity to ${newQty}`);
       updatedCart = newCart;
     } else {
@@ -272,7 +300,17 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return;
       }
       toast.success(`Added ${product.title} to cart`);
-      updatedCart = [...cart, { product, quantity, selectedColor: color, selectedSize: size }];
+      updatedCart = [
+        ...cart,
+        {
+          product,
+          quantity,
+          selectedColor: color,
+          selectedSize: size,
+          customPrice: customPrice,
+          variantImage: variantImage,
+        },
+      ];
     }
 
     persistCart(sanitizeCartItems(updatedCart));
@@ -323,7 +361,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const subtotal = cart.reduce((acc, item) => {
     if (!item?.product) return acc;
-    const itemPrice = item.product.discount_price || item.product.price || 0;
+    const itemPrice = (item as any).customPrice || item.product.discount_price || item.product.price || 0;
     const qty = typeof item.quantity === 'number' && item.quantity > 0 ? item.quantity : 1;
     return acc + itemPrice * qty;
   }, 0);

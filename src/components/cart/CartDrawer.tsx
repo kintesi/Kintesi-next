@@ -90,14 +90,14 @@ export const CartDrawer: React.FC = () => {
               </div>
             ) : (
               cart.map((item) => {
-                const itemPrice = item.product.discount_price || item.product.price;
+                const itemPrice = (item as any).customPrice || item.product.discount_price || item.product.price;
                 return (
                   <div
                     key={`${item.product.id}-${item.selectedColor}-${item.selectedSize}`}
                     className="flex gap-4 p-3.5 bg-gray-50/80 rounded-2xl border border-gray-100 hover:border-gray-200 transition"
                   >
                     <img
-                      src={item.product.images[0] || '/logo.webp'}
+                      src={(item as any).variantImage || item.product.images[0] || '/logo.webp'}
                       alt={item.product.title}
                       className="w-20 h-20 object-cover rounded-xl bg-white border border-gray-100 flex-shrink-0"
                     />

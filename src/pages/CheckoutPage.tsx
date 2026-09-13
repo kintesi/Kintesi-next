@@ -284,7 +284,7 @@ export const CheckoutPage: React.FC = () => {
 
   // Subtotal for selected items
   const checkoutSubtotal = checkoutItems.reduce((acc, item) => {
-    const itemPrice = item.product?.discount_price || item.product?.price || 0;
+    const itemPrice = (item as any).customPrice || item.product?.discount_price || item.product?.price || 0;
     const qty = typeof item.quantity === 'number' && item.quantity > 0 ? item.quantity : 1;
     return acc + itemPrice * qty;
   }, 0);
@@ -363,9 +363,9 @@ export const CheckoutPage: React.FC = () => {
     const orderItems = checkoutItems.map((item) => ({
       productId: item.product.id,
       title: item.product.title,
-      price: item.product.discount_price || item.product.price,
+      price: (item as any).customPrice || item.product.discount_price || item.product.price,
       quantity: item.quantity,
-      image: item.product.images[0] || '',
+      image: (item as any).variantImage || item.product.images[0] || '',
       selectedColor: item.selectedColor,
       selectedSize: item.selectedSize,
     }));
@@ -1015,11 +1015,11 @@ export const CheckoutPage: React.FC = () => {
             {/* Item preview list (Strictly selected items) */}
             <div className="divide-y divide-gray-100 max-h-64 overflow-y-auto space-y-3 pr-2">
               {checkoutItems.map((item) => {
-                const itemPrice = item.product?.discount_price || item.product?.price || 0;
+                const itemPrice = (item as any).customPrice || item.product?.discount_price || item.product?.price || 0;
                 return (
                   <div key={`${item.product?.id || 'item'}-${item.selectedColor || ''}-${item.selectedSize || ''}`} className="pt-3 flex items-center gap-3">
                     <img
-                      src={item.product?.images?.[0] || '/logo.webp'}
+                      src={(item as any).variantImage || item.product?.images?.[0] || '/logo.webp'}
                       alt={item.product?.title || 'Product'}
                       className="w-14 h-14 object-cover rounded-xl bg-gray-50 border border-gray-100 flex-shrink-0"
                     />

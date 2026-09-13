@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { Product } from '../types';
 import { INITIAL_PRODUCTS } from '../data/mockData';
@@ -59,6 +59,7 @@ export const ProductDetailPage: React.FC = () => {
   const [selectedImage, setSelectedImage] = useState<string>('');
   const [selectedSize, setSelectedSize] = useState<string>('');
   const [selectedColor, setSelectedColor] = useState<string>('');
+  const [selectedCustomAttributes, setSelectedCustomAttributes] = useState<Record<string, string>>({});
   const [quantity, setQuantity] = useState(1);
   const [loading, setLoading] = useState(true);
   const [showStickyBar, setShowStickyBar] = useState(false);
@@ -193,7 +194,20 @@ export const ProductDetailPage: React.FC = () => {
           trackProductView(localProd);
           setSelectedImage(localProd.images?.[0] || '/logo.webp');
           if (localProd.sizes && localProd.sizes.length > 0) setSelectedSize(localProd.sizes[0]);
-          if (localProd.colors && localProd.colors.length > 0) setSelectedColor(localProd.colors[0].name);
+          if (localProd.colors && localProd.colors.length > 0) {
+            setSelectedColor(localProd.colors[0].name);
+            if (localProd.colors[0].image) setSelectedImage(localProd.colors[0].image);
+          }
+          const customAttrs: any[] = localProd.custom_attributes || (localProd.specifications as any)?.custom_attributes || [];
+          if (customAttrs.length > 0) {
+            const initialAttrs: Record<string, string> = {};
+            customAttrs.forEach((a) => {
+              if (a.attributeName && !initialAttrs[a.attributeName]) {
+                initialAttrs[a.attributeName] = a.name;
+              }
+            });
+            setSelectedCustomAttributes(initialAttrs);
+          }
           setLoading(false);
         } else {
           setLoading(true);
@@ -206,7 +220,20 @@ export const ProductDetailPage: React.FC = () => {
           trackProductView(found);
           setSelectedImage(found.images?.[0] || '/logo.webp');
           if (found.sizes && found.sizes.length > 0) setSelectedSize(found.sizes[0]);
-          if (found.colors && found.colors.length > 0) setSelectedColor(found.colors[0].name);
+          if (found.colors && found.colors.length > 0) {
+            setSelectedColor(found.colors[0].name);
+            if (found.colors[0].image) setSelectedImage(found.colors[0].image);
+          }
+          const customAttrs: any[] = found.custom_attributes || (found.specifications as any)?.custom_attributes || [];
+          if (customAttrs.length > 0) {
+            const initialAttrs: Record<string, string> = {};
+            customAttrs.forEach((a) => {
+              if (a.attributeName && !initialAttrs[a.attributeName]) {
+                initialAttrs[a.attributeName] = a.name;
+              }
+            });
+            setSelectedCustomAttributes(initialAttrs);
+          }
         }
         setAllProducts(allProds);
 
@@ -229,7 +256,53 @@ export const ProductDetailPage: React.FC = () => {
     return () => window.removeEventListener('kintesi_products_updated', loadProduct);
   }, [slug]);
 
-  const currentPrice = product ? (product.discount_price || product.price) : 0;
+  // Compute active variant pricing based on selected color or custom attribute
+  const activeColorObj = product?.colors?.find((c) => c.name === selectedColor);
+  let activeVariantPrice: number | null = null;
+  if (activeColorObj && typeof activeColorObj.price === 'number' && activeColorObj.price > 0) {
+    activeVariantPrice = activeColorObj.price;
+  }
+  const customAttrsList: any[] = product?.custom_attributes || (product?.specifications as any)?.custom_attributes || [];
+  for (const [attrName, optName] of Object.entries(selectedCustomAttributes)) {
+    const matched = customAttrsList.find((a) => a.attributeName === attrName && a.name === optName);
+    if (matched && typeof matched.price === 'number' && matched.price > 0) {
+      activeVariantPrice = matched.price;
+    }
+  }
+
+  const currentPrice = activeVariantPrice !== null
+    ? activeVariantPrice
+    : (product ? (product.discount_price || product.price) : 0);
+
+  const customAttrGroups = useMemo(() => {
+    const attrs: any[] = product?.custom_attributes || (product?.specifications as any)?.custom_attributes || [];
+    const groups: Record<string, any[]> = {};
+    attrs.forEach((a) => {
+      if (!a.attributeName) return;
+      if (!groups[a.attributeName]) groups[a.attributeName] = [];
+      groups[a.attributeName].push(a);
+    });
+    return groups;
+  }, [product]);
+
+  const activeVariantImage = activeColorObj?.image || product?.images?.[0] || '/logo.webp';
+
+  const handleSelectColor = (c: any) => {
+    setSelectedColor(c.name);
+    if (c.image) {
+      setSelectedImage(c.image);
+    }
+  };
+
+  const handleSelectCustomAttr = (attrName: string, opt: any) => {
+    setSelectedCustomAttributes((prev) => ({
+      ...prev,
+      [attrName]: opt.name,
+    }));
+    if (opt.image) {
+      setSelectedImage(opt.image);
+    }
+  };
 
   // Automatically attach product context for Live Chat (Called at top-level before early returns)
   useEffect(() => {
@@ -238,11 +311,11 @@ export const ProductDetailPage: React.FC = () => {
         id: product.id,
         title: product.title,
         price: currentPrice,
-        image: selectedImage || product.images?.[0] || '/logo.webp',
+        image: selectedImage || activeVariantImage,
         sku: product.sku,
       });
     }
-  }, [product?.id, currentPrice, selectedImage]);
+  }, [product?.id, currentPrice, selectedImage, activeVariantImage]);
 
   if (loading) {
     return (
@@ -264,12 +337,19 @@ export const ProductDetailPage: React.FC = () => {
     );
   }
 
-  const discountPercent = calculateDiscount(product.price, product.discount_price);
+  const discountPercent = activeVariantPrice !== null
+    ? (product.price > currentPrice ? Math.round(((product.price - currentPrice) / product.price) * 100) : 0)
+    : calculateDiscount(product.price, product.discount_price);
   const isWishlisted = isInWishlist(product.id);
 
   const relatedProducts = allProducts
     .filter((p) => p.id !== product.id && p.category_id === product.category_id)
     .slice(0, 4);
+
+  const customAttrLabels = Object.entries(selectedCustomAttributes)
+    .map(([k, v]) => `${k}: ${v}`)
+    .join(', ');
+  const combinedSizeOrAttrs = [selectedSize, customAttrLabels].filter(Boolean).join(' | ');
 
   const handleAddToCart = () => {
     if (!user) {
@@ -277,7 +357,14 @@ export const ProductDetailPage: React.FC = () => {
       openAuthModal('login');
       return;
     }
-    addToCart(product, quantity, selectedColor, selectedSize);
+    addToCart(
+      product,
+      quantity,
+      selectedColor,
+      combinedSizeOrAttrs || selectedSize,
+      activeVariantPrice || undefined,
+      selectedImage || activeVariantImage
+    );
 
     // Trigger delightful animated checkmark feedback
     setIsAddedAnimation(true);
@@ -293,10 +380,17 @@ export const ProductDetailPage: React.FC = () => {
       return;
     }
     // Add product to cart with chosen variant and quantity
-    addToCart(product, quantity, selectedColor, selectedSize);
+    addToCart(
+      product,
+      quantity,
+      selectedColor,
+      combinedSizeOrAttrs || selectedSize,
+      activeVariantPrice || undefined,
+      selectedImage || activeVariantImage
+    );
 
     // Save strictly this product's key to kintesi_selected_cart_keys for direct checkout
-    const itemKey = `${product.id}_${selectedColor || ''}_${selectedSize || ''}`;
+    const itemKey = `${product.id}_${selectedColor || ''}_${combinedSizeOrAttrs || selectedSize || ''}`;
     try {
       localStorage.setItem('kintesi_selected_cart_keys', JSON.stringify([itemKey]));
     } catch {}
@@ -457,33 +551,50 @@ export const ProductDetailPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Card 2: Variations (Color, Size), Quantity & Purchase Actions */}
+            {/* Card 2: Variations (Color, Size, Custom Attributes), Quantity & Purchase Actions */}
             <div className="bg-white rounded-2xl sm:rounded-3xl border border-gray-100 p-4 sm:p-6 shadow-xs space-y-4">
               
               {/* Color Selection */}
               {product.colors && product.colors.length > 0 && (
-                <div className="space-y-2">
+                <div className="space-y-2.5">
                   <div className="flex items-center justify-between text-xs font-bold">
                     <span className="text-gray-500 uppercase tracking-wider text-[11px]">Color Family:</span>
-                    <span className="text-gray-900 font-extrabold">{selectedColor}</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-gray-900 font-extrabold">{selectedColor}</span>
+                      {activeColorObj && typeof activeColorObj.price === 'number' && activeColorObj.price > 0 && (
+                        <span className="text-xs font-black text-rose-600 bg-rose-50 px-2 py-0.5 rounded-full border border-rose-200">
+                          {formatPrice(activeColorObj.price)}
+                        </span>
+                      )}
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2.5 flex-wrap">
+                  <div className="flex items-center gap-2 flex-wrap">
                     {product.colors.map((c) => {
                       const isSelected = selectedColor === c.name;
                       return (
                         <button
                           key={c.name}
                           type="button"
-                          onClick={() => setSelectedColor(c.name)}
-                          className={`group relative p-1 rounded-full border-2 transition cursor-pointer ${
-                            isSelected ? 'border-emerald-600 ring-2 ring-emerald-600/30' : 'border-transparent'
+                          onClick={() => handleSelectColor(c)}
+                          className={`group relative flex items-center gap-2 px-3 py-1.5 rounded-xl border-2 transition cursor-pointer ${
+                            isSelected
+                              ? 'border-emerald-600 bg-emerald-50/50 shadow-xs'
+                              : 'border-gray-200 bg-white hover:border-gray-300'
                           }`}
-                          title={c.name}
+                          title={`${c.name}${c.price ? ` - ${formatPrice(c.price)}` : ''}`}
                         >
                           <span
-                            className="block w-6 h-6 rounded-full border border-black/10 shadow-xs"
+                            className="block w-4 h-4 rounded-full border border-black/10 shadow-xs shrink-0"
                             style={{ backgroundColor: c.hex }}
                           />
+                          <span className={`text-xs font-bold ${isSelected ? 'text-emerald-900' : 'text-gray-700'}`}>
+                            {c.name}
+                          </span>
+                          {typeof c.price === 'number' && c.price > 0 && (
+                            <span className={`text-[10px] font-extrabold ${isSelected ? 'text-emerald-700 font-black' : 'text-gray-400'}`}>
+                              ({formatPrice(c.price)})
+                            </span>
+                          )}
                         </button>
                       );
                     })}
@@ -491,8 +602,56 @@ export const ProductDetailPage: React.FC = () => {
                 </div>
               )}
 
-              {/* Size Selection */}
-              {product.sizes && product.sizes.length > 0 && (
+              {/* Custom Non-Color Attributes (e.g. Size, Material, Type) */}
+              {Object.keys(customAttrGroups).length > 0 &&
+                Object.entries(customAttrGroups).map(([attrName, rawOptions]) => {
+                  const options = rawOptions as any[];
+                  const selectedOptName = selectedCustomAttributes[attrName] || (options[0]?.name ?? '');
+                  const activeOption = options.find((o) => o.name === selectedOptName);
+
+                  return (
+                    <div key={attrName} className="space-y-2.5">
+                      <div className="flex items-center justify-between text-xs font-bold">
+                        <span className="text-gray-500 uppercase tracking-wider text-[11px]">{attrName}:</span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-gray-900 font-extrabold">{selectedOptName}</span>
+                          {activeOption && typeof activeOption.price === 'number' && activeOption.price > 0 && (
+                            <span className="text-xs font-black text-rose-600 bg-rose-50 px-2 py-0.5 rounded-full border border-rose-200">
+                              {formatPrice(activeOption.price)}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {options.map((opt: any) => {
+                          const isSelected = selectedOptName === opt.name;
+                          return (
+                            <button
+                              key={opt.id || opt.name}
+                              type="button"
+                              onClick={() => handleSelectCustomAttr(attrName, opt)}
+                              className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition cursor-pointer flex items-center gap-1.5 ${
+                                isSelected
+                                  ? 'border-emerald-600 bg-emerald-600 text-white shadow-xs'
+                                  : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300'
+                              }`}
+                            >
+                              <span>{opt.name}</span>
+                              {typeof opt.price === 'number' && opt.price > 0 && (
+                                <span className={`text-[10px] ${isSelected ? 'text-emerald-100' : 'text-rose-600 font-extrabold'}`}>
+                                  ({formatPrice(opt.price)})
+                                </span>
+                              )}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })}
+
+              {/* Size Selection (From standard sizes array if present and not already in custom attributes) */}
+              {product.sizes && product.sizes.length > 0 && !customAttrGroups['Size'] && (
                 <div className="space-y-2">
                   <div className="flex items-center justify-between text-xs font-bold">
                     <span className="text-gray-500 uppercase tracking-wider text-[11px]">Size:</span>
@@ -1184,7 +1343,7 @@ export const ProductDetailPage: React.FC = () => {
           {/* Mini product thumbnail & price */}
           <div className="flex items-center gap-2 min-w-0 flex-1">
             <img
-              src={product.images?.[0] || '/logo.webp'}
+              src={selectedImage || activeVariantImage || product.images?.[0] || '/logo.webp'}
               alt={product.title}
               className="w-9 h-9 rounded-full object-cover bg-gray-50 border border-gray-200/90 p-0.5 shrink-0 shadow-xs"
             />

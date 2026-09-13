@@ -79,11 +79,30 @@ export interface Product {
   care_instructions?: string;
   origin?: string;
   gender?: string;
-  specifications?: Record<string, string>;
+  specifications?: Record<string, any>;
   tags?: string[];
   sizes?: string[];
-  colors?: { name: string; hex: string }[];
+  colors?: ProductColorOption[];
+  custom_attributes?: ProductCustomAttributeOption[];
   created_at?: string;
+}
+
+export interface ProductColorOption {
+  name: string;
+  hex: string;
+  price?: number | null;
+  discount_price?: number | null;
+  image?: string | null;
+  stock?: number | null;
+}
+
+export interface ProductCustomAttributeOption {
+  id: string;
+  attributeName: string;
+  name: string;
+  price?: number | null;
+  stock?: number | null;
+  image?: string | null;
 }
 
 export interface CartItem {
@@ -91,6 +110,8 @@ export interface CartItem {
   quantity: number;
   selectedColor?: string;
   selectedSize?: string;
+  customPrice?: number;
+  variantImage?: string;
 }
 
 export interface OrderItem {

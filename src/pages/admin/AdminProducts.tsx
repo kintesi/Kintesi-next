@@ -4,7 +4,7 @@ import { supabase } from '../../lib/supabase';
 import { getProductsFromDB, saveProductToDB, deleteProductFromDB, getCategoriesFromDB } from '../../lib/dbService';
 import { useAuth } from '../../contexts/AuthContext';
 import { INITIAL_PRODUCTS, INITIAL_CATEGORIES } from '../../data/mockData';
-import { Product, Category } from '../../types';
+import { Product, Category, ProductColorOption, ProductCustomAttributeOption } from '../../types';
 import { formatPrice, calculateDiscount } from '../../lib/utils';
 import {
   Plus,
@@ -33,12 +33,26 @@ import {
   Zap,
   Ban,
   ExternalLink,
+  DollarSign,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { ImageUploader } from '../../components/common/ImageUploader';
 import { CategoryTagExplorer } from '../../components/admin/CategoryTagExplorer';
 
 const POPULAR_SIZES = ['S', 'M', 'L', 'XL', 'XXL', '64GB', '128GB', '256GB', '512GB', '1TB', '500g', '1kg', '5L'];
+
+const POPULAR_COLOR_PRESETS = [
+  { name: 'Pink', hex: '#EC4899' },
+  { name: 'Red', hex: '#EF4444' },
+  { name: 'Yellow', hex: '#EAB308' },
+  { name: 'White', hex: '#FFFFFF' },
+  { name: 'Black', hex: '#000000' },
+  { name: 'Navy Blue', hex: '#1E3A8A' },
+  { name: 'Olive Green', hex: '#65A30D' },
+  { name: 'Grey', hex: '#6B7280' },
+  { name: 'Beige', hex: '#D4B996' },
+  { name: 'Maroon', hex: '#881337' },
+];
 
 export const AdminProducts: React.FC = () => {
   const { user, isSuperAdmin } = useAuth();
@@ -122,10 +136,19 @@ export const AdminProducts: React.FC = () => {
     // Sizes
     selectedSizes: [] as string[],
     customSizeInput: '',
-    // Colors
-    colors: [] as { name: string; hex: string }[],
+    // Colors & Options
+    colors: [] as ProductColorOption[],
     newColorName: '',
-    newColorHex: '#000000',
+    newColorHex: '#EC4899',
+    newColorPrice: '',
+    newColorImage: '',
+    newColorStock: '',
+    // Custom Attributes / Options (Size, Material, Type, etc.)
+    customAttributes: [] as ProductCustomAttributeOption[],
+    newAttrType: 'Size',
+    newAttrName: '',
+    newAttrPrice: '',
+    newAttrStock: '',
     // Bullet Highlights
     highlight1: '',
     highlight2: '',
@@ -228,7 +251,15 @@ export const AdminProducts: React.FC = () => {
       customSizeInput: '',
       colors: [],
       newColorName: '',
-      newColorHex: '#000000',
+      newColorHex: '#EC4899',
+      newColorPrice: '',
+      newColorImage: '',
+      newColorStock: '',
+      customAttributes: [],
+      newAttrType: 'Size',
+      newAttrName: '',
+      newAttrPrice: '',
+      newAttrStock: '',
       highlight1: '',
       highlight2: '',
       highlight3: '',
@@ -308,9 +339,25 @@ export const AdminProducts: React.FC = () => {
       imageUrl4: prod.images?.[3] || '',
       selectedSizes: prod.sizes || [],
       customSizeInput: '',
-      colors: prod.colors || [],
+      colors: prod.colors
+        ? prod.colors.map((c: any) => ({
+            name: c.name || '',
+            hex: c.hex || '#EC4899',
+            price: c.price ?? null,
+            image: c.image || null,
+            stock: c.stock ?? null,
+          }))
+        : [],
       newColorName: '',
-      newColorHex: '#059669',
+      newColorHex: '#EC4899',
+      newColorPrice: '',
+      newColorImage: '',
+      newColorStock: '',
+      customAttributes: prod.custom_attributes || (prod.specifications?.custom_attributes as any) || [],
+      newAttrType: 'Size',
+      newAttrName: '',
+      newAttrPrice: '',
+      newAttrStock: '',
       highlight1: prod.highlights?.[0] || '',
       highlight2: prod.highlights?.[1] || '',
       highlight3: prod.highlights?.[2] || '',
@@ -359,23 +406,96 @@ export const AdminProducts: React.FC = () => {
     toast.success(`Size "${raw}" added!`);
   };
 
-  const handleAddColor = () => {
-    if (!formData.newColorName.trim()) {
-      toast.error('Please enter a color name (e.g. Navy Blue)');
-      return;
-    }
+  const handleSelectPresetColor = (preset: { name: string; hex: string }) => {
     setFormData((prev) => ({
       ...prev,
-      colors: [...prev.colors, { name: prev.newColorName.trim(), hex: prev.newColorHex }],
-      newColorName: '',
-      newColorHex: '#059669',
+      newColorName: preset.name,
+      newColorHex: preset.hex,
     }));
+  };
+
+  const handleAddColor = () => {
+    if (!formData.newColorName.trim()) {
+      toast.error('Please enter a color name (e.g. Pink, Red, Yellow)');
+      return;
+    }
+    const colorItem: ProductColorOption = {
+      name: formData.newColorName.trim(),
+      hex: formData.newColorHex || '#EC4899',
+    };
+    if (formData.newColorPrice && !isNaN(Number(formData.newColorPrice))) {
+      colorItem.price = Number(formData.newColorPrice);
+    }
+    if (formData.newColorImage?.trim()) {
+      colorItem.image = formData.newColorImage.trim();
+    }
+    if (formData.newColorStock && !isNaN(Number(formData.newColorStock))) {
+      colorItem.stock = Number(formData.newColorStock);
+    }
+
+    setFormData((prev) => ({
+      ...prev,
+      colors: [...prev.colors, colorItem],
+      newColorName: '',
+      newColorHex: '#EC4899',
+      newColorPrice: '',
+      newColorImage: '',
+      newColorStock: '',
+    }));
+    toast.success(`Color option "${colorItem.name}" added`);
   };
 
   const handleRemoveColor = (index: number) => {
     setFormData((prev) => ({
       ...prev,
       colors: prev.colors.filter((_, i) => i !== index),
+    }));
+  };
+
+  const handleUpdateColorPrice = (index: number, val: string) => {
+    setFormData((prev) => {
+      const copy = [...prev.colors];
+      const parsed = Number(val);
+      if (!val.trim() || isNaN(parsed)) {
+        copy[index] = { ...copy[index], price: null };
+      } else {
+        copy[index] = { ...copy[index], price: parsed };
+      }
+      return { ...prev, colors: copy };
+    });
+  };
+
+  const handleAddCustomAttribute = () => {
+    if (!formData.newAttrName.trim()) {
+      toast.error('Please enter an option name (e.g. Free Size, XL, 500ml)');
+      return;
+    }
+    const newOption: ProductCustomAttributeOption = {
+      id: 'attr_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+      attributeName: formData.newAttrType.trim() || 'Custom',
+      name: formData.newAttrName.trim(),
+    };
+    if (formData.newAttrPrice && !isNaN(Number(formData.newAttrPrice))) {
+      newOption.price = Number(formData.newAttrPrice);
+    }
+    if (formData.newAttrStock && !isNaN(Number(formData.newAttrStock))) {
+      newOption.stock = Number(formData.newAttrStock);
+    }
+
+    setFormData((prev) => ({
+      ...prev,
+      customAttributes: [...prev.customAttributes, newOption],
+      newAttrName: '',
+      newAttrPrice: '',
+      newAttrStock: '',
+    }));
+    toast.success(`Option "${newOption.name}" added under ${newOption.attributeName}`);
+  };
+
+  const handleRemoveCustomAttribute = (id: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      customAttributes: prev.customAttributes.filter((a) => a.id !== id),
     }));
   };
 
@@ -490,10 +610,14 @@ export const AdminProducts: React.FC = () => {
       care_instructions: cleanedCare,
       origin: currentSpecMode === 'none' ? '' : formData.origin.trim(),
       gender: cleanedGender,
-      specifications: cleanedSpecs,
+      specifications: {
+        ...cleanedSpecs,
+        custom_attributes: formData.customAttributes,
+      },
       tags: uniqueTags,
       sizes: currentSpecMode === 'none' ? [] : formData.selectedSizes,
       colors: formData.colors,
+      custom_attributes: formData.customAttributes,
       is_featured: formData.is_featured,
       is_trending: formData.is_trending,
       rating: editingProduct?.rating || 5.0,
@@ -1370,53 +1494,249 @@ export const AdminProducts: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Colors */}
-                <div className="pt-3 border-t border-gray-800">
-                  <label className="block text-xs font-bold text-gray-300 mb-1.5">Color Options:</label>
-                  
-                  {/* Current color badges */}
-                  <div className="flex flex-wrap gap-2 mb-3">
-                    {formData.colors.map((c, idx) => (
-                      <div
-                        key={idx}
-                        className="flex items-center gap-2 px-3 py-1 bg-gray-900 border border-gray-700 rounded-xl text-xs"
-                      >
-                        <span className="w-3.5 h-3.5 rounded-full border border-white/30" style={{ backgroundColor: c.hex }} />
-                        <span className="text-white font-bold">{c.name}</span>
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveColor(idx)}
-                          className="text-gray-400 hover:text-rose-400 ml-1"
-                        >
-                          <X className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    ))}
+                {/* Section: Product Variations, Colors & Multiple Attributes */}
+                <div className="pt-4 border-t border-gray-800 space-y-4">
+                  <div>
+                    <div className="flex items-center justify-between">
+                      <label className="block text-xs font-black uppercase tracking-wider text-rose-400 flex items-center gap-1.5">
+                        <Palette className="w-4 h-4" /> Color Options & Price Customization (কালার ভ্যারিয়েন্ট)
+                      </label>
+                      <span className="text-[11px] text-gray-400">
+                        Base Price: <b className="text-white">৳{formData.price || '0'}</b>
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-gray-400 mt-0.5">
+                      যেমন ক্যাপের বিভিন্ন কালার (Pink, Red, Yellow, White)। প্রতিটি কালারের জন্য আলাদা আলাদা মূল্য (যদি পরিবর্তন করতে চান), স্পেসিফিক ছবি এবং স্টক সেট করতে পারবেন।
+                    </p>
                   </div>
 
-                  {/* Add Color inputs */}
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="text"
-                      placeholder="Color Name (e.g. Titanium Gray)"
-                      value={formData.newColorName}
-                      onChange={(e) => setFormData({ ...formData, newColorName: e.target.value })}
-                      className="bg-gray-900 border border-gray-700 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:border-emerald-500 w-48"
-                    />
-                    <input
-                      type="color"
-                      value={formData.newColorHex}
-                      onChange={(e) => setFormData({ ...formData, newColorHex: e.target.value })}
-                      className="w-9 h-8 bg-transparent border-0 rounded cursor-pointer"
-                      title="Choose Color Code"
-                    />
-                    <button
-                      type="button"
-                      onClick={handleAddColor}
-                      className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold"
-                    >
-                      + Add Color
-                    </button>
+                  {/* 1-Click Popular Presets */}
+                  <div className="space-y-1.5 bg-gray-900/60 p-2.5 rounded-xl border border-gray-800">
+                    <span className="text-[10px] uppercase font-bold text-gray-400 block">
+                      Quick 1-Click Presets:
+                    </span>
+                    <div className="flex flex-wrap gap-1.5">
+                      {POPULAR_COLOR_PRESETS.map((preset) => {
+                        const isAdded = formData.colors.some((c) => c.name.toLowerCase() === preset.name.toLowerCase());
+                        return (
+                          <button
+                            type="button"
+                            key={preset.name}
+                            onClick={() => handleSelectPresetColor(preset)}
+                            className={`px-2.5 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1.5 border ${
+                              formData.newColorName === preset.name
+                                ? 'bg-rose-500/20 text-rose-300 border-rose-500/50'
+                                : 'bg-gray-900 hover:bg-gray-800 text-gray-300 border-gray-700'
+                            }`}
+                          >
+                            <span className="w-2.5 h-2.5 rounded-full border border-black/20" style={{ backgroundColor: preset.hex }} />
+                            <span>{preset.name}</span>
+                            {isAdded && <span className="text-[10px] text-emerald-400">✓</span>}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Add Color Input Row */}
+                  <div className="p-3 bg-gray-900 rounded-xl border border-gray-700/80 space-y-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-12 gap-2.5 items-center">
+                      {/* Color swatch picker + Name */}
+                      <div className="sm:col-span-4 flex items-center gap-2">
+                        <input
+                          type="color"
+                          value={formData.newColorHex}
+                          onChange={(e) => setFormData({ ...formData, newColorHex: e.target.value })}
+                          className="w-8 h-8 bg-transparent border-0 rounded cursor-pointer shrink-0"
+                          title="Choose Color Swatch"
+                        />
+                        <input
+                          type="text"
+                          placeholder="Color Name (e.g. Pink, Red, White)"
+                          value={formData.newColorName}
+                          onChange={(e) => setFormData({ ...formData, newColorName: e.target.value })}
+                          className="w-full bg-gray-950 border border-gray-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-rose-500"
+                        />
+                      </div>
+
+                      {/* Custom Price */}
+                      <div className="sm:col-span-3">
+                        <div className="relative">
+                          <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-500 text-xs font-bold">৳</span>
+                          <input
+                            type="number"
+                            placeholder={`Price (Default: ৳${formData.price || '0'})`}
+                            value={formData.newColorPrice}
+                            onChange={(e) => setFormData({ ...formData, newColorPrice: e.target.value })}
+                            className="w-full bg-gray-950 border border-gray-700 rounded-lg pl-6 pr-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-rose-500"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Specific Variant Image URL */}
+                      <div className="sm:col-span-3">
+                        <input
+                          type="url"
+                          placeholder="Image URL (Optional)"
+                          value={formData.newColorImage}
+                          onChange={(e) => setFormData({ ...formData, newColorImage: e.target.value })}
+                          className="w-full bg-gray-950 border border-gray-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-rose-500"
+                        />
+                      </div>
+
+                      {/* Add Button */}
+                      <div className="sm:col-span-2">
+                        <button
+                          type="button"
+                          onClick={handleAddColor}
+                          className="w-full py-1.5 px-3 bg-rose-600 hover:bg-rose-500 text-white rounded-lg text-xs font-bold transition flex items-center justify-center gap-1 cursor-pointer"
+                        >
+                          <Plus className="w-3.5 h-3.5" />
+                          <span>Add Option</span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* List of Configured Color Options */}
+                  {formData.colors.length > 0 ? (
+                    <div className="space-y-2">
+                      <span className="text-[11px] font-bold text-gray-400 block">
+                        Configured Colors ({formData.colors.length}):
+                      </span>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        {formData.colors.map((c, idx) => (
+                          <div
+                            key={idx}
+                            className="flex items-center justify-between gap-2 p-2.5 bg-gray-900/90 border border-gray-700 rounded-xl hover:border-gray-600 transition"
+                          >
+                            <div className="flex items-center gap-2.5 min-w-0">
+                              <span
+                                className="w-5 h-5 rounded-full border border-white/40 shadow-xs shrink-0"
+                                style={{ backgroundColor: c.hex }}
+                              />
+                              <div className="min-w-0">
+                                <span className="text-xs font-bold text-white block truncate">{c.name}</span>
+                                {c.image && (
+                                  <span className="text-[10px] text-emerald-400 flex items-center gap-0.5 truncate">
+                                    <ImageIcon className="w-2.5 h-2.5 shrink-0" /> Image attached
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+
+                            <div className="flex items-center gap-2 shrink-0">
+                              {/* Option Price Tag / Inline Price Editor */}
+                              <div className="flex items-center gap-1 bg-gray-950 border border-gray-700 px-2 py-1 rounded-lg">
+                                <span className="text-[10px] text-gray-400 font-bold">৳</span>
+                                <input
+                                  type="number"
+                                  placeholder={formData.price || '0'}
+                                  value={c.price !== undefined && c.price !== null ? c.price : ''}
+                                  onChange={(e) => handleUpdateColorPrice(idx, e.target.value)}
+                                  className="w-16 bg-transparent text-xs font-bold text-emerald-400 focus:outline-none text-right"
+                                  title="Change price for this color option"
+                                />
+                              </div>
+
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveColor(idx)}
+                                className="p-1.5 text-gray-500 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition cursor-pointer"
+                                title="Remove color option"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="text-xs text-gray-500 italic py-1">
+                      No color options configured yet. Use the presets above or enter a color to add.
+                    </p>
+                  )}
+
+                  {/* Section: Custom Non-Color Attributes (Size, Material, Edition) */}
+                  <div className="pt-4 border-t border-gray-800 space-y-3">
+                    <label className="block text-xs font-black uppercase tracking-wider text-teal-400 flex items-center gap-1.5">
+                      <Layers className="w-4 h-4" /> Other Attribute Options (অন্যান্য ভ্যারিয়েন্ট যেমন সাইজ, ম্যাটেরিয়াল বা টাইপ)
+                    </label>
+
+                    {/* Add Custom Attribute Row */}
+                    <div className="p-3 bg-gray-900 rounded-xl border border-gray-700/80 space-y-2">
+                      <div className="grid grid-cols-1 sm:grid-cols-12 gap-2.5 items-center">
+                        <div className="sm:col-span-3">
+                          <input
+                            type="text"
+                            placeholder="Type (e.g. Size, Material)"
+                            value={formData.newAttrType}
+                            onChange={(e) => setFormData({ ...formData, newAttrType: e.target.value })}
+                            className="w-full bg-gray-950 border border-gray-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-teal-500"
+                          />
+                        </div>
+                        <div className="sm:col-span-4">
+                          <input
+                            type="text"
+                            placeholder="Option (e.g. Free Size, 100% Cotton)"
+                            value={formData.newAttrName}
+                            onChange={(e) => setFormData({ ...formData, newAttrName: e.target.value })}
+                            className="w-full bg-gray-950 border border-gray-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-teal-500"
+                          />
+                        </div>
+                        <div className="sm:col-span-3">
+                          <div className="relative">
+                            <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-500 text-xs font-bold">৳</span>
+                            <input
+                              type="number"
+                              placeholder={`Price (Default: ৳${formData.price || '0'})`}
+                              value={formData.newAttrPrice}
+                              onChange={(e) => setFormData({ ...formData, newAttrPrice: e.target.value })}
+                              className="w-full bg-gray-950 border border-gray-700 rounded-lg pl-6 pr-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-teal-500"
+                            />
+                          </div>
+                        </div>
+                        <div className="sm:col-span-2">
+                          <button
+                            type="button"
+                            onClick={handleAddCustomAttribute}
+                            className="w-full py-1.5 px-3 bg-teal-600 hover:bg-teal-500 text-white rounded-lg text-xs font-bold transition flex items-center justify-center gap-1 cursor-pointer"
+                          >
+                            <Plus className="w-3.5 h-3.5" />
+                            <span>Add</span>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* List of Added Custom Attributes */}
+                    {formData.customAttributes.length > 0 && (
+                      <div className="flex flex-wrap gap-2 pt-1">
+                        {formData.customAttributes.map((attr) => (
+                          <div
+                            key={attr.id}
+                            className="flex items-center gap-2 px-3 py-1.5 bg-gray-900 border border-gray-700 rounded-xl text-xs"
+                          >
+                            <span className="text-[10px] text-teal-400 font-bold uppercase">{attr.attributeName}:</span>
+                            <span className="text-white font-bold">{attr.name}</span>
+                            {attr.price ? (
+                              <span className="text-[10px] font-black text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded">
+                                ৳{attr.price}
+                              </span>
+                            ) : null}
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveCustomAttribute(attr.id)}
+                              className="text-gray-400 hover:text-rose-400 ml-1 cursor-pointer"
+                              title="Remove option"
+                            >
+                              <X className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>

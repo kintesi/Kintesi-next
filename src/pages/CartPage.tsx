@@ -120,7 +120,7 @@ export const CartPage: React.FC = () => {
   const selectedItems = validCart.filter((item) => selectedItemKeys.includes(getItemKey(item)));
 
   const selectedSubtotal = selectedItems.reduce((acc, item) => {
-    const itemPrice = item.product?.discount_price || item.product?.price || 0;
+    const itemPrice = (item as any).customPrice || item.product?.discount_price || item.product?.price || 0;
     const qty = typeof item.quantity === 'number' && item.quantity > 0 ? item.quantity : 1;
     return acc + itemPrice * qty;
   }, 0);
@@ -316,8 +316,8 @@ export const CartPage: React.FC = () => {
               {validCart.map((item) => {
                 const itemKey = getItemKey(item);
                 const isChecked = selectedItemKeys.includes(itemKey);
-                const currentPrice = item.product?.discount_price || item.product?.price || 0;
-                const originalPrice = item.product?.discount_price ? item.product?.price : null;
+                const currentPrice = (item as any).customPrice || item.product?.discount_price || item.product?.price || 0;
+                const originalPrice = (item as any).customPrice ? null : (item.product?.discount_price ? item.product?.price : null);
                 const discountPercent = originalPrice
                   ? Math.round(((originalPrice - currentPrice) / originalPrice) * 100)
                   : 0;
@@ -347,7 +347,7 @@ export const CartPage: React.FC = () => {
                       className="w-20 h-20 rounded-xl overflow-hidden bg-gray-50 border border-gray-100 shrink-0 relative block"
                     >
                       <img
-                        src={item.product.images?.[0] || '/logo.webp'}
+                        src={(item as any).variantImage || item.product.images?.[0] || '/logo.webp'}
                         alt={item.product.title}
                         className="w-full h-full object-cover"
                       />
@@ -450,8 +450,8 @@ export const CartPage: React.FC = () => {
               {validCart.map((item) => {
                 const itemKey = getItemKey(item);
                 const isChecked = selectedItemKeys.includes(itemKey);
-                const currentPrice = item.product?.discount_price || item.product?.price || 0;
-                const originalPrice = item.product?.discount_price ? item.product?.price : null;
+                const currentPrice = (item as any).customPrice || item.product?.discount_price || item.product?.price || 0;
+                const originalPrice = (item as any).customPrice ? null : (item.product?.discount_price ? item.product?.price : null);
                 const itemTotal = currentPrice * (item.quantity || 1);
 
                 return (
@@ -478,7 +478,7 @@ export const CartPage: React.FC = () => {
                       className="w-20 h-20 rounded-xl overflow-hidden bg-gray-50 border border-gray-100 shrink-0 block"
                     >
                       <img
-                        src={item.product.images?.[0] || '/logo.webp'}
+                        src={(item as any).variantImage || item.product.images?.[0] || '/logo.webp'}
                         alt={item.product.title}
                         className="w-full h-full object-cover"
                       />
