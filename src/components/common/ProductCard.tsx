@@ -9,9 +9,10 @@ import { Link } from 'react-router-dom';
 
 interface ProductCardProps {
   product: Product;
+  onWishlistToggle?: (product: Product, e: React.MouseEvent) => void;
 }
 
-export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
+export const ProductCard: React.FC<ProductCardProps> = ({ product, onWishlistToggle }) => {
   const { user, openAuthModal } = useAuth();
   const { addToCart } = useCart();
   const { toggleWishlist, isInWishlist } = useWishlist();
@@ -37,7 +38,11 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
         onClick={(e) => {
           e.preventDefault();
           e.stopPropagation();
-          toggleWishlist(product);
+          if (onWishlistToggle) {
+            onWishlistToggle(product, e);
+          } else {
+            toggleWishlist(product);
+          }
         }}
         className={`absolute top-2.5 right-2.5 z-10 p-2 rounded-xl transition shadow-xs ${
           isWishlisted

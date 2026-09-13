@@ -1,10 +1,10 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { Product } from '../types';
-import { toast } from 'sonner';
 
 interface WishlistContextType {
   wishlist: Product[];
   toggleWishlist: (product: Product) => void;
+  removeFromWishlist: (productId: string) => void;
   isInWishlist: (productId: string) => boolean;
   clearWishlist: () => void;
 }
@@ -29,13 +29,15 @@ export const WishlistProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     setWishlist((prev) => {
       const exists = prev.some((item) => item.id === product.id);
       if (exists) {
-        toast.info(`Removed ${product.title} from Wishlist`);
         return prev.filter((item) => item.id !== product.id);
       } else {
-        toast.success(`Saved ${product.title} to Wishlist`);
         return [...prev, product];
       }
     });
+  };
+
+  const removeFromWishlist = (productId: string) => {
+    setWishlist((prev) => prev.filter((item) => item.id !== productId));
   };
 
   const isInWishlist = (productId: string) => {
@@ -47,7 +49,7 @@ export const WishlistProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   };
 
   return (
-    <WishlistContext.Provider value={{ wishlist, toggleWishlist, isInWishlist, clearWishlist }}>
+    <WishlistContext.Provider value={{ wishlist, toggleWishlist, removeFromWishlist, isInWishlist, clearWishlist }}>
       {children}
     </WishlistContext.Provider>
   );
