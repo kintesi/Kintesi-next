@@ -50,6 +50,15 @@ export const ProfilePage: React.FC = () => {
     ['addresses', 'profile', 'settings'].includes(initialTab) ? initialTab : 'addresses'
   );
 
+  React.useEffect(() => {
+    const tabParam = searchParams.get('tab') as 'addresses' | 'profile' | 'settings';
+    if (tabParam && ['addresses', 'profile', 'settings'].includes(tabParam)) {
+      setActiveTab(tabParam);
+    } else if (!tabParam) {
+      setActiveTab('addresses');
+    }
+  }, [searchParams]);
+
   const handleTabChange = (tab: 'addresses' | 'profile' | 'settings') => {
     setActiveTab(tab);
     setSearchParams({ tab });
@@ -716,6 +725,42 @@ export const ProfilePage: React.FC = () => {
               <span className="text-[10px] font-bold text-gray-500 bg-white px-2 py-0.5 rounded-full border border-gray-200">
                 Active
               </span>
+            </div>
+          </div>
+
+          {/* Account Shortcuts */}
+          <div className="pt-4 border-t border-gray-100 space-y-2.5">
+            <label className="block font-bold text-gray-700 uppercase tracking-wider text-[10px]">
+              {language === 'bn' ? 'অ্যাকাউন্ট শর্টকাট' : 'Account Management'}
+            </label>
+            <div className="grid grid-cols-2 gap-2.5">
+              <button
+                type="button"
+                onClick={() => handleTabChange('addresses')}
+                className="p-3 bg-gray-50 hover:bg-rose-50/60 border border-gray-200 hover:border-rose-200 rounded-xl text-left transition flex items-center justify-between cursor-pointer group"
+              >
+                <div className="flex items-center gap-2">
+                  <MapPin className="w-3.5 h-3.5 text-rose-600" />
+                  <span className="text-xs font-bold text-gray-800 group-hover:text-rose-600">
+                    {t('profile.addresses')}
+                  </span>
+                </div>
+                <ChevronRight className="w-3.5 h-3.5 text-gray-400 group-hover:text-rose-600 group-hover:translate-x-0.5 transition" />
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleTabChange('profile')}
+                className="p-3 bg-gray-50 hover:bg-rose-50/60 border border-gray-200 hover:border-rose-200 rounded-xl text-left transition flex items-center justify-between cursor-pointer group"
+              >
+                <div className="flex items-center gap-2">
+                  <User className="w-3.5 h-3.5 text-rose-600" />
+                  <span className="text-xs font-bold text-gray-800 group-hover:text-rose-600">
+                    {t('profile.personalInfo')}
+                  </span>
+                </div>
+                <ChevronRight className="w-3.5 h-3.5 text-gray-400 group-hover:text-rose-600 group-hover:translate-x-0.5 transition" />
+              </button>
             </div>
           </div>
         </div>
