@@ -54,6 +54,7 @@ interface ChatContextType {
   isOpen: boolean;
   activeProductContext: ChatProductContext | null;
   activeOrderContext: ChatOrderContext | null;
+  setActiveProductContext: (context: ChatProductContext | null) => void;
   openChat: (context?: { product?: ChatProductContext; order?: ChatOrderContext }) => void;
   closeChat: () => void;
   toggleChat: () => void;
@@ -390,10 +391,19 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
       lowerText.includes('এভেইলেবল') ||
       lowerText.includes('অ্যাভেইলেবল') ||
       lowerText.includes('পাওয়া যাবে') ||
+      lowerText.includes('পাওয়া যাবে') ||
       lowerText.includes('pawa jabe') ||
       lowerText.includes('ache') ||
       lowerText.includes('ase') ||
-      lowerText.includes('আছে');
+      lowerText.includes('আছে') ||
+      lowerText.includes('ase naki') ||
+      lowerText.includes('ache naki') ||
+      lowerText.includes('আছে নাকি') ||
+      lowerText.includes('পণ্য আছে') ||
+      lowerText.includes('প্রোডাক্ট আছে') ||
+      lowerText.includes('item ase') ||
+      lowerText.includes('item ache') ||
+      lowerText.includes('in stock');
 
     const isDeliveryQuery =
       lowerText.includes('delivery') ||
@@ -608,6 +618,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isOpen,
         activeProductContext,
         activeOrderContext,
+        setActiveProductContext,
         openChat,
         closeChat,
         toggleChat,

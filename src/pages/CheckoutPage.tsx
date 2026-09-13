@@ -18,6 +18,7 @@ import {
   Mail,
   Lock,
   Plus,
+  Minus,
   Home,
   Briefcase,
   Building2,
@@ -39,7 +40,7 @@ import { BD_DISTRICTS, getThanasByDistrict } from '../data/bangladeshDistricts';
 import { useLanguage } from '../contexts/LanguageContext';
 
 export const CheckoutPage: React.FC = () => {
-  const { cart, discountAmount, appliedCoupon, removeFromCart } = useCart();
+  const { cart, discountAmount, appliedCoupon, removeFromCart, updateQuantity } = useCart();
   const { user, profile } = useAuth();
   const { addresses, defaultAddress, addAddress } = useAddress();
   const { settings } = useSettings();
@@ -1024,13 +1025,52 @@ export const CheckoutPage: React.FC = () => {
                     />
                     <div className="flex-1 min-w-0">
                       <h4 className="text-xs font-semibold text-gray-800 line-clamp-1">{item.product.title}</h4>
-                      <div className="text-[10px] text-gray-400 flex items-center gap-2">
-                        <span>{language === 'bn' ? `পরিমাণ: ${item.quantity}` : `Qty: ${item.quantity}`}</span>
+                      <div className="text-[10px] text-gray-400 flex items-center gap-2 mt-0.5">
                         {item.selectedSize && <span>{language === 'bn' ? `সাইজ: ${item.selectedSize}` : `Size: ${item.selectedSize}`}</span>}
                         {item.selectedColor && <span>{language === 'bn' ? `কালার: ${item.selectedColor}` : `Color: ${item.selectedColor}`}</span>}
                       </div>
+
+                      {/* Product Counter directly on Checkout Page */}
+                      <div className="flex items-center gap-2 mt-1.5">
+                        <div className="flex items-center border border-gray-200 rounded-lg bg-gray-50 overflow-hidden">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (item.quantity > 1) {
+                                updateQuantity(item.product.id, item.quantity - 1);
+                              }
+                            }}
+                            disabled={item.quantity <= 1}
+                            className="p-1 hover:bg-gray-200 text-gray-600 disabled:opacity-30 transition cursor-pointer"
+                            aria-label="Decrease quantity"
+                          >
+                            <Minus className="w-3 h-3" />
+                          </button>
+                          <span className="px-2 text-xs font-bold text-gray-800 min-w-[20px] text-center">
+                            {item.quantity}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (item.quantity < (item.product.stock || 99)) {
+                                updateQuantity(item.product.id, item.quantity + 1);
+                              }
+                            }}
+                            disabled={item.quantity >= (item.product.stock || 99)}
+                            className="p-1 hover:bg-gray-200 text-gray-600 disabled:opacity-30 transition cursor-pointer"
+                            aria-label="Increase quantity"
+                          >
+                            <Plus className="w-3 h-3" />
+                          </button>
+                        </div>
+                        <span className="text-[10px] text-gray-400">
+                          ({formatPrice(itemPrice)} / {language === 'bn' ? 'পিস' : 'pc'})
+                        </span>
+                      </div>
                     </div>
-                    <span className="text-xs font-bold text-gray-900">{formatPrice(itemPrice * item.quantity)}</span>
+                    <span className="text-xs font-bold text-rose-600 shrink-0">
+                      {formatPrice(itemPrice * item.quantity)}
+                    </span>
                   </div>
                 );
               })}

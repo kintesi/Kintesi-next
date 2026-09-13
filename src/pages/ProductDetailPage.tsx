@@ -51,8 +51,8 @@ export const ProductDetailPage: React.FC = () => {
   const { toggleWishlist, isInWishlist } = useWishlist();
   const { defaultAddress, addresses } = useAddress();
   const { settings } = useSettings();
-  const { openChat } = useChat();
-  const { t } = useLanguage();
+  const { openChat, setActiveProductContext } = useChat();
+  const { t, language } = useLanguage();
 
   const [product, setProduct] = useState<Product | null>(null);
   const [allProducts, setAllProducts] = useState<Product[]>(INITIAL_PRODUCTS);
@@ -62,6 +62,7 @@ export const ProductDetailPage: React.FC = () => {
   const [quantity, setQuantity] = useState(1);
   const [loading, setLoading] = useState(true);
   const [showStickyBar, setShowStickyBar] = useState(false);
+  const [isAddedAnimation, setIsAddedAnimation] = useState(false);
 
   // Review state - Clean verified reviews only
   const [reviews, setReviews] = useState<any[]>([]);
@@ -256,6 +257,19 @@ export const ProductDetailPage: React.FC = () => {
     .filter((p) => p.id !== product.id && p.category_id === product.category_id)
     .slice(0, 4);
 
+  // Automatically attach product context for Live Chat
+  useEffect(() => {
+    if (product) {
+      setActiveProductContext({
+        id: product.id,
+        title: product.title,
+        price: currentPrice,
+        image: selectedImage || product.images?.[0] || '/logo.webp',
+        sku: product.sku,
+      });
+    }
+  }, [product, currentPrice, selectedImage, setActiveProductContext]);
+
   const handleAddToCart = () => {
     if (!user) {
       toast.error(t('product.loginRequired'));
@@ -263,6 +277,12 @@ export const ProductDetailPage: React.FC = () => {
       return;
     }
     addToCart(product, quantity, selectedColor, selectedSize);
+
+    // Trigger delightful animated checkmark feedback
+    setIsAddedAnimation(true);
+    setTimeout(() => {
+      setIsAddedAnimation(false);
+    }, 2200);
   };
 
   const handleBuyNow = () => {
@@ -271,7 +291,15 @@ export const ProductDetailPage: React.FC = () => {
       openAuthModal('login');
       return;
     }
+    // Add product to cart with chosen variant and quantity
     addToCart(product, quantity, selectedColor, selectedSize);
+
+    // Save strictly this product's key to kintesi_selected_cart_keys for direct checkout
+    const itemKey = `${product.id}_${selectedColor || ''}_${selectedSize || ''}`;
+    try {
+      localStorage.setItem('kintesi_selected_cart_keys', JSON.stringify([itemKey]));
+    } catch {}
+
     navigate('/checkout');
   };
 
@@ -533,15 +561,42 @@ export const ProductDetailPage: React.FC = () => {
                 </div>
 
                 {/* Main Action Buttons (Desktop & Mobile - Always accessible) */}
-                <div className="grid grid-cols-2 gap-2.5 pt-2">
+                <div className="grid grid-cols-2 gap-2.5 pt-2 relative">
+                  {/* Floating animated success badge */}
+                  {isAddedAnimation && (
+                    <div className="absolute -top-7 left-1/4 -translate-x-1/2 bg-emerald-600 text-white text-[11px] font-extrabold px-3 py-1 rounded-full shadow-lg flex items-center gap-1.5 animate-in fade-in slide-in-from-bottom-2 duration-300 z-30 pointer-events-none">
+                      <span className="flex items-center justify-center w-3.5 h-3.5 bg-white text-emerald-600 rounded-full">
+                        <Check className="w-2.5 h-2.5 stroke-[3]" />
+                      </span>
+                      <span>{language === 'bn' ? 'কার্টে যোগ হয়েছে!' : 'Added to Cart!'}</span>
+                    </div>
+                  )}
+
                   <button
                     type="button"
                     onClick={handleAddToCart}
                     disabled={product.stock <= 0}
-                    className="py-3 px-4 bg-gray-900 hover:bg-black text-white font-bold rounded-xl transition shadow-sm flex items-center justify-center gap-2 disabled:opacity-50 active:scale-95 text-xs sm:text-sm cursor-pointer"
+                    className={`py-3 px-4 font-bold rounded-xl transition-all duration-300 shadow-sm flex items-center justify-center gap-2 disabled:opacity-50 active:scale-95 text-xs sm:text-sm cursor-pointer ${
+                      isAddedAnimation
+                        ? 'bg-emerald-600 text-white shadow-emerald-600/30 ring-2 ring-emerald-500 scale-[1.02]'
+                        : 'bg-gray-900 hover:bg-black text-white'
+                    }`}
                   >
-                    <ShoppingCart className="w-4 h-4" />
-                    <span>Add to Cart</span>
+                    {isAddedAnimation ? (
+                      <>
+                        <span className="flex items-center justify-center w-5 h-5 bg-white text-emerald-600 rounded-full animate-bounce shadow-xs">
+                          <Check className="w-3.5 h-3.5 stroke-[3]" />
+                        </span>
+                        <span className="animate-pulse">
+                          {language === 'bn' ? 'কার্টে যোগ হয়েছে ✓' : 'Added to Cart ✓'}
+                        </span>
+                      </>
+                    ) : (
+                      <>
+                        <ShoppingCart className="w-4 h-4" />
+                        <span>{language === 'bn' ? 'কার্টে যোগ করুন' : 'Add to Cart'}</span>
+                      </>
+                    )}
                   </button>
 
                   <button
@@ -551,7 +606,7 @@ export const ProductDetailPage: React.FC = () => {
                     className="py-3 px-4 bg-gradient-to-r from-rose-600 to-rose-700 hover:from-rose-500 hover:to-rose-600 text-white font-bold rounded-xl transition shadow-md shadow-rose-600/20 flex items-center justify-center gap-2 disabled:opacity-50 active:scale-95 text-xs sm:text-sm cursor-pointer"
                   >
                     <Zap className="w-4 h-4 fill-current" />
-                    <span>Buy Now</span>
+                    <span>{language === 'bn' ? 'এখনই কিনুন' : 'Buy Now'}</span>
                   </button>
                 </div>
               </div>

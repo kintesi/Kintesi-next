@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { useChat } from '../../contexts/ChatContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { useLanguage } from '../../contexts/LanguageContext';
@@ -18,11 +19,11 @@ import {
   HelpCircle,
 } from 'lucide-react';
 
-const QUICK_QUESTIONS = [
-  'Is this product currently in stock?',
-  'How many days for delivery to my district?',
-  'Is Cash on Delivery available?',
-  'What is your size exchange & return policy?',
+const getQuickQuestions = (lang: string) => [
+  lang === 'bn' ? 'এই প্রোডাক্টটি বর্তমানে স্টকে আছে?' : 'Is this product currently in stock?',
+  lang === 'bn' ? 'ডেলিভারি চার্জ কত এবং কতদিনে পাবো?' : 'How many days for delivery to my district?',
+  lang === 'bn' ? 'ক্যাশ অন ডেলিভারি দেওয়া যাবে?' : 'Is Cash on Delivery available?',
+  lang === 'bn' ? 'সাইজ পরিবর্তন বা রিটার্ন পলিসি কি?' : 'What is your size exchange & return policy?',
 ];
 
 export const LiveChatWidget: React.FC = () => {
@@ -41,6 +42,8 @@ export const LiveChatWidget: React.FC = () => {
 
   const { user, openAuthModal } = useAuth();
   const { language } = useLanguage();
+  const location = useLocation();
+  const isProductPage = location.pathname.startsWith('/product/');
   const [inputMessage, setInputMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -55,6 +58,11 @@ export const LiveChatWidget: React.FC = () => {
     }
   }, [messages, isTyping, isOpen]);
 
+  // Requirement: Chat option should not be on Home page or other pages, only when entering a product page!
+  if (!isProductPage) {
+    return null;
+  }
+
   const handleSend = (e: React.FormEvent) => {
     e.preventDefault();
     if (!inputMessage.trim()) return;
@@ -64,7 +72,7 @@ export const LiveChatWidget: React.FC = () => {
   };
 
   const handleQuickQuestion = (q: string) => {
-    setInputMessage(q);
+    sendMessage(q);
   };
 
   return (
@@ -82,7 +90,7 @@ export const LiveChatWidget: React.FC = () => {
               openAuthModal('login');
               return;
             }
-            openChat();
+            openChat(activeProductContext ? { product: activeProductContext } : undefined);
           }}
           className="fixed bottom-28 right-4 sm:bottom-6 sm:right-6 z-40 p-3 sm:p-4 bg-rose-600 hover:bg-rose-700 text-white rounded-full shadow-2xl transition-all duration-300 hover:scale-110 active:scale-95 flex items-center justify-center group ring-4 ring-rose-600/20"
           aria-label="Open Live Chat with Seller"
@@ -257,7 +265,7 @@ export const LiveChatWidget: React.FC = () => {
 
           {/* Quick Questions Pills */}
           <div className="p-2 bg-white border-t border-rose-100 flex items-center gap-1.5 overflow-x-auto no-scrollbar">
-            {QUICK_QUESTIONS.map((q, idx) => (
+            {getQuickQuestions(language).map((q, idx) => (
               <button
                 key={idx}
                 type="button"
