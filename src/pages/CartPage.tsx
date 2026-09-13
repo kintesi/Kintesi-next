@@ -223,33 +223,70 @@ export const CartPage: React.FC = () => {
         </div>
       ) : (
         /* Cart Content Grid (2 Columns: Items on Left, Order Summary on Right) */
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start pb-44 sm:pb-0">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start pb-10 sm:pb-0">
           {/* Main Item List (8 cols) */}
           <div className="lg:col-span-8 space-y-3">
-            {/* Mobile Top Checkout Bar (Directly beneath top header, above Select All) */}
-            <div className="sm:hidden">
-              <button
-                type="button"
-                disabled={selectedItems.length === 0}
-                onClick={handleProceedToCheckout}
-                className="w-full py-3.5 px-4 bg-rose-600 hover:bg-rose-700 disabled:opacity-40 disabled:cursor-not-allowed text-white font-extrabold rounded-2xl transition shadow-md shadow-rose-600/20 flex items-center justify-between text-xs active:scale-[0.98] cursor-pointer"
-              >
-                <div className="flex items-center gap-2">
-                  <ShoppingCart className="w-4 h-4" />
-                  <span>
-                    {language === 'bn' ? 'চেকআউট করুন' : 'Proceed to Checkout'}
-                    {selectedCount > 0 && ` (${selectedCount})`}
-                  </span>
+            {/* Mobile Top Checkout & Select All Bar (Moved from bottom to top) */}
+            <div className="sm:hidden bg-white/95 backdrop-blur-md border border-gray-200/90 shadow-xs rounded-2xl p-2.5 px-3.5">
+              <div className="flex items-center justify-between gap-2.5">
+                {/* Select All Checkbox & Total with Shipping Fee Info */}
+                <div className="flex items-center gap-2 min-w-0">
+                  <label className="flex items-center gap-1.5 cursor-pointer select-none shrink-0">
+                    <input
+                      type="checkbox"
+                      checked={isAllSelected}
+                      onChange={toggleSelectAll}
+                      className="w-4 h-4 accent-rose-600 rounded cursor-pointer"
+                    />
+                    <span className="text-xs font-bold text-gray-700">
+                      {language === 'bn' ? 'সব' : 'All'}
+                    </span>
+                  </label>
+
+                  <div className="border-l border-gray-200 pl-2 min-w-0">
+                    <div className="text-[9px] text-gray-500 font-bold uppercase tracking-tight leading-none truncate flex items-center gap-1">
+                      <span>{t('cart.total')}</span>
+                      <span className="text-gray-400 font-normal">
+                        ({selectedShippingFee === 0 ? (language === 'bn' ? 'ফ্রি ডেলিভারি' : 'Free Ship') : `${formatPrice(selectedShippingFee)} ${language === 'bn' ? 'ডেলিভারি' : 'ship'}`})
+                      </span>
+                    </div>
+                    <div className="text-sm font-black text-rose-600 leading-tight mt-0.5">
+                      {formatPrice(selectedTotal)}
+                    </div>
+                  </div>
                 </div>
-                <div className="flex items-center gap-1 font-black text-sm">
-                  <span>{formatPrice(selectedTotal)}</span>
-                  <ArrowRight className="w-4 h-4" />
+
+                {/* Mobile Checkout Button & Delete */}
+                <div className="flex items-center gap-2 shrink-0">
+                  {selectedItems.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={deleteSelected}
+                      className="p-1.5 text-gray-400 hover:text-rose-600 transition cursor-pointer"
+                      title={language === 'bn' ? 'মুছে ফেলুন' : 'Delete Selected'}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    disabled={selectedItems.length === 0}
+                    onClick={handleProceedToCheckout}
+                    className="px-4 py-2 bg-rose-600 hover:bg-rose-700 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold rounded-xl text-xs transition shadow-md shadow-rose-600/20 active:scale-95 flex items-center gap-1 cursor-pointer"
+                  >
+                    <span>
+                      {language === 'bn'
+                        ? `চেকআউট (${selectedCount})`
+                        : `Checkout (${selectedCount})`}
+                    </span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
                 </div>
-              </button>
+              </div>
             </div>
 
-            {/* Master Select All Header Bar */}
-            <div className="bg-white rounded-2xl border border-gray-100 p-3.5 sm:p-4 shadow-xs flex items-center justify-between">
+            {/* Master Select All Header Bar (Desktop Only) */}
+            <div className="hidden sm:flex bg-white rounded-2xl border border-gray-100 p-3.5 sm:p-4 shadow-xs items-center justify-between">
               <label className="flex items-center gap-2.5 cursor-pointer select-none">
                 <input
                   type="checkbox"
@@ -643,55 +680,6 @@ export const CartPage: React.FC = () => {
                 </div>
               </div>
             </div>
-          </div>
-        </div>
-      )}
-
-      {/* Mobile Dynamic Floating Checkout Bar (Floats gracefully above Main MobileBottomNav Dock) */}
-      {validCart.length > 0 && (
-        <div className="sm:hidden fixed bottom-[72px] left-3.5 right-3.5 max-w-md mx-auto z-30 bg-white/95 backdrop-blur-2xl border border-gray-200/90 shadow-[0_12px_40px_rgba(0,0,0,0.15)] rounded-2xl p-2.5 px-3.5">
-          <div className="flex items-center justify-between gap-2.5">
-            {/* Select All Checkbox & Total with Shipping Fee Info */}
-            <div className="flex items-center gap-2 min-w-0">
-              <label className="flex items-center gap-1.5 cursor-pointer select-none shrink-0">
-                <input
-                  type="checkbox"
-                  checked={isAllSelected}
-                  onChange={toggleSelectAll}
-                  className="w-4 h-4 accent-rose-600 rounded cursor-pointer"
-                />
-                <span className="text-xs font-bold text-gray-700">
-                  {language === 'bn' ? 'সব' : 'All'}
-                </span>
-              </label>
-
-              <div className="border-l border-gray-200 pl-2 min-w-0">
-                <div className="text-[9px] text-gray-500 font-bold uppercase tracking-tight leading-none truncate flex items-center gap-1">
-                  <span>{t('cart.total')}</span>
-                  <span className="text-gray-400 font-normal">
-                    ({selectedShippingFee === 0 ? (language === 'bn' ? 'ফ্রি ডেলিভারি' : 'Free Ship') : `${formatPrice(selectedShippingFee)} ${language === 'bn' ? 'ডেলিভারি' : 'ship'}`})
-                  </span>
-                </div>
-                <div className="text-sm font-black text-rose-600 leading-tight mt-0.5">
-                  {formatPrice(selectedTotal)}
-                </div>
-              </div>
-            </div>
-
-            {/* Mobile Checkout Button */}
-            <button
-              type="button"
-              disabled={selectedItems.length === 0}
-              onClick={handleProceedToCheckout}
-              className="px-4 py-2.5 bg-rose-600 hover:bg-rose-700 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold rounded-xl text-xs transition shadow-md shadow-rose-600/20 active:scale-95 flex items-center gap-1 cursor-pointer shrink-0"
-            >
-              <span>
-                {language === 'bn'
-                  ? `চেকআউট (${selectedCount})`
-                  : `Checkout (${selectedCount})`}
-              </span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </button>
           </div>
         </div>
       )}

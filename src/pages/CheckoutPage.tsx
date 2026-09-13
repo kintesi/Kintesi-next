@@ -30,6 +30,7 @@ import {
   Copy,
   Check,
   X,
+  ArrowLeft,
 } from 'lucide-react';
 import { BkashLogo, NagadLogo, RocketLogo, VisaLogo, MastercardLogo } from '../components/common/PaymentLogos';
 import { AuthModal } from '../components/auth/AuthModal';
@@ -484,11 +485,27 @@ export const CheckoutPage: React.FC = () => {
   };
 
   return (
-    <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16">
+    <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-16">
       
-      <div className="mb-8">
-        <h1 className="text-3xl font-extrabold text-gray-900">Express Checkout</h1>
-        <p className="text-xs text-gray-500 mt-1">Select from your Address Book or enter new delivery details</p>
+      <div className="mb-6 sm:mb-8 flex items-center gap-3">
+        <button
+          type="button"
+          onClick={() => (window.history.length > 1 ? navigate(-1) : navigate('/cart'))}
+          className="p-2 -ml-1 text-gray-700 hover:text-rose-600 hover:bg-rose-50 rounded-2xl transition cursor-pointer flex items-center justify-center shrink-0 border border-gray-100 shadow-xs sm:border-0 sm:shadow-none"
+          aria-label="Back to Cart"
+        >
+          <ArrowLeft className="w-5 h-5 sm:w-6 sm:h-6" />
+        </button>
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900">
+            {language === 'bn' ? 'এক্সপ্রেস চেকআউট' : 'Express Checkout'}
+          </h1>
+          <p className="text-xs text-gray-500 mt-0.5">
+            {language === 'bn'
+              ? 'অ্যাড্রেস বুক থেকে ঠিকানা নির্বাচন করুন'
+              : 'Select from your Address Book or enter new delivery details'}
+          </p>
+        </div>
       </div>
 
       {!user && (
