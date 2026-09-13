@@ -462,9 +462,7 @@ export const ProfilePage: React.FC = () => {
             </div>
           </div>
 
-          <div className="p-3.5 rounded-2xl bg-rose-50/50 border border-rose-100 text-xs text-rose-900/80 leading-relaxed">
-            Account verified via <strong>{user?.app_metadata?.provider || 'Google OAuth / Firebase'}</strong>. All orders and saved addresses are safely encrypted and synced.
-          </div>
+
         </div>
       )}
 
