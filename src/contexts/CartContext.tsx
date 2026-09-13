@@ -51,89 +51,92 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   });
 
+  // Track initial merge per user login to avoid resurrecting deleted items
+  const hasMergedInitialRef = useRef<string | null>(null);
+
   // Real-time bidirectional synchronization with Firestore database
   useEffect(() => {
     if (!user || !user.id) return;
 
-    setIsLoading(true);
     const userCartRef = doc(db, 'user_carts', user.id);
     const userProfileRef = doc(db, 'profiles', user.id);
 
-    // 1. Listen in real-time to user's cart in Firestore
-    const unsubscribe = onSnapshot(
-      userCartRef,
-      (snapshot) => {
+    // Initial load: fetch once and merge any guest offline items only on first connect
+    if (hasMergedInitialRef.current !== user.id) {
+      hasMergedInitialRef.current = user.id;
+      setIsLoading(true);
+
+      getDoc(userCartRef).then((snap) => {
         setIsLoading(false);
-        if (snapshot.exists()) {
-          const remoteItems: CartItem[] = snapshot.data()?.items || [];
-
-          setCart((currentLocal) => {
-            // Merge remote items with any local items that may have been added offline
+        if (snap.exists()) {
+          const remoteItems: CartItem[] = snap.data()?.items || [];
+          setCart((localCart) => {
+            // Merge guest cart with remote cart once
             const merged = [...remoteItems];
-            let hasNewLocal = false;
-
-            for (const localItem of currentLocal) {
-              const existingIdx = merged.findIndex(
+            let hasNew = false;
+            for (const item of localCart) {
+              const existing = merged.find(
                 (m) =>
-                  m.product.id === localItem.product.id &&
-                  m.selectedColor === localItem.selectedColor &&
-                  m.selectedSize === localItem.selectedSize
+                  m.product.id === item.product.id &&
+                  m.selectedColor === item.selectedColor &&
+                  m.selectedSize === item.selectedSize
               );
-
-              if (existingIdx === -1) {
-                merged.push(localItem);
-                hasNewLocal = true;
+              if (!existing) {
+                merged.push(item);
+                hasNew = true;
               }
             }
-
             try {
               localStorage.setItem('kintesi_cart', JSON.stringify(merged));
             } catch {}
-
-            // Write merged back to Firestore if local had new offline items
-            if (hasNewLocal) {
-              setDoc(
-                userCartRef,
-                { items: merged, updatedAt: new Date().toISOString() },
-                { merge: true }
-              ).catch(() => {});
+            if (hasNew) {
+              setDoc(userCartRef, { items: merged, updatedAt: new Date().toISOString() }, { merge: true }).catch(() => {});
             }
-
             return merged;
           });
         } else {
-          // Check fallback profile document
+          // Check fallback profiles collection
           getDoc(userProfileRef).then((profSnap) => {
-            if (profSnap.exists() && Array.isArray(profSnap.data()?.cart)) {
-              const profileCart: CartItem[] = profSnap.data()?.cart || [];
+            if (profSnap.exists() && Array.isArray(profSnap.data()?.cart) && profSnap.data()?.cart.length > 0) {
+              const profileCart: CartItem[] = profSnap.data()?.cart;
               setCart(profileCart);
               try {
                 localStorage.setItem('kintesi_cart', JSON.stringify(profileCart));
               } catch {}
-              setDoc(
-                userCartRef,
-                { items: profileCart, updatedAt: new Date().toISOString() },
-                { merge: true }
-              ).catch(() => {});
+              setDoc(userCartRef, { items: profileCart, updatedAt: new Date().toISOString() }, { merge: true }).catch(() => {});
             } else {
-              // Upload local cart to Firestore for new login
-              setCart((curr) => {
-                if (curr.length > 0) {
-                  setDoc(
-                    userCartRef,
-                    { items: curr, updatedAt: new Date().toISOString() },
-                    { merge: true }
-                  ).catch(() => {});
+              setCart((localCart) => {
+                if (localCart.length > 0) {
+                  setDoc(userCartRef, { items: localCart, updatedAt: new Date().toISOString() }, { merge: true }).catch(() => {});
                 }
-                return curr;
+                return localCart;
               });
             }
           }).catch(() => {});
         }
+      }).catch((err) => {
+        console.warn('Initial cart fetch note:', err);
+        setIsLoading(false);
+      });
+    }
+
+    // Real-time listener: updates cart when modified from another device/browser
+    const unsubscribe = onSnapshot(
+      userCartRef,
+      (snapshot) => {
+        // If this snapshot was triggered by our own in-flight local write, skip to avoid echo/race conditions
+        if (snapshot.metadata.hasPendingWrites) return;
+
+        if (snapshot.exists()) {
+          const remoteItems: CartItem[] = snapshot.data()?.items || [];
+          setCart(remoteItems);
+          try {
+            localStorage.setItem('kintesi_cart', JSON.stringify(remoteItems));
+          } catch {}
+        }
       },
       (err) => {
-        console.warn('Firestore cart sync note:', err);
-        setIsLoading(false);
+        console.warn('Firestore cart real-time listener notice:', err);
       }
     );
 

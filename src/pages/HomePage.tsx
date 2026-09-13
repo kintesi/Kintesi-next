@@ -177,18 +177,11 @@ export const HomePage: React.FC = () => {
     featuredProducts.length > 0
   );
 
-  // Product IDs already displayed in the upper Featured Products section
-  const featuredProductIds = useMemo(() => {
-    if (!isFeaturedActive) return new Set<string>();
-    return new Set(featuredProducts.map((p) => p.id));
-  }, [isFeaturedActive, featuredProducts]);
-
   // 2. Personalized & Rotated Product Feed:
   // Recommended products (matching search intent / Google search / interests) are ranked 1st at the top!
   // Followed by all remaining products gradually below.
-  // STRICTLY DEDUPLICATED: Excludes any product already shown in Featured Products so ZERO products ever appear double!
+  // Featured products are ALSO included in the All Products feed (never hidden from all)!
   const personalizedProducts = useMemo(() => {
-    // 1. Deduplicate base product pool
     const uniqueMap = new Map<string, Product>();
     for (const p of products) {
       if (p && p.id && !uniqueMap.has(p.id)) {
@@ -196,16 +189,8 @@ export const HomePage: React.FC = () => {
       }
     }
     const uniquePool = Array.from(uniqueMap.values());
-
-    // 2. Rank with recommendation engine (recommended items always 1st)
-    const ranked = getPersonalizedAndRotatedProducts(uniquePool, 2);
-
-    // 3. Exclude products already featured at the top to prevent duplicate cards
-    if (isFeaturedActive) {
-      return ranked.filter((p) => !featuredProductIds.has(p.id));
-    }
-    return ranked;
-  }, [products, isFeaturedActive, featuredProductIds]);
+    return getPersonalizedAndRotatedProducts(uniquePool, 2);
+  }, [products]);
 
   // Filtered by department tabs for desktop
   const filteredPersonalizedProducts = useMemo(() => {
@@ -369,7 +354,23 @@ export const HomePage: React.FC = () => {
           </div>
         )}
 
-        {/* 2. FEATURED PRODUCTS (SHOWN UP ABOVE ONLY IF ADMIN ENABLED & MARKED PRODUCTS) */}
+        {/* 2. Mobile Flash Sale Countdown Banner */}
+        {isFlashSaleActive && (
+          <div className="px-3">
+            <FlashSaleBanner
+              slides={banners.flashSaleSlides}
+              defaultTag={banners.flashSaleTag}
+              defaultTitle={banners.flashSaleTitle}
+              defaultSubtitle={banners.flashSaleSubtitle}
+              defaultBgImage={banners.flashSaleBgImage}
+              theme={banners.flashSaleTheme}
+              timeLeft={timeLeft}
+              isMobile={true}
+            />
+          </div>
+        )}
+
+        {/* 3. FEATURED PRODUCTS (SHOWN ONLY IF ADMIN ENABLED & MARKED PRODUCTS) */}
         {isFeaturedActive && (
           <div className="px-3 space-y-2.5 pt-1">
             <div className="flex items-center justify-between">
@@ -384,31 +385,12 @@ export const HomePage: React.FC = () => {
                 <ChevronRight className="w-3.5 h-3.5" />
               </Link>
             </div>
-            {banners.featuredProductsSubtitle && (
-              <p className="text-[11px] text-gray-500 -mt-1">{banners.featuredProductsSubtitle}</p>
-            )}
 
             <div className="grid grid-cols-2 gap-2.5">
               {featuredProducts.slice(0, 6).map((product) => (
                 <ProductCard key={product.id} product={product} />
               ))}
             </div>
-          </div>
-        )}
-
-        {/* 3. Mobile Flash Sale Countdown Banner */}
-        {isFlashSaleActive && (
-          <div className="px-3">
-            <FlashSaleBanner
-              slides={banners.flashSaleSlides}
-              defaultTag={banners.flashSaleTag}
-              defaultTitle={banners.flashSaleTitle}
-              defaultSubtitle={banners.flashSaleSubtitle}
-              defaultBgImage={banners.flashSaleBgImage}
-              theme={banners.flashSaleTheme}
-              timeLeft={timeLeft}
-              isMobile={true}
-            />
           </div>
         )}
 
@@ -658,20 +640,31 @@ export const HomePage: React.FC = () => {
           </section>
         )}
 
-        {/* 2. DESKTOP FEATURED PRODUCTS (SHOWN UP ABOVE ONLY IF ADMIN ENABLED & MARKED PRODUCTS) */}
+        {/* 2. Desktop Flash Sale Banner */}
+        {isFlashSaleActive && (
+          <section className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
+            <FlashSaleBanner
+              slides={banners.flashSaleSlides}
+              defaultTag={banners.flashSaleTag}
+              defaultTitle={banners.flashSaleTitle}
+              defaultSubtitle={banners.flashSaleSubtitle}
+              defaultBgImage={banners.flashSaleBgImage}
+              theme={banners.flashSaleTheme}
+              timeLeft={timeLeft}
+              isMobile={false}
+            />
+          </section>
+        )}
+
+        {/* 3. DESKTOP FEATURED PRODUCTS (SHOWN ONLY IF ADMIN ENABLED & MARKED PRODUCTS) */}
         {isFeaturedActive && (
           <section className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 space-y-5">
             <div className="flex items-center justify-between border-b border-rose-100 pb-3">
-              <div>
-                <div className="flex items-center gap-2">
-                  <Star className="w-5 h-5 fill-rose-600 text-rose-600" />
-                  <h2 className="text-xl font-bold text-gray-900 tracking-tight">
-                    {banners.featuredProductsTitle || 'Featured Products'}
-                  </h2>
-                </div>
-                {banners.featuredProductsSubtitle && (
-                  <p className="text-xs text-gray-500 mt-0.5">{banners.featuredProductsSubtitle}</p>
-                )}
+              <div className="flex items-center gap-2">
+                <Star className="w-5 h-5 fill-rose-600 text-rose-600" />
+                <h2 className="text-xl font-bold text-gray-900 tracking-tight">
+                  {banners.featuredProductsTitle || 'Featured Products'}
+                </h2>
               </div>
 
               <Link
@@ -688,22 +681,6 @@ export const HomePage: React.FC = () => {
                 <ProductCard key={product.id} product={product} />
               ))}
             </div>
-          </section>
-        )}
-
-        {/* 3. Desktop Flash Sale Banner */}
-        {isFlashSaleActive && (
-          <section className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
-            <FlashSaleBanner
-              slides={banners.flashSaleSlides}
-              defaultTag={banners.flashSaleTag}
-              defaultTitle={banners.flashSaleTitle}
-              defaultSubtitle={banners.flashSaleSubtitle}
-              defaultBgImage={banners.flashSaleBgImage}
-              theme={banners.flashSaleTheme}
-              timeLeft={timeLeft}
-              isMobile={false}
-            />
           </section>
         )}
 

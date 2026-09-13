@@ -26,36 +26,33 @@ export const WishlistProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }
   });
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const isSyncingFromRemoteRef = useRef<boolean>(false);
+  const hasMergedInitialRef = useRef<string | null>(null);
 
   // Sync with Firestore database whenever user is logged in
   useEffect(() => {
     if (!user || !user.id) return;
 
-    setIsLoading(true);
     const userWishlistRef = doc(db, 'user_wishlists', user.id);
     const userProfileRef = doc(db, 'profiles', user.id);
 
-    // 1. Listen in real-time to user's wishlist document in Firestore
-    const unsubscribe = onSnapshot(
-      userWishlistRef,
-      (snapshot) => {
+    // Initial load: fetch once and merge any guest offline items only on first connect
+    if (hasMergedInitialRef.current !== user.id) {
+      hasMergedInitialRef.current = user.id;
+      setIsLoading(true);
+
+      getDoc(userWishlistRef).then((snapshot) => {
         setIsLoading(false);
         if (snapshot.exists()) {
           const remoteItems: Product[] = snapshot.data()?.items || [];
-
-          // Merge with any local offline items deduplicated by id
           setWishlist((currentLocal) => {
             const remoteIds = new Set(remoteItems.map((p) => p.id));
             const localOnlyItems = currentLocal.filter((p) => !remoteIds.has(p.id));
             const merged = [...remoteItems, ...localOnlyItems];
 
-            isSyncingFromRemoteRef.current = true;
             try {
               localStorage.setItem('kintesi_wishlist', JSON.stringify(merged));
             } catch {}
 
-            // If local had unsynced items, write merged back to Firestore
             if (localOnlyItems.length > 0) {
               setDoc(
                 userWishlistRef,
@@ -67,19 +64,20 @@ export const WishlistProvider: React.FC<{ children: React.ReactNode }> = ({ chil
             return merged;
           });
         } else {
-          // If user_wishlists doesn't exist yet, check fallback profiles collection
+          // Check fallback profiles collection
           getDoc(userProfileRef).then((profSnap) => {
-            if (profSnap.exists() && Array.isArray(profSnap.data()?.wishlist)) {
+            if (profSnap.exists() && Array.isArray(profSnap.data()?.wishlist) && profSnap.data()?.wishlist.length > 0) {
               const profileItems: Product[] = profSnap.data()?.wishlist || [];
               setWishlist(profileItems);
-              localStorage.setItem('kintesi_wishlist', JSON.stringify(profileItems));
+              try {
+                localStorage.setItem('kintesi_wishlist', JSON.stringify(profileItems));
+              } catch {}
               setDoc(
                 userWishlistRef,
                 { items: profileItems, updatedAt: new Date().toISOString() },
                 { merge: true }
               ).catch(() => {});
             } else {
-              // Push local wishlist to Firestore for newly logged-in user
               setWishlist((curr) => {
                 if (curr.length > 0) {
                   setDoc(
@@ -93,10 +91,29 @@ export const WishlistProvider: React.FC<{ children: React.ReactNode }> = ({ chil
             }
           }).catch(() => {});
         }
+      }).catch((error) => {
+        console.warn('Initial wishlist fetch note:', error);
+        setIsLoading(false);
+      });
+    }
+
+    // Real-time listener: updates wishlist when modified from another device/browser
+    const unsubscribe = onSnapshot(
+      userWishlistRef,
+      (snapshot) => {
+        // Skip in-flight local writes to prevent echo/resurrection
+        if (snapshot.metadata.hasPendingWrites) return;
+
+        if (snapshot.exists()) {
+          const remoteItems: Product[] = snapshot.data()?.items || [];
+          setWishlist(remoteItems);
+          try {
+            localStorage.setItem('kintesi_wishlist', JSON.stringify(remoteItems));
+          } catch {}
+        }
       },
       (error) => {
-        console.warn('Firestore wishlist sync note:', error);
-        setIsLoading(false);
+        console.warn('Firestore wishlist real-time sync notice:', error);
       }
     );
 
