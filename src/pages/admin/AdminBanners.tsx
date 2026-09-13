@@ -1273,7 +1273,7 @@ export const AdminBanners: React.FC = () => {
                         label="Slide Background Image (স্লাইডের ব্যাকগ্রাউন্ড ছবি)"
                         value={currentSlides[selectedSlideIndex]?.bgImage || ''}
                         onChange={(url) => handleUpdateCurrentSlide('bgImage', url)}
-                        helpText="এই স্লাইডের ব্যাকগ্রাউন্ডে ছবি দেখানোর জন্য ইমেজ আপলোড করুন বা লিংক দিন। ডার্ক ওভারলে স্বয়ংক্রিয়ভাবে টেক্সটের সুস্পষ্টতা নিশ্চিত করবে।"
+                        helpText="এই স্লাইডের ব্যাকগ্রাউন্ডে ছবি দেখানোর জন্য ইমেজ আপলোড করুন বা লিংক দিন। ছবির আসল কালার, উজ্জ্বলতা ও স্পষ্টতা শতভাগ অটুট থাকবে (কোনো ডার্ক বা কালার ওভারলে ছাড়া)।"
                       />
                     </div>
                   </div>
