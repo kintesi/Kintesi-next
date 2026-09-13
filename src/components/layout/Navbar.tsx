@@ -194,6 +194,56 @@ export const Navbar: React.FC = () => {
                 </span>
               )}
             </div>
+          ) : location.pathname.startsWith('/product/') ? (
+            /* Compact Space-Saving Single-Row Product Page Header (No Logo, Search in Top Position) */
+            <div className="md:hidden py-2 flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => (window.history.length > 1 ? navigate(-1) : navigate('/shop'))}
+                className="p-1 -ml-1 text-gray-700 hover:text-rose-600 rounded-full active:bg-rose-50 transition shrink-0 cursor-pointer"
+                title="Go Back"
+                aria-label="Back"
+              >
+                <ArrowLeft className="w-5 h-5" />
+              </button>
+
+              {/* In place of logo: Search bar */}
+              <form onSubmit={handleSearchSubmit} className="flex-1 min-w-0 relative flex items-center">
+                <div className="relative w-full">
+                  <input
+                    type="text"
+                    placeholder={t('nav.searchPlaceholder')}
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full pl-7 pr-14 py-1.5 bg-gray-50/80 focus:bg-white border border-rose-100 focus:border-rose-500 rounded-full text-xs transition focus:outline-none focus:ring-2 focus:ring-rose-500/20"
+                  />
+                  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3 h-3 text-gray-400" />
+                  <button
+                    type="submit"
+                    className="absolute right-1 top-1/2 -translate-y-1/2 px-2.5 py-0.5 bg-rose-600 text-white rounded-full text-[10px] font-bold shadow-xs hover:bg-rose-700 transition"
+                  >
+                    {language === 'bn' ? 'খুঁজুন' : 'Search'}
+                  </button>
+                </div>
+              </form>
+
+              {/* Wishlist & Admin */}
+              <div className="flex items-center gap-1.5 shrink-0">
+                <Link to="/wishlist" className="p-1.5 text-gray-600 relative" title={t('nav.wishlist')}>
+                  <Heart className="w-5 h-5" />
+                  {wishlist.length > 0 && (
+                    <span className="absolute top-0 right-0 w-3.5 h-3.5 bg-rose-600 text-white text-[8px] font-bold rounded-full flex items-center justify-center">
+                      {wishlist.length}
+                    </span>
+                  )}
+                </Link>
+                {isAdmin && (
+                  <Link to="/admin" className="px-2 py-0.5 bg-rose-50 text-rose-700 border border-rose-200/80 rounded-lg text-[10px] font-black uppercase">
+                    Admin
+                  </Link>
+                )}
+              </div>
+            </div>
           ) : (
             <div className="md:hidden py-2 space-y-2">
               <div className="flex items-center justify-between gap-2">

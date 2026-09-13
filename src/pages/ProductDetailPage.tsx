@@ -604,29 +604,20 @@ export const ProductDetailPage: React.FC = () => {
                   <div className="flex items-center gap-2.5 flex-wrap pt-0.5">
                     {product.colors.map((c) => {
                       const isSelected = selectedColor === c.name;
-                      const isLightColor = ['#ffffff', '#fff', '#f8fafc', '#f1f5f9', '#fafafa'].includes(c.hex?.toLowerCase() || '') || c.name?.toLowerCase() === 'white';
                       return (
                         <button
                           key={c.name}
                           type="button"
                           onClick={() => handleSelectColor(c)}
-                          className={`relative w-6 h-6 rounded-full transition-all duration-150 cursor-pointer flex items-center justify-center shrink-0 ${
+                          className={`relative w-6 h-6 rounded-full transition-all duration-150 cursor-pointer shrink-0 ${
                             isSelected
-                              ? 'ring-2 ring-offset-1.5 ring-rose-600 scale-105 shadow-xs'
+                              ? 'ring-2 ring-offset-2 ring-rose-600 scale-110 shadow-xs'
                               : 'hover:scale-105 opacity-85 hover:opacity-100 ring-1 ring-black/20 hover:ring-black/40'
                           }`}
                           style={{ backgroundColor: c.hex }}
                           title={c.name}
                           aria-label={c.name}
-                        >
-                          {isSelected && (
-                            <span
-                              className={`w-1.5 h-1.5 rounded-full ${
-                                isLightColor ? 'bg-black/80' : 'bg-white shadow-xs'
-                              }`}
-                            />
-                          )}
-                        </button>
+                        />
                       );
                     })}
                   </div>
