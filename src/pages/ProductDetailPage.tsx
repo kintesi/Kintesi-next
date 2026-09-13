@@ -601,7 +601,7 @@ export const ProductDetailPage: React.FC = () => {
                     <span className="text-gray-500 uppercase tracking-wider text-[11px]">Color:</span>
                     <span className="text-gray-900 font-extrabold">{selectedColor}</span>
                   </div>
-                  <div className="flex items-center gap-2 flex-wrap pt-0.5">
+                  <div className="flex items-center gap-2.5 flex-wrap pt-0.5">
                     {product.colors.map((c) => {
                       const isSelected = selectedColor === c.name;
                       return (
@@ -609,9 +609,9 @@ export const ProductDetailPage: React.FC = () => {
                           key={c.name}
                           type="button"
                           onClick={() => handleSelectColor(c)}
-                          className={`relative w-5 h-5 rounded-full transition-all duration-150 cursor-pointer shrink-0 ${
+                          className={`relative w-6 h-6 rounded-full transition-all duration-150 cursor-pointer shrink-0 ${
                             isSelected
-                              ? 'ring-2 ring-offset-1.5 ring-rose-600 scale-105 shadow-xs'
+                              ? 'ring-2 ring-offset-2 ring-rose-600 scale-110 shadow-xs'
                               : 'hover:scale-105 opacity-85 hover:opacity-100 ring-1 ring-black/20 hover:ring-black/40'
                           }`}
                           style={{ backgroundColor: c.hex }}
