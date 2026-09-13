@@ -18,7 +18,6 @@ import {
   Crown,
   MapPin,
   Grid,
-  Globe,
   Settings,
 } from 'lucide-react';
 import { INITIAL_PRODUCTS, INITIAL_CATEGORIES } from '../../data/mockData';
@@ -34,7 +33,7 @@ export const Navbar: React.FC = () => {
   const { totalItemCount, setIsCartOpen, subtotal } = useCart();
   const { wishlist } = useWishlist();
   const { settings } = useSettings();
-  const { language, toggleLanguage, t } = useLanguage();
+  const { language, t } = useLanguage();
 
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [isDepartmentMenuOpen, setIsDepartmentMenuOpen] = useState(false);
@@ -193,16 +192,6 @@ export const Navbar: React.FC = () => {
               </Link>
 
               <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={toggleLanguage}
-                  className="px-2 py-0.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200/80 rounded-lg text-[10px] font-black flex items-center gap-1 active:scale-95 transition cursor-pointer"
-                  title={language === 'en' ? 'বাংলা' : 'English'}
-                >
-                  <Globe className="w-2.5 h-2.5" />
-                  <span>{language === 'en' ? 'বাং' : 'EN'}</span>
-                </button>
-
                 <Link to="/wishlist" className="p-1.5 text-gray-600 relative">
                   <Heart className="w-5 h-5" />
                   {wishlist.length > 0 && (
@@ -318,19 +307,8 @@ export const Navbar: React.FC = () => {
             </div>
 
             {/* Right Action Icons & Profile */}
-            <div className="flex items-center gap-2.5">
+            <div className="flex items-center gap-3">
               
-              {/* Language Switcher Pill */}
-              <button
-                type="button"
-                onClick={toggleLanguage}
-                className="h-9 px-2.5 bg-gray-50 hover:bg-rose-50 border border-gray-200 hover:border-rose-200 text-gray-700 hover:text-rose-700 rounded-xl font-bold text-xs flex items-center gap-1.5 transition active:scale-95 cursor-pointer"
-                title={language === 'en' ? 'বাংলা ভাষায় দেখুন' : 'Switch to English'}
-              >
-                <Globe className="w-3.5 h-3.5 text-rose-600" />
-                <span>{language === 'en' ? 'বাংলা' : 'EN'}</span>
-              </button>
-
               {/* Wishlist */}
               <Link
                 to="/wishlist"
