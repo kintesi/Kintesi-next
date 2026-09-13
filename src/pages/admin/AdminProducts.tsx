@@ -62,6 +62,8 @@ export interface ColorVariantSection {
   colorName: string;
   colorHex: string;
   price: string;
+  discount_percent?: string;
+  stock?: string;
   imageUrl1: string;
   imageUrl2: string;
   imageUrl3: string;
@@ -156,6 +158,8 @@ export const AdminProducts: React.FC = () => {
         colorName: '',
         colorHex: '#EC4899',
         price: '',
+        discount_percent: '',
+        stock: '',
         imageUrl1: '',
         imageUrl2: '',
         imageUrl3: '',
@@ -282,6 +286,8 @@ export const AdminProducts: React.FC = () => {
           colorName: '',
           colorHex: '#EC4899',
           price: '',
+          discount_percent: '',
+          stock: '',
           imageUrl1: '',
           imageUrl2: '',
           imageUrl3: '',
@@ -346,11 +352,16 @@ export const AdminProducts: React.FC = () => {
         const cImages = (c.images && c.images.length > 0)
           ? c.images
           : (c.image ? [c.image] : []);
+        const cPercent = (c.discount_percent !== undefined && c.discount_percent !== null)
+          ? String(c.discount_percent)
+          : (c.discount_price && c.price ? String(calculateDiscount(c.price, c.discount_price)) : (existingPercent > 0 ? String(existingPercent) : ''));
         mappedVariants.push({
           id: 'cv_' + i + '_' + Date.now(),
           colorName: c.name || '',
           colorHex: c.hex || '#EC4899',
-          price: c.price !== undefined && c.price !== null ? String(c.price) : '',
+          price: c.price !== undefined && c.price !== null ? String(c.price) : (prod.price ? String(prod.price) : ''),
+          discount_percent: cPercent,
+          stock: c.stock !== undefined && c.stock !== null ? String(c.stock) : (prod.stock ? String(prod.stock) : ''),
           imageUrl1: cImages[0] || (i === 0 ? prod.images?.[0] || '' : ''),
           imageUrl2: cImages[1] || (i === 0 ? prod.images?.[1] || '' : ''),
           imageUrl3: cImages[2] || (i === 0 ? prod.images?.[2] || '' : ''),
@@ -363,7 +374,9 @@ export const AdminProducts: React.FC = () => {
         id: 'cv_1',
         colorName: '',
         colorHex: '#EC4899',
-        price: '',
+        price: prod.price ? String(prod.price) : '',
+        discount_percent: existingPercent > 0 ? String(existingPercent) : '',
+        stock: prod.stock ? String(prod.stock) : '',
         imageUrl1: prod.images?.[0] || '',
         imageUrl2: prod.images?.[1] || '',
         imageUrl3: prod.images?.[2] || '',
@@ -625,6 +638,23 @@ export const AdminProducts: React.FC = () => {
     }));
   };
 
+  const handleApplyMasterToAllVariants = () => {
+    if (!formData.price && !formData.stock) {
+      toast.error('অনুগ্রহ করে প্রথমে মাস্টার মূল্য বা স্টক লিখুন!');
+      return;
+    }
+    setFormData((prev) => ({
+      ...prev,
+      colorVariants: (prev.colorVariants || []).map((cv) => ({
+        ...cv,
+        price: prev.price || cv.price,
+        discount_percent: prev.discount_percent !== undefined && prev.discount_percent !== '' ? prev.discount_percent : cv.discount_percent,
+        stock: prev.stock || cv.stock,
+      })),
+    }));
+    toast.success(`সব কয়টি (${(formData.colorVariants || []).length}টি) কালার ভ্যারিয়েন্টে মাস্টার মূল্য, ডিসকাউন্ট ও স্টক সেট করা হয়েছে!`);
+  };
+
   const handleUpdateVariantField = (id: string, field: keyof ColorVariantSection, value: string) => {
     setFormData((prev) => ({
       ...prev,
@@ -639,7 +669,9 @@ export const AdminProducts: React.FC = () => {
       id: 'cv_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
       colorName,
       colorHex,
-      price: '',
+      price: formData.price || '',
+      discount_percent: formData.discount_percent || '',
+      stock: formData.stock || '',
       imageUrl1: '',
       imageUrl2: '',
       imageUrl3: '',
@@ -694,7 +726,7 @@ export const AdminProducts: React.FC = () => {
       });
     });
 
-    // Extract color variants with their individual 4 images each!
+    // Extract color variants with individual 4 photos, custom price, discount & stock
     const compiledColors: ProductColorOption[] = [];
     (formData.colorVariants || []).forEach((cv) => {
       const name = (cv.colorName || '').trim();
@@ -702,11 +734,22 @@ export const AdminProducts: React.FC = () => {
         .map((u) => (u || '').trim())
         .filter(Boolean);
 
+      const colorPriceNum = cv.price && !isNaN(Number(cv.price)) ? Number(cv.price) : (formData.price ? Number(formData.price) : null);
+      const colorDiscountNum = cv.discount_percent && !isNaN(Number(cv.discount_percent)) ? Number(cv.discount_percent) : (formData.discount_percent ? Number(formData.discount_percent) : 0);
+      let calculatedColorDiscountPrice: number | null = null;
+      if (colorPriceNum && colorDiscountNum > 0 && colorDiscountNum < 100) {
+        calculatedColorDiscountPrice = Math.round(colorPriceNum - (colorPriceNum * colorDiscountNum) / 100);
+      }
+      const colorStockNum = cv.stock && !isNaN(Number(cv.stock)) ? Number(cv.stock) : (formData.stock ? Number(formData.stock) : null);
+
       if (name || colorImages.length > 0) {
         compiledColors.push({
           name: name || 'Default',
           hex: cv.colorHex || '#EC4899',
-          price: cv.price && !isNaN(Number(cv.price)) ? Number(cv.price) : null,
+          price: colorPriceNum,
+          discount_price: calculatedColorDiscountPrice,
+          discount_percent: colorDiscountNum > 0 ? colorDiscountNum : null,
+          stock: colorStockNum,
           image: colorImages[0] || null,
           images: colorImages,
         });
@@ -1295,7 +1338,7 @@ export const AdminProducts: React.FC = () => {
           <div className="flex items-center gap-1 border-b border-gray-800 bg-gray-900/60 px-4 sm:px-8 py-2 overflow-x-auto no-scrollbar shrink-0">
             {[
               { id: 'general', label: '📦 General & Pricing', desc: 'Title, Price & Stock' },
-              { id: 'variants', label: '🎨 Photos, Colors & Sizes', count: (formData.colorVariants?.length || 0) + formData.selectedSizes.length },
+              { id: 'variants', label: '🎨 Colors, Photos & Pricing', count: (formData.colorVariants?.length || 0) + formData.selectedSizes.length },
               { id: 'specs', label: '📋 Description & Specs', desc: 'Details & Specs' },
               { id: 'delivery', label: '🚚 Delivery & Payment', desc: 'Shipping & Payment' },
               { id: 'tags', label: '🏷️ Search Tags & Taxonomy', desc: 'Keywords' },
@@ -1470,89 +1513,58 @@ export const AdminProducts: React.FC = () => {
                   </p>
                 </div>
               </div>
-                  {/* Section 2: Pricing, Discount % & Stock */}
+                  {/* Section 2: Pricing & Color Variants Quick Link & Badges */}
               <div className="space-y-4 bg-gray-950/60 p-4 rounded-2xl border border-gray-800/80">
-                <h4 className="text-xs font-black uppercase tracking-wider text-amber-400 flex items-center gap-1.5">
-                  <Percent className="w-4 h-4" /> Pricing, Percentage Discount & Inventory
-                </h4>
+                {/* Feature & Trending Toggles */}
+                <div>
+                  <h4 className="text-xs font-black uppercase tracking-wider text-emerald-400 mb-3 flex items-center gap-1.5">
+                    <Sparkles className="w-4 h-4" /> Visibility & Promotion Badges
+                  </h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-gray-300 p-2.5 bg-gray-900/60 rounded-xl border border-gray-800 hover:border-emerald-500/50 transition">
+                      <input
+                        type="checkbox"
+                        checked={formData.is_featured}
+                        onChange={(e) => setFormData({ ...formData, is_featured: e.target.checked })}
+                        className="w-4 h-4 rounded border-gray-700 text-emerald-600 focus:ring-emerald-500"
+                      />
+                      <span>🌟 Feature on Homepage Spotlight</span>
+                    </label>
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  <div>
-                    <label className="block text-xs font-bold text-gray-300 mb-1">Regular Price (৳) *</label>
-                    <input
-                      type="number"
-                      required
-                      min="1"
-                      placeholder="e.g. 25000"
-                      value={formData.price}
-                      onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                      className="w-full bg-gray-900 border border-gray-700 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-emerald-500 font-bold"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-bold text-gray-300 mb-1">Discount (%) (Optional)</label>
-                    <input
-                      type="number"
-                      min="0"
-                      max="99"
-                      placeholder="e.g. 15 for 15% OFF"
-                      value={formData.discount_percent}
-                      onChange={(e) => setFormData({ ...formData, discount_percent: e.target.value })}
-                      className="w-full bg-gray-900 border border-gray-700 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-emerald-500 font-bold"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-bold text-gray-300 mb-1">Available Stock Count *</label>
-                    <input
-                      type="number"
-                      required
-                      min="0"
-                      placeholder="e.g. 25"
-                      value={formData.stock}
-                      onChange={(e) => setFormData({ ...formData, stock: e.target.value })}
-                      className="w-full bg-gray-900 border border-gray-700 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-emerald-500 font-bold"
-                    />
+                    <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-gray-300 p-2.5 bg-gray-900/60 rounded-xl border border-gray-800 hover:border-amber-500/50 transition">
+                      <input
+                        type="checkbox"
+                        checked={formData.is_trending}
+                        onChange={(e) => setFormData({ ...formData, is_trending: e.target.checked })}
+                        className="w-4 h-4 rounded border-gray-700 text-amber-500 focus:ring-amber-500"
+                      />
+                      <span>🔥 Mark as Trending Best-Seller</span>
+                    </label>
                   </div>
                 </div>
 
-                {/* Live Calculated Sale Price Preview */}
-                {formData.price && Number(formData.discount_percent) > 0 && (
-                  <div className="p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-xl flex items-center justify-between text-xs">
-                    <span className="text-gray-300 font-medium">Customer Final Sale Price:</span>
-                    <div className="text-right">
-                      <span className="text-emerald-400 font-black text-sm">
-                        {formatPrice(Math.round(Number(formData.price) * (1 - Number(formData.discount_percent) / 100)))}
-                      </span>
-                      <span className="text-rose-300 text-[10px] block font-bold">
-                        (Customer saves {formatPrice(Math.round(Number(formData.price) * (Number(formData.discount_percent) / 100)))})
-                      </span>
+                {/* Direct Link to Tab 2 for Pricing & Colors */}
+                <div className="p-3.5 bg-amber-500/10 border border-amber-500/30 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center shrink-0">
+                      <Percent className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold text-white">
+                        মূল্য, ডিসকাউন্ট (%) ও স্টক এখন কালার ও ফটো ট্যাবে
+                      </p>
+                      <p className="text-[11px] text-gray-400 mt-0.5">
+                        সব কালারে একই দাম দিতে পারবেন অথবা প্রতিটি কালারে আলাদা দাম ও স্টক সেট করতে পারবেন।
+                      </p>
                     </div>
                   </div>
-                )}
-
-                {/* Feature & Trending Toggles */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-gray-800/80">
-                  <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-gray-300">
-                    <input
-                      type="checkbox"
-                      checked={formData.is_featured}
-                      onChange={(e) => setFormData({ ...formData, is_featured: e.target.checked })}
-                      className="w-4 h-4 rounded border-gray-700 text-emerald-600 focus:ring-emerald-500"
-                    />
-                    <span>🌟 Feature on Homepage Spotlight</span>
-                  </label>
-
-                  <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-gray-300">
-                    <input
-                      type="checkbox"
-                      checked={formData.is_trending}
-                      onChange={(e) => setFormData({ ...formData, is_trending: e.target.checked })}
-                      className="w-4 h-4 rounded border-gray-700 text-amber-500 focus:ring-amber-500"
-                    />
-                    <span>🔥 Mark as Trending Best-Seller</span>
-                  </label>
+                  <button
+                    type="button"
+                    onClick={() => setActiveModalTab('variants')}
+                    className="px-3.5 py-2 bg-amber-500 hover:bg-amber-400 text-gray-950 font-black rounded-xl text-xs transition shrink-0 cursor-pointer shadow-xs"
+                  >
+                    Go to Pricing & Colors →
+                  </button>
                 </div>
               </div>
             </div>
@@ -1561,15 +1573,100 @@ export const AdminProducts: React.FC = () => {
               {/* Tab 2: Sizes & Colors */}
               {activeModalTab === 'variants' && (
                 <div className="space-y-6 animate-fadeIn">
-                  {/* Section 1: Color Variants & Their 4 High-Res Photos */}
+                  {/* Section 1: Master Pricing, Discount & Stock Controller */}
+                  <div className="space-y-4 bg-gray-950/80 p-5 rounded-2xl border border-amber-500/30 shadow-md">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-gray-800">
+                      <div>
+                        <h4 className="text-xs font-black uppercase tracking-wider text-amber-400 flex items-center gap-1.5">
+                          <Percent className="w-4 h-4" /> Master Pricing, Percentage Discount & Inventory (মূল মূল্য, ডিসকাউন্ট ও স্টক)
+                        </h4>
+                        <p className="text-[11px] text-gray-400 mt-0.5">
+                          এখানে সাধারণ মূল্য ও স্টক নির্ধারণ করুন। "Apply to All" বাটনে ক্লিক করে এক ক্লিকে সব কালারে সেট করতে পারবেন, অথবা নিচে প্রতি কালারে আলাদা আলাদা ম্যানুয়ালি দিতে পারবেন।
+                        </p>
+                      </div>
+                      <span className="text-[10px] bg-amber-500/10 text-amber-300 font-bold px-2.5 py-1 rounded-full border border-amber-500/20 shrink-0">
+                        ⚡ Master Pricing Controller
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                      <div>
+                        <label className="block text-xs font-bold text-gray-300 mb-1">Master Regular Price (৳) *</label>
+                        <input
+                          type="number"
+                          min="1"
+                          placeholder="e.g. 25000"
+                          value={formData.price}
+                          onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                          className="w-full bg-gray-900 border border-gray-700 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-amber-500 font-bold"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-bold text-gray-300 mb-1">Master Discount (%) (Optional)</label>
+                        <input
+                          type="number"
+                          min="0"
+                          max="99"
+                          placeholder="e.g. 15 for 15% OFF"
+                          value={formData.discount_percent}
+                          onChange={(e) => setFormData({ ...formData, discount_percent: e.target.value })}
+                          className="w-full bg-gray-900 border border-gray-700 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-amber-500 font-bold"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-bold text-gray-300 mb-1">Master Available Stock *</label>
+                        <input
+                          type="number"
+                          min="0"
+                          placeholder="e.g. 50"
+                          value={formData.stock}
+                          onChange={(e) => setFormData({ ...formData, stock: e.target.value })}
+                          className="w-full bg-gray-900 border border-gray-700 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-amber-500 font-bold"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Live Calculated Sale Price Preview & Apply to All Button */}
+                    <div className="p-3.5 bg-gray-900/90 border border-gray-800 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+                      <div className="flex items-center gap-3">
+                        <span className="text-gray-400 font-medium">Customer Master Sale Price:</span>
+                        <span className="text-emerald-400 font-black text-sm">
+                          {formatPrice(
+                            Number(formData.price || 0) > 0 && Number(formData.discount_percent || 0) > 0
+                              ? Math.round(Number(formData.price) * (1 - Number(formData.discount_percent) / 100))
+                              : Number(formData.price || 0)
+                          )}
+                        </span>
+                        {Number(formData.price || 0) > 0 && Number(formData.discount_percent || 0) > 0 && (
+                          <span className="text-rose-300 text-[10px] font-bold bg-rose-500/10 px-2 py-0.5 rounded-md border border-rose-500/20">
+                            (গ্রাহক বাঁচবেন {formatPrice(Math.round(Number(formData.price) * (Number(formData.discount_percent) / 100)))})
+                          </span>
+                        )}
+                      </div>
+
+                      {/* The Apply to All Button requested by user */}
+                      <button
+                        type="button"
+                        onClick={handleApplyMasterToAllVariants}
+                        className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-gray-950 font-black rounded-xl text-xs transition flex items-center justify-center gap-1.5 shadow-sm active:scale-95 cursor-pointer shrink-0"
+                      >
+                        <Zap className="w-3.5 h-3.5 fill-current" />
+                        <span>⚡ Apply to All Color Variants (সব কালারে এই দাম ও স্টক দিন)</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Section 2: Color Variants with Individual Pricing & 4 Photos Each */}
                   <div className="space-y-6">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-gray-800">
                       <div>
                         <h4 className="text-xs font-black uppercase tracking-wider text-rose-400 flex items-center gap-1.5">
-                          <Palette className="w-4 h-4" /> Color Variants & 4 Photos Per Color (প্রতিটি কালারের জন্য আলাদা ৪টি ছবি)
+                          <Palette className="w-4 h-4" /> Color Variants & 4 Photos Per Color (প্রতিটি কালারের আলাদা দাম, স্টক ও ৪টি ছবি)
                         </h4>
                         <p className="text-[11px] text-gray-400 mt-0.5">
-                          প্রতিটি কালার ভ্যারিয়েন্টের জন্য নিজস্ব ৪টি করে ছবি আপলোড করুন (Main Cover, Side, Detail, Close-up)। কাস্টমার যে কালার সিলেক্ট করবেন সেই কালারের ছবি দেখতে পাবেন।
+                          প্রতিটি কালারের জন্য ম্যানুয়ালি আলাদা দাম, ডিসকাউন্ট, স্টক ও ৪টি করে ছবি আপলোড করতে পারবেন।
                         </p>
                       </div>
                       <span className="text-[10px] bg-rose-500/10 text-rose-300 font-bold px-2.5 py-1 rounded-full border border-rose-500/20 shrink-0">
@@ -1577,98 +1674,150 @@ export const AdminProducts: React.FC = () => {
                       </span>
                     </div>
 
-                    {/* Color Variant Groups */}
+                    {/* Color Variant Cards */}
                     <div className="space-y-6">
-                      {(formData.colorVariants || []).map((variant, vIdx) => (
-                        <div
-                          key={variant.id}
-                          className="space-y-4 bg-gray-950/80 p-5 rounded-2xl border border-gray-800 shadow-md transition hover:border-gray-700"
-                        >
-                          {/* Header of this Color Variant: Color Swatch + Name + Price + Delete */}
-                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-gray-800/80">
-                            <div className="flex items-center gap-3 flex-wrap">
-                              <span className="px-2.5 py-1 bg-rose-500/15 text-rose-300 border border-rose-500/30 text-xs font-black rounded-xl flex items-center gap-1.5">
-                                <Palette className="w-3.5 h-3.5" />
-                                <span>কালার {vIdx + 1} {vIdx === 0 ? '(মূল কালার)' : ''}</span>
-                              </span>
+                      {(formData.colorVariants || []).map((variant, vIdx) => {
+                        const vPrice = Number(variant.price || formData.price || 0);
+                        const vDiscount = Number(variant.discount_percent !== undefined && variant.discount_percent !== '' ? variant.discount_percent : (formData.discount_percent || 0));
+                        const vSalePrice = vPrice > 0 && vDiscount > 0 ? Math.round(vPrice * (1 - vDiscount / 100)) : vPrice;
+                        const vStock = variant.stock !== undefined && variant.stock !== '' ? variant.stock : (formData.stock || '0');
 
-                              {/* Color Picker Swatch */}
-                              <div className="flex items-center gap-2">
-                                <input
-                                  type="color"
-                                  value={variant.colorHex}
-                                  onChange={(e) => handleUpdateVariantField(variant.id, 'colorHex', e.target.value)}
-                                  className="w-8 h-8 rounded-xl cursor-pointer bg-transparent border-0 p-0 shrink-0"
-                                  title="কালার সিলেক্ট করুন"
-                                />
-                                <input
-                                  type="text"
-                                  placeholder="কালারের নাম (যেমন: Pink, White, Black)"
-                                  value={variant.colorName}
-                                  onChange={(e) => handleUpdateVariantField(variant.id, 'colorName', e.target.value)}
-                                  className="bg-gray-900 border border-gray-700 rounded-xl px-3 py-1.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-rose-500 font-bold w-52"
-                                />
+                        return (
+                          <div
+                            key={variant.id}
+                            className="space-y-4 bg-gray-950/80 p-5 rounded-2xl border border-gray-800 shadow-md transition hover:border-gray-700"
+                          >
+                            {/* Color Header: Swatch + Name + Price & Stock Row + Delete */}
+                            <div className="flex flex-col gap-3 pb-3 border-b border-gray-800/80">
+                              <div className="flex items-center justify-between flex-wrap gap-2">
+                                <div className="flex items-center gap-2.5 flex-wrap">
+                                  <span className="px-2.5 py-1 bg-rose-500/15 text-rose-300 border border-rose-500/30 text-xs font-black rounded-xl flex items-center gap-1.5">
+                                    <Palette className="w-3.5 h-3.5" />
+                                    <span>কালার {vIdx + 1} {vIdx === 0 ? '(মূল কালার)' : ''}</span>
+                                  </span>
+
+                                  {/* Color Picker Swatch */}
+                                  <div className="flex items-center gap-2">
+                                    <input
+                                      type="color"
+                                      value={variant.colorHex}
+                                      onChange={(e) => handleUpdateVariantField(variant.id, 'colorHex', e.target.value)}
+                                      className="w-8 h-8 rounded-xl cursor-pointer bg-transparent border-0 p-0 shrink-0"
+                                      title="কালার সিলেক্ট করুন"
+                                    />
+                                    <input
+                                      type="text"
+                                      placeholder="কালারের নাম (যেমন: Pink, White, Black)"
+                                      value={variant.colorName}
+                                      onChange={(e) => handleUpdateVariantField(variant.id, 'colorName', e.target.value)}
+                                      className="bg-gray-900 border border-gray-700 rounded-xl px-3 py-1.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-rose-500 font-bold w-48"
+                                    />
+                                  </div>
+                                </div>
+
+                                {/* Delete button (if more than 1 variant) */}
+                                {(formData.colorVariants || []).length > 1 && (
+                                  <button
+                                    type="button"
+                                    onClick={() => handleRemoveColorVariant(variant.id)}
+                                    className="px-3 py-1.5 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                    <span>কালারটি মুছুন</span>
+                                  </button>
+                                )}
                               </div>
 
-                              {/* Price Override for this color */}
-                              <div className="flex items-center gap-1 bg-gray-900 border border-gray-700 rounded-xl px-2.5 py-1.5">
-                                <span className="text-xs text-gray-400 font-bold">৳</span>
-                                <input
-                                  type="number"
-                                  placeholder={`দাম (ডিফল্ট: ৳${formData.price || '0'})`}
-                                  value={variant.price}
-                                  onChange={(e) => handleUpdateVariantField(variant.id, 'price', e.target.value)}
-                                  className="bg-transparent text-xs text-emerald-400 placeholder-gray-500 font-black focus:outline-none w-36"
-                                />
+                              {/* Manual Price, Discount % & Stock Controls for THIS specific color */}
+                              <div className="p-3 bg-gray-900/70 rounded-xl border border-gray-800/80 flex flex-wrap items-center gap-3 text-xs">
+                                <div className="flex items-center gap-1.5">
+                                  <span className="text-[11px] font-bold text-gray-400">Regular (৳):</span>
+                                  <input
+                                    type="number"
+                                    placeholder={`৳${formData.price || '0'}`}
+                                    value={variant.price}
+                                    onChange={(e) => handleUpdateVariantField(variant.id, 'price', e.target.value)}
+                                    className="w-24 bg-gray-950 border border-gray-700 rounded-lg px-2 py-1 text-xs text-emerald-400 font-bold focus:outline-none focus:border-emerald-500"
+                                    title="Custom Regular Price for this color"
+                                  />
+                                </div>
+
+                                <div className="flex items-center gap-1.5">
+                                  <span className="text-[11px] font-bold text-gray-400">Discount (%):</span>
+                                  <input
+                                    type="number"
+                                    min="0"
+                                    max="99"
+                                    placeholder={`${formData.discount_percent || '0'}%`}
+                                    value={variant.discount_percent || ''}
+                                    onChange={(e) => handleUpdateVariantField(variant.id, 'discount_percent', e.target.value)}
+                                    className="w-18 bg-gray-950 border border-gray-700 rounded-lg px-2 py-1 text-xs text-amber-400 font-bold focus:outline-none focus:border-amber-500"
+                                    title="Custom Discount % for this color"
+                                  />
+                                </div>
+
+                                <div className="flex items-center gap-1.5">
+                                  <span className="text-[11px] font-bold text-gray-400">Stock:</span>
+                                  <input
+                                    type="number"
+                                    min="0"
+                                    placeholder={`${formData.stock || '0'}`}
+                                    value={variant.stock || ''}
+                                    onChange={(e) => handleUpdateVariantField(variant.id, 'stock', e.target.value)}
+                                    className="w-20 bg-gray-950 border border-gray-700 rounded-lg px-2 py-1 text-xs text-blue-400 font-bold focus:outline-none focus:border-blue-500"
+                                    title="Available Stock for this color"
+                                  />
+                                </div>
+
+                                {/* Live badge for this specific color */}
+                                <div className="ml-auto flex items-center gap-2">
+                                  <span className="text-[10px] text-gray-400 font-semibold">বিক্রয় মূল্য:</span>
+                                  <span className="text-emerald-400 font-black text-xs bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
+                                    {formatPrice(vSalePrice)}
+                                  </span>
+                                  {vDiscount > 0 && (
+                                    <span className="text-rose-400 text-[10px] font-bold bg-rose-500/10 px-1.5 py-0.5 rounded">
+                                      -{vDiscount}%
+                                    </span>
+                                  )}
+                                </div>
                               </div>
                             </div>
 
-                            {/* Delete button (if more than 1 variant) */}
-                            {(formData.colorVariants || []).length > 1 && (
-                              <button
-                                type="button"
-                                onClick={() => handleRemoveColorVariant(variant.id)}
-                                className="px-3 py-1.5 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 rounded-xl text-xs font-bold transition flex items-center gap-1.5 self-start sm:self-auto cursor-pointer"
-                              >
-                                <Trash2 className="w-3.5 h-3.5" />
-                                <span>কালারটি মুছুন (Delete)</span>
-                              </button>
-                            )}
+                            {/* 4 Image Uploaders for THIS color - Exact layout from user's screenshot! */}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3.5">
+                              <ImageUploader
+                                label="Photo 1 (Main Cover)"
+                                value={variant.imageUrl1}
+                                onChange={(url) => handleUpdateVariantField(variant.id, 'imageUrl1', url)}
+                                required={vIdx === 0}
+                                helpText={variant.colorName ? `${variant.colorName} কালারের মূল কভার ছবি` : 'Primary photo shown across catalog'}
+                              />
+
+                              <ImageUploader
+                                label="Photo 2 (Side / Angle)"
+                                value={variant.imageUrl2}
+                                onChange={(url) => handleUpdateVariantField(variant.id, 'imageUrl2', url)}
+                                helpText={variant.colorName ? `${variant.colorName} সাইড বা মডেল পরা ভিউ` : 'Back view, packaging, or texture'}
+                              />
+
+                              <ImageUploader
+                                label="Photo 3 (Detail / Lifestyle)"
+                                value={variant.imageUrl3}
+                                onChange={(url) => handleUpdateVariantField(variant.id, 'imageUrl3', url)}
+                                helpText={variant.colorName ? `${variant.colorName} ক্লোজ-আপ ডিটেইল শট` : 'Side angle or lifestyle shot'}
+                              />
+
+                              <ImageUploader
+                                label="Photo 4 (Close-up / Extra)"
+                                value={variant.imageUrl4}
+                                onChange={(url) => handleUpdateVariantField(variant.id, 'imageUrl4', url)}
+                                helpText={variant.colorName ? `${variant.colorName} এক্সেসরিজ বা প্যাকেজিং ভিউ` : 'Close-up detail or accessories'}
+                              />
+                            </div>
                           </div>
-
-                          {/* 4 Image Uploaders for THIS color - Exact layout from user's screenshot! */}
-                          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3.5">
-                            <ImageUploader
-                              label="Photo 1 (Main Cover)"
-                              value={variant.imageUrl1}
-                              onChange={(url) => handleUpdateVariantField(variant.id, 'imageUrl1', url)}
-                              required={vIdx === 0}
-                              helpText={variant.colorName ? `${variant.colorName} কালারের মূল কভার ছবি` : 'Primary photo shown across catalog'}
-                            />
-
-                            <ImageUploader
-                              label="Photo 2 (Side / Angle)"
-                              value={variant.imageUrl2}
-                              onChange={(url) => handleUpdateVariantField(variant.id, 'imageUrl2', url)}
-                              helpText={variant.colorName ? `${variant.colorName} সাইড বা মডেল পরা ভিউ` : 'Back view, packaging, or texture'}
-                            />
-
-                            <ImageUploader
-                              label="Photo 3 (Detail / Lifestyle)"
-                              value={variant.imageUrl3}
-                              onChange={(url) => handleUpdateVariantField(variant.id, 'imageUrl3', url)}
-                              helpText={variant.colorName ? `${variant.colorName} ক্লোজ-আপ ডিটেইল শট` : 'Side angle or lifestyle shot'}
-                            />
-
-                            <ImageUploader
-                              label="Photo 4 (Close-up / Extra)"
-                              value={variant.imageUrl4}
-                              onChange={(url) => handleUpdateVariantField(variant.id, 'imageUrl4', url)}
-                              helpText={variant.colorName ? `${variant.colorName} এক্সেসরিজ বা প্যাকেজিং ভিউ` : 'Close-up detail or accessories'}
-                            />
-                          </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
 
                     {/* Quick 1-Click Color Adders & Add Button */}

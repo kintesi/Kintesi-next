@@ -92,6 +92,7 @@ export interface ProductColorOption {
   hex: string;
   price?: number | null;
   discount_price?: number | null;
+  discount_percent?: number | null;
   image?: string | null;
   images?: string[];
   stock?: number | null;
