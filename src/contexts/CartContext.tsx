@@ -1,8 +1,10 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, useRef } from 'react';
 import { CartItem, Product, Coupon } from '../types';
 import { useCoupons } from './CouponContext';
 import { useAuth } from './AuthContext';
 import { toast } from 'sonner';
+import { doc, getDoc, setDoc, onSnapshot } from 'firebase/firestore';
+import { db } from '../lib/firebase';
 
 interface CartContextType {
   cart: CartItem[];
@@ -20,6 +22,7 @@ interface CartContextType {
   shippingFee: number;
   total: number;
   totalItemCount: number;
+  isLoading: boolean;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -27,6 +30,7 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, openAuthModal } = useAuth();
   const { validateCoupon } = useCoupons();
+
   const [cart, setCart] = useState<CartItem[]>(() => {
     try {
       const saved = localStorage.getItem('kintesi_cart');
@@ -37,6 +41,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   });
 
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [appliedCoupon, setAppliedCoupon] = useState<Coupon | null>(() => {
     try {
       const saved = localStorage.getItem('kintesi_coupon');
@@ -46,16 +51,119 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   });
 
-  // Only logged-in users have an active cart
-  const activeCart = user ? cart : [];
-
+  // Real-time bidirectional synchronization with Firestore database
   useEffect(() => {
-    if (user) {
-      localStorage.setItem('kintesi_cart', JSON.stringify(cart));
-    } else {
-      localStorage.removeItem('kintesi_cart');
+    if (!user || !user.id) return;
+
+    setIsLoading(true);
+    const userCartRef = doc(db, 'user_carts', user.id);
+    const userProfileRef = doc(db, 'profiles', user.id);
+
+    // 1. Listen in real-time to user's cart in Firestore
+    const unsubscribe = onSnapshot(
+      userCartRef,
+      (snapshot) => {
+        setIsLoading(false);
+        if (snapshot.exists()) {
+          const remoteItems: CartItem[] = snapshot.data()?.items || [];
+
+          setCart((currentLocal) => {
+            // Merge remote items with any local items that may have been added offline
+            const merged = [...remoteItems];
+            let hasNewLocal = false;
+
+            for (const localItem of currentLocal) {
+              const existingIdx = merged.findIndex(
+                (m) =>
+                  m.product.id === localItem.product.id &&
+                  m.selectedColor === localItem.selectedColor &&
+                  m.selectedSize === localItem.selectedSize
+              );
+
+              if (existingIdx === -1) {
+                merged.push(localItem);
+                hasNewLocal = true;
+              }
+            }
+
+            try {
+              localStorage.setItem('kintesi_cart', JSON.stringify(merged));
+            } catch {}
+
+            // Write merged back to Firestore if local had new offline items
+            if (hasNewLocal) {
+              setDoc(
+                userCartRef,
+                { items: merged, updatedAt: new Date().toISOString() },
+                { merge: true }
+              ).catch(() => {});
+            }
+
+            return merged;
+          });
+        } else {
+          // Check fallback profile document
+          getDoc(userProfileRef).then((profSnap) => {
+            if (profSnap.exists() && Array.isArray(profSnap.data()?.cart)) {
+              const profileCart: CartItem[] = profSnap.data()?.cart || [];
+              setCart(profileCart);
+              try {
+                localStorage.setItem('kintesi_cart', JSON.stringify(profileCart));
+              } catch {}
+              setDoc(
+                userCartRef,
+                { items: profileCart, updatedAt: new Date().toISOString() },
+                { merge: true }
+              ).catch(() => {});
+            } else {
+              // Upload local cart to Firestore for new login
+              setCart((curr) => {
+                if (curr.length > 0) {
+                  setDoc(
+                    userCartRef,
+                    { items: curr, updatedAt: new Date().toISOString() },
+                    { merge: true }
+                  ).catch(() => {});
+                }
+                return curr;
+              });
+            }
+          }).catch(() => {});
+        }
+      },
+      (err) => {
+        console.warn('Firestore cart sync note:', err);
+        setIsLoading(false);
+      }
+    );
+
+    return () => unsubscribe();
+  }, [user?.id]);
+
+  // Persist cart to localStorage and Firestore database
+  const persistCart = (newCart: CartItem[]) => {
+    setCart(newCart);
+    try {
+      localStorage.setItem('kintesi_cart', JSON.stringify(newCart));
+    } catch {}
+
+    if (user && user.id) {
+      const userCartRef = doc(db, 'user_carts', user.id);
+      const userProfileRef = doc(db, 'profiles', user.id);
+
+      setDoc(
+        userCartRef,
+        { items: newCart, updatedAt: new Date().toISOString() },
+        { merge: true }
+      ).catch((err) => console.warn('Failed saving cart to database:', err));
+
+      setDoc(
+        userProfileRef,
+        { cart: newCart },
+        { merge: true }
+      ).catch(() => {});
     }
-  }, [cart, user]);
+  };
 
   useEffect(() => {
     if (appliedCoupon) {
@@ -72,35 +180,38 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return;
     }
 
-    setCart((prev) => {
-      const existingIndex = prev.findIndex(
-        (item) => item.product.id === product.id && item.selectedColor === color && item.selectedSize === size
-      );
+    const existingIndex = cart.findIndex(
+      (item) => item.product.id === product.id && item.selectedColor === color && item.selectedSize === size
+    );
 
-      if (existingIndex > -1) {
-        const newCart = [...prev];
-        const newQty = newCart[existingIndex].quantity + quantity;
-        if (newQty > product.stock) {
-          toast.error(`Only ${product.stock} items available in stock!`);
-          return prev;
-        }
-        newCart[existingIndex].quantity = newQty;
-        toast.success(`Updated ${product.title} quantity to ${newQty}`);
-        return newCart;
-      } else {
-        if (quantity > product.stock) {
-          toast.error(`Only ${product.stock} items available in stock!`);
-          return prev;
-        }
-        toast.success(`Added ${product.title} to cart`);
-        return [...prev, { product, quantity, selectedColor: color, selectedSize: size }];
+    let updatedCart: CartItem[];
+
+    if (existingIndex > -1) {
+      const newCart = [...cart];
+      const newQty = newCart[existingIndex].quantity + quantity;
+      if (newQty > product.stock) {
+        toast.error(`Only ${product.stock} items available in stock!`);
+        return;
       }
-    });
+      newCart[existingIndex].quantity = newQty;
+      toast.success(`Updated ${product.title} quantity to ${newQty}`);
+      updatedCart = newCart;
+    } else {
+      if (quantity > product.stock) {
+        toast.error(`Only ${product.stock} items available in stock!`);
+        return;
+      }
+      toast.success(`Added ${product.title} to cart`);
+      updatedCart = [...cart, { product, quantity, selectedColor: color, selectedSize: size }];
+    }
+
+    persistCart(updatedCart);
     setIsCartOpen(true);
   };
 
   const removeFromCart = (productId: string) => {
-    setCart((prev) => prev.filter((item) => item.product.id !== productId));
+    const updatedCart = cart.filter((item) => item.product.id !== productId);
+    persistCart(updatedCart);
     toast.info('Item removed from cart');
   };
 
@@ -110,28 +221,30 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return;
     }
 
-    setCart((prev) =>
-      prev.map((item) => {
-        if (item.product.id === productId) {
-          if (quantity > item.product.stock) {
-            toast.error(`Only ${item.product.stock} items available in stock!`);
-            return item;
-          }
-          return { ...item, quantity };
+    const updatedCart = cart.map((item) => {
+      if (item.product.id === productId) {
+        if (quantity > item.product.stock) {
+          toast.error(`Only ${item.product.stock} items available in stock!`);
+          return item;
         }
-        return item;
-      })
-    );
+        return { ...item, quantity };
+      }
+      return item;
+    });
+
+    persistCart(updatedCart);
   };
 
   const clearCart = () => {
-    setCart([]);
+    persistCart([]);
     setAppliedCoupon(null);
-    localStorage.removeItem('kintesi_cart');
-    localStorage.removeItem('kintesi_coupon');
+    try {
+      localStorage.removeItem('kintesi_cart');
+      localStorage.removeItem('kintesi_coupon');
+    } catch {}
   };
 
-  const subtotal = activeCart.reduce((acc, item) => {
+  const subtotal = cart.reduce((acc, item) => {
     const itemPrice = item.product.discount_price || item.product.price;
     return acc + itemPrice * item.quantity;
   }, 0);
@@ -175,12 +288,12 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Free shipping for orders above ৳5000, otherwise standard ৳60 Inside Dhaka / ৳120 Outside
   const shippingFee = subtotal === 0 ? 0 : subtotal >= 5000 ? 0 : 60;
   const total = Math.max(0, subtotal - discountAmount + shippingFee);
-  const totalItemCount = activeCart.reduce((sum, item) => sum + item.quantity, 0);
+  const totalItemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
 
   return (
     <CartContext.Provider
       value={{
-        cart: activeCart,
+        cart,
         addToCart,
         removeFromCart,
         updateQuantity,
@@ -195,6 +308,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         shippingFee,
         total,
         totalItemCount,
+        isLoading,
       }}
     >
       {children}
