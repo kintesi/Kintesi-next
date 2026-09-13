@@ -36,7 +36,6 @@ import {
   ChevronDown,
   ChevronLeft,
   ChevronRight,
-  MessageCircle,
   AlertTriangle,
   Cpu,
 } from 'lucide-react';
@@ -51,7 +50,7 @@ export const ProductDetailPage: React.FC = () => {
   const { toggleWishlist, isInWishlist } = useWishlist();
   const { defaultAddress, addresses } = useAddress();
   const { settings } = useSettings();
-  const { openChat, setActiveProductContext } = useChat();
+  const { setActiveProductContext } = useChat();
   const { t, language } = useLanguage();
 
   const [product, setProduct] = useState<Product | null>(null);
@@ -1352,26 +1351,8 @@ export const ProductDetailPage: React.FC = () => {
             </button>
           </div>
 
-          {/* Island Action buttons: Cart, Chat & Order */}
+          {/* Island Action buttons: Cart & Order */}
           <div className="flex items-center gap-1.5 shrink-0">
-            <button
-              type="button"
-              onClick={() => {
-                openChat({
-                  product: {
-                    id: product.id,
-                    title: product.title,
-                    price: currentPrice,
-                    image: selectedImage || product.images?.[0] || '/logo.webp',
-                    sku: product.sku,
-                  },
-                });
-              }}
-              className="w-8 h-8 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-full flex items-center justify-center active:scale-95 transition border border-rose-200/80 shadow-xs cursor-pointer"
-              title={language === 'bn' ? 'চ্যাট করুন' : 'Chat with Seller'}
-            >
-              <MessageCircle className="w-3.5 h-3.5" />
-            </button>
             <button
               type="button"
               onClick={handleAddToCart}
