@@ -40,6 +40,7 @@ interface AuthContextType {
   signUpWithEmail: (email: string, pass: string, name: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
+  updateUserProfile: (updates: Partial<UserProfile>) => Promise<void>;
   isAuthModalOpen: boolean;
   authModalMode: 'login' | 'signup';
   openAuthModal: (mode?: 'login' | 'signup') => void;
@@ -375,6 +376,41 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const updateUserProfile = async (updates: Partial<UserProfile>) => {
+    if (!user) return;
+    try {
+      const updated: UserProfile = {
+        ...(profile || {
+          id: user.id,
+          email: user.email || '',
+          full_name: user.user_metadata?.full_name || user.displayName || 'Customer',
+          role: isAdmin ? 'admin' : 'customer',
+          avatar_url: user.photoURL || null,
+        }),
+        ...updates,
+      };
+
+      saveProfileToStorage(updated);
+
+      try {
+        const userDocRef = doc(db, 'profiles', user.id);
+        await setDoc(userDocRef, updates, { merge: true });
+      } catch (err) {
+        console.warn('Firestore profile update notice:', err);
+      }
+
+      try {
+        await supabase.from('profiles').upsert([{
+          id: user.id,
+          ...updates,
+        }]);
+      } catch {}
+    } catch (err) {
+      console.error('Failed to update profile:', err);
+      throw err;
+    }
+  };
+
   const isAdmin = profile?.role === 'admin' || isAdminUser(user?.email);
   const isSuperAdmin = isAdminUser(user?.email);
 
@@ -392,6 +428,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         signUpWithEmail,
         signOut,
         refreshProfile,
+        updateUserProfile,
         isAuthModalOpen,
         authModalMode,
         openAuthModal,
