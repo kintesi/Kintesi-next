@@ -598,42 +598,33 @@ export const ProductDetailPage: React.FC = () => {
               {product.colors && product.colors.length > 0 && (
                 <div className="space-y-2.5">
                   <div className="flex items-center justify-between text-xs font-bold">
-                    <span className="text-gray-500 uppercase tracking-wider text-[11px]">Color Family:</span>
-                    <div className="flex items-center gap-2">
-                      <span className="text-gray-900 font-extrabold">{selectedColor}</span>
-                      {activeColorObj && typeof activeColorObj.price === 'number' && activeColorObj.price > 0 && (
-                        <span className="text-xs font-black text-rose-600 bg-rose-50 px-2 py-0.5 rounded-full border border-rose-200">
-                          {formatPrice(activeColorObj.price)}
-                        </span>
-                      )}
-                    </div>
+                    <span className="text-gray-500 uppercase tracking-wider text-[11px]">Color:</span>
+                    <span className="text-gray-900 font-extrabold">{selectedColor}</span>
                   </div>
-                  <div className="flex items-center gap-2 flex-wrap">
+                  <div className="flex items-center gap-2.5 flex-wrap pt-0.5">
                     {product.colors.map((c) => {
                       const isSelected = selectedColor === c.name;
+                      const isLightColor = ['#ffffff', '#fff', '#f8fafc', '#f1f5f9', '#fafafa'].includes(c.hex?.toLowerCase() || '') || c.name?.toLowerCase() === 'white';
                       return (
                         <button
                           key={c.name}
                           type="button"
                           onClick={() => handleSelectColor(c)}
-                          className={`group relative flex items-center gap-2 px-3 py-1.5 rounded-xl border-2 transition cursor-pointer ${
+                          className={`relative w-8 h-8 sm:w-9 sm:h-9 rounded-full transition-all duration-200 cursor-pointer flex items-center justify-center ${
                             isSelected
-                              ? 'border-emerald-600 bg-emerald-50/50 shadow-xs'
-                              : 'border-gray-200 bg-white hover:border-gray-300'
+                              ? 'ring-2 ring-offset-2 ring-rose-600 scale-105 shadow-sm'
+                              : 'hover:scale-105 opacity-90 hover:opacity-100 ring-1 ring-black/15 hover:ring-black/30'
                           }`}
-                          title={`${c.name}${c.price ? ` - ${formatPrice(c.price)}` : ''}`}
+                          style={{ backgroundColor: c.hex }}
+                          title={c.name}
+                          aria-label={c.name}
                         >
-                          <span
-                            className="block w-4 h-4 rounded-full border border-black/10 shadow-xs shrink-0"
-                            style={{ backgroundColor: c.hex }}
-                          />
-                          <span className={`text-xs font-bold ${isSelected ? 'text-emerald-900' : 'text-gray-700'}`}>
-                            {c.name}
-                          </span>
-                          {typeof c.price === 'number' && c.price > 0 && (
-                            <span className={`text-[10px] font-extrabold ${isSelected ? 'text-emerald-700 font-black' : 'text-gray-400'}`}>
-                              ({formatPrice(c.discount_price || c.price)})
-                            </span>
+                          {isSelected && (
+                            <span
+                              className={`w-2.5 h-2.5 rounded-full ${
+                                isLightColor ? 'bg-black/80' : 'bg-white shadow-xs'
+                              }`}
+                            />
                           )}
                         </button>
                       );
