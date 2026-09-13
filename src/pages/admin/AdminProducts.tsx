@@ -1300,9 +1300,7 @@ export const AdminProducts: React.FC = () => {
                   </span>
                 )}
               </h3>
-              <p className="text-xs text-gray-400 mt-0.5">
-                Manage comprehensive product information, images, pricing, specifications & variants
-              </p>
+              
             </div>
             
             <div className="flex items-center gap-3">
@@ -1508,9 +1506,7 @@ export const AdminProducts: React.FC = () => {
                       </a>
                     )}
                   </div>
-                  <p className="text-[11px] text-gray-400 mt-1">
-                    অনলাইন বা অন্য কোনো প্ল্যাটফর্ম থেকে প্রোডাক্ট সোর্স করলে এখানে লিংক সেভ রাখুন। অ্যাডমিন টেবিল থেকে ১-ক্লিকে সাপ্লায়ারের পেজ ওপেন করে স্টক বা অর্ডার ম্যানেজ করতে পারবেন।
-                  </p>
+                  
                 </div>
               </div>
                   {/* Section 2: Pricing & Color Variants Quick Link & Badges */}
@@ -1551,11 +1547,9 @@ export const AdminProducts: React.FC = () => {
                     </div>
                     <div>
                       <p className="text-xs font-bold text-white">
-                        মূল্য, ডিসকাউন্ট (%) ও স্টক এখন কালার ও ফটো ট্যাবে
+                        Pricing, Discounts & Inventory are managed in Colors & Photos
                       </p>
-                      <p className="text-[11px] text-gray-400 mt-0.5">
-                        সব কালারে একই দাম দিতে পারবেন অথবা প্রতিটি কালারে আলাদা দাম ও স্টক সেট করতে পারবেন।
-                      </p>
+                      
                     </div>
                   </div>
                   <button
@@ -1575,17 +1569,12 @@ export const AdminProducts: React.FC = () => {
                 <div className="space-y-6 animate-fadeIn">
                   {/* Section 1: Master Pricing, Discount & Stock Controller */}
                   <div className="space-y-4 bg-gray-950/80 p-5 rounded-2xl border border-amber-500/30 shadow-md">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-gray-800">
-                      <div>
-                        <h4 className="text-xs font-black uppercase tracking-wider text-amber-400 flex items-center gap-1.5">
-                          <Percent className="w-4 h-4" /> Master Pricing, Percentage Discount & Inventory (মূল মূল্য, ডিসকাউন্ট ও স্টক)
-                        </h4>
-                        <p className="text-[11px] text-gray-400 mt-0.5">
-                          এখানে সাধারণ মূল্য ও স্টক নির্ধারণ করুন। "Apply to All" বাটনে ক্লিক করে এক ক্লিকে সব কালারে সেট করতে পারবেন, অথবা নিচে প্রতি কালারে আলাদা আলাদা ম্যানুয়ালি দিতে পারবেন।
-                        </p>
-                      </div>
+                    <div className="flex items-center justify-between gap-2 pb-2 border-b border-gray-800">
+                      <h4 className="text-xs font-black uppercase tracking-wider text-amber-400 flex items-center gap-1.5">
+                        <Percent className="w-4 h-4" /> Master Pricing & Inventory
+                      </h4>
                       <span className="text-[10px] bg-amber-500/10 text-amber-300 font-bold px-2.5 py-1 rounded-full border border-amber-500/20 shrink-0">
-                        ⚡ Master Pricing Controller
+                        ⚡ Master Controller
                       </span>
                     </div>
 
@@ -1639,11 +1628,7 @@ export const AdminProducts: React.FC = () => {
                               : Number(formData.price || 0)
                           )}
                         </span>
-                        {Number(formData.price || 0) > 0 && Number(formData.discount_percent || 0) > 0 && (
-                          <span className="text-rose-300 text-[10px] font-bold bg-rose-500/10 px-2 py-0.5 rounded-md border border-rose-500/20">
-                            (গ্রাহক বাঁচবেন {formatPrice(Math.round(Number(formData.price) * (Number(formData.discount_percent) / 100)))})
-                          </span>
-                        )}
+                        
                       </div>
 
                       {/* The Apply to All Button requested by user */}
@@ -1653,24 +1638,19 @@ export const AdminProducts: React.FC = () => {
                         className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-gray-950 font-black rounded-xl text-xs transition flex items-center justify-center gap-1.5 shadow-sm active:scale-95 cursor-pointer shrink-0"
                       >
                         <Zap className="w-3.5 h-3.5 fill-current" />
-                        <span>⚡ Apply to All Color Variants (সব কালারে এই দাম ও স্টক দিন)</span>
+                        <span>⚡ Apply to All Color Variants</span>
                       </button>
                     </div>
                   </div>
 
                   {/* Section 2: Color Variants with Individual Pricing & 4 Photos Each */}
                   <div className="space-y-6">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-gray-800">
-                      <div>
-                        <h4 className="text-xs font-black uppercase tracking-wider text-rose-400 flex items-center gap-1.5">
-                          <Palette className="w-4 h-4" /> Color Variants & 4 Photos Per Color (প্রতিটি কালারের আলাদা দাম, স্টক ও ৪টি ছবি)
-                        </h4>
-                        <p className="text-[11px] text-gray-400 mt-0.5">
-                          প্রতিটি কালারের জন্য ম্যানুয়ালি আলাদা দাম, ডিসকাউন্ট, স্টক ও ৪টি করে ছবি আপলোড করতে পারবেন।
-                        </p>
-                      </div>
+                    <div className="flex items-center justify-between gap-2 pb-2 border-b border-gray-800">
+                      <h4 className="text-xs font-black uppercase tracking-wider text-rose-400 flex items-center gap-1.5">
+                        <Palette className="w-4 h-4" /> Color Variants & 4 Photos Per Color
+                      </h4>
                       <span className="text-[10px] bg-rose-500/10 text-rose-300 font-bold px-2.5 py-1 rounded-full border border-rose-500/20 shrink-0">
-                        High-Res Multi-Angle WebP
+                        4 Photos Per Variant
                       </span>
                     </div>
 
@@ -1693,7 +1673,7 @@ export const AdminProducts: React.FC = () => {
                                 <div className="flex items-center gap-2.5 flex-wrap">
                                   <span className="px-2.5 py-1 bg-rose-500/15 text-rose-300 border border-rose-500/30 text-xs font-black rounded-xl flex items-center gap-1.5">
                                     <Palette className="w-3.5 h-3.5" />
-                                    <span>কালার {vIdx + 1} {vIdx === 0 ? '(মূল কালার)' : ''}</span>
+                                    <span>Color {vIdx + 1}{vIdx === 0 ? ' (Default)' : ''}</span>
                                   </span>
 
                                   {/* Color Picker Swatch */}
@@ -1703,11 +1683,11 @@ export const AdminProducts: React.FC = () => {
                                       value={variant.colorHex}
                                       onChange={(e) => handleUpdateVariantField(variant.id, 'colorHex', e.target.value)}
                                       className="w-8 h-8 rounded-xl cursor-pointer bg-transparent border-0 p-0 shrink-0"
-                                      title="কালার সিলেক্ট করুন"
+                                      title="Select color"
                                     />
                                     <input
                                       type="text"
-                                      placeholder="কালারের নাম (যেমন: Pink, White, Black)"
+                                      placeholder="Color name (e.g. Pink, White, Black)"
                                       value={variant.colorName}
                                       onChange={(e) => handleUpdateVariantField(variant.id, 'colorName', e.target.value)}
                                       className="bg-gray-900 border border-gray-700 rounded-xl px-3 py-1.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-rose-500 font-bold w-48"
@@ -1723,7 +1703,7 @@ export const AdminProducts: React.FC = () => {
                                     className="px-3 py-1.5 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
                                   >
                                     <Trash2 className="w-3.5 h-3.5" />
-                                    <span>কালারটি মুছুন</span>
+                                    <span>Delete</span>
                                   </button>
                                 )}
                               </div>
@@ -1771,7 +1751,7 @@ export const AdminProducts: React.FC = () => {
 
                                 {/* Live badge for this specific color */}
                                 <div className="ml-auto flex items-center gap-2">
-                                  <span className="text-[10px] text-gray-400 font-semibold">বিক্রয় মূল্য:</span>
+                                  <span className="text-[10px] text-gray-400 font-semibold">Sale Price:</span>
                                   <span className="text-emerald-400 font-black text-xs bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
                                     {formatPrice(vSalePrice)}
                                   </span>
@@ -1791,28 +1771,28 @@ export const AdminProducts: React.FC = () => {
                                 value={variant.imageUrl1}
                                 onChange={(url) => handleUpdateVariantField(variant.id, 'imageUrl1', url)}
                                 required={vIdx === 0}
-                                helpText={variant.colorName ? `${variant.colorName} কালারের মূল কভার ছবি` : 'Primary photo shown across catalog'}
+                                
                               />
 
                               <ImageUploader
                                 label="Photo 2 (Side / Angle)"
                                 value={variant.imageUrl2}
                                 onChange={(url) => handleUpdateVariantField(variant.id, 'imageUrl2', url)}
-                                helpText={variant.colorName ? `${variant.colorName} সাইড বা মডেল পরা ভিউ` : 'Back view, packaging, or texture'}
+                                
                               />
 
                               <ImageUploader
                                 label="Photo 3 (Detail / Lifestyle)"
                                 value={variant.imageUrl3}
                                 onChange={(url) => handleUpdateVariantField(variant.id, 'imageUrl3', url)}
-                                helpText={variant.colorName ? `${variant.colorName} ক্লোজ-আপ ডিটেইল শট` : 'Side angle or lifestyle shot'}
+                                
                               />
 
                               <ImageUploader
                                 label="Photo 4 (Close-up / Extra)"
                                 value={variant.imageUrl4}
                                 onChange={(url) => handleUpdateVariantField(variant.id, 'imageUrl4', url)}
-                                helpText={variant.colorName ? `${variant.colorName} এক্সেসরিজ বা প্যাকেজিং ভিউ` : 'Close-up detail or accessories'}
+                                
                               />
                             </div>
                           </div>
@@ -1825,11 +1805,9 @@ export const AdminProducts: React.FC = () => {
                       <div className="flex items-center justify-between flex-wrap gap-2">
                         <div>
                           <h5 className="text-xs font-bold text-gray-200 flex items-center gap-1.5">
-                            <Plus className="w-4 h-4 text-emerald-400" /> আরেকটি কালার ভ্যারিয়েন্ট যোগ করুন:
+                            <Plus className="w-4 h-4 text-emerald-400" /> Add Color Variant:
                           </h5>
-                          <p className="text-[11px] text-gray-400 mt-0.5">
-                            নিচের যেকোনো কালারে ক্লিক করলেই নতুন কালারের জন্য আলাদা ৪টি ছবির বক্স তৈরি হবে।
-                          </p>
+                          
                         </div>
 
                         <button
@@ -1838,7 +1816,7 @@ export const AdminProducts: React.FC = () => {
                           className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs transition flex items-center gap-1.5 shadow-md shadow-emerald-600/20 cursor-pointer"
                         >
                           <Plus className="w-4 h-4" />
-                          <span>Add Custom Color (+ নতুন কালার)</span>
+                          <span>Add Custom Color</span>
                         </button>
                       </div>
 
@@ -1862,12 +1840,12 @@ export const AdminProducts: React.FC = () => {
                   {/* Section 3: Sizes & Capacities */}
                   <div className="space-y-4 bg-gray-950/60 p-5 rounded-2xl border border-purple-500/30 shadow-xs">
                     <h4 className="text-xs font-black uppercase tracking-wider text-purple-400 flex items-center gap-1.5">
-                      <Layers className="w-4 h-4" /> Available Sizes / Capacities (সাইজ ও পরিমাপ)
+                      <Layers className="w-4 h-4" /> Available Sizes & Capacities
                     </h4>
 
                     <div>
                       <label className="block text-xs font-bold text-gray-300 mb-1.5">
-                        নির্বাচিত সাইজসমূহ ({formData.selectedSizes.length} Selected):
+                        Selected Sizes ({formData.selectedSizes.length}):
                       </label>
 
                       {/* Active Selected Sizes with Remove (X) */}
@@ -1946,7 +1924,7 @@ export const AdminProducts: React.FC = () => {
                   {/* Section: Custom Non-Color Attributes (Size, Material, Edition) */}
                   <div className="pt-4 border-t border-gray-800 space-y-3">
                     <label className="block text-xs font-black uppercase tracking-wider text-teal-400 flex items-center gap-1.5">
-                      <Layers className="w-4 h-4" /> Other Attribute Options (অন্যান্য ভ্যারিয়েন্ট যেমন সাইজ, ম্যাটেরিয়াল বা টাইপ)
+                      <Layers className="w-4 h-4" /> Custom Attribute Options
                     </label>
 
                     {/* Add Custom Attribute Row */}
@@ -2632,7 +2610,7 @@ export const AdminProducts: React.FC = () => {
               <div className="space-y-3 bg-gray-950/60 p-4 rounded-2xl border border-gray-800/80">
                 <div className="flex items-center justify-between">
                   <h4 className="text-xs font-black uppercase tracking-wider text-amber-400 flex items-center gap-1.5">
-                    <ShieldCheck className="w-4 h-4" /> Delivery Note & Customer Instruction (ডেলিভারি নোট ও নির্দেশনা)
+                    <ShieldCheck className="w-4 h-4" /> Delivery Note & Customer Instruction
                   </h4>
                   {formData.delivery_note && (
                     <button
@@ -2640,13 +2618,11 @@ export const AdminProducts: React.FC = () => {
                       onClick={() => setFormData({ ...formData, delivery_note: '' })}
                       className="text-[10px] text-rose-400 hover:text-rose-300 font-bold"
                     >
-                      ✕ Clear Note (ডেলিভারি নোট বন্ধ করুন)
+                      ✕ Clear Note
                     </button>
                   )}
                 </div>
-                <p className="text-[11px] text-gray-400">
-                  গ্রাহক প্রোডাক্ট দেখার সময় ডেলিভারি সেকশনের নিচে এই সতর্কবার্তাটি স্পষ্টভাবে দেখতে পাবে।
-                </p>
+                
                 <textarea
                   rows={3}
                   placeholder="e.g. অনুগ্রহ করে ডেলিভারি পাওয়ার পর ডেলিভারি ম্যান এর সামনে প্রোডাক্ট খুলে চেক করে টাকা দিবেন। ডেলিভারি ম্যান চলে যাওয়ার পরে আর কোনো অভিযোগ গ্রহণযোগ্য হবে না।"
