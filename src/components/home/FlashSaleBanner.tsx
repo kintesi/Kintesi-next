@@ -13,16 +13,46 @@ interface FlashSaleBannerProps {
   isMobile?: boolean;
 }
 
-const getFlashThemeClasses = (theme?: string) => {
+interface ThemePalette {
+  bgGradient: string;
+  badgeBg: string;
+  timerBg: string;
+  dotActive: string;
+}
+
+const getFlashThemeConfig = (theme?: string): ThemePalette => {
   switch (theme) {
     case 'emerald':
-      return 'from-emerald-800 via-teal-800 to-cyan-900';
+      return {
+        bgGradient: 'from-emerald-700 via-teal-600 to-emerald-500',
+        badgeBg: 'bg-teal-950 text-teal-200 border border-teal-800',
+        timerBg: 'bg-emerald-950/40 text-white border-emerald-400/30',
+        dotActive: 'bg-teal-200',
+      };
     case 'cyber':
-      return 'from-purple-900 via-indigo-900 to-pink-900';
+      return {
+        bgGradient: 'from-purple-700 via-indigo-600 to-pink-600',
+        badgeBg: 'bg-pink-500 text-white',
+        timerBg: 'bg-purple-950/40 text-white border-pink-400/30',
+        dotActive: 'bg-pink-300',
+      };
     case 'dark':
-      return 'from-gray-950 via-slate-900 to-zinc-950 border border-amber-500/30';
+      return {
+        bgGradient: 'from-gray-950 via-slate-900 to-zinc-900',
+        badgeBg: 'bg-amber-500 text-gray-950',
+        timerBg: 'bg-black/60 text-white border-amber-500/30',
+        dotActive: 'bg-amber-400',
+      };
+    case 'sunset':
     default:
-      return 'from-rose-700 via-orange-700 to-amber-600';
+      // Exact color scheme as shown in the demo:
+      // Warm golden yellow background + vibrant hot pink badge!
+      return {
+        bgGradient: 'from-[#F5B81C] via-[#F7BE28] to-[#F2B212]',
+        badgeBg: 'bg-[#FF3366] text-white',
+        timerBg: 'bg-black/20 text-white border-white/25',
+        dotActive: 'bg-white',
+      };
   }
 };
 
@@ -41,17 +71,17 @@ export const FlashSaleBanner: React.FC<FlashSaleBannerProps> = ({
     slides && slides.length > 0
       ? slides.map((s, idx) => ({
           id: s.id || `slide-${idx}`,
-          tag: s.tag || defaultTag || '⚡ FLASH SALE',
-          title: s.title || defaultTitle || 'Exclusive 24-Hour Super Deals',
-          subtitle: s.subtitle || defaultSubtitle || 'Limited stock flash offers with special discount.',
+          tag: s.tag || defaultTag || '30% OFF',
+          title: s.title || defaultTitle || 'FLASH SALE',
+          subtitle: s.subtitle || defaultSubtitle || 'Exclusive offers across our store for a limited time.',
           bgImage: s.bgImage || defaultBgImage || '',
         }))
       : [
           {
             id: 'default',
-            tag: defaultTag || '⚡ FLASH SALE',
-            title: defaultTitle || 'Exclusive 24-Hour Super Deals',
-            subtitle: defaultSubtitle || 'Limited stock flash offers with up to 50% discount. Order before time runs out!',
+            tag: defaultTag || '30% OFF',
+            title: defaultTitle || 'FLASH SALE',
+            subtitle: defaultSubtitle || 'Exclusive offers across our store for a limited time.',
             bgImage: defaultBgImage || '',
           },
         ];
@@ -60,7 +90,7 @@ export const FlashSaleBanner: React.FC<FlashSaleBannerProps> = ({
   const [isPaused, setIsPaused] = useState(false);
   const touchStartX = useRef<number | null>(null);
 
-  // Auto-slide transition: 4.5 seconds (sweet spot for reading text & seeing visual)
+  // Auto-slide transition: 4.5 seconds
   useEffect(() => {
     if (activeSlides.length <= 1 || isPaused) return;
 
@@ -96,135 +126,191 @@ export const FlashSaleBanner: React.FC<FlashSaleBannerProps> = ({
     touchStartX.current = null;
   };
 
-  // Safe index in case slides array changes dynamically
   const safeIndex = currentIndex % activeSlides.length;
+  const currentSlide = activeSlides[safeIndex];
+  const themeConfig = getFlashThemeConfig(theme);
 
+  // ==========================================
+  // MOBILE SPLIT BANNER (Styled like demo)
+  // ==========================================
   if (isMobile) {
     return (
       <div
-        className="relative overflow-hidden rounded-2xl shadow-md min-h-[140px] text-white select-none transition-all"
+        className={`relative overflow-hidden rounded-[24px] shadow-lg flex select-none transition-all bg-gradient-to-r ${themeConfig.bgGradient} min-h-[145px]`}
         onMouseEnter={() => setIsPaused(true)}
         onMouseLeave={() => setIsPaused(false)}
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
       >
-        {/* Render Background Layer for each slide with crossfade */}
-        {activeSlides.map((slide, idx) => {
-          const isActive = idx === safeIndex;
-          return (
+        {/* Left Column: Pill Badge, Bold Title, Subtitle & Timer */}
+        <div className="flex-1 p-3.5 sm:p-4 flex flex-col justify-between z-10 min-w-0">
+          <div className="space-y-1">
+            {/* Pill Badge (like 30% OFF in demo) */}
             <div
-              key={slide.id}
-              className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
-                isActive ? 'opacity-100 z-0' : 'opacity-0 -z-10'
-              }`}
+              className={`inline-flex items-center gap-1 px-3 py-0.5 rounded-full text-[11px] font-black uppercase tracking-wider shadow-sm self-start ${themeConfig.badgeBg}`}
             >
-              {slide.bgImage ? (
-                <img
-                  src={slide.bgImage}
-                  alt={slide.title}
-                  className="w-full h-full object-cover object-center"
-                />
-              ) : (
-                <div className={`w-full h-full bg-gradient-to-r ${getFlashThemeClasses(theme)}`} />
-              )}
-            </div>
-          );
-        })}
-
-        {/* Content Container (Pinned Countdown & Dynamic Animated Text) */}
-        <div className="relative z-10 p-3 space-y-2">
-          {/* Top Row: Tag and Countdown Timer */}
-          <div className="flex items-center justify-between gap-2">
-            {/* Tag Badge */}
-            <div className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-black/55 backdrop-blur-md text-[10px] font-black uppercase tracking-wider border border-white/20 shadow-sm">
-              <Flame className="w-3 h-3 fill-white text-amber-300 animate-pulse" />
-              <span>{activeSlides[safeIndex]?.tag || '⚡ FLASH SALE'}</span>
+              <Flame className="w-3 h-3 fill-current animate-pulse" />
+              <span>{currentSlide.tag || '30% OFF'}</span>
             </div>
 
-            {/* Timer */}
-            <div className="flex items-center gap-1 bg-black/70 backdrop-blur-md px-2.5 py-1 rounded-lg border border-white/25 text-[10px] font-mono font-bold shadow-sm">
-              <Timer className="w-3 h-3 text-amber-300 mr-0.5" />
-              <span>{String(timeLeft.hours).padStart(2, '0')}h</span>
-              <span>:</span>
-              <span>{String(timeLeft.minutes).padStart(2, '0')}m</span>
-              <span>:</span>
-              <span className="text-amber-300">{String(timeLeft.seconds).padStart(2, '0')}s</span>
-            </div>
-          </div>
+            {/* Bold Headline (like FLASH SALE in demo) */}
+            <h2 className="text-xl sm:text-2xl font-black text-white uppercase tracking-tight leading-tight drop-shadow-xs truncate">
+              {currentSlide.title || 'FLASH SALE'}
+            </h2>
 
-          {/* Heading and Subtitle with keyframe animation */}
-          <div
-            key={safeIndex}
-            className={`animate-in fade-in slide-in-from-bottom-2 duration-500 ${
-              activeSlides[safeIndex]?.bgImage
-                ? 'bg-black/50 backdrop-blur-md p-2.5 rounded-xl border border-white/20 shadow-lg'
-                : ''
-            }`}
-          >
-            <h3 className="text-sm font-black text-white leading-tight drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)] line-clamp-2">
-              {activeSlides[safeIndex]?.title}
-            </h3>
-            {activeSlides[safeIndex]?.subtitle && (
-              <p className="text-white text-[10px] mt-0.5 leading-relaxed drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)] line-clamp-2 font-medium">
-                {activeSlides[safeIndex]?.subtitle}
+            {/* Subtitle */}
+            {currentSlide.subtitle && (
+              <p className="text-white/95 text-[10.5px] sm:text-xs font-medium leading-snug line-clamp-2 drop-shadow-xs">
+                {currentSlide.subtitle}
               </p>
             )}
           </div>
 
-          {/* Bottom Indicators (if multiple slides) */}
-          {activeSlides.length > 1 && (
-            <div className="flex items-center justify-between pt-1">
+          {/* Bottom Area: Timer & Indicators */}
+          <div className="pt-2 flex items-center justify-between gap-2">
+            <div className={`flex items-center gap-1 backdrop-blur-xs px-2.5 py-1 rounded-xl border text-[10px] font-mono font-black shadow-xs ${themeConfig.timerBg}`}>
+              <Timer className="w-3 h-3 text-white mr-0.5" />
+              <span>{String(timeLeft.hours).padStart(2, '0')}h</span>
+              <span className="opacity-60">:</span>
+              <span>{String(timeLeft.minutes).padStart(2, '0')}m</span>
+              <span className="opacity-60">:</span>
+              <span>{String(timeLeft.seconds).padStart(2, '0')}s</span>
+            </div>
+
+            {activeSlides.length > 1 && (
               <div className="flex items-center gap-1">
                 {activeSlides.map((_, i) => (
                   <button
                     key={i}
                     onClick={() => setCurrentIndex(i)}
                     className={`h-1.5 rounded-full transition-all duration-300 ${
-                      i === safeIndex ? 'w-5 bg-amber-400' : 'w-1.5 bg-white/40'
+                      i === safeIndex ? `w-4 ${themeConfig.dotActive}` : 'w-1.5 bg-white/40'
                     }`}
                     aria-label={`Go to slide ${i + 1}`}
                   />
                 ))}
               </div>
-              <span className="text-[9px] font-bold text-white/60">
-                {safeIndex + 1}/{activeSlides.length}
-              </span>
-            </div>
-          )}
+            )}
+          </div>
         </div>
+
+        {/* Right Column: Dynamic Showcase Image (100% CLEAR, NATURAL, ZERO OVERLAYS) */}
+        {currentSlide.bgImage ? (
+          <div className="w-[42%] sm:w-[44%] shrink-0 relative overflow-hidden bg-black/5">
+            {activeSlides.map((slide, idx) => (
+              <img
+                key={slide.id}
+                src={slide.bgImage}
+                alt={slide.title}
+                className={`absolute inset-0 w-full h-full object-cover object-center transition-opacity duration-700 ease-in-out ${
+                  idx === safeIndex ? 'opacity-100 z-0' : 'opacity-0 -z-10'
+                }`}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="w-[30%] shrink-0 flex items-center justify-center pr-4">
+            <Flame className="w-16 h-16 text-white/25" />
+          </div>
+        )}
       </div>
     );
   }
 
-  // Desktop View
+  // ==========================================
+  // DESKTOP SPLIT BANNER (Styled like demo)
+  // ==========================================
   return (
     <div
-      className="relative overflow-hidden rounded-3xl shadow-xl min-h-[175px] mb-6 text-white group select-none transition-all"
+      className={`relative overflow-hidden rounded-[28px] sm:rounded-[32px] shadow-xl flex mb-6 text-white group select-none transition-all bg-gradient-to-r ${themeConfig.bgGradient} min-h-[220px] sm:min-h-[250px] lg:min-h-[280px]`}
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
     >
-      {/* Background Layers for each slide */}
-      {activeSlides.map((slide, idx) => {
-        const isActive = idx === safeIndex;
-        return (
+      {/* Left Column: Tag, Large Bold Title, Subtitle & Timer (55% width) */}
+      <div className="flex-1 p-7 sm:p-9 lg:p-11 flex flex-col justify-between z-10 min-w-0">
+        <div className="space-y-3 max-w-xl">
+          {/* Pill Badge (like 30% OFF in demo) */}
           <div
-            key={slide.id}
-            className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
-              isActive ? 'opacity-100 z-0' : 'opacity-0 -z-10'
-            }`}
+            className={`inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-wider shadow-sm self-start ${themeConfig.badgeBg}`}
           >
-            {slide.bgImage ? (
-              <img
-                src={slide.bgImage}
-                alt={slide.title}
-                className="w-full h-full object-cover object-center"
-              />
-            ) : (
-              <div className={`w-full h-full bg-gradient-to-r ${getFlashThemeClasses(theme)}`} />
-            )}
+            <Flame className="w-3.5 h-3.5 fill-current animate-pulse" />
+            <span>{currentSlide.tag || '30% OFF'}</span>
           </div>
-        );
-      })}
+
+          {/* Huge Bold Title (like FLASH SALE in demo) */}
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white uppercase tracking-tight leading-none drop-shadow-xs">
+            {currentSlide.title || 'FLASH SALE'}
+          </h2>
+
+          {/* Subtitle */}
+          {currentSlide.subtitle && (
+            <p className="text-white/95 text-xs sm:text-sm lg:text-base font-medium leading-relaxed max-w-md drop-shadow-xs">
+              {currentSlide.subtitle}
+            </p>
+          )}
+        </div>
+
+        {/* Bottom Area: Timer & Indicators */}
+        <div className="pt-4 flex items-center justify-between gap-4">
+          {/* Countdown Timer */}
+          <div className={`flex items-center gap-2 backdrop-blur-xs px-4 py-2 rounded-2xl border shadow-md ${themeConfig.timerBg}`}>
+            <Timer className="w-4 h-4 text-white shrink-0" />
+            <div className="flex items-center gap-1.5 font-mono text-sm font-black tracking-wide">
+              <div className="text-center">
+                <span>{String(timeLeft.hours).padStart(2, '0')}</span>
+                <span className="text-[9px] uppercase font-sans font-bold block leading-none opacity-80">Hrs</span>
+              </div>
+              <span className="opacity-60 mb-2">:</span>
+              <div className="text-center">
+                <span>{String(timeLeft.minutes).padStart(2, '0')}</span>
+                <span className="text-[9px] uppercase font-sans font-bold block leading-none opacity-80">Min</span>
+              </div>
+              <span className="opacity-60 mb-2">:</span>
+              <div className="text-center">
+                <span>{String(timeLeft.seconds).padStart(2, '0')}</span>
+                <span className="text-[9px] uppercase font-sans font-bold block leading-none opacity-80">Sec</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Slide Dots */}
+          {activeSlides.length > 1 && (
+            <div className="flex items-center gap-1.5">
+              {activeSlides.map((_, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={() => setCurrentIndex(i)}
+                  className={`h-2 rounded-full transition-all duration-300 cursor-pointer ${
+                    i === safeIndex ? `w-6 ${themeConfig.dotActive} shadow-xs` : 'w-2 bg-white/40 hover:bg-white/70'
+                  }`}
+                  aria-label={`Go to slide ${i + 1}`}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Right Column: Dynamic Showcase Image (100% CLEAR, NATURAL, ZERO OVERLAYS) */}
+      {currentSlide.bgImage ? (
+        <div className="w-[42%] sm:w-[45%] lg:w-[46%] shrink-0 relative overflow-hidden bg-black/5">
+          {activeSlides.map((slide, idx) => (
+            <img
+              key={slide.id}
+              src={slide.bgImage}
+              alt={slide.title}
+              className={`absolute inset-0 w-full h-full object-cover object-center transition-opacity duration-700 ease-in-out ${
+                idx === safeIndex ? 'opacity-100 z-0' : 'opacity-0 -z-10'
+              }`}
+            />
+          ))}
+        </div>
+      ) : (
+        <div className="w-[35%] shrink-0 flex items-center justify-center pr-8">
+          <Flame className="w-24 h-24 text-white/20" />
+        </div>
+      )}
 
       {/* Slide Navigation Arrows (Desktop hover) */}
       {activeSlides.length > 1 && (
@@ -232,87 +318,21 @@ export const FlashSaleBanner: React.FC<FlashSaleBannerProps> = ({
           <button
             type="button"
             onClick={handlePrev}
-            className="absolute left-3 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-black/50 hover:bg-black/80 backdrop-blur-md border border-white/20 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 active:scale-90 cursor-pointer"
+            className="absolute left-3 top-1/2 -translate-y-1/2 z-20 w-9 h-9 rounded-full bg-black/40 hover:bg-black/70 backdrop-blur-md border border-white/20 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 active:scale-90 cursor-pointer shadow-md"
             aria-label="Previous Slide"
           >
-            <ChevronLeft className="w-4 h-4" />
+            <ChevronLeft className="w-5 h-5" />
           </button>
           <button
             type="button"
             onClick={handleNext}
-            className="absolute right-3 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-black/50 hover:bg-black/80 backdrop-blur-md border border-white/20 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 active:scale-90 cursor-pointer"
+            className="absolute right-3 top-1/2 -translate-y-1/2 z-20 w-9 h-9 rounded-full bg-black/40 hover:bg-black/70 backdrop-blur-md border border-white/20 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 active:scale-90 cursor-pointer shadow-md"
             aria-label="Next Slide"
           >
-            <ChevronRight className="w-4 h-4" />
+            <ChevronRight className="w-5 h-5" />
           </button>
         </>
       )}
-
-      {/* Main Content Area */}
-      <div className="relative z-10 p-7 flex items-center justify-between gap-6">
-        <div className={`space-y-2 max-w-2xl ${
-          activeSlides[safeIndex]?.bgImage
-            ? 'bg-black/50 backdrop-blur-md p-6 rounded-2xl border border-white/20 shadow-2xl'
-            : ''
-        }`}>
-          {/* Tag Badge */}
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-black/40 backdrop-blur-md rounded-full text-xs font-black uppercase tracking-wider border border-white/20 shadow-xs">
-            <Flame className="w-3.5 h-3.5 fill-white text-amber-300 animate-pulse" />
-            <span>{activeSlides[safeIndex]?.tag || '⚡ FLASH SALE'}</span>
-          </div>
-
-          {/* Heading and Subtitle with smooth transition */}
-          <div key={safeIndex} className="animate-in fade-in slide-in-from-bottom-3 duration-600">
-            <h3 className="text-2xl sm:text-3xl font-black text-white leading-tight drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)]">
-              {activeSlides[safeIndex]?.title}
-            </h3>
-            {activeSlides[safeIndex]?.subtitle && (
-              <p className="text-white text-xs sm:text-sm mt-1 leading-relaxed max-w-xl drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)] font-medium">
-                {activeSlides[safeIndex]?.subtitle}
-              </p>
-            )}
-          </div>
-
-          {/* Dots Indicator */}
-          {activeSlides.length > 1 && (
-            <div className="flex items-center gap-1.5 pt-2">
-              {activeSlides.map((_, i) => (
-                <button
-                  key={i}
-                  type="button"
-                  onClick={() => setCurrentIndex(i)}
-                  className={`h-2 rounded-full transition-all duration-300 cursor-pointer ${
-                    i === safeIndex ? 'w-7 bg-amber-400 shadow-sm shadow-amber-400/50' : 'w-2 bg-white/40 hover:bg-white/70'
-                  }`}
-                  aria-label={`Go to slide ${i + 1}`}
-                />
-              ))}
-              <span className="text-[10px] font-bold text-white/80 ml-1.5">
-                {safeIndex + 1} / {activeSlides.length}
-              </span>
-            </div>
-          )}
-        </div>
-
-        {/* Persistent Countdown Timer */}
-        <div className="flex items-center gap-2 bg-black/65 backdrop-blur-md p-3.5 rounded-2xl border border-white/25 shadow-2xl shrink-0">
-          <Timer className="w-5 h-5 text-amber-300" />
-          <div className="text-center bg-white/10 px-3.5 py-1.5 rounded-xl min-w-14">
-            <span className="text-lg font-black font-mono block leading-none">{String(timeLeft.hours).padStart(2, '0')}</span>
-            <span className="text-[9px] uppercase tracking-wider text-rose-200 font-bold">Hours</span>
-          </div>
-          <span className="font-bold text-white/80">:</span>
-          <div className="text-center bg-white/10 px-3.5 py-1.5 rounded-xl min-w-14">
-            <span className="text-lg font-black font-mono block leading-none">{String(timeLeft.minutes).padStart(2, '0')}</span>
-            <span className="text-[9px] uppercase tracking-wider text-rose-200 font-bold">Mins</span>
-          </div>
-          <span className="font-bold text-white/80">:</span>
-          <div className="text-center bg-white/10 px-3.5 py-1.5 rounded-xl min-w-14">
-            <span className="text-lg font-black font-mono block leading-none text-amber-300">{String(timeLeft.seconds).padStart(2, '0')}</span>
-            <span className="text-[9px] uppercase tracking-wider text-rose-200 font-bold">Secs</span>
-          </div>
-        </div>
-      </div>
     </div>
   );
 };
