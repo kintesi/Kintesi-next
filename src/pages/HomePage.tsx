@@ -89,7 +89,6 @@ export const HomePage: React.FC = () => {
   });
 
   const [isLoadingData, setIsLoadingData] = useState(false);
-  const [activeTab, setActiveTab] = useState<'all' | 'groceries' | 'fashion' | 'tech'>('all');
 
   // Progressive batch loading / Infinite scroll states
   const [mobileVisibleCount, setMobileVisibleCount] = useState(12);
@@ -192,32 +191,6 @@ export const HomePage: React.FC = () => {
     return getPersonalizedAndRotatedProducts(uniquePool, 2);
   }, [products]);
 
-  // Filtered by department tabs for desktop
-  const filteredPersonalizedProducts = useMemo(() => {
-    return personalizedProducts.filter((p) => {
-      if (activeTab === 'groceries') {
-        return (
-          p.category_id.includes('groceries') ||
-          p.category_id.includes('home') ||
-          p.category_id.includes('beauty')
-        );
-      }
-      if (activeTab === 'fashion') {
-        return p.category_id.includes('fashion') || p.category_id.includes('footwear');
-      }
-      if (activeTab === 'tech') {
-        return (
-          p.category_id.includes('smartphones') ||
-          p.category_id.includes('laptops') ||
-          p.category_id.includes('audio') ||
-          p.category_id.includes('cameras') ||
-          p.category_id.includes('watches')
-        );
-      }
-      return true;
-    });
-  }, [personalizedProducts, activeTab]);
-
   // Infinite scroll observer for Mobile
   useEffect(() => {
     const sentinel = mobileSentinelRef.current;
@@ -250,7 +223,7 @@ export const HomePage: React.FC = () => {
       (entries) => {
         if (entries[0].isIntersecting) {
           setDesktopVisibleCount((prev) => {
-            if (prev < filteredPersonalizedProducts.length) {
+            if (prev < personalizedProducts.length) {
               return prev + 12;
             }
             return prev;
@@ -262,7 +235,7 @@ export const HomePage: React.FC = () => {
 
     observer.observe(sentinel);
     return () => observer.disconnect();
-  }, [filteredPersonalizedProducts.length]);
+  }, [personalizedProducts.length]);
 
   return (
     <div className="pb-20">
@@ -686,30 +659,7 @@ export const HomePage: React.FC = () => {
 
         {/* 4. DESKTOP PRODUCT FEED */}
         <section className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 space-y-5">
-          <div className="flex items-center justify-between border-b border-rose-100 pb-3">
-            <div className="flex gap-2 text-xs font-bold">
-              {[
-                { key: 'all', label: 'All Items' },
-                { key: 'groceries', label: 'Groceries & Home' },
-                { key: 'fashion', label: 'Fashion & Footwear' },
-                { key: 'tech', label: 'Tech & Gadgets' },
-              ].map((tab) => (
-                <button
-                  key={tab.key}
-                  onClick={() => setActiveTab(tab.key as any)}
-                  className={`px-3.5 py-2 rounded-xl transition cursor-pointer ${
-                    activeTab === tab.key
-                      ? 'bg-rose-600 text-white shadow-sm'
-                      : 'bg-white text-gray-600 border border-rose-100/90 hover:border-rose-300 hover:bg-rose-50/40'
-                  }`}
-                >
-                  {tab.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {filteredPersonalizedProducts.length === 0 ? (
+          {personalizedProducts.length === 0 ? (
             isLoadingData ? (
               <div className="grid grid-cols-4 gap-6">
                 {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => (
@@ -723,7 +673,7 @@ export const HomePage: React.FC = () => {
                 </div>
                 <h3 className="text-base font-bold text-gray-900">Your Store Catalog is Ready</h3>
                 <p className="text-xs text-gray-500 max-w-sm mx-auto">
-                  No products in this department yet. Add products from your Admin Panel to showcase them here.
+                  Add products from your Admin Panel to showcase them here.
                 </p>
                 <Link
                   to="/admin/products"
@@ -738,22 +688,22 @@ export const HomePage: React.FC = () => {
             <>
               {/* Product Grid Loaded in Progressive Batches */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                {filteredPersonalizedProducts.slice(0, desktopVisibleCount).map((product) => (
+                {personalizedProducts.slice(0, desktopVisibleCount).map((product) => (
                   <ProductCard key={product.id} product={product} />
                 ))}
               </div>
 
               {/* Desktop Infinite Scroll Sentinel & Indicator */}
               <div ref={desktopSentinelRef} className="w-full flex items-center justify-center pt-4">
-                {desktopVisibleCount < filteredPersonalizedProducts.length ? (
+                {desktopVisibleCount < personalizedProducts.length ? (
                   <div className="flex items-center gap-2 text-xs text-gray-500 bg-gray-50 px-5 py-2.5 rounded-full border border-gray-200/60 shadow-2xs">
                     <div className="w-4 h-4 rounded-full border-2 border-rose-500 border-t-transparent animate-spin" />
                     <span>Loading more curated products...</span>
                   </div>
                 ) : (
-                  filteredPersonalizedProducts.length > 16 && (
+                  personalizedProducts.length > 16 && (
                     <p className="text-xs text-gray-400 text-center py-2">
-                      ✓ All {filteredPersonalizedProducts.length} items loaded
+                      ✓ All {personalizedProducts.length} items loaded
                     </p>
                   )
                 )}
