@@ -423,11 +423,23 @@ export const CheckoutPage: React.FC = () => {
         }
       }
 
-      // Sync local cache and Firestore
-      const existingOrders = JSON.parse(localStorage.getItem('kintesi_guest_orders') || '[]');
+      // Sync local cache and Firestore safely
+      let existingOrders: any[] = [];
+      try {
+        existingOrders = JSON.parse(localStorage.getItem('kintesi_guest_orders') || '[]');
+      } catch {}
       const savedOrder = { ...orderData, id: orderNumber, created_at: new Date().toISOString() };
-      localStorage.setItem('kintesi_guest_orders', JSON.stringify([savedOrder, ...existingOrders]));
-      await saveOrderToDB(savedOrder);
+      try {
+        localStorage.setItem(
+          'kintesi_guest_orders',
+          JSON.stringify([savedOrder, ...(Array.isArray(existingOrders) ? existingOrders.slice(0, 50) : [])])
+        );
+      } catch {}
+      try {
+        await saveOrderToDB(savedOrder);
+      } catch (dbErr) {
+        console.warn('saveOrderToDB fallback notice:', dbErr);
+      }
 
       // Automatically reduce product stock count on sale for purchased items
       for (const cartItem of checkoutItems) {

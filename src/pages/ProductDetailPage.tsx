@@ -263,20 +263,40 @@ export const ProductDetailPage: React.FC = () => {
 
   // Compute active variant pricing based on selected color or custom attribute
   let activeVariantPrice: number | null = null;
-  if (activeColorObj && typeof activeColorObj.price === 'number' && activeColorObj.price > 0) {
-    activeVariantPrice = activeColorObj.price;
+  let activeVariantRegularPrice: number | null = null;
+  let activeVariantDiscountPercent: number | null = null;
+
+  if (activeColorObj) {
+    if (typeof activeColorObj.price === 'number' && activeColorObj.price > 0) {
+      activeVariantRegularPrice = activeColorObj.price;
+      activeVariantPrice = (typeof activeColorObj.discount_price === 'number' && activeColorObj.discount_price > 0)
+        ? activeColorObj.discount_price
+        : activeColorObj.price;
+      if (typeof activeColorObj.discount_percent === 'number' && activeColorObj.discount_percent > 0) {
+        activeVariantDiscountPercent = activeColorObj.discount_percent;
+      }
+    }
   }
+
   const customAttrsList: any[] = product?.custom_attributes || (product?.specifications as any)?.custom_attributes || [];
   for (const [attrName, optName] of Object.entries(selectedCustomAttributes)) {
     const matched = customAttrsList.find((a) => a.attributeName === attrName && a.name === optName);
     if (matched && typeof matched.price === 'number' && matched.price > 0) {
       activeVariantPrice = matched.price;
+      activeVariantRegularPrice = matched.price;
     }
   }
 
+  const baseRegularPrice = activeVariantRegularPrice || (product ? product.price : 0);
   const currentPrice = activeVariantPrice !== null
     ? activeVariantPrice
     : (product ? (product.discount_price || product.price) : 0);
+
+  const discountPercent = activeVariantDiscountPercent !== null
+    ? activeVariantDiscountPercent
+    : (baseRegularPrice > currentPrice
+        ? Math.round(((baseRegularPrice - currentPrice) / baseRegularPrice) * 100)
+        : calculateDiscount(product?.price || 0, product?.discount_price));
 
   const customAttrGroups = useMemo(() => {
     const attrs: any[] = product?.custom_attributes || (product?.specifications as any)?.custom_attributes || [];
@@ -342,9 +362,6 @@ export const ProductDetailPage: React.FC = () => {
     );
   }
 
-  const discountPercent = activeVariantPrice !== null
-    ? (product.price > currentPrice ? Math.round(((product.price - currentPrice) / product.price) * 100) : 0)
-    : calculateDiscount(product.price, product.discount_price);
   const isWishlisted = isInWishlist(product.id);
 
   const relatedProducts = allProducts
@@ -485,9 +502,9 @@ export const ProductDetailPage: React.FC = () => {
                   <span className="text-2xl sm:text-3xl font-black text-rose-600">
                     {formatPrice(currentPrice)}
                   </span>
-                  {product.discount_price && (
+                  {baseRegularPrice > currentPrice && (
                     <span className="text-sm sm:text-base text-gray-400 line-through font-semibold">
-                      {formatPrice(product.price)}
+                      {formatPrice(baseRegularPrice)}
                     </span>
                   )}
                   {discountPercent > 0 && (
@@ -615,7 +632,7 @@ export const ProductDetailPage: React.FC = () => {
                           </span>
                           {typeof c.price === 'number' && c.price > 0 && (
                             <span className={`text-[10px] font-extrabold ${isSelected ? 'text-emerald-700 font-black' : 'text-gray-400'}`}>
-                              ({formatPrice(c.price)})
+                              ({formatPrice(c.discount_price || c.price)})
                             </span>
                           )}
                         </button>

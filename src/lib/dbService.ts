@@ -1,6 +1,7 @@
 import {
   collection,
   doc,
+  getDoc,
   getDocs,
   setDoc,
   updateDoc,
@@ -314,9 +315,14 @@ export async function saveOrderToDB(order: Order): Promise<void> {
 }
 
 export async function updateOrderInDB(orderId: string, updates: Partial<Order>): Promise<void> {
-  // 1. Primary: Update in Supabase
+  // 1. Primary: Update in Supabase by either id or order_number
   try {
-    await supabase.from('orders').update(updates).eq('id', orderId);
+    const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(orderId);
+    if (isUUID) {
+      await supabase.from('orders').update(updates).eq('id', orderId);
+    } else {
+      await supabase.from('orders').update(updates).eq('order_number', orderId);
+    }
   } catch (err) {
     console.warn('Supabase update order warning:', err);
   }
@@ -329,3 +335,34 @@ export async function updateOrderInDB(orderId: string, updates: Partial<Order>):
     console.error('Firestore update order error:', err);
   }
 }
+
+// ==========================================
+// 🎨 PRESETS (Colors & Sizes Global Sync)
+// ==========================================
+
+export async function getPresetsFromDB(): Promise<{ colors?: any[]; sizes?: string[] }> {
+  try {
+    const docRef = doc(db, 'settings', 'presets');
+    const snap = await getDoc(docRef);
+    if (snap.exists()) {
+      const data = snap.data();
+      return {
+        colors: Array.isArray(data?.colors) ? data.colors : undefined,
+        sizes: Array.isArray(data?.sizes) ? data.sizes : undefined,
+      };
+    }
+  } catch (err) {
+    console.warn('Firestore fetch presets notice:', err);
+  }
+  return {};
+}
+
+export async function savePresetsToDB(presets: { colors?: any[]; sizes?: string[] }): Promise<void> {
+  try {
+    const docRef = doc(db, 'settings', 'presets');
+    await setDoc(docRef, presets, { merge: true });
+  } catch (err) {
+    console.warn('Firestore save presets notice:', err);
+  }
+}
+

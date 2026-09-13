@@ -208,6 +208,8 @@ export const AdminProducts: React.FC = () => {
   });
 
   const [modalSizeCategory, setModalSizeCategory] = useState<'all' | 'apparel' | 'storage' | 'volume' | 'weight' | 'footwear'>('all');
+  const [colorPresetSearch, setColorPresetSearch] = useState('');
+  const [sizePresetSearch, setSizePresetSearch] = useState('');
 
   const refreshPresetsFromStorage = () => {
     try {
@@ -273,6 +275,8 @@ export const AdminProducts: React.FC = () => {
 
   const handleOpenAddModal = () => {
     refreshPresetsFromStorage();
+    setColorPresetSearch('');
+    setSizePresetSearch('');
     setEditingProduct(null);
     setFormData({
       title: '',
@@ -359,6 +363,8 @@ export const AdminProducts: React.FC = () => {
 
   const handleOpenEditModal = (prod: Product) => {
     refreshPresetsFromStorage();
+    setColorPresetSearch('');
+    setSizePresetSearch('');
     setEditingProduct(prod);
     const existingPercent = calculateDiscount(prod.price, prod.discount_price);
     const specEntries = Object.entries(prod.specifications || {}).filter(
@@ -1022,7 +1028,15 @@ export const AdminProducts: React.FC = () => {
       (p.sku && p.sku.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
+  const filteredColorPresets = colorPresets.filter((c) =>
+    c.name.toLowerCase().includes(colorPresetSearch.toLowerCase().trim()) ||
+    c.hex.toLowerCase().includes(colorPresetSearch.toLowerCase().trim())
+  );
+
   const filteredModalSizes = sizePresets.filter((s) => {
+    const matchesSearch = s.toLowerCase().includes(sizePresetSearch.toLowerCase().trim());
+    if (!matchesSearch) return false;
+
     if (modalSizeCategory === 'all') return true;
     if (modalSizeCategory === 'apparel') return ['XXS', 'XS', 'S', 'M', 'L', 'XL', 'XXL', '3XL', '4XL', 'Free Size', 'Semi-Stitched', 'Unstitched'].includes(s);
     if (modalSizeCategory === 'storage') return s.endsWith('GB') || s.endsWith('TB');
@@ -1798,34 +1812,83 @@ export const AdminProducts: React.FC = () => {
                         </button>
                       </div>
 
-                      {/* Quick Color Preset Chips (Selection Only) */}
+                      {/* Quick Color Preset Chips (Selection Only) with Search */}
                       <div className="pt-2 border-t border-gray-800/80 space-y-2">
-                        <div className="flex items-center justify-between">
-                          <span className="text-[10px] uppercase font-bold text-gray-400">
-                            Quick Reusable Color Presets ({colorPresets.length} Colors Available):
-                          </span>
-                          <Link
-                            to="/admin/presets"
-                            target="_blank"
-                            className="text-[10px] text-rose-400 hover:text-rose-300 font-bold underline flex items-center gap-1"
-                            title="Open Preset Management in new tab"
-                          >
-                            <Sliders className="w-3 h-3" /> Manage Colors & Presets ↗
-                          </Link>
-                        </div>
-                        <div className="flex flex-wrap items-center gap-1.5 max-h-36 overflow-y-auto pr-1">
-                          {colorPresets.map((preset) => (
-                            <button
-                              type="button"
-                              key={preset.name}
-                              onClick={() => handleAddColorVariant(preset.name, preset.hex)}
-                              className="px-2.5 py-1.5 flex items-center gap-1.5 bg-gray-900 hover:bg-gray-800 text-gray-300 hover:text-white border border-gray-700 hover:border-rose-500/60 rounded-xl text-xs font-bold transition cursor-pointer active:scale-95"
-                              title={`Add ${preset.name} (${preset.hex}) variant`}
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="text-[10px] uppercase font-bold text-gray-400">
+                              Quick Reusable Color Presets ({colorPresets.length} Colors):
+                            </span>
+                            {colorPresetSearch && (
+                              <span className="text-[10px] text-rose-400 font-bold bg-rose-500/10 px-1.5 py-0.5 rounded border border-rose-500/20">
+                                {filteredColorPresets.length} matched
+                              </span>
+                            )}
+                          </div>
+
+                          <div className="flex items-center gap-2">
+                            {/* Color Search Bar */}
+                            <div className="relative">
+                              <Search className="w-3.5 h-3.5 text-gray-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                              <input
+                                type="text"
+                                placeholder="Search color name or hex..."
+                                value={colorPresetSearch}
+                                onChange={(e) => setColorPresetSearch(e.target.value)}
+                                className="w-40 sm:w-48 bg-gray-950 border border-gray-700 rounded-xl pl-7 pr-6 py-1 text-xs text-white placeholder:text-gray-500 focus:outline-none focus:border-rose-500"
+                              />
+                              {colorPresetSearch && (
+                                <button
+                                  type="button"
+                                  onClick={() => setColorPresetSearch('')}
+                                  className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
+                                  title="Clear search"
+                                >
+                                  <X className="w-3 h-3" />
+                                </button>
+                              )}
+                            </div>
+
+                            <Link
+                              to="/admin/presets"
+                              target="_blank"
+                              className="text-[10px] text-rose-400 hover:text-rose-300 font-bold underline flex items-center gap-1 shrink-0"
+                              title="Open Preset Management in new tab"
                             >
-                              <span className="w-3 h-3 rounded-full border border-black/40 shrink-0 shadow-xs" style={{ backgroundColor: preset.hex }} />
-                              <span>+ {preset.name}</span>
-                            </button>
-                          ))}
+                              <Sliders className="w-3 h-3" /> Manage Presets ↗
+                            </Link>
+                          </div>
+                        </div>
+
+                        <div className="flex flex-wrap items-center gap-1.5 max-h-36 overflow-y-auto pr-1">
+                          {filteredColorPresets.length === 0 ? (
+                            <div className="text-xs text-gray-500 py-1 flex items-center gap-2 flex-wrap">
+                              <span>No color presets matching "{colorPresetSearch}"</span>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  handleAddColorVariant(colorPresetSearch, '#EC4899');
+                                  setColorPresetSearch('');
+                                }}
+                                className="text-rose-400 hover:text-rose-300 underline font-bold cursor-pointer"
+                              >
+                                + Add "{colorPresetSearch}" as new custom color
+                              </button>
+                            </div>
+                          ) : (
+                            filteredColorPresets.map((preset) => (
+                              <button
+                                type="button"
+                                key={preset.name}
+                                onClick={() => handleAddColorVariant(preset.name, preset.hex)}
+                                className="px-2.5 py-1.5 flex items-center gap-1.5 bg-gray-900 hover:bg-gray-800 text-gray-300 hover:text-white border border-gray-700 hover:border-rose-500/60 rounded-xl text-xs font-bold transition cursor-pointer active:scale-95"
+                                title={`Add ${preset.name} (${preset.hex}) variant`}
+                              >
+                                <span className="w-3 h-3 rounded-full border border-black/40 shrink-0 shadow-xs" style={{ backgroundColor: preset.hex }} />
+                                <span>+ {preset.name}</span>
+                              </button>
+                            ))
+                          )}
                         </div>
                       </div>
                     </div>
@@ -1864,20 +1927,52 @@ export const AdminProducts: React.FC = () => {
                         </div>
                       )}
 
-                      {/* Quick Popular Size Chips with Category Filter */}
+                      {/* Quick Popular Size Chips with Category Filter and Search */}
                       <div className="space-y-2 mb-3 bg-gray-900/50 p-3 rounded-2xl border border-gray-800">
-                        <div className="flex items-center justify-between flex-wrap gap-2">
-                          <span className="text-[10px] uppercase font-bold text-gray-400">
-                            Preset Variations ({sizePresets.length} items):
-                          </span>
-                          <Link
-                            to="/admin/presets"
-                            target="_blank"
-                            className="text-[10px] text-purple-400 hover:text-purple-300 font-bold underline flex items-center gap-1"
-                            title="Open Preset Management in new tab"
-                          >
-                            <Sliders className="w-3 h-3" /> Manage All Presets ↗
-                          </Link>
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="text-[10px] uppercase font-bold text-gray-400">
+                              Preset Variations ({sizePresets.length} items):
+                            </span>
+                            {sizePresetSearch && (
+                              <span className="text-[10px] text-purple-400 font-bold bg-purple-500/10 px-1.5 py-0.5 rounded border border-purple-500/20">
+                                {filteredModalSizes.length} matched
+                              </span>
+                            )}
+                          </div>
+
+                          <div className="flex items-center gap-2">
+                            {/* Size Search Bar */}
+                            <div className="relative">
+                              <Search className="w-3.5 h-3.5 text-gray-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                              <input
+                                type="text"
+                                placeholder="Search size / capacity..."
+                                value={sizePresetSearch}
+                                onChange={(e) => setSizePresetSearch(e.target.value)}
+                                className="w-40 sm:w-48 bg-gray-950 border border-gray-700 rounded-xl pl-7 pr-6 py-1 text-xs text-white placeholder:text-gray-500 focus:outline-none focus:border-purple-500"
+                              />
+                              {sizePresetSearch && (
+                                <button
+                                  type="button"
+                                  onClick={() => setSizePresetSearch('')}
+                                  className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
+                                  title="Clear search"
+                                >
+                                  <X className="w-3 h-3" />
+                                </button>
+                              )}
+                            </div>
+
+                            <Link
+                              to="/admin/presets"
+                              target="_blank"
+                              className="text-[10px] text-purple-400 hover:text-purple-300 font-bold underline flex items-center gap-1 shrink-0"
+                              title="Open Preset Management in new tab"
+                            >
+                              <Sliders className="w-3 h-3" /> Manage All Presets ↗
+                            </Link>
+                          </div>
                         </div>
 
                         {/* Category filter tabs */}
@@ -1906,24 +2001,40 @@ export const AdminProducts: React.FC = () => {
                         </div>
 
                         <div className="flex flex-wrap items-center gap-1.5 pt-1 max-h-40 overflow-y-auto pr-1">
-                          {filteredModalSizes.map((size) => {
-                            const isSelected = formData.selectedSizes.includes(size);
-                            return (
+                          {filteredModalSizes.length === 0 ? (
+                            <div className="text-xs text-gray-500 py-1 flex items-center gap-2 flex-wrap">
+                              <span>No size preset matching "{sizePresetSearch}"</span>
                               <button
                                 type="button"
-                                key={size}
-                                onClick={() => handleToggleSize(size)}
-                                className={`px-2.5 py-1 rounded-lg text-xs font-bold transition cursor-pointer ${
-                                  isSelected
-                                    ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
-                                    : 'bg-gray-950 text-gray-400 border border-gray-800 hover:text-white hover:border-gray-600'
-                                }`}
-                                title={isSelected ? `Remove ${size} from product` : `Select ${size}`}
+                                onClick={() => {
+                                  handleToggleSize(sizePresetSearch);
+                                  setSizePresetSearch('');
+                                }}
+                                className="text-purple-400 hover:text-purple-300 underline font-bold cursor-pointer"
                               >
-                                {isSelected ? `✓ ${size}` : `+ ${size}`}
+                                + Select "{sizePresetSearch}" directly
                               </button>
-                            );
-                          })}
+                            </div>
+                          ) : (
+                            filteredModalSizes.map((size) => {
+                              const isSelected = formData.selectedSizes.includes(size);
+                              return (
+                                <button
+                                  type="button"
+                                  key={size}
+                                  onClick={() => handleToggleSize(size)}
+                                  className={`px-2.5 py-1 rounded-lg text-xs font-bold transition cursor-pointer ${
+                                    isSelected
+                                      ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
+                                      : 'bg-gray-950 text-gray-400 border border-gray-800 hover:text-white hover:border-gray-600'
+                                  }`}
+                                  title={isSelected ? `Remove ${size} from product` : `Select ${size}`}
+                                >
+                                  {isSelected ? `✓ ${size}` : `+ ${size}`}
+                                </button>
+                              );
+                            })
+                          )}
                         </div>
                       </div>
 

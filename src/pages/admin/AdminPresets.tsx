@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
+import { getPresetsFromDB, savePresetsToDB } from '../../lib/dbService';
 
 export interface ColorPresetItem {
   name: string;
@@ -96,6 +97,22 @@ export const AdminPresets: React.FC = () => {
   };
 
   useEffect(() => {
+    // Initial fetch from cloud database
+    getPresetsFromDB().then((cloudPresets) => {
+      if (cloudPresets.colors && Array.isArray(cloudPresets.colors) && cloudPresets.colors.length > 0) {
+        setColorPresets(cloudPresets.colors);
+        try {
+          localStorage.setItem('kintesi_color_presets', JSON.stringify(cloudPresets.colors));
+        } catch {}
+      }
+      if (cloudPresets.sizes && Array.isArray(cloudPresets.sizes) && cloudPresets.sizes.length > 0) {
+        setSizePresets(cloudPresets.sizes);
+        try {
+          localStorage.setItem('kintesi_size_presets', JSON.stringify(cloudPresets.sizes));
+        } catch {}
+      }
+    });
+
     const handleStorage = () => {
       try {
         const c = localStorage.getItem('kintesi_color_presets');
@@ -123,6 +140,7 @@ export const AdminPresets: React.FC = () => {
     const updated = [...colorPresets, { name, hex: newColorHex }];
     setColorPresets(updated);
     localStorage.setItem('kintesi_color_presets', JSON.stringify(updated));
+    savePresetsToDB({ colors: updated });
     setNewColorName('');
     broadcastPresetUpdate();
     toast.success(`Color preset "${name}" successfully added!`);
@@ -133,6 +151,7 @@ export const AdminPresets: React.FC = () => {
     const updated = colorPresets.filter((c) => c.name !== name);
     setColorPresets(updated);
     localStorage.setItem('kintesi_color_presets', JSON.stringify(updated));
+    savePresetsToDB({ colors: updated });
     broadcastPresetUpdate();
     toast.success(`Color "${name}" removed from presets`);
   };
@@ -152,6 +171,7 @@ export const AdminPresets: React.FC = () => {
     const updated = [...sizePresets, size];
     setSizePresets(updated);
     localStorage.setItem('kintesi_size_presets', JSON.stringify(updated));
+    savePresetsToDB({ sizes: updated });
     setNewSizeInput('');
     broadcastPresetUpdate();
     toast.success(`Size preset "${size}" successfully added!`);
@@ -162,6 +182,7 @@ export const AdminPresets: React.FC = () => {
     const updated = sizePresets.filter((s) => s !== size);
     setSizePresets(updated);
     localStorage.setItem('kintesi_size_presets', JSON.stringify(updated));
+    savePresetsToDB({ sizes: updated });
     broadcastPresetUpdate();
     toast.success(`Size "${size}" removed from presets`);
   };
@@ -173,6 +194,7 @@ export const AdminPresets: React.FC = () => {
       setSizePresets(DEFAULT_SIZE_PRESETS);
       localStorage.setItem('kintesi_color_presets', JSON.stringify(DEFAULT_COLOR_PRESETS));
       localStorage.setItem('kintesi_size_presets', JSON.stringify(DEFAULT_SIZE_PRESETS));
+      savePresetsToDB({ colors: DEFAULT_COLOR_PRESETS, sizes: DEFAULT_SIZE_PRESETS });
       broadcastPresetUpdate();
       toast.success('Presets reset to default successfully!');
     }
