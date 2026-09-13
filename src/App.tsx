@@ -42,6 +42,7 @@ import { AdminPaymentSettings } from './pages/admin/AdminPaymentSettings';
 import { AdminTeam } from './pages/admin/AdminTeam';
 import { AdminBanners } from './pages/admin/AdminBanners';
 import { AdminLiveChat } from './pages/admin/AdminLiveChat';
+import { AdminPresets } from './pages/admin/AdminPresets';
 
 import { useAuth } from './contexts/AuthContext';
 import { AuthModal } from './components/auth/AuthModal';
@@ -100,6 +101,7 @@ export function App() {
                         <Route path="/admin" element={<AdminLayout />}>
                           <Route index element={<AdminDashboard />} />
                           <Route path="products" element={<AdminProducts />} />
+                          <Route path="presets" element={<AdminPresets />} />
                           <Route path="orders" element={<AdminOrders />} />
                           <Route path="coupons" element={<AdminCoupons />} />
                           <Route path="categories" element={<AdminCategories />} />

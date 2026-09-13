@@ -37,7 +37,9 @@ import {
   DollarSign,
   UploadCloud,
   Loader2,
+  Sliders,
 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import { ImageUploader } from '../../components/common/ImageUploader';
 import { CategoryTagExplorer } from '../../components/admin/CategoryTagExplorer';
@@ -200,7 +202,7 @@ export const AdminProducts: React.FC = () => {
     specVal3: '',
     tags: '',
   });
-  // Dynamic Color Presets (add/delete persisted in localStorage)
+  // Dynamic Color Presets (Selection only in product modal, managed in /admin/presets)
   const [colorPresets, setColorPresets] = useState<{ name: string; hex: string }[]>(() => {
     try {
       const saved = localStorage.getItem('kintesi_color_presets');
@@ -208,33 +210,8 @@ export const AdminProducts: React.FC = () => {
     } catch (e) {}
     return DEFAULT_COLOR_PRESETS;
   });
-  const [newPresetColorName, setNewPresetColorName] = useState('');
-  const [newPresetColorHex, setNewPresetColorHex] = useState('#EC4899');
-  const [isAddingColorPreset, setIsAddingColorPreset] = useState(false);
 
-  const handleSaveColorPreset = () => {
-    const name = newPresetColorName.trim();
-    if (!name) return;
-    if (colorPresets.some((p) => p.name.toLowerCase() === name.toLowerCase())) {
-      toast.error('A preset with this color name already exists');
-      return;
-    }
-    const updated = [...colorPresets, { name, hex: newPresetColorHex }];
-    setColorPresets(updated);
-    localStorage.setItem('kintesi_color_presets', JSON.stringify(updated));
-    setNewPresetColorName('');
-    setIsAddingColorPreset(false);
-    toast.success(`Color preset "${name}" added`);
-  };
-
-  const handleDeleteColorPreset = (nameToDelete: string) => {
-    const updated = colorPresets.filter((p) => p.name !== nameToDelete);
-    setColorPresets(updated);
-    localStorage.setItem('kintesi_color_presets', JSON.stringify(updated));
-    toast.success(`Color preset "${nameToDelete}" deleted`);
-  };
-
-  // Dynamic Size Presets (add/delete persisted in localStorage)
+  // Dynamic Size Presets (Selection only in product modal, managed in /admin/presets)
   const [sizePresets, setSizePresets] = useState<string[]>(() => {
     try {
       const saved = localStorage.getItem('kintesi_size_presets');
@@ -242,30 +219,19 @@ export const AdminProducts: React.FC = () => {
     } catch (e) {}
     return DEFAULT_POPULAR_SIZES;
   });
-  const [newPresetSizeInput, setNewPresetSizeInput] = useState('');
-  const [isAddingSizePreset, setIsAddingSizePreset] = useState(false);
 
-  const handleSaveSizePreset = () => {
-    const size = newPresetSizeInput.trim();
-    if (!size) return;
-    if (sizePresets.some((s) => s.toLowerCase() === size.toLowerCase())) {
-      toast.error('This size preset already exists');
-      return;
-    }
-    const updated = [...sizePresets, size];
-    setSizePresets(updated);
-    localStorage.setItem('kintesi_size_presets', JSON.stringify(updated));
-    setNewPresetSizeInput('');
-    setIsAddingSizePreset(false);
-    toast.success(`Size preset "${size}" added`);
-  };
-
-  const handleDeleteSizePreset = (sizeToDelete: string) => {
-    const updated = sizePresets.filter((s) => s !== sizeToDelete);
-    setSizePresets(updated);
-    localStorage.setItem('kintesi_size_presets', JSON.stringify(updated));
-    toast.success(`Size preset "${sizeToDelete}" deleted`);
-  };
+  useEffect(() => {
+    const syncPresets = () => {
+      try {
+        const c = localStorage.getItem('kintesi_color_presets');
+        if (c) setColorPresets(JSON.parse(c));
+        const s = localStorage.getItem('kintesi_size_presets');
+        if (s) setSizePresets(JSON.parse(s));
+      } catch {}
+    };
+    window.addEventListener('kintesi_presets_updated', syncPresets);
+    return () => window.removeEventListener('kintesi_presets_updated', syncPresets);
+  }, []);
   const currentSpecMode = specMode === 'auto' ? getCategorySpecMode(formData.category_id) : specMode;
 
   const loadProducts = async () => {
@@ -1886,89 +1852,33 @@ export const AdminProducts: React.FC = () => {
                         </button>
                       </div>
 
-                      {/* Quick Color Preset Chips with Add & Delete */}
-                      <div className="flex flex-wrap items-center gap-1.5 pt-1 border-t border-gray-800/80">
-                        {colorPresets.map((preset) => (
-                          <div
-                            key={preset.name}
-                            className="group inline-flex items-center bg-gray-900 hover:bg-gray-800 text-gray-300 hover:text-white border border-gray-700 hover:border-rose-500/60 rounded-xl text-xs font-bold transition overflow-hidden"
+                      {/* Quick Color Preset Chips (Selection Only) */}
+                      <div className="pt-2 border-t border-gray-800/80 space-y-1.5">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[10px] uppercase font-bold text-gray-400">Quick Popular Presets:</span>
+                          <Link
+                            to="/admin/presets"
+                            target="_blank"
+                            className="text-[10px] text-purple-400 hover:text-purple-300 font-bold underline flex items-center gap-1"
+                            title="Open Preset Management in new tab"
                           >
+                            <Sliders className="w-3 h-3" /> Manage Presets ↗
+                          </Link>
+                        </div>
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          {colorPresets.map((preset) => (
                             <button
                               type="button"
+                              key={preset.name}
                               onClick={() => handleAddColorVariant(preset.name, preset.hex)}
-                              className="px-2.5 py-1.5 flex items-center gap-1.5 cursor-pointer"
+                              className="px-2.5 py-1.5 flex items-center gap-1.5 bg-gray-900 hover:bg-gray-800 text-gray-300 hover:text-white border border-gray-700 hover:border-emerald-500/60 rounded-xl text-xs font-bold transition cursor-pointer"
                               title={`Add ${preset.name} variant`}
                             >
                               <span className="w-3 h-3 rounded-full border border-black/30 shrink-0" style={{ backgroundColor: preset.hex }} />
                               <span>+ {preset.name}</span>
                             </button>
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleDeleteColorPreset(preset.name);
-                              }}
-                              className="px-1.5 py-1.5 text-gray-500 hover:text-rose-400 hover:bg-rose-500/10 border-l border-gray-800 transition cursor-pointer"
-                              title={`Delete ${preset.name} preset`}
-                            >
-                              <X className="w-3 h-3" />
-                            </button>
-                          </div>
-                        ))}
-
-                        {/* Inline Add Preset */}
-                        {!isAddingColorPreset ? (
-                          <button
-                            type="button"
-                            onClick={() => setIsAddingColorPreset(true)}
-                            className="px-2.5 py-1.5 bg-gray-900/80 hover:bg-gray-800 text-gray-400 hover:text-emerald-400 border border-dashed border-gray-700 hover:border-emerald-500/50 rounded-xl text-xs font-bold transition flex items-center gap-1 cursor-pointer"
-                            title="Add new reusable color preset"
-                          >
-                            <Plus className="w-3.5 h-3.5" />
-                            <span>Add Preset</span>
-                          </button>
-                        ) : (
-                          <div className="inline-flex items-center gap-1.5 bg-gray-900 p-1 rounded-xl border border-emerald-500/50">
-                            <input
-                              type="color"
-                              value={newPresetColorHex}
-                              onChange={(e) => setNewPresetColorHex(e.target.value)}
-                              className="w-6 h-6 rounded-lg cursor-pointer bg-transparent border-0 p-0 shrink-0"
-                              title="Select preset color"
-                            />
-                            <input
-                              type="text"
-                              placeholder="Color name..."
-                              value={newPresetColorName}
-                              onChange={(e) => setNewPresetColorName(e.target.value)}
-                              onKeyDown={(e) => {
-                                if (e.key === 'Enter') {
-                                  e.preventDefault();
-                                  handleSaveColorPreset();
-                                }
-                              }}
-                              className="bg-gray-950 border border-gray-700 rounded-lg px-2 py-1 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-emerald-500 w-24 font-bold"
-                              autoFocus
-                            />
-                            <button
-                              type="button"
-                              onClick={handleSaveColorPreset}
-                              className="px-2 py-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-bold transition cursor-pointer"
-                            >
-                              Save
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setIsAddingColorPreset(false);
-                                setNewPresetColorName('');
-                              }}
-                              className="p-1 text-gray-400 hover:text-white transition cursor-pointer"
-                            >
-                              <X className="w-3.5 h-3.5" />
-                            </button>
-                          </div>
-                        )}
+                          ))}
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -2006,90 +1916,38 @@ export const AdminProducts: React.FC = () => {
                         </div>
                       )}
 
-                      {/* Quick Popular Size Chips with Add & Delete */}
+                      {/* Quick Popular Size Chips (Selection Only) */}
                       <div className="space-y-1.5 mb-3">
-                        <span className="text-[10px] uppercase font-bold text-gray-400">Quick Popular Presets:</span>
+                        <div className="flex items-center justify-between">
+                          <span className="text-[10px] uppercase font-bold text-gray-400">Quick Popular Presets:</span>
+                          <Link
+                            to="/admin/presets"
+                            target="_blank"
+                            className="text-[10px] text-purple-400 hover:text-purple-300 font-bold underline flex items-center gap-1"
+                            title="Open Preset Management in new tab"
+                          >
+                            <Sliders className="w-3 h-3" /> Manage Presets ↗
+                          </Link>
+                        </div>
                         <div className="flex flex-wrap items-center gap-1.5">
                           {sizePresets.map((size) => {
                             const isSelected = formData.selectedSizes.includes(size);
                             return (
-                              <div
+                              <button
+                                type="button"
                                 key={size}
-                                className={`group inline-flex items-center rounded-lg text-xs font-bold transition overflow-hidden ${
+                                onClick={() => handleToggleSize(size)}
+                                className={`px-2.5 py-1 rounded-lg text-xs font-bold transition cursor-pointer ${
                                   isSelected
                                     ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
                                     : 'bg-gray-900 text-gray-400 border border-gray-700 hover:text-white hover:border-gray-500'
                                 }`}
+                                title={isSelected ? `Remove ${size} from product` : `Select ${size}`}
                               >
-                                <button
-                                  type="button"
-                                  onClick={() => handleToggleSize(size)}
-                                  className="px-2.5 py-1 cursor-pointer"
-                                  title={isSelected ? `Remove ${size} from product` : `Select ${size}`}
-                                >
-                                  {isSelected ? `✓ ${size}` : `+ ${size}`}
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleDeleteSizePreset(size);
-                                  }}
-                                  className="px-1.5 py-1 text-gray-500 hover:text-rose-400 hover:bg-rose-500/10 border-l border-gray-800 transition cursor-pointer"
-                                  title={`Delete "${size}" preset`}
-                                >
-                                  <X className="w-3 h-3" />
-                                </button>
-                              </div>
+                                {isSelected ? `✓ ${size}` : `+ ${size}`}
+                              </button>
                             );
                           })}
-
-                          {/* Inline Add Size Preset */}
-                          {!isAddingSizePreset ? (
-                            <button
-                              type="button"
-                              onClick={() => setIsAddingSizePreset(true)}
-                              className="px-2 py-1 bg-gray-900/80 hover:bg-gray-800 text-gray-400 hover:text-emerald-400 border border-dashed border-gray-700 hover:border-emerald-500/50 rounded-lg text-xs font-bold transition flex items-center gap-1 cursor-pointer"
-                              title="Add new reusable size preset"
-                            >
-                              <Plus className="w-3.5 h-3.5" />
-                              <span>Add Preset</span>
-                            </button>
-                          ) : (
-                            <div className="inline-flex items-center gap-1 bg-gray-900 p-0.5 rounded-lg border border-emerald-500/50">
-                              <input
-                                type="text"
-                                placeholder="New size..."
-                                value={newPresetSizeInput}
-                                onChange={(e) => setNewPresetSizeInput(e.target.value)}
-                                onKeyDown={(e) => {
-                                  if (e.key === 'Enter') {
-                                    e.preventDefault();
-                                    handleSaveSizePreset();
-                                  }
-                                }}
-                                className="bg-gray-950 border border-gray-700 rounded px-2 py-0.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-emerald-500 w-20 font-bold"
-                                autoFocus
-                              />
-                              <button
-                                type="button"
-                                onClick={handleSaveSizePreset}
-                                className="px-2 py-0.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded text-xs font-bold transition cursor-pointer"
-                              >
-                                Save
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setIsAddingSizePreset(false);
-                                  setNewPresetSizeInput('');
-                                }}
-                                className="p-1 text-gray-400 hover:text-white transition cursor-pointer"
-                              >
-                                <X className="w-3 h-3" />
-                              </button>
-                            </div>
-                          )}
                         </div>
                       </div>
 

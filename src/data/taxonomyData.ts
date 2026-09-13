@@ -3,6 +3,77 @@ export type { TaxonomyCategory };
 export { SECTOR_TABS } from './sectorTabs';
 
 export const TAXONOMY_DATA: TaxonomyCategory[] = [
+  {
+    id: "menstrual-heating-period-care",
+    name: "Menstrual Heating Belts & Period Cramp Massagers",
+    bnName: "মেনস্ট্রুয়াল হিটিং বেল্ট ও পিরিয়ড পেইন ম্যাসাজার",
+    sector: "personal_care",
+    suggestedCategoryId: "beauty-skincare",
+    tags: ["menstrual heating belt","menstrual heating pad","period cramp belt","period cramp massager","uterus warming belt","warm palace belt","dysmenorrhea relief pad","electric heating belt","cordless heating pad","rechargeable heating belt","portable waist massager","vibration heating belt","period pain relief","lower back heating pad","thermal therapy belt","belly warmer belt","menstrual heat patch","graphene heating belt","smart heating massage pad","মেনস্ট্রুয়াল হিটিং বেল্ট","পিরিয়ড পেইন রিলিফ বেল্ট","গরম পানির বেল্ট","কোমর ও তলপেট হিটিং প্যাড","ইলেকট্রিক পিরিয়ড বেল্ট","ভাইব্রেশন হিটিং ম্যাসাজার","মেয়েদের তলপেট ব্যথা কমানোর বেল্ট","ওয়ার্ম প্যালেস বেল্ট","পিরিয়ড ক্র্যাম্প রিলিফ","তলপেট গরম করার প্যাড","রিচার্জেবল পিরিয়ড বেল্ট","গ্রাফিন হিটিং বেল্ট"]
+  },
+
+  {
+    id: "orthopedic-posture-spine-care",
+    name: "Posture Correctors, Spine & Orthopedic Supports",
+    bnName: "পোস্টার কারেক্টর ও অর্থোপেডিক সাপোর্ট বেল্ট",
+    sector: "health_wellness",
+    suggestedCategoryId: "beauty-skincare",
+    tags: ["posture corrector","smart posture sensor","spine alignment belt","back straight belt","humpback corrector","lumbar support belt","lower back brace","steel plate back support","cervical neck traction collar","neck stretch pillow","orthopedic seat cushion","memory foam seat cushion","coccyx tailbone cushion","car lumbar cushion","sciatica relief cushion","bunion corrector splint","plantar fasciitis sleeve","knee compression brace","knee stabilizer","compression socks","পোস্টার কারেক্টর","পিঠ সোজা করার বেল্ট","ঘাড়ের বেল্ট","কোমর ব্যথার বেল্ট","লাম্বার সাপোর্ট বেল্ট","অর্থোপেডিক সিট কুশন","কুঁজো হওয়া রোধ করার বেল্ট","হাঁটু ব্যথার নি ক্যাপ","স্পাইন সোজা করার বেল্ট","টেইলবোন কুশন"]
+  },
+
+  {
+    id: "beauty-skincare-therapy-gadgets",
+    name: "IPL Laser Hair Removal & Facial Therapy Gadgets",
+    bnName: "আইপিএল লেজার হেয়ার রিমুভার ও ফেসিয়াল গ্যাজেট",
+    sector: "personal_care",
+    suggestedCategoryId: "beauty-skincare",
+    tags: ["ipl laser hair removal","permanent hair remover handset","painless laser epilator","ultrasonic skin scrubber","skin spatula","blackhead vacuum remover","pore suction cleanser","high frequency facial wand","led photon face mask","light therapy mask","ems microcurrent face lift","v line chin shaping strap","sonic face cleanser brush","heated eye massager","bluetooth eye relaxer","electric heated eyelash curler","nano mist facial steamer","vacuum cupping massager","electric body cupping","derma roller","আইপিএল লেজার হেয়ার রিমুভার","ব্ল্যাকহেড ভ্যাকুয়াম","ফেস স্ক্রাবার","লেড ফেস মাস্ক","ফেসিয়াল ম্যাসাজার","চোখের ম্যাসাজার","স্কিন লিফটিং ডিভাইস","হট স্টিমার","ইলেকট্রিক আইল্যাশ কার্লার","কাপিং থেরাপি মেশিন"]
+  },
+
+  {
+    id: "pain-relief-physiotherapy-devices",
+    name: "Electric Pain Relief, TENS & Massage Therapy",
+    bnName: "পেইন রিলিফ ডিভাইস, টেন্স ও ম্যাসাজ থেরাপি",
+    sector: "health_wellness",
+    suggestedCategoryId: "gadgets",
+    tags: ["electric hot water bag","rechargeable hot water bottle","tens unit muscle stimulator","ems foot massager mat","foot reflexology mat","deep tissue massage gun","percussion massager","fascia massage gun","heated knee brace","knee massager with heat","shoulder heating pad","neck and shoulder massager","infrared heat lamp","acupressure mat","acupuncture pen","pain relief patch","pain relief spray","herbal pain balm","pulse massager","ইলেকট্রিক হট ওয়াটার ব্যাগ","গরম পানির ব্যাগ","টেন্স মেশিন","ফুট ম্যাসাজার ম্যাট","মাসেল রিলাক্সার গান","হাঁটু ব্যথার হিটিং প্যাড","ফিজিওথেরাপি হিট ল্যাম্প","ঘাড় ও পিঠের ম্যাসাজার","আকুপ্রেসার ম্যাট","ব্যথা নাশক স্প্রে"]
+  },
+
+  {
+    id: "sleep-wellness-anti-snoring",
+    name: "Anti-Snoring & Sleep Wellness Gadgets",
+    bnName: "অ্যান্টি-স্নোরিং ও স্লিপ ওয়েলনেস গ্যাজেট",
+    sector: "health_wellness",
+    suggestedCategoryId: "gadgets",
+    tags: ["anti snoring device","smart snore stopper","magnetic nasal dilator","anti snore nose clip","anti snore chin strap","bluetooth sleep eye mask","sleep headphones headband","white noise sound machine","baby sleep soother","memory foam cervical pillow","contour sleep pillow","weighted gravity blanket","sleep mouth tape","anti snore mouth tape","silicone earplugs for sleeping","noise cancelling ear plugs","sleep aid device","silk sleep eye mask","নাক ডাকা বন্ধ করার ডিভাইস","ব্লুটুথ স্লিপ মাস্ক","হোয়াইট নয়েজ মেশিন","মেমোরি ফোম বালিশ","নাক ডাকা রোধক ক্লিপ","ঘুমের ইয়ারপ্লাগ","স্লিপ মাউথ টেপ","নাক বন্ধ দূর করার ক্লিপ"]
+  },
+
+  {
+    id: "maternity-postpartum-mother-care",
+    name: "Maternity, Breast Pumps & Postpartum Recovery",
+    bnName: "মেটারনিটি, ব্রেস্ট পাম্প ও পোস্টপার্টাম রিকভারি",
+    sector: "personal_care",
+    suggestedCategoryId: "kids-baby",
+    tags: ["postpartum belly wrap","3 in 1 postpartum belt","c section recovery belt","wearable breast pump","hands free electric breast pump","wireless breast pump","manual breast pump","silicone breast pump","breast milk storage bags","heated lactation massager","maternity support belt","pregnancy belly band","pregnancy body pillow","u shape maternity pillow","disposable postpartum panties","nursing bra","maternity innerwear","nipple shield","নিপল শিল্ড","প্রসব পরবর্তী বেলি বেল্ট","ব্রেস্ট পাম্প","ওয়্যারেবল ব্রেস্ট পাম্প","মেটারনিটি বেল্ট","প্রেগন্যান্সি বালিশ","লেকটেশন ম্যাসাজার","নার্সিং ব্রা"]
+  },
+
+  {
+    id: "smart-lifestyle-problem-solvers",
+    name: "Uncommon Problem-Solvers & Smart Home Gadgets",
+    bnName: "স্মার্ট প্রবলেম সলভার ও হোম গ্যাজেট",
+    sector: "gadgets",
+    suggestedCategoryId: "gadgets",
+    tags: ["portable clothes lint shaver","electric fuzz pill remover","ultrasonic jewelry cleaner","mini portable washing machine","automatic touchless soap dispenser","automatic foaming dispenser","usb mini desk humidifier","flame aroma diffuser","electric heated lunch box","self heating tiffin box","mini bag sealer heat sealer","vacuum food sealer machine","automatic water dispenser pump","can opener electric","key finder anti lost tracker","digital luggage scale","smart sensor trash can","রিচার্জেবল লিন্ট রিমুভার","মিনি ওয়াশিং মেশিন","অটোমেটিক সোপ ডিসপেনসার","আল্ট্রাসনিক ক্লিনার","ইলেকট্রিক লাঞ্চ বক্স","মিনি সিলার মেশিন","অটোমেটিক পানির পাম্প","স্মার্ট ট্র্যাকার"]
+  },
+
+  {
+    id: "foot-care-pedicure-tools",
+    name: "Electric Pedicure, Foot Callus & Heel Care",
+    bnName: "ইলেকট্রিক পেডিকিউর ও ফুট কেয়ার টুলস",
+    sector: "personal_care",
+    suggestedCategoryId: "beauty-skincare",
+    tags: ["electric foot callus remover","rechargeable foot file","hard skin dead skin remover","foot grinder","vacuum pedicure machine","foot spa bath basin","collapsible foot bath tub","foot massager roller","silicone heel protector cups","cracked heel socks","bunion toe separator","ingrown toenail corrector tool","callus scraping blade","foot peeling mask","পা ফাটা রিমুভার মেশিন","ইলেকট্রিক পেডিকিউর মেশিন","হিল প্রটেক্টর কাপ","পা ফাটা মোজা","ফুট স্পা টাব","মৃত চামড়া তোলার মেশিন","পায়ের পাতার যত্ন"]
+  },
 {
     id: "shaving-beard-grooming",
     name: "Shaving, Beard Care & Trimmers",

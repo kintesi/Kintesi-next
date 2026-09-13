@@ -19,6 +19,7 @@ import {
   X,
   PanelLeftClose,
   PanelLeftOpen,
+  Palette,
 } from 'lucide-react';
 
 export const AdminLayout: React.FC = () => {
@@ -89,6 +90,7 @@ export const AdminLayout: React.FC = () => {
   const navItems = [
     { name: 'Dashboard', path: '/admin', icon: LayoutDashboard },
     { name: 'Manage Products', path: '/admin/products', icon: Package },
+    { name: 'Preset Management', path: '/admin/presets', icon: Palette },
     { name: 'Manage Orders & Invoices', path: '/admin/orders', icon: ShoppingCart },
     { name: 'Discount Coupons', path: '/admin/coupons', icon: Tag },
     { name: 'Live Customer Chat', path: '/admin/chat', icon: MessageCircle },
