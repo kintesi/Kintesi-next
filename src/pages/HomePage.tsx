@@ -160,15 +160,16 @@ export const HomePage: React.FC = () => {
     (Number(banners.spotlightPrice) > 0 || Number(banners.spotlightDiscountPrice) > 0)
   );
 
-  const activeFlashProducts = useMemo(() => {
-    const discounted = products.filter((p) => p.discount_price && p.discount_price < p.price);
-    if (discounted.length > 0) return discounted;
-    return products.slice(0, 4);
-  }, [products]);
-
-  // 1. Featured Products: ONLY products where admin checked is_featured === true
+  // 1. Featured Products: ONLY products where admin checked is_featured === true (deduplicated by id)
   const featuredProducts = useMemo(() => {
-    return products.filter((p) => Boolean(p.is_featured));
+    const seen = new Set<string>();
+    return products.filter((p) => {
+      if (Boolean(p.is_featured) && !seen.has(p.id)) {
+        seen.add(p.id);
+        return true;
+      }
+      return false;
+    });
   }, [products]);
 
   const isFeaturedActive = Boolean(
@@ -176,10 +177,35 @@ export const HomePage: React.FC = () => {
     featuredProducts.length > 0
   );
 
-  // 2. Personalized & Periodically Rotated Products (Matches user search, category visits, and dynamically shifts order every 2 hours)
+  // Product IDs already displayed in the upper Featured Products section
+  const featuredProductIds = useMemo(() => {
+    if (!isFeaturedActive) return new Set<string>();
+    return new Set(featuredProducts.map((p) => p.id));
+  }, [isFeaturedActive, featuredProducts]);
+
+  // 2. Personalized & Rotated Product Feed:
+  // Recommended products (matching search intent / Google search / interests) are ranked 1st at the top!
+  // Followed by all remaining products gradually below.
+  // STRICTLY DEDUPLICATED: Excludes any product already shown in Featured Products so ZERO products ever appear double!
   const personalizedProducts = useMemo(() => {
-    return getPersonalizedAndRotatedProducts(products, 2);
-  }, [products]);
+    // 1. Deduplicate base product pool
+    const uniqueMap = new Map<string, Product>();
+    for (const p of products) {
+      if (p && p.id && !uniqueMap.has(p.id)) {
+        uniqueMap.set(p.id, p);
+      }
+    }
+    const uniquePool = Array.from(uniqueMap.values());
+
+    // 2. Rank with recommendation engine (recommended items always 1st)
+    const ranked = getPersonalizedAndRotatedProducts(uniquePool, 2);
+
+    // 3. Exclude products already featured at the top to prevent duplicate cards
+    if (isFeaturedActive) {
+      return ranked.filter((p) => !featuredProductIds.has(p.id));
+    }
+    return ranked;
+  }, [products, isFeaturedActive, featuredProductIds]);
 
   // Filtered by department tabs for desktop
   const filteredPersonalizedProducts = useMemo(() => {
@@ -370,9 +396,9 @@ export const HomePage: React.FC = () => {
           </div>
         )}
 
-        {/* 3. Mobile Flash Sale Countdown & Deals */}
+        {/* 3. Mobile Flash Sale Countdown Banner */}
         {isFlashSaleActive && (
-          <div className="px-3 space-y-3">
+          <div className="px-3">
             <FlashSaleBanner
               slides={banners.flashSaleSlides}
               defaultTag={banners.flashSaleTag}
@@ -383,20 +409,6 @@ export const HomePage: React.FC = () => {
               timeLeft={timeLeft}
               isMobile={true}
             />
-
-            {/* Mobile Flash Deals Grid */}
-            {activeFlashProducts.length > 0 ? (
-              <div className="grid grid-cols-2 gap-2.5">
-                {activeFlashProducts.slice(0, 4).map((product) => (
-                  <ProductCard key={product.id} product={product} />
-                ))}
-              </div>
-            ) : (
-              <div className="bg-white rounded-2xl p-4 text-center border border-rose-100 shadow-2xs space-y-1">
-                <p className="text-xs font-bold text-gray-900">Flash Deals Starting Soon</p>
-                <p className="text-[10px] text-gray-400">Add discounted products in admin to showcase them here!</p>
-              </div>
-            )}
           </div>
         )}
 
@@ -679,7 +691,7 @@ export const HomePage: React.FC = () => {
           </section>
         )}
 
-        {/* 3. Desktop Flash Sale */}
+        {/* 3. Desktop Flash Sale Banner */}
         {isFlashSaleActive && (
           <section className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
             <FlashSaleBanner
@@ -692,31 +704,6 @@ export const HomePage: React.FC = () => {
               timeLeft={timeLeft}
               isMobile={false}
             />
-
-            {activeFlashProducts.length > 0 ? (
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                {activeFlashProducts.slice(0, 4).map((product) => (
-                  <ProductCard key={product.id} product={product} />
-                ))}
-              </div>
-            ) : (
-              <div className="bg-white rounded-3xl p-8 text-center border border-rose-100 shadow-xs space-y-3">
-                <div className="w-12 h-12 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center mx-auto border border-rose-100">
-                  <Flame className="w-6 h-6" />
-                </div>
-                <h4 className="text-base font-bold text-gray-900">Flash Deals Starting Soon</h4>
-                <p className="text-xs text-gray-500 max-w-md mx-auto">
-                  Limited-time flash discounts are currently being updated. Check back soon or browse our catalog!
-                </p>
-                <Link
-                  to="/shop"
-                  className="inline-flex items-center gap-1.5 px-5 py-2.5 bg-rose-600 text-white font-bold rounded-xl text-xs hover:bg-rose-700 transition shadow-xs"
-                >
-                  <span>Explore Shop</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </Link>
-              </div>
-            )}
           </section>
         )}
 
