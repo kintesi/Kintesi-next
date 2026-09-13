@@ -21,8 +21,12 @@ export const MobileBottomNav: React.FC = () => {
 
   const isActive = (path: string) => location.pathname === path;
 
-  // On product detail page, hide standard bottom navigation so Dynamic Bottom Island is fully visible and unobstructed
-  if (location.pathname.startsWith('/product/')) {
+  // On product detail, cart, and checkout pages, hide standard bottom navigation so sticky bottom checkout bars are unobstructed
+  if (
+    location.pathname.startsWith('/product/') ||
+    location.pathname === '/cart' ||
+    location.pathname === '/checkout'
+  ) {
     return null;
   }
 

@@ -37,7 +37,7 @@ import { BD_DISTRICTS, getThanasByDistrict } from '../data/bangladeshDistricts';
 import { useLanguage } from '../contexts/LanguageContext';
 
 export const CheckoutPage: React.FC = () => {
-  const { cart, subtotal, discountAmount, shippingFee, total, appliedCoupon, clearCart } = useCart();
+  const { cart, discountAmount, appliedCoupon, removeFromCart } = useCart();
   const { user, profile } = useAuth();
   const { addresses, defaultAddress, addAddress } = useAddress();
   const { settings } = useSettings();
@@ -48,6 +48,27 @@ export const CheckoutPage: React.FC = () => {
   const [selectedAddressId, setSelectedAddressId] = useState<string>('');
   const [isAddingNewAddress, setIsAddingNewAddress] = useState(false);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
+
+  // Read selected cart keys
+  const getItemKey = (item: any) =>
+    `${item?.product?.id || ''}_${item?.selectedColor || ''}_${item?.selectedSize || ''}`;
+
+  const [selectedItemKeys] = useState<string[]>(() => {
+    try {
+      const saved = localStorage.getItem('kintesi_selected_cart_keys');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch {}
+    return [];
+  });
+
+  const validCart = cart.filter((item) => item && item.product && item.product.id);
+  const checkoutItems =
+    selectedItemKeys.length > 0
+      ? validCart.filter((item) => selectedItemKeys.includes(getItemKey(item)))
+      : validCart;
 
   // Form State
   const [name, setName] = useState(defaultAddress?.recipient_name || '');
@@ -108,11 +129,16 @@ export const CheckoutPage: React.FC = () => {
   };
 
   useEffect(() => {
-    if (defaultAddress && !selectedAddressId) {
-      setSelectedAddressId(defaultAddress.id);
-      applyAddressData(defaultAddress);
+    if (addresses.length > 0) {
+      if (defaultAddress && !selectedAddressId) {
+        setSelectedAddressId(defaultAddress.id);
+        applyAddressData(defaultAddress);
+      } else if (!selectedAddressId) {
+        setSelectedAddressId(addresses[0].id);
+        applyAddressData(addresses[0]);
+      }
     }
-  }, [defaultAddress]);
+  }, [addresses, defaultAddress]);
 
   const handleSelectSavedAddress = (addrId: string) => {
     setSelectedAddressId(addrId);
@@ -158,30 +184,58 @@ export const CheckoutPage: React.FC = () => {
     );
   }
 
-  if (cart.length === 0) {
+  if (checkoutItems.length === 0) {
     return (
       <div className="max-w-[1440px] mx-auto px-4 py-20 text-center">
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">Your Cart is Empty</h2>
-        <p className="text-gray-500 mb-6">Add items to cart before proceeding to checkout.</p>
-        <Link to="/shop" className="px-6 py-3 bg-emerald-600 text-white font-bold rounded-2xl">
-          Go to Shop
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">
+          {language === 'bn' ? 'কোনো পণ্য নির্বাচিত নেই' : 'No Items Selected for Checkout'}
+        </h2>
+        <p className="text-gray-500 mb-6">
+          {language === 'bn'
+            ? 'চেকআউট করতে কার্ট থেকে পণ্য নির্বাচন করুন।'
+            : 'Please select items in your cart to proceed with checkout.'}
+        </p>
+        <Link to="/cart" className="px-6 py-3 bg-rose-600 text-white font-bold rounded-2xl text-xs shadow-md shadow-rose-600/20">
+          {language === 'bn' ? 'কার্টে ফিরে যান' : 'Back to Cart'}
         </Link>
       </div>
     );
   }
 
+  // Subtotal for selected items
+  const checkoutSubtotal = checkoutItems.reduce((acc, item) => {
+    const itemPrice = item.product?.discount_price || item.product?.price || 0;
+    const qty = typeof item.quantity === 'number' && item.quantity > 0 ? item.quantity : 1;
+    return acc + itemPrice * qty;
+  }, 0);
+
   // Dynamic Shipping Fee based on City (Inside Dhaka ৳60, Outside Dhaka ৳120)
   const isInsideDhaka = city.trim().toLowerCase() === 'dhaka';
   const dynamicShippingFee =
-    subtotal === 0
+    checkoutSubtotal === 0
       ? 0
-      : subtotal >= (settings.freeShippingThreshold || 5000)
+      : checkoutSubtotal >= (settings.freeShippingThreshold || 5000)
       ? 0
       : isInsideDhaka
       ? Number(settings.deliveryFeeInsideDhaka) || 60
       : Number(settings.deliveryFeeOutsideDhaka) || 120;
 
-  const dynamicTotal = Math.max(0, subtotal - discountAmount + dynamicShippingFee);
+  // Coupon discount recalculation on checkout items
+  let checkoutDiscountAmount = 0;
+  if (appliedCoupon && checkoutSubtotal > 0) {
+    if (appliedCoupon.discount_type === 'fixed') {
+      const val = Number(appliedCoupon.discount_value || appliedCoupon.discount_percent || 0);
+      checkoutDiscountAmount = Math.min(val, checkoutSubtotal);
+    } else {
+      const percent = Number(appliedCoupon.discount_percent || appliedCoupon.discount_value || 0);
+      const calculated = (checkoutSubtotal * percent) / 100;
+      checkoutDiscountAmount = appliedCoupon.max_discount
+        ? Math.min(calculated, appliedCoupon.max_discount)
+        : calculated;
+    }
+  }
+
+  const dynamicTotal = Math.max(0, checkoutSubtotal - checkoutDiscountAmount + dynamicShippingFee);
 
   const handlePlaceOrder = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -226,7 +280,7 @@ export const CheckoutPage: React.FC = () => {
       ? `${address.trim()}, Thana: ${selectedThanaName}`
       : address.trim();
 
-    const orderItems = cart.map((item) => ({
+    const orderItems = checkoutItems.map((item) => ({
       productId: item.product.id,
       title: item.product.title,
       price: item.product.discount_price || item.product.price,
@@ -246,9 +300,9 @@ export const CheckoutPage: React.FC = () => {
       city: `${city}${selectedThanaName ? ` (${selectedThanaName})` : ''}`,
       postal_code: postalCode,
       items: orderItems,
-      subtotal: subtotal,
+      subtotal: checkoutSubtotal,
       shipping_cost: dynamicShippingFee,
-      discount: discountAmount,
+      discount: checkoutDiscountAmount,
       total_amount: dynamicTotal,
       payment_method: paymentMethod,
       payment_status: paymentMethod === 'cod' ? 'pending' : 'paid',
@@ -274,9 +328,9 @@ export const CheckoutPage: React.FC = () => {
           city: `${city}${selectedThanaName ? ` (${selectedThanaName})` : ''}`,
           postal_code: postalCode,
           items: orderItems,
-          subtotal: subtotal,
+          subtotal: checkoutSubtotal,
           shipping_cost: dynamicShippingFee,
-          discount: discountAmount,
+          discount: checkoutDiscountAmount,
           total_amount: dynamicTotal,
           payment_method: paymentMethod,
           payment_status: paymentMethod === 'cod' ? 'pending' : 'paid',
@@ -295,8 +349,8 @@ export const CheckoutPage: React.FC = () => {
       localStorage.setItem('kintesi_guest_orders', JSON.stringify([savedOrder, ...existingOrders]));
       await saveOrderToDB(savedOrder);
 
-      // Automatically reduce product stock count on sale
-      for (const cartItem of cart) {
+      // Automatically reduce product stock count on sale for purchased items
+      for (const cartItem of checkoutItems) {
         try {
           const { data: prodRecord } = await supabase
             .from('products')
@@ -322,12 +376,18 @@ export const CheckoutPage: React.FC = () => {
           user?.id || null,
           email.trim().toLowerCase(),
           orderNumber,
-          discountAmount
+          checkoutDiscountAmount
         );
       }
 
-      toast.success('Order placed successfully!');
-      clearCart();
+      toast.success(language === 'bn' ? 'অর্ডার সফলভাবে গ্রহণ করা হয়েছে!' : 'Order placed successfully!');
+      // Remove only purchased items from cart
+      checkoutItems.forEach((it) => removeFromCart(it.product.id));
+      try {
+        localStorage.removeItem('kintesi_selected_cart_keys');
+        localStorage.removeItem('kintesi_selected_checkout_items');
+      } catch {}
+
       navigate(`/order-success/${data?.order_number || orderNumber}`, {
         state: { order: data || { ...orderData, id: orderNumber, created_at: new Date().toISOString() } },
       });
@@ -384,17 +444,52 @@ export const CheckoutPage: React.FC = () => {
             <div className="flex items-center justify-between">
               <h3 className="font-extrabold text-gray-900 text-lg flex items-center gap-2">
                 <MapPin className="w-5 h-5 text-emerald-600" />
-                <span>1. Delivery Address</span>
+                <span>{language === 'bn' ? '১. ডেলিভারি ঠিকানা' : '1. Delivery Address'}</span>
               </h3>
               <Link to="/profile" className="text-xs text-emerald-600 font-bold hover:underline">
-                Manage Address Book
+                {language === 'bn' ? 'অ্যাড্রেস বুক পরিচালনা' : 'Manage Address Book'}
               </Link>
             </div>
 
-            {/* Saved Address Cards */}
+            {/* If user has no saved addresses, prompt to add address */}
+            {addresses.length === 0 && (
+              <div className="p-4 bg-amber-50 rounded-2xl border border-amber-200 flex items-start gap-3">
+                <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+                <div>
+                  <h4 className="text-xs font-bold text-amber-900">
+                    {language === 'bn' ? 'কোনো সংরক্ষিত ডেলিভারি ঠিকানা নেই' : 'No Saved Delivery Address Found'}
+                  </h4>
+                  <p className="text-xs text-amber-700 mt-0.5 leading-relaxed">
+                    {language === 'bn'
+                      ? 'অর্ডার করতে অনুগ্রহ করে নিচে আপনার ডেলিভারি ঠিকানা দিন। এটি ভবিষ্যতে ব্যবহারের জন্য আপনার অ্যাড্রেস বুকে সংরক্ষিত হবে।'
+                      : 'Please enter your delivery address below to complete your order. It will be saved in your Address Book for next time.'}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Saved Address Cards (Select directly without filling form) */}
             {addresses.length > 0 && (
               <div className="space-y-3">
-                <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">Choose Saved Address</p>
+                <div className="flex items-center justify-between">
+                  <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">
+                    {language === 'bn' ? 'সংরক্ষিত ঠিকানা নির্বাচন করুন' : 'Choose Saved Address'}
+                  </p>
+                  {isAddingNewAddress && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsAddingNewAddress(false);
+                        if (defaultAddress) handleSelectSavedAddress(defaultAddress.id);
+                        else if (addresses[0]) handleSelectSavedAddress(addresses[0].id);
+                      }}
+                      className="text-xs text-rose-600 font-bold hover:underline"
+                    >
+                      {language === 'bn' ? 'সংরক্ষিত ঠিকানায় ফেরত যান' : 'Use Saved Address'}
+                    </button>
+                  )}
+                </div>
+
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {addresses.map((addr) => {
                     const isSelected = selectedAddressId === addr.id && !isAddingNewAddress;
@@ -404,7 +499,7 @@ export const CheckoutPage: React.FC = () => {
                         onClick={() => handleSelectSavedAddress(addr.id)}
                         className={`p-4 rounded-2xl border-2 cursor-pointer transition relative flex flex-col justify-between ${
                           isSelected
-                            ? 'border-emerald-600 bg-emerald-50/50 shadow-sm'
+                            ? 'border-emerald-600 bg-emerald-50/50 shadow-sm ring-2 ring-emerald-600/20'
                             : 'border-gray-200 hover:border-gray-300'
                         }`}
                       >
@@ -425,29 +520,27 @@ export const CheckoutPage: React.FC = () => {
                   })}
                 </div>
 
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsAddingNewAddress(true);
-                    setSelectedAddressId('');
-                    setName('');
-                    setPhone('');
-                    setAddress('');
-                    setPostalCode('');
-                  }}
-                  className={`w-full py-2.5 px-4 rounded-2xl border-2 border-dashed font-bold text-xs flex items-center justify-center gap-2 transition ${
-                    isAddingNewAddress
-                      ? 'border-emerald-500 bg-emerald-50 text-emerald-700'
-                      : 'border-gray-300 hover:border-emerald-500 text-gray-600'
-                  }`}
-                >
-                  <Plus className="w-4 h-4" />
-                  <span>+ Deliver to a Different Address</span>
-                </button>
+                {!isAddingNewAddress && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsAddingNewAddress(true);
+                      setSelectedAddressId('');
+                      setName('');
+                      setPhone('');
+                      setAddress('');
+                      setPostalCode('');
+                    }}
+                    className="w-full py-2.5 px-4 rounded-2xl border-2 border-dashed border-gray-300 hover:border-emerald-500 text-gray-600 hover:text-emerald-700 font-bold text-xs flex items-center justify-center gap-2 transition cursor-pointer"
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span>{language === 'bn' ? '+ নতুন ঠিকানায় ডেলিভারি নিন' : '+ Deliver to a Different Address'}</span>
+                  </button>
+                )}
               </div>
             )}
 
-            {/* Address Form Inputs */}
+            {/* Address Form Inputs (Shown ONLY if user has 0 saved addresses or clicked "+ Deliver to a Different Address") */}
             {(addresses.length === 0 || isAddingNewAddress) && (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-gray-100">
                 <div>
@@ -669,20 +762,20 @@ export const CheckoutPage: React.FC = () => {
             const activeRocketNumber = settings.rocketNumber;
             const activeRocketType = settings.rocketType;
 
-            const allowsCod = cart.every(
+            const allowsCod = checkoutItems.every(
               (item) => !item.product.allowed_payment_methods || item.product.allowed_payment_methods.length === 0 || item.product.allowed_payment_methods.includes('cod')
             );
-            const allowsBkash = cart.every(
+            const allowsBkash = checkoutItems.every(
               (item) => !item.product.allowed_payment_methods || item.product.allowed_payment_methods.length === 0 || item.product.allowed_payment_methods.includes('bkash')
             );
-            const allowsNagad = cart.every(
+            const allowsNagad = checkoutItems.every(
               (item) => !item.product.allowed_payment_methods || item.product.allowed_payment_methods.length === 0 || item.product.allowed_payment_methods.includes('nagad')
             );
-            const allowsRocket = cart.every(
+            const allowsRocket = checkoutItems.every(
               (item) => !item.product.allowed_payment_methods || item.product.allowed_payment_methods.length === 0 || item.product.allowed_payment_methods.includes('rocket') || item.product.allowed_payment_methods.includes('bkash')
             );
             const allowsBank = false;
-            const allowsCard = cart.every(
+            const allowsCard = checkoutItems.every(
               (item) => !item.product.allowed_payment_methods || item.product.allowed_payment_methods.includes('card')
             );
 
@@ -1041,14 +1134,21 @@ export const CheckoutPage: React.FC = () => {
         {/* Right Column: Order Summary */}
         <div className="lg:col-span-5 space-y-6">
           <div className="bg-white p-6 sm:p-8 rounded-3xl border border-gray-100 shadow-sm space-y-6 sticky top-28">
-            <h3 className="font-extrabold text-gray-900 text-lg">Order Summary</h3>
+            <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+              <h3 className="font-extrabold text-gray-900 text-lg">
+                {t('checkout.orderSummary')}
+              </h3>
+              <span className="text-xs text-gray-500 font-medium">
+                {checkoutItems.length} {language === 'bn' ? 'টি নির্বাচিত পণ্য' : 'selected items'}
+              </span>
+            </div>
 
-            {/* Item preview list */}
+            {/* Item preview list (Strictly selected items) */}
             <div className="divide-y divide-gray-100 max-h-64 overflow-y-auto space-y-3 pr-2">
-              {cart.map((item) => {
+              {checkoutItems.map((item) => {
                 const itemPrice = item.product.discount_price || item.product.price;
                 return (
-                  <div key={item.product.id} className="pt-3 flex items-center gap-3">
+                  <div key={`${item.product.id}-${item.selectedColor || ''}-${item.selectedSize || ''}`} className="pt-3 flex items-center gap-3">
                     <img
                       src={item.product.images[0] || '/logo.webp'}
                       alt={item.product.title}
@@ -1057,9 +1157,9 @@ export const CheckoutPage: React.FC = () => {
                     <div className="flex-1 min-w-0">
                       <h4 className="text-xs font-semibold text-gray-800 line-clamp-1">{item.product.title}</h4>
                       <div className="text-[10px] text-gray-400 flex items-center gap-2">
-                        <span>Qty: {item.quantity}</span>
-                        {item.selectedSize && <span>Size: {item.selectedSize}</span>}
-                        {item.selectedColor && <span>Color: {item.selectedColor}</span>}
+                        <span>{language === 'bn' ? `পরিমাণ: ${item.quantity}` : `Qty: ${item.quantity}`}</span>
+                        {item.selectedSize && <span>{language === 'bn' ? `সাইজ: ${item.selectedSize}` : `Size: ${item.selectedSize}`}</span>}
+                        {item.selectedColor && <span>{language === 'bn' ? `কালার: ${item.selectedColor}` : `Color: ${item.selectedColor}`}</span>}
                       </div>
                     </div>
                     <span className="text-xs font-bold text-gray-900">{formatPrice(itemPrice * item.quantity)}</span>
@@ -1071,50 +1171,60 @@ export const CheckoutPage: React.FC = () => {
             {/* Cost Breakdown */}
             <div className="space-y-2 text-xs border-t border-gray-100 pt-4">
               <div className="flex justify-between text-gray-600">
-                <span>Subtotal</span>
-                <span className="font-semibold text-gray-900">{formatPrice(subtotal)}</span>
+                <span>{t('cart.subtotal')}</span>
+                <span className="font-semibold text-gray-900">{formatPrice(checkoutSubtotal)}</span>
               </div>
-              {discountAmount > 0 && (
+              {checkoutDiscountAmount > 0 && (
                 <div className="flex justify-between text-emerald-600 font-bold">
-                  <span>Coupon ({appliedCoupon?.code})</span>
-                  <span>-{formatPrice(discountAmount)}</span>
+                  <span>{language === 'bn' ? `কুপন (${appliedCoupon?.code})` : `Coupon (${appliedCoupon?.code})`}</span>
+                  <span>-{formatPrice(checkoutDiscountAmount)}</span>
                 </div>
               )}
               <div className="flex justify-between text-gray-600">
-                <span>Shipping ({isInsideDhaka ? 'Inside Dhaka ৳60' : 'Outside Dhaka ৳120'})</span>
+                <span>
+                  {t('cart.deliveryFee')} ({isInsideDhaka ? (language === 'bn' ? 'ঢাকার ভেতরে ৳৬০' : 'Inside Dhaka ৳60') : (language === 'bn' ? 'ঢাকার বাইরে ৳১২০' : 'Outside Dhaka ৳120')})
+                </span>
                 <span className="font-semibold text-gray-900">
                   {dynamicShippingFee === 0 ? (
-                    <span className="text-emerald-600 font-bold uppercase">Free Delivery</span>
+                    <span className="text-emerald-600 font-bold uppercase">{t('cart.freeShipping')}</span>
                   ) : (
                     formatPrice(dynamicShippingFee)
                   )}
                 </span>
               </div>
               <div className="border-t border-gray-200 pt-3 flex justify-between text-base font-black text-gray-900">
-                <span>Total Due</span>
-                <span className="text-emerald-700 text-xl">{formatPrice(dynamicTotal)}</span>
+                <span>{t('cart.total')}</span>
+                <span className="text-rose-600 text-xl font-black">{formatPrice(dynamicTotal)}</span>
               </div>
             </div>
 
-            {/* Place Order Button */}
+            {/* Place Order Button with Dynamic Final Total */}
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-4 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold rounded-2xl transition shadow-xl shadow-emerald-600/30 flex items-center justify-center gap-2 text-sm disabled:opacity-50 active:scale-95"
+              className="w-full py-4 bg-rose-600 hover:bg-rose-700 text-white font-extrabold rounded-2xl transition shadow-xl shadow-rose-600/25 flex items-center justify-center gap-2 text-sm disabled:opacity-50 active:scale-95 cursor-pointer"
             >
               {loading ? (
                 <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
               ) : (
                 <>
                   <Lock className="w-4 h-4" />
-                  <span>Confirm Order ({formatPrice(dynamicTotal)})</span>
+                  <span>
+                    {language === 'bn'
+                      ? `অর্ডার কনফার্ম করুন (${formatPrice(dynamicTotal)})`
+                      : `Confirm Order (${formatPrice(dynamicTotal)})`}
+                  </span>
                 </>
               )}
             </button>
 
             <div className="flex items-center justify-center gap-2 text-[11px] text-gray-400 text-center">
               <ShieldCheck className="w-4 h-4 text-emerald-600" />
-              <span>Safe 256-bit encrypted checkout guarantee</span>
+              <span>
+                {language === 'bn'
+                  ? '১০০% নিরাপদ ও এনক্রিপ্টেড চেকআউট গ্যারান্টি'
+                  : 'Safe 256-bit encrypted checkout guarantee'}
+              </span>
             </div>
           </div>
         </div>

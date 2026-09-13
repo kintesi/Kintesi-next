@@ -112,6 +112,10 @@ export const translations: Translations = {
   'cart.freeDeliveryProgress': { en: 'more for FREE DELIVERY!', bn: 'যোগ করলে ফ্রি ডেলিভারি পাবেন!' },
   'cart.price': { en: 'Price', bn: 'মূল্য' },
   'cart.quantity': { en: 'Quantity', bn: 'পরিমাণ' },
+  'cart.selectAll': { en: 'Select All', bn: 'সব নির্বাচন করুন' },
+  'cart.selectItemsPrompt': { en: 'Please select at least one item to proceed.', bn: 'এগিয়ে যেতে অন্তত একটি পণ্য নির্বাচন করুন।' },
+  'cart.selectedItems': { en: 'Selected', bn: 'নির্বাচিত' },
+  'cart.deleteSelected': { en: 'Delete Selected', bn: 'নির্বাচিতগুলো মুছুন' },
 
   // Wishlist
   'wishlist.title': { en: 'My Wishlist', bn: 'আমার পছন্দের তালিকা' },
