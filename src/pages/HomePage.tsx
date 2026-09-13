@@ -7,7 +7,7 @@ import { INITIAL_PRODUCTS, INITIAL_CATEGORIES } from '../data/mockData';
 import { ProductCard } from '../components/common/ProductCard';
 import { FlashSaleBanner } from '../components/home/FlashSaleBanner';
 import { useSettings } from '../contexts/SettingsContext';
-import { getPersonalizedAndRotatedProducts } from '../lib/recommendationEngine';
+import { getPersonalizedAndRotatedProducts, detectAndSaveSearchIntent } from '../lib/recommendationEngine';
 import {
   ArrowRight,
   Sparkles,
@@ -148,6 +148,7 @@ export const HomePage: React.FC = () => {
       }
     }
     loadData();
+    detectAndSaveSearchIntent();
     window.addEventListener('kintesi_products_updated', loadData);
     return () => window.removeEventListener('kintesi_products_updated', loadData);
   }, []);
@@ -389,12 +390,12 @@ export const HomePage: React.FC = () => {
           </div>
         )}
 
-        {/* 4. ALL PRODUCTS / JUST FOR YOU: Clean Feed with Progressive Infinite Scroll */}
+        {/* 4. ALL PRODUCTS: Clean Feed with Progressive Infinite Scroll */}
         <div className="px-3 space-y-3 pt-1">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-1.5">
-              <Sparkles className="w-4 h-4 text-rose-600" />
-              <h3 className="text-sm font-bold text-gray-900">Just For You</h3>
+              <Package className="w-4 h-4 text-rose-600" />
+              <h3 className="text-sm font-bold text-gray-900">All Products</h3>
             </div>
           </div>
 
@@ -709,12 +710,12 @@ export const HomePage: React.FC = () => {
           </section>
         )}
 
-        {/* 4. DESKTOP ALL PRODUCTS / JUST FOR YOU */}
+        {/* 4. DESKTOP ALL PRODUCTS */}
         <section className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 space-y-5">
           <div className="flex items-center justify-between border-b border-rose-100 pb-3">
             <div className="flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-rose-600" />
-              <h2 className="text-xl font-bold text-gray-900 tracking-tight">Just For You</h2>
+              <Package className="w-5 h-5 text-rose-600" />
+              <h2 className="text-xl font-bold text-gray-900 tracking-tight">All Products</h2>
             </div>
 
             <div className="flex gap-2 text-xs font-bold">
