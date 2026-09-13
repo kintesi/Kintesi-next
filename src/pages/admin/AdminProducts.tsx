@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { supabase } from '../../lib/supabase';
 import { getProductsFromDB, saveProductToDB, deleteProductFromDB, getCategoriesFromDB } from '../../lib/dbService';
@@ -6,6 +6,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { INITIAL_PRODUCTS, INITIAL_CATEGORIES } from '../../data/mockData';
 import { Product, Category, ProductColorOption, ProductCustomAttributeOption } from '../../types';
 import { formatPrice, calculateDiscount } from '../../lib/utils';
+import { uploadToCloudinary } from '../../lib/cloudinary';
 import {
   Plus,
   Edit2,
@@ -34,6 +35,8 @@ import {
   Ban,
   ExternalLink,
   DollarSign,
+  UploadCloud,
+  Loader2,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { ImageUploader } from '../../components/common/ImageUploader';
@@ -63,6 +66,9 @@ export const AdminProducts: React.FC = () => {
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [specMode, setSpecMode] = useState<'auto' | 'gadgets' | 'fashion' | 'groceries' | 'none'>('auto');
   const [activeModalTab, setActiveModalTab] = useState<'general' | 'variants' | 'specs' | 'delivery' | 'tags'>('general');
+  const [isColorImageUploading, setIsColorImageUploading] = useState(false);
+  const [showColorUrlInput, setShowColorUrlInput] = useState(false);
+  const colorFileInputRef = useRef<HTMLInputElement>(null);
 
   const getCategorySpecMode = (catId: string): 'gadgets' | 'fashion' | 'groceries' => {
     const c = (catId || '').toLowerCase();
@@ -465,6 +471,59 @@ export const AdminProducts: React.FC = () => {
     });
   };
 
+  const handleColorFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsColorImageUploading(true);
+    const toastId = toast.loading('Device থেকে ছবি আপলোড হচ্ছে...');
+
+    try {
+      const url = await uploadToCloudinary(file);
+      setFormData((prev) => ({ ...prev, newColorImage: url }));
+      toast.success('কালারের ছবি সফলভাবে আপলোড হয়েছে!', { id: toastId });
+    } catch (err: any) {
+      console.error('Upload error:', err);
+      toast.error(err.message || 'Upload failed', { id: toastId });
+    } finally {
+      setIsColorImageUploading(false);
+      if (e.target) e.target.value = '';
+    }
+  };
+
+  const handleUpdateCardColorImage = async (index: number, file: File) => {
+    if (!file) return;
+    const toastId = toast.loading('ছবি আপলোড হচ্ছে...');
+    try {
+      const url = await uploadToCloudinary(file);
+      setFormData((prev) => {
+        const copy = [...prev.colors];
+        copy[index] = { ...copy[index], image: url };
+        return { ...prev, colors: copy };
+      });
+      toast.success('কালারের ছবি আপডেট হয়েছে!', { id: toastId });
+    } catch (err: any) {
+      toast.error(err.message || 'Upload failed', { id: toastId });
+    }
+  };
+
+  const handleAssignGalleryPhoto = (index: number, url: string) => {
+    setFormData((prev) => {
+      const copy = [...prev.colors];
+      copy[index] = { ...copy[index], image: url };
+      return { ...prev, colors: copy };
+    });
+    toast.success('গ্যালারির ছবি কালারে যুক্ত হয়েছে!');
+  };
+
+  const handleRemoveCardColorImage = (index: number) => {
+    setFormData((prev) => {
+      const copy = [...prev.colors];
+      copy[index] = { ...copy[index], image: null };
+      return { ...prev, colors: copy };
+    });
+  };
+
   const handleAddCustomAttribute = () => {
     if (!formData.newAttrName.trim()) {
       toast.error('Please enter an option name (e.g. Free Size, XL, 500ml)');
@@ -520,6 +579,13 @@ export const AdminProducts: React.FC = () => {
     const imageList = [formData.imageUrl1, formData.imageUrl2, formData.imageUrl3, formData.imageUrl4]
       .map((url) => url.trim())
       .filter((url) => url.length > 0);
+
+    // Also include any specific color images in imageList so they are part of product gallery
+    formData.colors.forEach((c) => {
+      if (c.image && c.image.trim() && !imageList.includes(c.image.trim())) {
+        imageList.push(c.image.trim());
+      }
+    });
 
     const highlightsList = [formData.highlight1, formData.highlight2, formData.highlight3]
       .map((h) => h.trim())
@@ -1102,8 +1168,8 @@ export const AdminProducts: React.FC = () => {
           {/* Minimal Studio Segmented Tabs */}
           <div className="flex items-center gap-1 border-b border-gray-800 bg-gray-900/60 px-4 sm:px-8 py-2 overflow-x-auto no-scrollbar shrink-0">
             {[
-              { id: 'general', label: '📦 General & Pricing', desc: 'Title, Price & Photos' },
-              { id: 'variants', label: '🎨 Sizes & Colors', count: formData.selectedSizes.length + formData.colors.length },
+              { id: 'general', label: '📦 General & Pricing', desc: 'Title, Price & Stock' },
+              { id: 'variants', label: '🎨 Photos, Colors & Sizes', count: (formData.imageUrl1 ? 1 : 0) + formData.colors.length + formData.selectedSizes.length },
               { id: 'specs', label: '📋 Description & Specs', desc: 'Details & Specs' },
               { id: 'delivery', label: '🚚 Delivery & Payment', desc: 'Shipping & Payment' },
               { id: 'tags', label: '🏷️ Search Tags & Taxonomy', desc: 'Keywords' },
@@ -1339,324 +1405,524 @@ export const AdminProducts: React.FC = () => {
                     </div>
                   </div>
                 )}
-              </div>
-                  {/* Section 3: High-Res Multi-Image Uploads */}
-              <div className="space-y-4 bg-gray-950/60 p-4 rounded-2xl border border-gray-800/80">
-                <div className="flex items-center justify-between">
-                  <h4 className="text-xs font-black uppercase tracking-wider text-blue-400 flex items-center gap-1.5">
-                    <ImageIcon className="w-4 h-4" /> Product Media Gallery (Up to 4 High-Res Photos)
-                  </h4>
-                  <span className="text-[10px] bg-emerald-500/10 text-emerald-400 font-bold px-2.5 py-0.5 rounded-full border border-emerald-500/20">
-                    High-Res Cloud Storage
-                  </span>
-                </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <ImageUploader
-                    label="Main Cover Photo (Required)"
-                    value={formData.imageUrl1}
-                    onChange={(url) => setFormData({ ...formData, imageUrl1: url })}
-                    required
-                    helpText="Primary photo shown across catalog and search"
-                  />
+                {/* Feature & Trending Toggles */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-gray-800/80">
+                  <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-gray-300">
+                    <input
+                      type="checkbox"
+                      checked={formData.is_featured}
+                      onChange={(e) => setFormData({ ...formData, is_featured: e.target.checked })}
+                      className="w-4 h-4 rounded border-gray-700 text-emerald-600 focus:ring-emerald-500"
+                    />
+                    <span>🌟 Feature on Homepage Spotlight</span>
+                  </label>
 
-                  <ImageUploader
-                    label="Gallery Angle 2"
-                    value={formData.imageUrl2}
-                    onChange={(url) => setFormData({ ...formData, imageUrl2: url })}
-                    helpText="Back view, packaging, or texture angle"
-                  />
-
-                  <ImageUploader
-                    label="Gallery Angle 3"
-                    value={formData.imageUrl3}
-                    onChange={(url) => setFormData({ ...formData, imageUrl3: url })}
-                    helpText="Side angle or lifestyle shot"
-                  />
-
-                  <ImageUploader
-                    label="Gallery Angle 4"
-                    value={formData.imageUrl4}
-                    onChange={(url) => setFormData({ ...formData, imageUrl4: url })}
-                    helpText="Close-up detail or accessories view"
-                  />
+                  <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-gray-300">
+                    <input
+                      type="checkbox"
+                      checked={formData.is_trending}
+                      onChange={(e) => setFormData({ ...formData, is_trending: e.target.checked })}
+                      className="w-4 h-4 rounded border-gray-700 text-amber-500 focus:ring-amber-500"
+                    />
+                    <span>🔥 Mark as Trending Best-Seller</span>
+                  </label>
                 </div>
               </div>
-                  {/* Section 9: Badges & Toggles */}
-              <div className="flex items-center gap-6 bg-gray-950/60 p-4 rounded-2xl border border-gray-800/80">
-                <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-gray-300">
-                  <input
-                    type="checkbox"
-                    checked={formData.is_featured}
-                    onChange={(e) => setFormData({ ...formData, is_featured: e.target.checked })}
-                    className="w-4 h-4 rounded border-gray-700 text-emerald-600 focus:ring-emerald-500"
-                  />
-                  <span>🌟 Feature on Homepage Spotlight</span>
-                </label>
-
-                <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-gray-300">
-                  <input
-                    type="checkbox"
-                    checked={formData.is_trending}
-                    onChange={(e) => setFormData({ ...formData, is_trending: e.target.checked })}
-                    className="w-4 h-4 rounded border-gray-700 text-amber-500 focus:ring-amber-500"
-                  />
-                  <span>🔥 Mark as Trending Best-Seller</span>
-                </label>
-              </div>
-                </div>
-              )}
+            </div>
+          )}
 
               {/* Tab 2: Sizes & Colors */}
               {activeModalTab === 'variants' && (
                 <div className="space-y-6 animate-fadeIn">
-                  {/* Section 4: Sizes & Colors Variants */}
-              <div className="space-y-4 bg-gray-950/60 p-4 rounded-2xl border border-gray-800/80">
-                <h4 className="text-xs font-black uppercase tracking-wider text-purple-400 flex items-center gap-1.5">
-                  <Layers className="w-4 h-4" /> Sizes & Color Variants
-                </h4>
-
-                {/* Sizes */}
-                <div>
-                  <label className="block text-xs font-bold text-gray-300 mb-1.5">
-                    Available Sizes / Capacities ({formData.selectedSizes.length} Selected):
-                  </label>
-
-                  {/* Active Selected Sizes with Remove (X) */}
-                  {formData.selectedSizes.length > 0 && (
-                    <div className="flex flex-wrap gap-1.5 mb-3 p-2.5 bg-gray-900/90 rounded-xl border border-emerald-500/30">
-                      {formData.selectedSizes.map((size) => (
-                        <span
-                          key={size}
-                          className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-600 text-white rounded-lg text-xs font-bold shadow-sm"
-                        >
-                          <span>{size}</span>
-                          <button
-                            type="button"
-                            onClick={() => handleToggleSize(size)}
-                            className="hover:text-rose-200 transition"
-                            title="Remove size"
-                          >
-                            <X className="w-3.5 h-3.5" />
-                          </button>
-                        </span>
-                      ))}
-                    </div>
-                  )}
-
-                  {/* Quick Popular Size Chips */}
-                  <div className="space-y-1.5 mb-3">
-                    <span className="text-[10px] uppercase font-bold text-gray-400">Quick Popular Presets:</span>
-                    <div className="flex flex-wrap gap-1.5">
-                      {POPULAR_SIZES.map((size) => {
-                        const isSelected = formData.selectedSizes.includes(size);
-                        return (
-                          <button
-                            type="button"
-                            key={size}
-                            onClick={() => handleToggleSize(size)}
-                            className={`px-2.5 py-1 rounded-lg text-xs font-bold transition ${
-                              isSelected
-                                ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
-                                : 'bg-gray-900 text-gray-400 border border-gray-700 hover:text-white hover:border-gray-500'
-                            }`}
-                          >
-                            {isSelected ? `✓ ${size}` : `+ ${size}`}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  {/* Custom Size Input with Enter key support */}
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      placeholder="Type custom size (e.g. 2TB, 250ml, 42, XXL, 10kg)..."
-                      value={formData.customSizeInput}
-                      onChange={(e) => setFormData({ ...formData, customSizeInput: e.target.value })}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                          e.preventDefault();
-                          handleAddCustomSize();
-                        }
-                      }}
-                      className="flex-1 bg-gray-900 border border-gray-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500"
-                    />
-                    <button
-                      type="button"
-                      onClick={handleAddCustomSize}
-                      className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition shadow-md flex items-center gap-1"
-                    >
-                      <Plus className="w-4 h-4" />
-                      <span>Add Size</span>
-                    </button>
-                  </div>
-                </div>
-
-                {/* Section: Product Variations, Colors & Multiple Attributes */}
-                <div className="pt-4 border-t border-gray-800 space-y-4">
-                  <div>
-                    <div className="flex items-center justify-between">
-                      <label className="block text-xs font-black uppercase tracking-wider text-rose-400 flex items-center gap-1.5">
-                        <Palette className="w-4 h-4" /> Color Options & Price Customization (কালার ভ্যারিয়েন্ট)
-                      </label>
-                      <span className="text-[11px] text-gray-400">
-                        Base Price: <b className="text-white">৳{formData.price || '0'}</b>
+                  {/* Section 1: High-Res Product Media Gallery */}
+                  <div className="space-y-4 bg-gray-950/60 p-5 rounded-2xl border border-blue-500/30 shadow-xs">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-gray-800">
+                      <div>
+                        <h4 className="text-xs font-black uppercase tracking-wider text-blue-400 flex items-center gap-1.5">
+                          <ImageIcon className="w-4 h-4" /> Product Media Gallery (প্রোডাক্টের মূল ছবিসমূহ)
+                        </h4>
+                        <p className="text-[11px] text-gray-400 mt-0.5">
+                          ডিভাইস থেকে সরাসরি ছবি আপলোড করুন। নিচে কালার অপশন সিলেক্ট করার সময় এখান থেকেও ১-ক্লিকে ছবি অ্যাসাইন করতে পারবেন।
+                        </p>
+                      </div>
+                      <span className="text-[10px] bg-blue-500/10 text-blue-300 font-bold px-2.5 py-1 rounded-full border border-blue-500/20 shrink-0">
+                        High-Res WebP Cloud Storage
                       </span>
                     </div>
-                    <p className="text-[11px] text-gray-400 mt-0.5">
-                      যেমন ক্যাপের বিভিন্ন কালার (Pink, Red, Yellow, White)। প্রতিটি কালারের জন্য আলাদা আলাদা মূল্য (যদি পরিবর্তন করতে চান), স্পেসিফিক ছবি এবং স্টক সেট করতে পারবেন।
-                    </p>
-                  </div>
 
-                  {/* 1-Click Popular Presets */}
-                  <div className="space-y-1.5 bg-gray-900/60 p-2.5 rounded-xl border border-gray-800">
-                    <span className="text-[10px] uppercase font-bold text-gray-400 block">
-                      Quick 1-Click Presets:
-                    </span>
-                    <div className="flex flex-wrap gap-1.5">
-                      {POPULAR_COLOR_PRESETS.map((preset) => {
-                        const isAdded = formData.colors.some((c) => c.name.toLowerCase() === preset.name.toLowerCase());
-                        return (
-                          <button
-                            type="button"
-                            key={preset.name}
-                            onClick={() => handleSelectPresetColor(preset)}
-                            className={`px-2.5 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1.5 border ${
-                              formData.newColorName === preset.name
-                                ? 'bg-rose-500/20 text-rose-300 border-rose-500/50'
-                                : 'bg-gray-900 hover:bg-gray-800 text-gray-300 border-gray-700'
-                            }`}
-                          >
-                            <span className="w-2.5 h-2.5 rounded-full border border-black/20" style={{ backgroundColor: preset.hex }} />
-                            <span>{preset.name}</span>
-                            {isAdded && <span className="text-[10px] text-emerald-400">✓</span>}
-                          </button>
-                        );
-                      })}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3.5">
+                      <ImageUploader
+                        label="Photo 1 (Main Cover)"
+                        value={formData.imageUrl1}
+                        onChange={(url) => setFormData({ ...formData, imageUrl1: url })}
+                        required
+                        helpText="Primary photo shown across catalog"
+                      />
+
+                      <ImageUploader
+                        label="Photo 2 (Side / Angle)"
+                        value={formData.imageUrl2}
+                        onChange={(url) => setFormData({ ...formData, imageUrl2: url })}
+                        helpText="Back view, packaging, or texture"
+                      />
+
+                      <ImageUploader
+                        label="Photo 3 (Detail / Lifestyle)"
+                        value={formData.imageUrl3}
+                        onChange={(url) => setFormData({ ...formData, imageUrl3: url })}
+                        helpText="Side angle or lifestyle shot"
+                      />
+
+                      <ImageUploader
+                        label="Photo 4 (Close-up / Extra)"
+                        value={formData.imageUrl4}
+                        onChange={(url) => setFormData({ ...formData, imageUrl4: url })}
+                        helpText="Close-up detail or accessories"
+                      />
                     </div>
                   </div>
 
-                  {/* Add Color Input Row */}
-                  <div className="p-3 bg-gray-900 rounded-xl border border-gray-700/80 space-y-3">
-                    <div className="grid grid-cols-1 sm:grid-cols-12 gap-2.5 items-center">
-                      {/* Color swatch picker + Name */}
-                      <div className="sm:col-span-4 flex items-center gap-2">
-                        <input
-                          type="color"
-                          value={formData.newColorHex}
-                          onChange={(e) => setFormData({ ...formData, newColorHex: e.target.value })}
-                          className="w-8 h-8 bg-transparent border-0 rounded cursor-pointer shrink-0"
-                          title="Choose Color Swatch"
-                        />
-                        <input
-                          type="text"
-                          placeholder="Color Name (e.g. Pink, Red, White)"
-                          value={formData.newColorName}
-                          onChange={(e) => setFormData({ ...formData, newColorName: e.target.value })}
-                          className="w-full bg-gray-950 border border-gray-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-rose-500"
-                        />
+                  {/* Section 2: Color Options & Specific Photos */}
+                  <div className="space-y-4 bg-gray-950/60 p-5 rounded-2xl border border-rose-500/30 shadow-xs">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-gray-800">
+                      <div>
+                        <h4 className="text-xs font-black uppercase tracking-wider text-rose-400 flex items-center gap-1.5">
+                          <Palette className="w-4 h-4" /> Color Options & Photos (কালার ভ্যারিয়েন্ট ও ছবি)
+                        </h4>
+                        <p className="text-[11px] text-gray-400 mt-0.5">
+                          প্রতিটি কালারের জন্য নির্দিষ্ট ছবি ও মূল্য দিন (যেমন Pink ক্যাপ সিলেক্ট করলে Pink ছবি ও দাম দেখাবে)।
+                        </p>
+                      </div>
+                      <span className="text-xs text-gray-400">
+                        Base Price: <b className="text-emerald-400 font-extrabold">৳{formData.price || '0'}</b>
+                      </span>
+                    </div>
+
+                    {/* 1-Click Popular Presets */}
+                    <div className="space-y-1.5 bg-gray-900/60 p-3 rounded-xl border border-gray-800">
+                      <span className="text-[10px] uppercase font-bold text-gray-400 block">
+                        ১-ক্লিকে কালার সিলেক্ট করুন (Quick Presets):
+                      </span>
+                      <div className="flex flex-wrap gap-1.5">
+                        {POPULAR_COLOR_PRESETS.map((preset) => {
+                          const isAdded = formData.colors.some((c) => c.name.toLowerCase() === preset.name.toLowerCase());
+                          return (
+                            <button
+                              type="button"
+                              key={preset.name}
+                              onClick={() => handleSelectPresetColor(preset)}
+                              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 border cursor-pointer ${
+                                formData.newColorName === preset.name
+                                  ? 'bg-rose-500/20 text-rose-300 border-rose-500/50 ring-1 ring-rose-500/40'
+                                  : 'bg-gray-900 hover:bg-gray-800 text-gray-300 border-gray-700'
+                              }`}
+                            >
+                              <span className="w-3 h-3 rounded-full border border-black/20" style={{ backgroundColor: preset.hex }} />
+                              <span>{preset.name}</span>
+                              {isAdded && <span className="text-[10px] text-emerald-400 font-extrabold">✓ Added</span>}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Add New Color Form Box */}
+                    <div className="p-4 bg-gray-900 rounded-2xl border border-gray-700/90 space-y-3.5">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-gray-200 flex items-center gap-1.5">
+                          <Plus className="w-3.5 h-3.5 text-rose-400" /> নতুন কালার অপশন যুক্ত করুন:
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => setShowColorUrlInput(!showColorUrlInput)}
+                          className="text-[10px] text-rose-400 hover:text-rose-300 font-semibold underline cursor-pointer"
+                        >
+                          {showColorUrlInput ? 'Switch to Direct Upload' : 'Paste Image URL instead'}
+                        </button>
                       </div>
 
-                      {/* Custom Price */}
-                      <div className="sm:col-span-3">
-                        <div className="relative">
-                          <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-500 text-xs font-bold">৳</span>
+                      <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-center">
+                        {/* Color Swatch & Name */}
+                        <div className="sm:col-span-4 flex items-center gap-2">
+                          <input
+                            type="color"
+                            value={formData.newColorHex}
+                            onChange={(e) => setFormData({ ...formData, newColorHex: e.target.value })}
+                            className="w-9 h-9 bg-transparent border-0 rounded-xl cursor-pointer shrink-0"
+                            title="Choose Color Swatch"
+                          />
+                          <input
+                            type="text"
+                            placeholder="Color Name (e.g. Pink, Red)"
+                            value={formData.newColorName}
+                            onChange={(e) => setFormData({ ...formData, newColorName: e.target.value })}
+                            className="w-full bg-gray-950 border border-gray-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-rose-500 font-bold"
+                          />
+                        </div>
+
+                        {/* Price Override */}
+                        <div className="sm:col-span-3">
+                          <div className="relative">
+                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs font-bold">৳</span>
+                            <input
+                              type="number"
+                              placeholder={`Price (ডিফল্ট: ৳${formData.price || '0'})`}
+                              value={formData.newColorPrice}
+                              onChange={(e) => setFormData({ ...formData, newColorPrice: e.target.value })}
+                              className="w-full bg-gray-950 border border-gray-700 rounded-xl pl-7 pr-3 py-2 text-xs text-white focus:outline-none focus:border-rose-500"
+                              title="Leave blank to use base product price"
+                            />
+                          </div>
+                        </div>
+
+                        {/* Stock Count */}
+                        <div className="sm:col-span-2">
                           <input
                             type="number"
-                            placeholder={`Price (Default: ৳${formData.price || '0'})`}
-                            value={formData.newColorPrice}
-                            onChange={(e) => setFormData({ ...formData, newColorPrice: e.target.value })}
-                            className="w-full bg-gray-950 border border-gray-700 rounded-lg pl-6 pr-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-rose-500"
+                            placeholder="Stock (opt)"
+                            value={formData.newColorStock}
+                            onChange={(e) => setFormData({ ...formData, newColorStock: e.target.value })}
+                            className="w-full bg-gray-950 border border-gray-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-rose-500 text-center"
                           />
+                        </div>
+
+                        {/* Add Button */}
+                        <div className="sm:col-span-3">
+                          <button
+                            type="button"
+                            onClick={handleAddColor}
+                            className="w-full py-2 px-4 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-xs font-bold transition shadow-md shadow-rose-600/20 flex items-center justify-center gap-1.5 cursor-pointer active:scale-95"
+                          >
+                            <Plus className="w-4 h-4" />
+                            <span>কালার যোগ করুন</span>
+                          </button>
                         </div>
                       </div>
 
-                      {/* Specific Variant Image URL */}
-                      <div className="sm:col-span-3">
-                        <input
-                          type="url"
-                          placeholder="Image URL (Optional)"
-                          value={formData.newColorImage}
-                          onChange={(e) => setFormData({ ...formData, newColorImage: e.target.value })}
-                          className="w-full bg-gray-950 border border-gray-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-rose-500"
-                        />
+                      {/* Image Attachment Area for This Color */}
+                      <div className="p-3 bg-gray-950/80 rounded-xl border border-gray-800 space-y-2">
+                        <span className="text-[11px] font-bold text-gray-300 block">
+                          এই কালারের ছবি (Specific Photo for {formData.newColorName || 'this color'}):
+                        </span>
+
+                        {showColorUrlInput ? (
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="url"
+                              placeholder="https://... image URL"
+                              value={formData.newColorImage}
+                              onChange={(e) => setFormData({ ...formData, newColorImage: e.target.value })}
+                              className="flex-1 bg-gray-900 border border-gray-700 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:border-rose-500"
+                            />
+                            {formData.newColorImage && (
+                              <button
+                                type="button"
+                                onClick={() => setFormData({ ...formData, newColorImage: '' })}
+                                className="p-1.5 text-gray-400 hover:text-rose-400"
+                              >
+                                <X className="w-4 h-4" />
+                              </button>
+                            )}
+                          </div>
+                        ) : (
+                          <div className="flex flex-wrap items-center gap-2.5">
+                            {/* Hidden file input */}
+                            <input
+                              ref={colorFileInputRef}
+                              type="file"
+                              accept="image/*"
+                              onChange={handleColorFileChange}
+                              className="hidden"
+                            />
+
+                            {/* Direct device upload button */}
+                            <button
+                              type="button"
+                              disabled={isColorImageUploading}
+                              onClick={() => colorFileInputRef.current?.click()}
+                              className="px-3.5 py-2 bg-gray-900 hover:bg-gray-800 text-gray-200 hover:text-white border border-gray-700 hover:border-rose-500 rounded-xl text-xs font-bold transition flex items-center gap-2 cursor-pointer shadow-xs"
+                            >
+                              {isColorImageUploading ? (
+                                <>
+                                  <Loader2 className="w-3.5 h-3.5 animate-spin text-rose-400" />
+                                  <span>ছবি আপলোড হচ্ছে...</span>
+                                </>
+                              ) : (
+                                <>
+                                  <UploadCloud className="w-3.5 h-3.5 text-rose-400" />
+                                  <span>📷 Device থেকে ছবি আপলোড করুন</span>
+                                </>
+                              )}
+                            </button>
+
+                            {/* Quick Assign from Gallery Photos if uploaded */}
+                            {[formData.imageUrl1, formData.imageUrl2, formData.imageUrl3, formData.imageUrl4].filter(Boolean).length > 0 && (
+                              <div className="flex items-center gap-1.5 flex-wrap">
+                                <span className="text-[10px] text-gray-400 font-bold">অথবা গ্যালারি থেকে সিলেক্ট করুন:</span>
+                                {[
+                                  { label: 'Photo 1', url: formData.imageUrl1 },
+                                  { label: 'Photo 2', url: formData.imageUrl2 },
+                                  { label: 'Photo 3', url: formData.imageUrl3 },
+                                  { label: 'Photo 4', url: formData.imageUrl4 },
+                                ].filter((p) => Boolean(p.url)).map((photo, pIdx) => {
+                                  const isChosen = formData.newColorImage === photo.url;
+                                  return (
+                                    <button
+                                      key={pIdx}
+                                      type="button"
+                                      onClick={() => setFormData({ ...formData, newColorImage: photo.url })}
+                                      className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold border transition cursor-pointer ${
+                                        isChosen
+                                          ? 'bg-rose-500/20 text-rose-300 border-rose-500 ring-1 ring-rose-500/30'
+                                          : 'bg-gray-900 text-gray-400 border-gray-700 hover:text-white'
+                                      }`}
+                                    >
+                                      <img src={photo.url} alt="" className="w-4 h-4 rounded object-cover" />
+                                      <span>{photo.label}</span>
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            )}
+
+                            {/* Attached preview */}
+                            {formData.newColorImage && (
+                              <div className="flex items-center gap-2 bg-gray-900 px-2.5 py-1 rounded-xl border border-emerald-500/40">
+                                <img src={formData.newColorImage} alt="Color Preview" className="w-7 h-7 rounded-lg object-cover" />
+                                <span className="text-[10px] text-emerald-400 font-bold">✓ ছবি সিলেক্টেড</span>
+                                <button
+                                  type="button"
+                                  onClick={() => setFormData({ ...formData, newColorImage: '' })}
+                                  className="text-gray-400 hover:text-rose-400 ml-1 cursor-pointer"
+                                  title="Remove"
+                                >
+                                  <X className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Configured Colors Grid */}
+                    <div className="space-y-2 pt-1">
+                      <span className="text-xs font-bold text-gray-300 block">
+                        যুক্ত করা কালার ভ্যারিয়েন্ট ({formData.colors.length} টি):
+                      </span>
+
+                      {formData.colors.length > 0 ? (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                          {formData.colors.map((c, idx) => {
+                            const hasCustomPrice = typeof c.price === 'number' && c.price > 0;
+                            const galleryPhotos = [
+                              { label: 'Photo 1', url: formData.imageUrl1 },
+                              { label: 'Photo 2', url: formData.imageUrl2 },
+                              { label: 'Photo 3', url: formData.imageUrl3 },
+                              { label: 'Photo 4', url: formData.imageUrl4 },
+                            ].filter((p) => Boolean(p.url));
+
+                            return (
+                              <div
+                                key={idx}
+                                className="bg-gray-900 p-3.5 rounded-2xl border border-gray-700 hover:border-gray-600 transition flex flex-col justify-between gap-3 shadow-xs"
+                              >
+                                {/* Top row: Color swatch + Name + Delete button */}
+                                <div className="flex items-center justify-between gap-2">
+                                  <div className="flex items-center gap-2 min-w-0">
+                                    <span
+                                      className="w-5 h-5 rounded-full border border-white/40 shadow-xs shrink-0"
+                                      style={{ backgroundColor: c.hex }}
+                                    />
+                                    <span className="text-xs font-extrabold text-white truncate">{c.name}</span>
+                                  </div>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleRemoveColor(idx)}
+                                    className="p-1 text-gray-500 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition cursor-pointer"
+                                    title="Delete color"
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
+
+                                {/* Middle: Image Thumbnail & Direct Device Upload / Gallery Selection */}
+                                <div className="flex items-center gap-2.5 bg-gray-950 p-2.5 rounded-xl border border-gray-800">
+                                  {c.image ? (
+                                    <div className="relative w-12 h-12 rounded-lg overflow-hidden border border-gray-700 shrink-0 group">
+                                      <img src={c.image} alt={c.name} className="w-full h-full object-cover" />
+                                      <button
+                                        type="button"
+                                        onClick={() => handleRemoveCardColorImage(idx)}
+                                        className="absolute inset-0 bg-black/70 text-rose-400 opacity-0 group-hover:opacity-100 flex items-center justify-center transition cursor-pointer"
+                                        title="Remove photo"
+                                      >
+                                        <X className="w-4 h-4" />
+                                      </button>
+                                    </div>
+                                  ) : (
+                                    <div className="w-12 h-12 rounded-lg border border-dashed border-gray-700 flex items-center justify-center shrink-0 text-gray-500">
+                                      <ImageIcon className="w-5 h-5 opacity-40" />
+                                    </div>
+                                  )}
+
+                                  <div className="flex-1 min-w-0 space-y-1.5">
+                                    <label className="inline-flex items-center gap-1.5 text-[10px] text-gray-200 hover:text-white font-bold bg-gray-900 hover:bg-gray-800 px-2.5 py-1 rounded-lg border border-gray-700 cursor-pointer">
+                                      <UploadCloud className="w-3 h-3 text-rose-400" />
+                                      <span>{c.image ? 'ছবি পরিবর্তন' : 'Device থেকে আপলোড'}</span>
+                                      <input
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={(e) => {
+                                          const f = e.target.files?.[0];
+                                          if (f) handleUpdateCardColorImage(idx, f);
+                                        }}
+                                        className="hidden"
+                                      />
+                                    </label>
+
+                                    {galleryPhotos.length > 0 && (
+                                      <div className="flex items-center gap-1 overflow-x-auto no-scrollbar">
+                                        <span className="text-[9px] text-gray-400">গ্যালারি:</span>
+                                        {galleryPhotos.map((gp, gIdx) => (
+                                          <button
+                                            key={gIdx}
+                                            type="button"
+                                            onClick={() => handleAssignGalleryPhoto(idx, gp.url)}
+                                            className={`text-[9px] px-1.5 py-0.5 rounded border transition cursor-pointer ${
+                                              c.image === gp.url
+                                                ? 'bg-rose-500/20 text-rose-300 border-rose-500'
+                                                : 'text-gray-400 hover:text-white bg-gray-900 border-gray-800 hover:border-rose-500'
+                                            }`}
+                                            title={`Assign ${gp.label}`}
+                                          >
+                                            P{gIdx + 1}
+                                          </button>
+                                        ))}
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+
+                                {/* Bottom row: Price configuration */}
+                                <div className="flex items-center justify-between gap-2 pt-1 border-t border-gray-800/80">
+                                  <span className="text-[10px] text-gray-400">
+                                    {hasCustomPrice ? (
+                                      <span className="text-emerald-400 font-bold">কাস্টম প্রাইস</span>
+                                    ) : (
+                                      <span>মূল প্রাইস (৳{formData.price || '0'})</span>
+                                    )}
+                                  </span>
+
+                                  <div className="flex items-center gap-1 bg-gray-950 border border-gray-700 px-2 py-0.5 rounded-lg">
+                                    <span className="text-[10px] text-gray-400 font-bold">৳</span>
+                                    <input
+                                      type="number"
+                                      placeholder={formData.price || '0'}
+                                      value={c.price !== undefined && c.price !== null ? c.price : ''}
+                                      onChange={(e) => handleUpdateColorPrice(idx, e.target.value)}
+                                      className="w-16 bg-transparent text-xs font-black text-emerald-400 focus:outline-none text-right"
+                                      title="Change price for this color"
+                                    />
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <div className="p-4 bg-gray-900/40 rounded-xl border border-dashed border-gray-800 text-center space-y-1">
+                          <p className="text-xs text-gray-400">এখনো কোনো কালার অপশন যোগ করা হয়নি।</p>
+                          <p className="text-[11px] text-gray-500">উপরের ১-ক্লিক প্রিসেট বাটনে ক্লিক করুন অথবা নাম লিখে যোগ করুন।</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Section 3: Sizes & Capacities */}
+                  <div className="space-y-4 bg-gray-950/60 p-5 rounded-2xl border border-purple-500/30 shadow-xs">
+                    <h4 className="text-xs font-black uppercase tracking-wider text-purple-400 flex items-center gap-1.5">
+                      <Layers className="w-4 h-4" /> Available Sizes / Capacities (সাইজ ও পরিমাপ)
+                    </h4>
+
+                    <div>
+                      <label className="block text-xs font-bold text-gray-300 mb-1.5">
+                        নির্বাচিত সাইজসমূহ ({formData.selectedSizes.length} Selected):
+                      </label>
+
+                      {/* Active Selected Sizes with Remove (X) */}
+                      {formData.selectedSizes.length > 0 && (
+                        <div className="flex flex-wrap gap-1.5 mb-3 p-2.5 bg-gray-900/90 rounded-xl border border-emerald-500/30">
+                          {formData.selectedSizes.map((size) => (
+                            <span
+                              key={size}
+                              className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-600 text-white rounded-lg text-xs font-bold shadow-sm"
+                            >
+                              <span>{size}</span>
+                              <button
+                                type="button"
+                                onClick={() => handleToggleSize(size)}
+                                className="hover:text-rose-200 transition cursor-pointer"
+                                title="Remove size"
+                              >
+                                <X className="w-3.5 h-3.5" />
+                              </button>
+                            </span>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Quick Popular Size Chips */}
+                      <div className="space-y-1.5 mb-3">
+                        <span className="text-[10px] uppercase font-bold text-gray-400">Quick Popular Presets:</span>
+                        <div className="flex flex-wrap gap-1.5">
+                          {POPULAR_SIZES.map((size) => {
+                            const isSelected = formData.selectedSizes.includes(size);
+                            return (
+                              <button
+                                type="button"
+                                key={size}
+                                onClick={() => handleToggleSize(size)}
+                                className={`px-2.5 py-1 rounded-lg text-xs font-bold transition cursor-pointer ${
+                                  isSelected
+                                    ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
+                                    : 'bg-gray-900 text-gray-400 border border-gray-700 hover:text-white hover:border-gray-500'
+                                }`}
+                              >
+                                {isSelected ? `✓ ${size}` : `+ ${size}`}
+                              </button>
+                            );
+                          })}
+                        </div>
                       </div>
 
-                      {/* Add Button */}
-                      <div className="sm:col-span-2">
+                      {/* Custom Size Input with Enter key support */}
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          placeholder="Type custom size (e.g. 2TB, 250ml, 42, XXL, 10kg)..."
+                          value={formData.customSizeInput}
+                          onChange={(e) => setFormData({ ...formData, customSizeInput: e.target.value })}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault();
+                              handleAddCustomSize();
+                            }
+                          }}
+                          className="flex-1 bg-gray-900 border border-gray-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500"
+                        />
                         <button
                           type="button"
-                          onClick={handleAddColor}
-                          className="w-full py-1.5 px-3 bg-rose-600 hover:bg-rose-500 text-white rounded-lg text-xs font-bold transition flex items-center justify-center gap-1 cursor-pointer"
+                          onClick={handleAddCustomSize}
+                          className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition shadow-md flex items-center gap-1 cursor-pointer"
                         >
-                          <Plus className="w-3.5 h-3.5" />
-                          <span>Add Option</span>
+                          <Plus className="w-4 h-4" />
+                          <span>Add Size</span>
                         </button>
                       </div>
                     </div>
                   </div>
-
-                  {/* List of Configured Color Options */}
-                  {formData.colors.length > 0 ? (
-                    <div className="space-y-2">
-                      <span className="text-[11px] font-bold text-gray-400 block">
-                        Configured Colors ({formData.colors.length}):
-                      </span>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                        {formData.colors.map((c, idx) => (
-                          <div
-                            key={idx}
-                            className="flex items-center justify-between gap-2 p-2.5 bg-gray-900/90 border border-gray-700 rounded-xl hover:border-gray-600 transition"
-                          >
-                            <div className="flex items-center gap-2.5 min-w-0">
-                              <span
-                                className="w-5 h-5 rounded-full border border-white/40 shadow-xs shrink-0"
-                                style={{ backgroundColor: c.hex }}
-                              />
-                              <div className="min-w-0">
-                                <span className="text-xs font-bold text-white block truncate">{c.name}</span>
-                                {c.image && (
-                                  <span className="text-[10px] text-emerald-400 flex items-center gap-0.5 truncate">
-                                    <ImageIcon className="w-2.5 h-2.5 shrink-0" /> Image attached
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-
-                            <div className="flex items-center gap-2 shrink-0">
-                              {/* Option Price Tag / Inline Price Editor */}
-                              <div className="flex items-center gap-1 bg-gray-950 border border-gray-700 px-2 py-1 rounded-lg">
-                                <span className="text-[10px] text-gray-400 font-bold">৳</span>
-                                <input
-                                  type="number"
-                                  placeholder={formData.price || '0'}
-                                  value={c.price !== undefined && c.price !== null ? c.price : ''}
-                                  onChange={(e) => handleUpdateColorPrice(idx, e.target.value)}
-                                  className="w-16 bg-transparent text-xs font-bold text-emerald-400 focus:outline-none text-right"
-                                  title="Change price for this color option"
-                                />
-                              </div>
-
-                              <button
-                                type="button"
-                                onClick={() => handleRemoveColor(idx)}
-                                className="p-1.5 text-gray-500 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition cursor-pointer"
-                                title="Remove color option"
-                              >
-                                <Trash2 className="w-3.5 h-3.5" />
-                              </button>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  ) : (
-                    <p className="text-xs text-gray-500 italic py-1">
-                      No color options configured yet. Use the presets above or enter a color to add.
-                    </p>
-                  )}
 
                   {/* Section: Custom Non-Color Attributes (Size, Material, Edition) */}
                   <div className="pt-4 border-t border-gray-800 space-y-3">
@@ -1738,8 +2004,6 @@ export const AdminProducts: React.FC = () => {
                       </div>
                     )}
                   </div>
-                </div>
-              </div>
                 </div>
               )}
 
