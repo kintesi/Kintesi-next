@@ -42,9 +42,9 @@ import { toast } from 'sonner';
 import { ImageUploader } from '../../components/common/ImageUploader';
 import { CategoryTagExplorer } from '../../components/admin/CategoryTagExplorer';
 
-const POPULAR_SIZES = ['S', 'M', 'L', 'XL', 'XXL', '64GB', '128GB', '256GB', '512GB', '1TB', '500g', '1kg', '5L'];
+const DEFAULT_POPULAR_SIZES = ['S', 'M', 'L', 'XL', 'XXL', '64GB', '128GB', '256GB', '512GB', '1TB', '500g', '1kg', '5L'];
 
-const POPULAR_COLOR_PRESETS = [
+const DEFAULT_COLOR_PRESETS = [
   { name: 'Pink', hex: '#EC4899' },
   { name: 'Red', hex: '#EF4444' },
   { name: 'Yellow', hex: '#EAB308' },
@@ -200,6 +200,72 @@ export const AdminProducts: React.FC = () => {
     specVal3: '',
     tags: '',
   });
+  // Dynamic Color Presets (add/delete persisted in localStorage)
+  const [colorPresets, setColorPresets] = useState<{ name: string; hex: string }[]>(() => {
+    try {
+      const saved = localStorage.getItem('kintesi_color_presets');
+      if (saved) return JSON.parse(saved);
+    } catch (e) {}
+    return DEFAULT_COLOR_PRESETS;
+  });
+  const [newPresetColorName, setNewPresetColorName] = useState('');
+  const [newPresetColorHex, setNewPresetColorHex] = useState('#EC4899');
+  const [isAddingColorPreset, setIsAddingColorPreset] = useState(false);
+
+  const handleSaveColorPreset = () => {
+    const name = newPresetColorName.trim();
+    if (!name) return;
+    if (colorPresets.some((p) => p.name.toLowerCase() === name.toLowerCase())) {
+      toast.error('A preset with this color name already exists');
+      return;
+    }
+    const updated = [...colorPresets, { name, hex: newPresetColorHex }];
+    setColorPresets(updated);
+    localStorage.setItem('kintesi_color_presets', JSON.stringify(updated));
+    setNewPresetColorName('');
+    setIsAddingColorPreset(false);
+    toast.success(`Color preset "${name}" added`);
+  };
+
+  const handleDeleteColorPreset = (nameToDelete: string) => {
+    const updated = colorPresets.filter((p) => p.name !== nameToDelete);
+    setColorPresets(updated);
+    localStorage.setItem('kintesi_color_presets', JSON.stringify(updated));
+    toast.success(`Color preset "${nameToDelete}" deleted`);
+  };
+
+  // Dynamic Size Presets (add/delete persisted in localStorage)
+  const [sizePresets, setSizePresets] = useState<string[]>(() => {
+    try {
+      const saved = localStorage.getItem('kintesi_size_presets');
+      if (saved) return JSON.parse(saved);
+    } catch (e) {}
+    return DEFAULT_POPULAR_SIZES;
+  });
+  const [newPresetSizeInput, setNewPresetSizeInput] = useState('');
+  const [isAddingSizePreset, setIsAddingSizePreset] = useState(false);
+
+  const handleSaveSizePreset = () => {
+    const size = newPresetSizeInput.trim();
+    if (!size) return;
+    if (sizePresets.some((s) => s.toLowerCase() === size.toLowerCase())) {
+      toast.error('This size preset already exists');
+      return;
+    }
+    const updated = [...sizePresets, size];
+    setSizePresets(updated);
+    localStorage.setItem('kintesi_size_presets', JSON.stringify(updated));
+    setNewPresetSizeInput('');
+    setIsAddingSizePreset(false);
+    toast.success(`Size preset "${size}" added`);
+  };
+
+  const handleDeleteSizePreset = (sizeToDelete: string) => {
+    const updated = sizePresets.filter((s) => s !== sizeToDelete);
+    setSizePresets(updated);
+    localStorage.setItem('kintesi_size_presets', JSON.stringify(updated));
+    toast.success(`Size preset "${sizeToDelete}" deleted`);
+  };
   const currentSpecMode = specMode === 'auto' ? getCategorySpecMode(formData.category_id) : specMode;
 
   const loadProducts = async () => {
@@ -1820,19 +1886,89 @@ export const AdminProducts: React.FC = () => {
                         </button>
                       </div>
 
-                      {/* Quick Color Preset Chips */}
-                      <div className="flex flex-wrap gap-1.5 pt-1 border-t border-gray-800/80">
-                        {POPULAR_COLOR_PRESETS.map((preset) => (
+                      {/* Quick Color Preset Chips with Add & Delete */}
+                      <div className="flex flex-wrap items-center gap-1.5 pt-1 border-t border-gray-800/80">
+                        {colorPresets.map((preset) => (
+                          <div
+                            key={preset.name}
+                            className="group inline-flex items-center bg-gray-900 hover:bg-gray-800 text-gray-300 hover:text-white border border-gray-700 hover:border-rose-500/60 rounded-xl text-xs font-bold transition overflow-hidden"
+                          >
+                            <button
+                              type="button"
+                              onClick={() => handleAddColorVariant(preset.name, preset.hex)}
+                              className="px-2.5 py-1.5 flex items-center gap-1.5 cursor-pointer"
+                              title={`Add ${preset.name} variant`}
+                            >
+                              <span className="w-3 h-3 rounded-full border border-black/30 shrink-0" style={{ backgroundColor: preset.hex }} />
+                              <span>+ {preset.name}</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteColorPreset(preset.name);
+                              }}
+                              className="px-1.5 py-1.5 text-gray-500 hover:text-rose-400 hover:bg-rose-500/10 border-l border-gray-800 transition cursor-pointer"
+                              title={`Delete ${preset.name} preset`}
+                            >
+                              <X className="w-3 h-3" />
+                            </button>
+                          </div>
+                        ))}
+
+                        {/* Inline Add Preset */}
+                        {!isAddingColorPreset ? (
                           <button
                             type="button"
-                            key={preset.name}
-                            onClick={() => handleAddColorVariant(preset.name, preset.hex)}
-                            className="px-3 py-1.5 bg-gray-900 hover:bg-gray-800 text-gray-300 hover:text-white border border-gray-700 hover:border-rose-500 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
+                            onClick={() => setIsAddingColorPreset(true)}
+                            className="px-2.5 py-1.5 bg-gray-900/80 hover:bg-gray-800 text-gray-400 hover:text-emerald-400 border border-dashed border-gray-700 hover:border-emerald-500/50 rounded-xl text-xs font-bold transition flex items-center gap-1 cursor-pointer"
+                            title="Add new reusable color preset"
                           >
-                            <span className="w-3 h-3 rounded-full border border-black/20" style={{ backgroundColor: preset.hex }} />
-                            <span>+ {preset.name}</span>
+                            <Plus className="w-3.5 h-3.5" />
+                            <span>Add Preset</span>
                           </button>
-                        ))}
+                        ) : (
+                          <div className="inline-flex items-center gap-1.5 bg-gray-900 p-1 rounded-xl border border-emerald-500/50">
+                            <input
+                              type="color"
+                              value={newPresetColorHex}
+                              onChange={(e) => setNewPresetColorHex(e.target.value)}
+                              className="w-6 h-6 rounded-lg cursor-pointer bg-transparent border-0 p-0 shrink-0"
+                              title="Select preset color"
+                            />
+                            <input
+                              type="text"
+                              placeholder="Color name..."
+                              value={newPresetColorName}
+                              onChange={(e) => setNewPresetColorName(e.target.value)}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                  e.preventDefault();
+                                  handleSaveColorPreset();
+                                }
+                              }}
+                              className="bg-gray-950 border border-gray-700 rounded-lg px-2 py-1 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-emerald-500 w-24 font-bold"
+                              autoFocus
+                            />
+                            <button
+                              type="button"
+                              onClick={handleSaveColorPreset}
+                              className="px-2 py-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-bold transition cursor-pointer"
+                            >
+                              Save
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setIsAddingColorPreset(false);
+                                setNewPresetColorName('');
+                              }}
+                              className="p-1 text-gray-400 hover:text-white transition cursor-pointer"
+                            >
+                              <X className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -1870,27 +2006,90 @@ export const AdminProducts: React.FC = () => {
                         </div>
                       )}
 
-                      {/* Quick Popular Size Chips */}
+                      {/* Quick Popular Size Chips with Add & Delete */}
                       <div className="space-y-1.5 mb-3">
                         <span className="text-[10px] uppercase font-bold text-gray-400">Quick Popular Presets:</span>
-                        <div className="flex flex-wrap gap-1.5">
-                          {POPULAR_SIZES.map((size) => {
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          {sizePresets.map((size) => {
                             const isSelected = formData.selectedSizes.includes(size);
                             return (
-                              <button
-                                type="button"
+                              <div
                                 key={size}
-                                onClick={() => handleToggleSize(size)}
-                                className={`px-2.5 py-1 rounded-lg text-xs font-bold transition cursor-pointer ${
+                                className={`group inline-flex items-center rounded-lg text-xs font-bold transition overflow-hidden ${
                                   isSelected
                                     ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
                                     : 'bg-gray-900 text-gray-400 border border-gray-700 hover:text-white hover:border-gray-500'
                                 }`}
                               >
-                                {isSelected ? `✓ ${size}` : `+ ${size}`}
-                              </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleToggleSize(size)}
+                                  className="px-2.5 py-1 cursor-pointer"
+                                  title={isSelected ? `Remove ${size} from product` : `Select ${size}`}
+                                >
+                                  {isSelected ? `✓ ${size}` : `+ ${size}`}
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleDeleteSizePreset(size);
+                                  }}
+                                  className="px-1.5 py-1 text-gray-500 hover:text-rose-400 hover:bg-rose-500/10 border-l border-gray-800 transition cursor-pointer"
+                                  title={`Delete "${size}" preset`}
+                                >
+                                  <X className="w-3 h-3" />
+                                </button>
+                              </div>
                             );
                           })}
+
+                          {/* Inline Add Size Preset */}
+                          {!isAddingSizePreset ? (
+                            <button
+                              type="button"
+                              onClick={() => setIsAddingSizePreset(true)}
+                              className="px-2 py-1 bg-gray-900/80 hover:bg-gray-800 text-gray-400 hover:text-emerald-400 border border-dashed border-gray-700 hover:border-emerald-500/50 rounded-lg text-xs font-bold transition flex items-center gap-1 cursor-pointer"
+                              title="Add new reusable size preset"
+                            >
+                              <Plus className="w-3.5 h-3.5" />
+                              <span>Add Preset</span>
+                            </button>
+                          ) : (
+                            <div className="inline-flex items-center gap-1 bg-gray-900 p-0.5 rounded-lg border border-emerald-500/50">
+                              <input
+                                type="text"
+                                placeholder="New size..."
+                                value={newPresetSizeInput}
+                                onChange={(e) => setNewPresetSizeInput(e.target.value)}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter') {
+                                    e.preventDefault();
+                                    handleSaveSizePreset();
+                                  }
+                                }}
+                                className="bg-gray-950 border border-gray-700 rounded px-2 py-0.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-emerald-500 w-20 font-bold"
+                                autoFocus
+                              />
+                              <button
+                                type="button"
+                                onClick={handleSaveSizePreset}
+                                className="px-2 py-0.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded text-xs font-bold transition cursor-pointer"
+                              >
+                                Save
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setIsAddingSizePreset(false);
+                                  setNewPresetSizeInput('');
+                                }}
+                                className="p-1 text-gray-400 hover:text-white transition cursor-pointer"
+                              >
+                                <X className="w-3 h-3" />
+                              </button>
+                            </div>
+                          )}
                         </div>
                       </div>
 
@@ -2058,10 +2257,10 @@ export const AdminProducts: React.FC = () => {
                     {currentSpecMode === 'groceries' && <Sparkles className="w-4 h-4 text-emerald-400" />}
                     {currentSpecMode === 'none' && <Ban className="w-4 h-4 text-gray-400" />}
                     <h4 className="text-xs font-black uppercase tracking-wider text-white">
-                      {currentSpecMode === 'gadgets' && '⚡ Device, Hardware & Tech Specs (গ্যাজেট ও টেকনিক্যাল বিবরণ)'}
-                      {currentSpecMode === 'fashion' && '👕 Fabric, Materials & Technical Specs (কাপড় ও ম্যাটেরিয়াল বিবরণ)'}
-                      {currentSpecMode === 'groceries' && '🌿 Food, Nutrition & Storage Specs (খাদ্য ও উপাদান বিবরণ)'}
-                      {currentSpecMode === 'none' && '🚫 Specifications Disabled (স্পেসিফিকেশন বন্ধ)'}
+                      {currentSpecMode === 'gadgets' && '⚡ Device, Hardware & Tech Specs'}
+                      {currentSpecMode === 'fashion' && '👕 Fabric, Materials & Technical Specs'}
+                      {currentSpecMode === 'groceries' && '🌿 Food, Nutrition & Storage Specs'}
+                      {currentSpecMode === 'none' && '🚫 Specifications Disabled'}
                     </h4>
                   </div>
 
@@ -2172,7 +2371,7 @@ export const AdminProducts: React.FC = () => {
                       {/* Official Warranty */}
                       <div>
                         <label className="block text-xs font-bold text-gray-300 mb-1">
-                          Official Warranty (ওয়ারেন্টি সময়সীমা)
+                          Official Warranty
                         </label>
                         <input
                           type="text"
@@ -2198,7 +2397,7 @@ export const AdminProducts: React.FC = () => {
                       {/* Origin / Variant */}
                       <div>
                         <label className="block text-xs font-bold text-gray-300 mb-1">
-                          Edition / Origin (ভার্সন / উৎপাদন)
+                          Edition / Origin
                         </label>
                         <input
                           type="text"
@@ -2224,7 +2423,7 @@ export const AdminProducts: React.FC = () => {
                       {/* Build / Body Material */}
                       <div>
                         <label className="block text-xs font-bold text-gray-300 mb-1">
-                          Build & Protection (বডি ও স্থায়িত্ব)
+                          Build & Protection
                         </label>
                         <input
                           type="text"
@@ -2348,7 +2547,7 @@ export const AdminProducts: React.FC = () => {
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                       {/* Fabric / Material */}
                       <div>
-                        <label className="block text-xs font-bold text-gray-300 mb-1">Fabric / Material (কাপড়/উপাদান)</label>
+                        <label className="block text-xs font-bold text-gray-300 mb-1">Fabric / Material</label>
                         <input
                           type="text"
                           placeholder="e.g. 100% Combed Cotton / Silk / Leather"
@@ -2372,7 +2571,7 @@ export const AdminProducts: React.FC = () => {
 
                       {/* Fit Type */}
                       <div>
-                        <label className="block text-xs font-bold text-gray-300 mb-1">Fit / Cut Type (ফিটিং টাইপ)</label>
+                        <label className="block text-xs font-bold text-gray-300 mb-1">Fit / Cut Type</label>
                         <input
                           type="text"
                           placeholder="e.g. Regular Fit, Slim Fit, Oversized"
@@ -2506,7 +2705,7 @@ export const AdminProducts: React.FC = () => {
                       {/* Net Weight / Volume */}
                       <div>
                         <label className="block text-xs font-bold text-gray-300 mb-1">
-                          Net Weight / Volume (ওজন / পরিমাণ)
+                          Net Weight / Volume
                         </label>
                         <input
                           type="text"
