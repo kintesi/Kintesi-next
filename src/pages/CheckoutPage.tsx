@@ -34,6 +34,7 @@ import { BkashLogo, NagadLogo, RocketLogo, VisaLogo, MastercardLogo } from '../c
 import { AuthModal } from '../components/auth/AuthModal';
 import { toast } from 'sonner';
 import { BD_DISTRICTS, getThanasByDistrict } from '../data/bangladeshDistricts';
+import { useLanguage } from '../contexts/LanguageContext';
 
 export const CheckoutPage: React.FC = () => {
   const { cart, subtotal, discountAmount, shippingFee, total, appliedCoupon, clearCart } = useCart();
@@ -41,6 +42,7 @@ export const CheckoutPage: React.FC = () => {
   const { addresses, defaultAddress, addAddress } = useAddress();
   const { settings } = useSettings();
   const { recordCouponUsage } = useCoupons();
+  const { language, t } = useLanguage();
   const navigate = useNavigate();
 
   const [selectedAddressId, setSelectedAddressId] = useState<string>('');
@@ -128,9 +130,13 @@ export const CheckoutPage: React.FC = () => {
           <Lock className="w-10 h-10" />
         </div>
         <div className="space-y-2">
-          <h2 className="text-2xl font-black text-gray-900">Account Required for Checkout</h2>
+          <h2 className="text-2xl font-black text-gray-900">
+            {language === 'bn' ? 'অর্ডার করতে সাইন ইন করুন' : 'Account Required for Checkout'}
+          </h2>
           <p className="text-sm text-gray-500 max-w-md mx-auto leading-relaxed">
-            অর্ডার নিশ্চিত করতে ও চেকআউট সম্পন্ন করতে অনুগ্রহ করে আপনার Kintesi অ্যাকাউন্টে লগইন করুন বা সাইন আপ করুন।
+            {language === 'bn'
+              ? 'অর্ডার নিশ্চিত করতে ও চেকআউট সম্পন্ন করতে অনুগ্রহ করে আপনার Kintesi অ্যাকাউন্টে লগইন করুন।'
+              : 'Please sign in to your Kintesi account to proceed with checkout and confirm your order.'}
           </p>
         </div>
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
@@ -138,13 +144,13 @@ export const CheckoutPage: React.FC = () => {
             onClick={() => setIsAuthOpen(true)}
             className="w-full sm:w-auto px-7 py-3.5 bg-rose-600 hover:bg-rose-700 text-white font-black rounded-xl text-xs transition shadow-lg shadow-rose-600/25 active:scale-95 cursor-pointer"
           >
-            লগইন / রেজিস্টার করুন (Sign In / Register)
+            {t('profile.signInBtn')}
           </button>
           <Link
             to="/shop"
             className="w-full sm:w-auto px-6 py-3.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-xl text-xs transition"
           >
-            Continue Shopping
+            {t('cart.continue')}
           </Link>
         </div>
         <AuthModal isOpen={isAuthOpen} onClose={() => setIsAuthOpen(false)} />

@@ -18,6 +18,8 @@ import {
   Crown,
   MapPin,
   Grid,
+  Globe,
+  Settings,
 } from 'lucide-react';
 import { INITIAL_PRODUCTS, INITIAL_CATEGORIES } from '../../data/mockData';
 import { formatPrice } from '../../lib/utils';
@@ -25,12 +27,14 @@ import { matchesProductSearch, getAllLiveProducts } from '../../lib/searchUtils'
 import { Product } from '../../types';
 import { useSettings } from '../../contexts/SettingsContext';
 import { trackSearchQuery } from '../../lib/recommendationEngine';
+import { useLanguage } from '../../contexts/LanguageContext';
 
 export const Navbar: React.FC = () => {
   const { user, profile, isAdmin, isSuperAdmin, signOut } = useAuth();
   const { totalItemCount, setIsCartOpen, subtotal } = useCart();
   const { wishlist } = useWishlist();
   const { settings } = useSettings();
+  const { language, toggleLanguage, t } = useLanguage();
 
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [isDepartmentMenuOpen, setIsDepartmentMenuOpen] = useState(false);
@@ -189,6 +193,16 @@ export const Navbar: React.FC = () => {
               </Link>
 
               <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={toggleLanguage}
+                  className="px-2 py-0.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200/80 rounded-lg text-[10px] font-black flex items-center gap-1 active:scale-95 transition cursor-pointer"
+                  title={language === 'en' ? 'বাংলা সংস্করণ' : 'English Version'}
+                >
+                  <Globe className="w-2.5 h-2.5" />
+                  <span>{language === 'en' ? 'বাং' : 'EN'}</span>
+                </button>
+
                 <Link to="/wishlist" className="p-1.5 text-gray-600 relative">
                   <Heart className="w-5 h-5" />
                   {wishlist.length > 0 && (
@@ -210,7 +224,7 @@ export const Navbar: React.FC = () => {
               <div className="relative w-full">
                 <input
                   type="text"
-                  placeholder="Search products, brands, categories..."
+                  placeholder={t('nav.searchPlaceholder')}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full pl-8 pr-16 py-2 bg-gray-50/80 focus:bg-white border border-rose-100 focus:border-rose-500 rounded-full text-xs transition focus:outline-none focus:ring-2 focus:ring-rose-500/20"
@@ -220,7 +234,7 @@ export const Navbar: React.FC = () => {
                   type="submit"
                   className="absolute right-1 top-1/2 -translate-y-1/2 px-3 py-1 bg-rose-600 text-white rounded-full text-[11px] font-bold shadow-xs hover:bg-rose-700 transition"
                 >
-                  Search
+                  {language === 'bn' ? 'খুঁজুন' : 'Search'}
                 </button>
               </div>
             </form>
@@ -243,7 +257,7 @@ export const Navbar: React.FC = () => {
               <form onSubmit={handleSearchSubmit} className="w-full relative">
                 <input
                   type="text"
-                  placeholder="Search products, brands, essentials, electronics, fashion..."
+                  placeholder={t('nav.searchPlaceholder')}
                   value={searchQuery}
                   onChange={(e) => {
                     setSearchQuery(e.target.value);
@@ -257,7 +271,7 @@ export const Navbar: React.FC = () => {
                   type="submit"
                   className="absolute right-1 top-1/2 -translate-y-1/2 px-3.5 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-full text-xs font-bold transition shadow-xs"
                 >
-                  Search
+                  {language === 'bn' ? 'খুঁজুন' : 'Search'}
                 </button>
               </form>
 
@@ -291,12 +305,12 @@ export const Navbar: React.FC = () => {
                         onClick={() => setShowSearchResults(false)}
                         className="block p-2.5 text-center text-xs font-bold text-rose-600 hover:bg-rose-50 transition"
                       >
-                        View all results for "{searchQuery}"
+                        {language === 'bn' ? `"${searchQuery}" এর সব ফলাফল দেখুন` : `View all results for "${searchQuery}"`}
                       </Link>
                     </div>
                   ) : (
                     <div className="p-4 text-center text-xs text-gray-500">
-                      No products found matching "{searchQuery}"
+                      {language === 'bn' ? `"${searchQuery}" এর জন্য কোনো পণ্য পাওয়া যায়নি` : `No products found matching "${searchQuery}"`}
                     </div>
                   )}
                 </div>
@@ -304,13 +318,24 @@ export const Navbar: React.FC = () => {
             </div>
 
             {/* Right Action Icons & Profile */}
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2.5">
               
+              {/* Language Switcher Pill */}
+              <button
+                type="button"
+                onClick={toggleLanguage}
+                className="h-9 px-2.5 bg-gray-50 hover:bg-rose-50 border border-gray-200 hover:border-rose-200 text-gray-700 hover:text-rose-700 rounded-xl font-bold text-xs flex items-center gap-1.5 transition active:scale-95 cursor-pointer"
+                title={language === 'en' ? 'বাংলা ভাষায় দেখুন' : 'Switch to English'}
+              >
+                <Globe className="w-3.5 h-3.5 text-rose-600" />
+                <span>{language === 'en' ? 'বাংলা' : 'EN'}</span>
+              </button>
+
               {/* Wishlist */}
               <Link
                 to="/wishlist"
                 className="relative p-2 text-gray-600 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition"
-                title="Wishlist"
+                title={t('nav.wishlist')}
               >
                 <Heart className="w-5 h-5" />
                 {wishlist.length > 0 && (
@@ -330,7 +355,7 @@ export const Navbar: React.FC = () => {
                   setIsCartOpen(true);
                 }}
                 className="relative h-9 px-3.5 bg-gray-950 hover:bg-rose-600 text-white rounded-xl font-bold text-xs transition-all flex items-center gap-2 shadow-xs active:scale-95 cursor-pointer"
-                title={user ? 'Open Cart' : 'Login required to access cart'}
+                title={user ? t('cart.title') : t('product.loginRequired')}
               >
                 <div className="relative">
                   <ShoppingCart className="w-4 h-4" />
@@ -340,7 +365,7 @@ export const Navbar: React.FC = () => {
                     </span>
                   )}
                 </div>
-                <span>{subtotal > 0 ? formatPrice(subtotal) : 'Cart'}</span>
+                <span>{subtotal > 0 ? formatPrice(subtotal) : t('nav.cart')}</span>
               </button>
 
               {/* User Account / Profile */}
@@ -393,17 +418,26 @@ export const Navbar: React.FC = () => {
                           className="flex items-center gap-2 px-3 py-2 rounded-xl bg-rose-50 text-rose-700 font-bold text-xs hover:bg-rose-100 transition mb-1 border border-rose-200/50"
                         >
                           <ShieldAlert className="w-4 h-4 text-rose-600" />
-                          <span>Admin Control Panel</span>
+                          <span>{language === 'bn' ? 'অ্যাডমিন প্যানেল' : 'Admin Control Panel'}</span>
                         </Link>
                       )}
 
                       <Link
-                        to="/profile"
+                        to="/profile?tab=addresses"
                         onClick={() => setIsProfileDropdownOpen(false)}
                         className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium text-gray-700 hover:bg-rose-50/60 hover:text-rose-700 transition"
                       >
                         <MapPin className="w-4 h-4 text-rose-600" />
-                        <span>Address Book & Profile</span>
+                        <span>{language === 'bn' ? 'ঠিকানা ও প্রোফাইল' : 'Address Book & Profile'}</span>
+                      </Link>
+
+                      <Link
+                        to="/profile?tab=settings"
+                        onClick={() => setIsProfileDropdownOpen(false)}
+                        className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium text-gray-700 hover:bg-rose-50/60 hover:text-rose-700 transition"
+                      >
+                        <Settings className="w-4 h-4 text-gray-400" />
+                        <span>{t('profile.settings')}</span>
                       </Link>
 
                       <Link
@@ -412,7 +446,7 @@ export const Navbar: React.FC = () => {
                         className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium text-gray-700 hover:bg-rose-50/60 hover:text-rose-700 transition"
                       >
                         <Package className="w-4 h-4 text-gray-400" />
-                        <span>My Orders</span>
+                        <span>{t('profile.orders')}</span>
                       </Link>
 
                       <Link
@@ -421,7 +455,7 @@ export const Navbar: React.FC = () => {
                         className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium text-gray-700 hover:bg-rose-50/60 hover:text-rose-700 transition"
                       >
                         <Heart className="w-4 h-4 text-gray-400" />
-                        <span>Wishlist</span>
+                        <span>{t('nav.wishlist')}</span>
                       </Link>
 
                       <button
@@ -429,10 +463,10 @@ export const Navbar: React.FC = () => {
                           setIsProfileDropdownOpen(false);
                           signOut();
                         }}
-                        className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold text-rose-600 hover:bg-rose-50 transition mt-1"
+                        className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold text-rose-600 hover:bg-rose-50 transition mt-1 cursor-pointer"
                       >
                         <LogOut className="w-4 h-4" />
-                        <span>Sign Out</span>
+                        <span>{t('nav.signOut')}</span>
                       </button>
                     </div>
                   )}
@@ -440,10 +474,10 @@ export const Navbar: React.FC = () => {
               ) : (
                 <button
                   onClick={() => setIsAuthOpen(true)}
-                  className="h-9 flex items-center gap-1.5 px-3.5 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded-xl font-bold text-xs transition active:scale-95 border border-rose-200/60"
+                  className="h-9 flex items-center gap-1.5 px-3.5 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded-xl font-bold text-xs transition active:scale-95 border border-rose-200/60 cursor-pointer"
                 >
                   <User className="w-3.5 h-3.5" />
-                  <span>Sign In</span>
+                  <span>{t('nav.signIn')}</span>
                 </button>
               )}
             </div>
@@ -455,10 +489,10 @@ export const Navbar: React.FC = () => {
               <div ref={deptRef} className="relative">
                 <button
                   onClick={() => setIsDepartmentMenuOpen(!isDepartmentMenuOpen)}
-                  className="flex items-center gap-1.5 px-3 py-1 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-xs font-bold transition shadow-xs"
+                  className="flex items-center gap-1.5 px-3 py-1 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-xs font-bold transition shadow-xs cursor-pointer"
                 >
                   <Grid className="w-3 h-3" />
-                  <span>Departments</span>
+                  <span>{t('nav.departments')}</span>
                   <ChevronDown className="w-3 h-3 ml-0.5" />
                 </button>
 
@@ -480,25 +514,25 @@ export const Navbar: React.FC = () => {
               </div>
 
               <Link to="/shop?category=groceries-daily-essentials" className="hover:text-rose-600 transition font-semibold">
-                Groceries
+                {t('home.groceries')}
               </Link>
               <Link to="/shop?category=beauty-skincare" className="hover:text-rose-600 transition font-semibold">
-                Beauty & Skincare
+                {language === 'bn' ? 'সৌন্দর্য ও রূপচর্চা' : 'Beauty & Skincare'}
               </Link>
               <Link to="/shop?category=home-kitchen" className="hover:text-rose-600 transition font-semibold">
-                Home & Kitchen
+                {language === 'bn' ? 'গৃহস্থালি ও কিচেন' : 'Home & Kitchen'}
               </Link>
               <Link to="/shop?category=mens-fashion" className="hover:text-rose-600 transition font-semibold">
-                Men's Fashion
+                {language === 'bn' ? 'পুরুষদের ফ্যাশন' : "Men's Fashion"}
               </Link>
               <Link to="/shop?category=womens-fashion" className="hover:text-rose-600 transition font-semibold">
-                Women's Fashion
+                {language === 'bn' ? 'নারীদের ফ্যাশন' : "Women's Fashion"}
               </Link>
               <Link to="/shop?category=footwear-sneakers" className="hover:text-rose-600 transition font-semibold">
-                Footwear
+                {language === 'bn' ? 'জুতো ও স্যান্ডেল' : 'Footwear'}
               </Link>
               <Link to="/shop?category=smartphones-tablets" className="hover:text-rose-600 transition font-semibold">
-                Phones & Laptops
+                {t('home.tech')}
               </Link>
             </div>
 
@@ -507,16 +541,16 @@ export const Navbar: React.FC = () => {
                 type="button"
                 onClick={() => {
                   if (user) {
-                    navigate('/profile');
+                    navigate('/profile?tab=addresses');
                   } else {
                     setIsAuthOpen(true);
                   }
                 }}
                 className="text-rose-700 hover:text-rose-800 flex items-center gap-1 cursor-pointer bg-transparent border-none p-0 text-xs font-semibold"
-                title={user ? 'Manage Address Book' : 'Login required to access Address Book'}
+                title={user ? t('profile.addresses') : t('product.loginRequired')}
               >
                 <MapPin className="w-3 h-3" />
-                <span>Address Book</span>
+                <span>{t('profile.addresses')}</span>
               </button>
               <span className="text-rose-200">•</span>
               <button
@@ -529,9 +563,9 @@ export const Navbar: React.FC = () => {
                   }
                 }}
                 className="text-gray-500 hover:text-gray-800 flex items-center gap-1 cursor-pointer bg-transparent border-none p-0 text-xs font-semibold"
-                title={user ? 'Track My Orders' : 'Login required to track orders and packages'}
+                title={user ? t('profile.orders') : t('product.loginRequired')}
               >
-                <span>Track Order</span>
+                <span>{language === 'bn' ? 'অর্ডার ট্র্যাক' : 'Track Order'}</span>
               </button>
             </div>
           </nav>

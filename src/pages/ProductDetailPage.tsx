@@ -41,6 +41,7 @@ import {
   Cpu,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useLanguage } from '../contexts/LanguageContext';
 
 export const ProductDetailPage: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -51,6 +52,7 @@ export const ProductDetailPage: React.FC = () => {
   const { defaultAddress, addresses } = useAddress();
   const { settings } = useSettings();
   const { openChat } = useChat();
+  const { t } = useLanguage();
 
   const [product, setProduct] = useState<Product | null>(null);
   const [allProducts, setAllProducts] = useState<Product[]>(INITIAL_PRODUCTS);
@@ -256,7 +258,7 @@ export const ProductDetailPage: React.FC = () => {
 
   const handleAddToCart = () => {
     if (!user) {
-      toast.error('পণ্য কার্টে যোগ করতে বা অর্ডার করতে প্রথমে অ্যাকাউন্টে লগইন করুন (Account Required)');
+      toast.error(t('product.loginRequired'));
       openAuthModal('login');
       return;
     }
@@ -265,7 +267,7 @@ export const ProductDetailPage: React.FC = () => {
 
   const handleBuyNow = () => {
     if (!user) {
-      toast.error('অর্ডার করতে অনুগ্রহ করে প্রথমে আপনার অ্যাকাউন্টে লগইন করুন (Account Required)');
+      toast.error(t('product.loginRequired'));
       openAuthModal('login');
       return;
     }

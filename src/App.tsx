@@ -7,6 +7,7 @@ import { CouponProvider } from './contexts/CouponContext';
 import { CartProvider } from './contexts/CartContext';
 import { WishlistProvider } from './contexts/WishlistContext';
 import { ChatProvider } from './contexts/ChatContext';
+import { LanguageProvider } from './contexts/LanguageContext';
 import { Toaster } from 'sonner';
 
 // Storefront Components & Pages
@@ -65,53 +66,55 @@ const StorefrontLayout = () => {
 export function App() {
   return (
     <BrowserRouter>
-      <AuthProvider>
-        <SettingsProvider>
-          <AddressProvider>
-            <CouponProvider>
-              <CartProvider>
-                <WishlistProvider>
-                  <ChatProvider>
-                    <Toaster position="top-right" richColors />
-                    <Routes>
-                      {/* Customer Storefront Routes */}
-                      <Route element={<StorefrontLayout />}>
-                        <Route path="/" element={<HomePage />} />
-                        <Route path="/shop" element={<ShopPage />} />
-                        <Route path="/product/:slug" element={<ProductDetailPage />} />
-                        <Route path="/profile" element={<ProfilePage />} />
-                        <Route path="/wishlist" element={<WishlistPage />} />
-                        <Route path="/checkout" element={<CheckoutPage />} />
-                        <Route path="/order-success/:orderId" element={<OrderSuccessPage />} />
-                        <Route path="/orders" element={<MyOrdersPage />} />
-                        <Route path="/help" element={<HelpCenterPage />} />
-                        <Route path="/faq" element={<HelpCenterPage />} />
-                        <Route path="/shipping" element={<ShippingDeliveryPage />} />
-                        <Route path="/returns" element={<ReturnRefundPage />} />
-                        <Route path="/terms" element={<TermsOfServicePage />} />
-                        <Route path="/privacy" element={<PrivacyPolicyPage />} />
-                      </Route>
+      <LanguageProvider>
+        <AuthProvider>
+          <SettingsProvider>
+            <AddressProvider>
+              <CouponProvider>
+                <CartProvider>
+                  <WishlistProvider>
+                    <ChatProvider>
+                      <Toaster position="top-right" richColors />
+                      <Routes>
+                        {/* Customer Storefront Routes */}
+                        <Route element={<StorefrontLayout />}>
+                          <Route path="/" element={<HomePage />} />
+                          <Route path="/shop" element={<ShopPage />} />
+                          <Route path="/product/:slug" element={<ProductDetailPage />} />
+                          <Route path="/profile" element={<ProfilePage />} />
+                          <Route path="/wishlist" element={<WishlistPage />} />
+                          <Route path="/checkout" element={<CheckoutPage />} />
+                          <Route path="/order-success/:orderId" element={<OrderSuccessPage />} />
+                          <Route path="/orders" element={<MyOrdersPage />} />
+                          <Route path="/help" element={<HelpCenterPage />} />
+                          <Route path="/faq" element={<HelpCenterPage />} />
+                          <Route path="/shipping" element={<ShippingDeliveryPage />} />
+                          <Route path="/returns" element={<ReturnRefundPage />} />
+                          <Route path="/terms" element={<TermsOfServicePage />} />
+                          <Route path="/privacy" element={<PrivacyPolicyPage />} />
+                        </Route>
 
-                      {/* Admin Panel Routes */}
-                      <Route path="/admin" element={<AdminLayout />}>
-                        <Route index element={<AdminDashboard />} />
-                        <Route path="products" element={<AdminProducts />} />
-                        <Route path="orders" element={<AdminOrders />} />
-                        <Route path="coupons" element={<AdminCoupons />} />
-                        <Route path="categories" element={<AdminCategories />} />
-                        <Route path="chat" element={<AdminLiveChat />} />
-                        <Route path="banners" element={<AdminBanners />} />
-                        <Route path="payment-settings" element={<AdminPaymentSettings />} />
-                        <Route path="team" element={<AdminTeam />} />
-                      </Route>
-                    </Routes>
-                  </ChatProvider>
-                </WishlistProvider>
-              </CartProvider>
-            </CouponProvider>
-          </AddressProvider>
-        </SettingsProvider>
-      </AuthProvider>
+                        {/* Admin Panel Routes */}
+                        <Route path="/admin" element={<AdminLayout />}>
+                          <Route index element={<AdminDashboard />} />
+                          <Route path="products" element={<AdminProducts />} />
+                          <Route path="orders" element={<AdminOrders />} />
+                          <Route path="coupons" element={<AdminCoupons />} />
+                          <Route path="categories" element={<AdminCategories />} />
+                          <Route path="chat" element={<AdminLiveChat />} />
+                          <Route path="banners" element={<AdminBanners />} />
+                          <Route path="payment-settings" element={<AdminPaymentSettings />} />
+                          <Route path="team" element={<AdminTeam />} />
+                        </Route>
+                      </Routes>
+                    </ChatProvider>
+                  </WishlistProvider>
+                </CartProvider>
+              </CouponProvider>
+            </AddressProvider>
+          </SettingsProvider>
+        </AuthProvider>
+      </LanguageProvider>
     </BrowserRouter>
   );
 }

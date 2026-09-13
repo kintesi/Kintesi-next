@@ -21,25 +21,39 @@ import {
   X,
   LogOut,
   ChevronRight,
+  Settings,
+  Globe,
+  Check,
 } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import { BD_DISTRICTS, getThanasByDistrict } from '../data/bangladeshDistricts';
 import { AuthModal } from '../components/auth/AuthModal';
+import { useLanguage } from '../contexts/LanguageContext';
 
 export const ProfilePage: React.FC = () => {
   const { user, profile, isAdmin, isSuperAdmin, signOut, updateUserProfile } = useAuth();
   const { addresses, addAddress, updateAddress, deleteAddress, setDefaultAddress } = useAddress();
   const { wishlist } = useWishlist();
+  const { language, setLanguage, t } = useLanguage();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const handleSignOut = async () => {
     await signOut();
-    toast.success('Successfully logged out.');
+    toast.success(t('toast.logoutSuccess'));
     navigate('/');
   };
 
-  const [activeTab, setActiveTab] = useState<'addresses' | 'profile'>('addresses');
+  const initialTab = (searchParams.get('tab') as 'addresses' | 'profile' | 'settings') || 'addresses';
+  const [activeTab, setActiveTab] = useState<'addresses' | 'profile' | 'settings'>(
+    ['addresses', 'profile', 'settings'].includes(initialTab) ? initialTab : 'addresses'
+  );
+
+  const handleTabChange = (tab: 'addresses' | 'profile' | 'settings') => {
+    setActiveTab(tab);
+    setSearchParams({ tab });
+  };
   const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [editingAddress, setEditingAddress] = useState<Address | null>(null);
@@ -192,9 +206,9 @@ export const ProfilePage: React.FC = () => {
           <MapPin className="w-8 h-8" />
         </div>
         <div className="space-y-2">
-          <h2 className="text-xl font-bold text-gray-900 tracking-tight">Sign In to Your Account</h2>
+          <h2 className="text-xl font-bold text-gray-900 tracking-tight">{t('profile.signInRequired')}</h2>
           <p className="text-xs text-gray-500 max-w-sm mx-auto leading-relaxed">
-            Please sign in to access your profile, track your orders, and manage saved delivery addresses.
+            {t('profile.signInDesc')}
           </p>
         </div>
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
@@ -202,13 +216,13 @@ export const ProfilePage: React.FC = () => {
             onClick={() => setIsAuthModalOpen(true)}
             className="w-full sm:w-auto px-6 py-3 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl text-xs transition shadow-sm active:scale-95 cursor-pointer"
           >
-            Sign In / Register
+            {t('profile.signInBtn')}
           </button>
           <Link
             to="/shop"
             className="w-full sm:w-auto px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-xl text-xs transition"
           >
-            Continue Shopping
+            {t('cart.continue')}
           </Link>
         </div>
         <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
@@ -242,7 +256,7 @@ export const ProfilePage: React.FC = () => {
             <div className="space-y-1">
               <div className="flex flex-wrap items-center gap-2">
                 <h1 className="text-lg sm:text-xl font-bold text-gray-900 tracking-tight">
-                  {profile?.full_name || user?.email?.split('@')[0] || 'My Account'}
+                  {profile?.full_name || user?.email?.split('@')[0] || t('profile.title')}
                 </h1>
                 {isSuperAdmin ? (
                   <span className="px-2.5 py-0.5 bg-rose-50 text-rose-700 border border-rose-200/80 rounded-full text-[10px] font-bold flex items-center gap-1 uppercase tracking-wider">
@@ -277,10 +291,10 @@ export const ProfilePage: React.FC = () => {
           <button
             onClick={handleSignOut}
             className="px-3.5 py-2 text-xs font-bold text-rose-600 hover:text-white bg-rose-50 hover:bg-rose-600 border border-rose-200/80 rounded-xl flex items-center gap-1.5 transition cursor-pointer shrink-0 active:scale-95"
-            title="Log Out of your account"
+            title={t('profile.logout')}
           >
             <LogOut className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">Sign Out</span>
+            <span className="hidden sm:inline">{t('profile.logout')}</span>
           </button>
         </div>
 
@@ -295,8 +309,10 @@ export const ProfilePage: React.FC = () => {
                 <Package className="w-4 h-4" />
               </div>
               <div>
-                <h4 className="text-xs font-bold text-gray-900 group-hover:text-rose-600 transition">My Orders</h4>
-                <p className="text-[11px] text-gray-400">Track current orders & past receipts</p>
+                <h4 className="text-xs font-bold text-gray-900 group-hover:text-rose-600 transition">{t('profile.orders')}</h4>
+                <p className="text-[11px] text-gray-400">
+                  {language === 'bn' ? 'চলমান অর্ডার ও রশিদ চেক করুন' : 'Track current orders & past receipts'}
+                </p>
               </div>
             </div>
             <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-rose-600 group-hover:translate-x-0.5 transition" />
@@ -311,8 +327,10 @@ export const ProfilePage: React.FC = () => {
                 <Heart className="w-4 h-4" />
               </div>
               <div>
-                <h4 className="text-xs font-bold text-gray-900 group-hover:text-rose-600 transition">Wishlist</h4>
-                <p className="text-[11px] text-gray-400">{wishlist.length} saved item{wishlist.length === 1 ? '' : 's'}</p>
+                <h4 className="text-xs font-bold text-gray-900 group-hover:text-rose-600 transition">{t('nav.wishlist')}</h4>
+                <p className="text-[11px] text-gray-400">
+                  {wishlist.length} {language === 'bn' ? 'টি সংরক্ষিত পণ্য' : `saved item${wishlist.length === 1 ? '' : 's'}`}
+                </p>
               </div>
             </div>
             <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-rose-600 group-hover:translate-x-0.5 transition" />
@@ -323,19 +341,19 @@ export const ProfilePage: React.FC = () => {
 
       {/* Segmented Tab Navigation - Centered & Radish Active */}
       <div className="flex justify-center">
-        <div className="grid grid-cols-2 p-1 bg-gray-100/90 rounded-2xl border border-gray-200/60 w-full max-w-sm">
+        <div className="grid grid-cols-3 p-1 bg-gray-100/90 rounded-2xl border border-gray-200/60 w-full max-w-md">
           <button
-            onClick={() => setActiveTab('addresses')}
-            className={`py-2 px-3 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer ${
+            onClick={() => handleTabChange('addresses')}
+            className={`py-2 px-2 sm:px-3 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer ${
               activeTab === 'addresses'
                 ? 'bg-rose-600 text-white shadow-sm'
                 : 'text-gray-600 hover:text-gray-900'
             }`}
           >
             <MapPin className="w-3.5 h-3.5" />
-            <span>Address Book</span>
+            <span className="truncate">{t('profile.addresses')}</span>
             <span
-              className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
+              className={`hidden sm:inline-block px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
                 activeTab === 'addresses' ? 'bg-white/25 text-white' : 'bg-gray-200 text-gray-600'
               }`}
             >
@@ -343,21 +361,32 @@ export const ProfilePage: React.FC = () => {
             </span>
           </button>
           <button
-            onClick={() => setActiveTab('profile')}
-            className={`py-2 px-3 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer ${
+            onClick={() => handleTabChange('profile')}
+            className={`py-2 px-2 sm:px-3 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer ${
               activeTab === 'profile'
                 ? 'bg-rose-600 text-white shadow-sm'
                 : 'text-gray-600 hover:text-gray-900'
             }`}
           >
             <User className="w-3.5 h-3.5" />
-            <span>Personal Info</span>
+            <span className="truncate">{t('profile.personalInfo')}</span>
+          </button>
+          <button
+            onClick={() => handleTabChange('settings')}
+            className={`py-2 px-2 sm:px-3 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer ${
+              activeTab === 'settings'
+                ? 'bg-rose-600 text-white shadow-sm'
+                : 'text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            <Settings className="w-3.5 h-3.5" />
+            <span className="truncate">{t('profile.settings')}</span>
           </button>
         </div>
       </div>
 
       {/* Main Content Area */}
-      {activeTab === 'addresses' ? (
+      {activeTab === 'addresses' && (
         <div className="space-y-4">
           
           {/* If No Addresses Exist: Single Clean Empty State with ONE Button */}
@@ -367,9 +396,11 @@ export const ProfilePage: React.FC = () => {
                 <MapPin className="w-7 h-7" />
               </div>
               <div className="space-y-1">
-                <h3 className="text-base font-bold text-gray-900">No Saved Delivery Address</h3>
+                <h3 className="text-base font-bold text-gray-900">{t('profile.noAddresses')}</h3>
                 <p className="text-xs text-gray-500 leading-relaxed">
-                  Add your shipping location to enable 1-click expedited checkout on your future orders.
+                  {language === 'bn' 
+                    ? 'দ্রুত ও সহজে অর্ডার সম্পন্ন করতে আপনার ডেলিভারি ঠিকানা যোগ করুন।'
+                    : 'Add your shipping location to enable 1-click expedited checkout on your future orders.'}
                 </p>
               </div>
               <button
@@ -377,7 +408,7 @@ export const ProfilePage: React.FC = () => {
                 className="inline-flex items-center gap-2 px-6 py-2.5 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-xl shadow-md shadow-rose-600/20 transition active:scale-95 cursor-pointer"
               >
                 <Plus className="w-4 h-4" />
-                <span>Add Delivery Address</span>
+                <span>{t('profile.addAddress')}</span>
               </button>
             </div>
           ) : (
@@ -385,15 +416,19 @@ export const ProfilePage: React.FC = () => {
             <div className="space-y-4">
               <div className="flex items-center justify-between gap-3 px-1">
                 <div>
-                  <h2 className="text-base sm:text-lg font-bold text-gray-900">Delivery Addresses</h2>
-                  <p className="text-xs text-gray-500">Manage shipping addresses for swift checkout</p>
+                  <h2 className="text-base sm:text-lg font-bold text-gray-900">{t('profile.addresses')}</h2>
+                  <p className="text-xs text-gray-500">
+                    {language === 'bn' 
+                      ? 'দ্রুত চেকআউটের জন্য আপনার শিপিং ঠিকানাগুলো পরিচালনা করুন'
+                      : 'Manage shipping addresses for swift checkout'}
+                  </p>
                 </div>
                 <button
                   onClick={handleOpenAdd}
                   className="inline-flex items-center gap-1.5 px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-xl shadow-sm transition active:scale-95 cursor-pointer"
                 >
                   <Plus className="w-3.5 h-3.5" />
-                  <span>Add Address</span>
+                  <span>{t('profile.addAddress')}</span>
                 </button>
               </div>
 
@@ -418,7 +453,7 @@ export const ProfilePage: React.FC = () => {
 
                         {addr.is_default && (
                           <span className="px-2 py-0.5 bg-rose-50 text-rose-700 border border-rose-200 text-[10px] font-bold rounded-full flex items-center gap-1 uppercase tracking-wider">
-                            <CheckCircle2 className="w-3 h-3 text-rose-600" /> Default
+                            <CheckCircle2 className="w-3 h-3 text-rose-600" /> {t('profile.defaultBadge')}
                           </span>
                         )}
                       </div>
@@ -443,24 +478,26 @@ export const ProfilePage: React.FC = () => {
                           onClick={() => setDefaultAddress(addr.id)}
                           className="text-xs text-rose-600 hover:text-rose-700 font-bold transition hover:underline cursor-pointer"
                         >
-                          Set as Default
+                          {t('profile.setDefault')}
                         </button>
                       ) : (
-                        <span className="text-[11px] font-bold text-rose-700">Primary Delivery</span>
+                        <span className="text-[11px] font-bold text-rose-700">
+                          {language === 'bn' ? 'প্রধান ঠিকানা' : 'Primary Delivery'}
+                        </span>
                       )}
 
                       <div className="flex items-center gap-1">
                         <button
                           onClick={() => handleOpenEdit(addr)}
                           className="p-1.5 hover:bg-gray-100 text-gray-400 hover:text-gray-900 rounded-lg transition cursor-pointer"
-                          title="Edit address"
+                          title={t('profile.edit')}
                         >
                           <Edit2 className="w-3.5 h-3.5" />
                         </button>
                         <button
                           onClick={() => deleteAddress(addr.id)}
                           className="p-1.5 hover:bg-rose-50 text-gray-400 hover:text-rose-600 rounded-lg transition cursor-pointer"
-                          title="Delete address"
+                          title={t('profile.delete')}
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
@@ -472,35 +509,41 @@ export const ProfilePage: React.FC = () => {
             </div>
           )}
         </div>
-      ) : (
-        /* Personal Details Tab - Clean & Minimal */
+      )}
+
+      {/* Personal Details Tab - Clean & Minimal */}
+      {activeTab === 'profile' && (
         <form
           onSubmit={handleSavePersonalInfo}
           className="bg-white rounded-3xl border border-gray-100 shadow-[0_2px_16px_rgba(0,0,0,0.03)] p-6 sm:p-7 space-y-5 max-w-xl mx-auto"
         >
           <div>
-            <h2 className="text-base font-bold text-gray-900">Personal Information</h2>
-            <p className="text-xs text-gray-500 mt-0.5">Manage your personal details and contact number</p>
+            <h2 className="text-base font-bold text-gray-900">{t('profile.personalInfo')}</h2>
+            <p className="text-xs text-gray-500 mt-0.5">
+              {language === 'bn' 
+                ? 'আপনার ব্যক্তিগত বিবরণ ও মোবাইল নম্বর পরিচালনা করুন'
+                : 'Manage your personal details and contact number'}
+            </p>
           </div>
 
           <div className="space-y-3.5 text-xs">
             <div>
               <label className="block font-bold text-gray-700 uppercase tracking-wider text-[10px] mb-1">
-                Full Name *
+                {t('profile.fullName')} *
               </label>
               <input
                 type="text"
                 required
                 value={personalName}
                 onChange={(e) => setPersonalName(e.target.value)}
-                placeholder="Your full name"
+                placeholder={language === 'bn' ? 'আপনার পুরো নাম' : 'Your full name'}
                 className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl font-medium text-gray-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-rose-500 transition"
               />
             </div>
 
             <div>
               <label className="block font-bold text-gray-700 uppercase tracking-wider text-[10px] mb-1">
-                Phone Number
+                {t('profile.phone')}
               </label>
               <div className="relative">
                 <input
@@ -512,12 +555,16 @@ export const ProfilePage: React.FC = () => {
                 />
                 <Phone className="w-3.5 h-3.5 text-gray-400 absolute left-3 top-3 pointer-events-none" />
               </div>
-              <p className="text-[11px] text-gray-400 mt-1">Used for order tracking, courier delivery, and SMS alerts.</p>
+              <p className="text-[11px] text-gray-400 mt-1">
+                {language === 'bn'
+                  ? 'অর্ডার ট্র্যাকিং, কুরিয়ার ডেলিভারি ও SMS নোটিফিকেশনের জন্য ব্যবহৃত হবে।'
+                  : 'Used for order tracking, courier delivery, and SMS alerts.'}
+              </p>
             </div>
 
             <div>
               <label className="block font-bold text-gray-700 uppercase tracking-wider text-[10px] mb-1">
-                Email Address (Account ID)
+                {t('profile.email')}
               </label>
               <input
                 type="email"
@@ -535,10 +582,153 @@ export const ProfilePage: React.FC = () => {
               disabled={isSavingPersonal}
               className="px-6 py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl text-xs shadow-md shadow-rose-600/20 active:scale-95 transition cursor-pointer disabled:opacity-50"
             >
-              {isSavingPersonal ? 'Saving...' : 'Save Changes'}
+              {isSavingPersonal ? t('profile.saving') : t('profile.saveInfo')}
             </button>
           </div>
         </form>
+      )}
+
+      {/* Settings Tab - Dedicated Language & Preferences */}
+      {activeTab === 'settings' && (
+        <div className="bg-white rounded-3xl border border-gray-100 shadow-[0_2px_16px_rgba(0,0,0,0.03)] p-6 sm:p-7 space-y-6 max-w-xl mx-auto">
+          <div>
+            <h2 className="text-base font-bold text-gray-900 flex items-center gap-2">
+              <Globe className="w-4 h-4 text-rose-600" />
+              <span>{t('profile.languageSetting')}</span>
+            </h2>
+            <p className="text-xs text-gray-500 mt-0.5">
+              {t('profile.languageDesc')}
+            </p>
+          </div>
+
+          {/* Language Switcher Options */}
+          <div className="space-y-3">
+            <label className="block font-bold text-gray-700 uppercase tracking-wider text-[10px]">
+              {t('profile.languageLabel')}
+            </label>
+
+            {/* Option 1: English (Main) */}
+            <div
+              onClick={() => {
+                if (language !== 'en') {
+                  setLanguage('en');
+                  toast.success('Language set to English');
+                }
+              }}
+              className={`p-4 rounded-2xl border transition-all cursor-pointer flex items-center justify-between gap-4 ${
+                language === 'en'
+                  ? 'border-rose-500 bg-rose-50/40 ring-2 ring-rose-500/10 shadow-xs'
+                  : 'border-gray-200 hover:border-gray-300 bg-white'
+              }`}
+            >
+              <div className="flex items-center gap-3.5">
+                <div
+                  className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-xs transition ${
+                    language === 'en'
+                      ? 'bg-rose-600 text-white shadow-xs'
+                      : 'bg-gray-100 text-gray-600'
+                  }`}
+                >
+                  EN
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-xs font-bold text-gray-900">English</h3>
+                    <span className="px-2 py-0.5 bg-rose-100 text-rose-700 font-extrabold rounded-full text-[9px] uppercase tracking-wider">
+                      Default / Main
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-gray-500 mt-0.5">
+                    Browse the entire store in international standard English
+                  </p>
+                </div>
+              </div>
+
+              <div
+                className={`w-6 h-6 rounded-full flex items-center justify-center border transition shrink-0 ${
+                  language === 'en'
+                    ? 'border-rose-600 bg-rose-600 text-white shadow-xs'
+                    : 'border-gray-300 bg-white'
+                }`}
+              >
+                {language === 'en' && <Check className="w-3.5 h-3.5 stroke-[3]" />}
+              </div>
+            </div>
+
+            {/* Option 2: বাংলা (Bangla) */}
+            <div
+              onClick={() => {
+                if (language !== 'bn') {
+                  setLanguage('bn');
+                  toast.success('ভাষা বাংলায় পরিবর্তিত হয়েছে');
+                }
+              }}
+              className={`p-4 rounded-2xl border transition-all cursor-pointer flex items-center justify-between gap-4 ${
+                language === 'bn'
+                  ? 'border-rose-500 bg-rose-50/40 ring-2 ring-rose-500/10 shadow-xs'
+                  : 'border-gray-200 hover:border-gray-300 bg-white'
+              }`}
+            >
+              <div className="flex items-center gap-3.5">
+                <div
+                  className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-xs transition ${
+                    language === 'bn'
+                      ? 'bg-rose-600 text-white shadow-xs'
+                      : 'bg-gray-100 text-gray-600'
+                  }`}
+                >
+                  বাং
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-xs font-bold text-gray-900">বাংলা (Bangla)</h3>
+                    <span className="px-2 py-0.5 bg-gray-100 text-gray-600 font-bold rounded-full text-[9px]">
+                      বাংলা সংস্করণ
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-gray-500 mt-0.5">
+                    সম্পূর্ণ ওয়েবসাইট এবং চেকআউট খাঁটি বাংলায় পরিচালনা করুন
+                  </p>
+                </div>
+              </div>
+
+              <div
+                className={`w-6 h-6 rounded-full flex items-center justify-center border transition shrink-0 ${
+                  language === 'bn'
+                    ? 'border-rose-600 bg-rose-600 text-white shadow-xs'
+                    : 'border-gray-300 bg-white'
+                }`}
+              >
+                {language === 'bn' && <Check className="w-3.5 h-3.5 stroke-[3]" />}
+              </div>
+            </div>
+          </div>
+
+          {/* Regional Currency Information */}
+          <div className="pt-4 border-t border-gray-100 space-y-2">
+            <label className="block font-bold text-gray-700 uppercase tracking-wider text-[10px]">
+              {t('profile.currencyLabel')}
+            </label>
+            <div className="p-3.5 bg-gray-50/90 border border-gray-200 rounded-2xl flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-white border border-gray-200 flex items-center justify-center font-bold text-rose-600 text-sm shadow-xs">
+                  ৳
+                </div>
+                <div>
+                  <p className="text-xs font-bold text-gray-900">{t('profile.currencyDesc')}</p>
+                  <p className="text-[11px] text-gray-400">
+                    {language === 'bn'
+                      ? 'বাংলাদেশের ৬৪ জেলায় হোম ডেলিভারি ও ক্যাশ অন ডেলিভারি'
+                      : 'Standardized pricing with nationwide express courier'}
+                  </p>
+                </div>
+              </div>
+              <span className="text-[10px] font-bold text-gray-500 bg-white px-2 py-0.5 rounded-full border border-gray-200">
+                Active
+              </span>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Add / Edit Address Modal - Radish Themed */}
@@ -554,9 +744,13 @@ export const ProfilePage: React.FC = () => {
                 </div>
                 <div>
                   <h3 className="text-base font-bold text-gray-900">
-                    {editingAddress ? 'Edit Delivery Address' : 'Add New Address'}
+                    {editingAddress 
+                      ? (language === 'bn' ? 'ঠিকানা সম্পাদনা করুন' : 'Edit Delivery Address')
+                      : t('profile.addAddress')}
                   </h3>
-                  <p className="text-[11px] text-gray-400">Save for quick 1-click checkout</p>
+                  <p className="text-[11px] text-gray-400">
+                    {language === 'bn' ? 'দ্রুত চেকআউটের জন্য সংরক্ষণ করুন' : 'Save for quick 1-click checkout'}
+                  </p>
                 </div>
               </div>
               <button
@@ -769,14 +963,14 @@ export const ProfilePage: React.FC = () => {
                 onClick={() => setIsAddressModalOpen(false)}
                 className="px-4 py-2.5 bg-white hover:bg-gray-100 border border-gray-200 text-gray-700 font-bold rounded-xl text-xs transition cursor-pointer"
               >
-                Cancel
+                {t('wishlist.cancel')}
               </button>
               <button
                 type="submit"
                 form="address-modal-form"
                 className="px-6 py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl text-xs shadow-md shadow-rose-600/20 active:scale-95 transition cursor-pointer"
               >
-                Save Address
+                {language === 'bn' ? 'ঠিকানা সংরক্ষণ করুন' : 'Save Address'}
               </button>
             </div>
 

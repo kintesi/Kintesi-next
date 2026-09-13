@@ -6,10 +6,12 @@ import { Link } from 'react-router-dom';
 import { Heart, ShoppingBag, Trash2, AlertTriangle, X } from 'lucide-react';
 import { formatPrice } from '../lib/utils';
 import { Product } from '../types';
+import { useLanguage } from '../contexts/LanguageContext';
 
 export const WishlistPage: React.FC = () => {
   const { wishlist, removeFromWishlist } = useWishlist();
   const { addToCart } = useCart();
+  const { language, t } = useLanguage();
   const [productToRemove, setProductToRemove] = useState<Product | null>(null);
 
   return (
@@ -17,10 +19,12 @@ export const WishlistPage: React.FC = () => {
       {/* Page Header (No Clear Wishlist button) */}
       <div className="pb-4 sm:pb-6 border-b border-gray-200">
         <div className="flex items-center gap-2 text-rose-500 font-bold text-xs uppercase tracking-wider mb-1">
-          <Heart className="w-4 h-4 fill-rose-500" /> Saved Items
+          <Heart className="w-4 h-4 fill-rose-500" /> {t('wishlist.savedItems')}
         </div>
-        <h1 className="text-2xl sm:text-3xl font-black text-gray-900">My Wishlist</h1>
-        <p className="text-xs text-gray-500 mt-1">{wishlist.length} items saved for later</p>
+        <h1 className="text-2xl sm:text-3xl font-black text-gray-900">{t('wishlist.title')}</h1>
+        <p className="text-xs text-gray-500 mt-1">
+          {wishlist.length} {language === 'bn' ? 'টি পণ্য সংরক্ষিত' : 'items saved for later'}
+        </p>
       </div>
 
       {wishlist.length === 0 ? (
@@ -28,14 +32,14 @@ export const WishlistPage: React.FC = () => {
           <div className="w-16 h-16 bg-rose-50 text-rose-400 rounded-full flex items-center justify-center mx-auto mb-4">
             <Heart className="w-8 h-8" />
           </div>
-          <h3 className="text-xl font-bold text-gray-900 mb-1">Your wishlist is empty</h3>
-          <p className="text-xs text-gray-500 mb-6">Explore our catalog and click the heart icon to save products.</p>
+          <h3 className="text-xl font-bold text-gray-900 mb-1">{t('wishlist.empty')}</h3>
+          <p className="text-xs text-gray-500 mb-6">{t('wishlist.emptyDesc')}</p>
           <Link
             to="/shop"
             className="inline-flex items-center gap-2 px-6 py-3 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-2xl text-xs transition shadow-lg shadow-rose-600/20"
           >
             <ShoppingBag className="w-4 h-4" />
-            <span>Start Exploring</span>
+            <span>{t('wishlist.startExploring')}</span>
           </Link>
         </div>
       ) : (
@@ -111,14 +115,14 @@ export const WishlistPage: React.FC = () => {
                         className="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 bg-rose-600 hover:bg-rose-500 text-white text-[11px] font-bold rounded-xl shadow-xs transition active:scale-95 cursor-pointer"
                       >
                         <ShoppingBag className="w-3.5 h-3.5" />
-                        <span>Add to Cart</span>
+                        <span>{t('product.addToCart')}</span>
                       </button>
 
                       <button
                         type="button"
                         onClick={() => setProductToRemove(product)}
                         className="p-1.5 text-gray-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition shrink-0 cursor-pointer"
-                        title="Remove from Wishlist"
+                        title={t('wishlist.confirmTitle')}
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -142,17 +146,10 @@ export const WishlistPage: React.FC = () => {
         </>
       )}
 
-      {/* Remove Confirmation Warning Modal */}
+      {/* Confirmation Modal when removing from Wishlist */}
       {productToRemove && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-150"
-          onClick={() => setProductToRemove(null)}
-        >
-          <div
-            className="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-gray-100 space-y-4 animate-in zoom-in-95 duration-150"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Warning Icon & Header */}
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fade-in">
+          <div className="bg-white rounded-3xl max-w-sm w-full p-5 sm:p-6 space-y-4 shadow-2xl border border-gray-100 animate-scale-in">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="w-11 h-11 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center shrink-0">
@@ -160,10 +157,10 @@ export const WishlistPage: React.FC = () => {
                 </div>
                 <div>
                   <h3 className="text-base font-bold text-gray-900 leading-snug">
-                    Remove Item?
+                    {t('wishlist.confirmTitle')}
                   </h3>
                   <p className="text-[11px] text-gray-500">
-                    উইশলিস্ট থেকে সরাতে চান?
+                    {language === 'bn' ? 'পছন্দের তালিকা থেকে সরাতে চান?' : 'Remove from your saved wishlist?'}
                   </p>
                 </div>
               </div>
@@ -194,7 +191,7 @@ export const WishlistPage: React.FC = () => {
             </div>
 
             <p className="text-xs text-gray-500 leading-relaxed">
-              আপনি কি নিশ্চিত যে এই প্রোডাক্টটি আপনার উইশলিস্ট থেকে মুছে ফেলতে চান?
+              {t('wishlist.confirmDesc')}
             </p>
 
             {/* Action Buttons */}
@@ -204,7 +201,7 @@ export const WishlistPage: React.FC = () => {
                 onClick={() => setProductToRemove(null)}
                 className="w-full py-2.5 px-4 rounded-xl border border-gray-200 text-xs font-bold text-gray-700 hover:bg-gray-100 transition active:scale-95 cursor-pointer"
               >
-                Cancel (বাতিল)
+                {t('wishlist.cancel')}
               </button>
               <button
                 type="button"
@@ -215,7 +212,7 @@ export const WishlistPage: React.FC = () => {
                 className="w-full py-2.5 px-4 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold shadow-md shadow-rose-600/20 transition active:scale-95 cursor-pointer flex items-center justify-center gap-1.5"
               >
                 <Trash2 className="w-3.5 h-3.5" />
-                <span>Remove (মুছুন)</span>
+                <span>{t('wishlist.removeConfirm')}</span>
               </button>
             </div>
           </div>

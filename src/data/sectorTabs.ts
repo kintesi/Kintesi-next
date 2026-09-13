@@ -10,62 +10,77 @@ export interface TaxonomyCategory {
 export const SECTOR_TABS = [
   {
     id: "all",
-    label: "🌐 All Categories (সকল ক্যাটাগরি)"
+    label: "🌐 All Categories",
+    bnLabel: "🌐 সকল ক্যাটাগরি"
   },
   {
     id: "personal_care",
-    label: "🧴 Personal Care & Intimate (ব্যক্তিগত যত্ন ও হাইজিন)"
+    label: "🧴 Personal Care & Intimate",
+    bnLabel: "🧴 ব্যক্তিগত যত্ন ও হাইজিন"
   },
   {
     id: "health_wellness",
-    label: "💊 Health & First Aid (স্বাস্থ্য ও ফার্স্ট এইড)"
+    label: "💊 Health & Wellness",
+    bnLabel: "💊 স্বাস্থ্য ও ওয়েলনেস"
   },
   {
     id: "gadgets",
-    label: "⚡ Gadgets & Tech (গ্যাজেট ও টেক)"
+    label: "⚡ Gadgets & Tech",
+    bnLabel: "⚡ গ্যাজেট ও প্রযুক্তি"
   },
   {
     id: "fashion_men",
-    label: "👔 Men's Fashion (পুরুষদের ফ্যাশন)"
+    label: "👔 Men's Fashion",
+    bnLabel: "👔 পুরুষদের ফ্যাশন"
   },
   {
     id: "fashion_women",
-    label: "👗 Women's Fashion (নারীদের ফ্যাশন)"
+    label: "👗 Women's Fashion",
+    bnLabel: "👗 নারীদের ফ্যাশন"
   },
   {
     id: "jewelry_watches",
-    label: "⌚ Watches & Jewelry (ঘড়ি ও গহনা)"
+    label: "⌚ Watches & Jewelry",
+    bnLabel: "⌚ ঘড়ি ও গহনা"
   },
   {
     id: "beauty",
-    label: "✨ Beauty & Cosmetics (প্রসাধন)"
+    label: "✨ Beauty & Cosmetics",
+    bnLabel: "✨ রূপচর্চা ও প্রসাধন"
   },
   {
     id: "groceries",
-    label: "🍃 Groceries & Food (খাবার ও মুদি)"
+    label: "🍃 Groceries & Food",
+    bnLabel: "🍃 খাদ্য ও মুদি"
   },
   {
     id: "home",
-    label: "🏠 Home & Kitchen (গৃহস্থালি ও কিচেন)"
+    label: "🏠 Home & Kitchen",
+    bnLabel: "🏠 গৃহস্থালি ও কিচেন"
   },
   {
     id: "kids",
-    label: "👶 Baby & Kids (বাচ্চাদের পণ্য)"
+    label: "👶 Baby & Kids",
+    bnLabel: "👶 শিশুদের পণ্য"
   },
   {
     id: "sports",
-    label: "⚽ Sports & Fitness (খেলাধুলা ও ফিটনেস)"
+    label: "⚽ Sports & Fitness",
+    bnLabel: "⚽ খেলাধুলা ও ফিটনেস"
   },
   {
     id: "automotive",
-    label: "🏍️ Bike & Car (বাইক ও গাড়ি)"
+    label: "🏍️ Automotive & Bike",
+    bnLabel: "🏍️ গাড়ি ও বাইক"
   },
   {
     id: "books_stationery",
-    label: "📚 Books & Stationery (বই ও স্টেশনারি)"
+    label: "📚 Books & Stationery",
+    bnLabel: "📚 বই ও স্টেশনারি"
   },
   {
     id: "pets",
-    label: "🐾 Pet Care (পোষা প্রাণী)"
+    label: "🐾 Pet Care",
+    bnLabel: "🐾 পোষা প্রাণী"
   }
 ] as const;

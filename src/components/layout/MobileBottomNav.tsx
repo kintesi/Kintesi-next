@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { useCart } from '../../contexts/CartContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { AuthModal } from '../auth/AuthModal';
+import { useLanguage } from '../../contexts/LanguageContext';
 import {
   Home,
   LayoutGrid,
@@ -15,6 +16,7 @@ export const MobileBottomNav: React.FC = () => {
   const location = useLocation();
   const { totalItemCount, isCartOpen, setIsCartOpen } = useCart();
   const { user, isAdmin } = useAuth();
+  const { t } = useLanguage();
   const [isAuthOpen, setIsAuthOpen] = useState(false);
 
   const isActive = (path: string) => location.pathname === path && !isCartOpen;
@@ -44,7 +46,7 @@ export const MobileBottomNav: React.FC = () => {
             }`}
           >
             <Home className={`w-5 h-5 ${isActive('/') ? 'stroke-[2.5]' : 'stroke-[1.8]'}`} />
-            <span className="text-[10px] mt-0.5 tracking-tight">Home</span>
+            <span className="text-[10px] mt-0.5 tracking-tight">{t('nav.home')}</span>
           </Link>
 
           {/* 2. Category */}
@@ -58,7 +60,7 @@ export const MobileBottomNav: React.FC = () => {
             }`}
           >
             <LayoutGrid className={`w-5 h-5 ${isActive('/shop') ? 'stroke-[2.5]' : 'stroke-[1.8]'}`} />
-            <span className="text-[10px] mt-0.5 tracking-tight">Category</span>
+            <span className="text-[10px] mt-0.5 tracking-tight">{t('nav.category')}</span>
           </Link>
 
           {/* 3. Clean Modern Cart Button with Live Counter Badge */}
@@ -85,7 +87,7 @@ export const MobileBottomNav: React.FC = () => {
                 </span>
               )}
             </div>
-            <span className="text-[10px] mt-0.5 tracking-tight">Cart</span>
+            <span className="text-[10px] mt-0.5 tracking-tight">{t('nav.cart')}</span>
           </button>
 
           {/* 4. Wishlist */}
@@ -99,7 +101,7 @@ export const MobileBottomNav: React.FC = () => {
             }`}
           >
             <Heart className={`w-5 h-5 ${isActive('/wishlist') ? 'stroke-[2.5]' : 'stroke-[1.8]'}`} />
-            <span className="text-[10px] mt-0.5 tracking-tight">Wishlist</span>
+            <span className="text-[10px] mt-0.5 tracking-tight">{t('nav.wishlist')}</span>
           </Link>
 
           {/* 5. Profile */}
@@ -119,7 +121,7 @@ export const MobileBottomNav: React.FC = () => {
                   <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-rose-600 rounded-full border-2 border-white" />
                 )}
               </div>
-              <span className="text-[10px] mt-0.5 tracking-tight">Profile</span>
+              <span className="text-[10px] mt-0.5 tracking-tight">{t('nav.profile')}</span>
             </Link>
           ) : (
             <button
@@ -130,7 +132,7 @@ export const MobileBottomNav: React.FC = () => {
               className="flex flex-col items-center justify-center h-full rounded-full text-gray-400 hover:text-rose-600 transition-all duration-200 font-medium cursor-pointer active:scale-90"
             >
               <User className="w-5 h-5 stroke-[1.8]" />
-              <span className="text-[10px] mt-0.5 tracking-tight">Profile</span>
+              <span className="text-[10px] mt-0.5 tracking-tight">{t('nav.profile')}</span>
             </button>
           )}
 

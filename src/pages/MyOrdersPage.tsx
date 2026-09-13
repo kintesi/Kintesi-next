@@ -22,6 +22,7 @@ import {
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import { InvoiceModal } from '../components/invoice/InvoiceModal';
+import { useLanguage } from '../contexts/LanguageContext';
 
 const STATUS_STEPS = ['pending', 'processing', 'shipped', 'delivered'];
 
@@ -29,6 +30,7 @@ export const MyOrdersPage: React.FC = () => {
   const { user, profile, openAuthModal } = useAuth();
   const { settings } = useSettings();
   const { openChat } = useChat();
+  const { language, t } = useLanguage();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -125,9 +127,13 @@ export const MyOrdersPage: React.FC = () => {
           <Truck className="w-10 h-10" />
         </div>
         <div className="space-y-2">
-          <h2 className="text-2xl font-black text-gray-900">Account Required for Orders & Tracking</h2>
+          <h2 className="text-2xl font-black text-gray-900">
+            {language === 'bn' ? 'অর্ডার ও ট্র্যাকিংয়ের জন্য সাইন ইন করুন' : 'Account Required for Orders & Tracking'}
+          </h2>
           <p className="text-sm text-gray-500 max-w-md mx-auto leading-relaxed">
-            আপনার অর্ডার হিস্ট্রি দেখতে, লাইভ ডেলিভারি পার্সেল ট্র্যাক করতে এবং অফিশিয়াল ইনভয়েস ডাউনলোড করতে একটি Kintesi অ্যাকাউন্ট আবশ্যক। অনুগ্রহ করে আপনার অ্যাকাউন্টে লগইন করুন বা নতুন অ্যাকাউন্ট তৈরি করুন।
+            {language === 'bn'
+              ? 'আপনার অর্ডার হিস্ট্রি দেখতে, লাইভ ডেলিভারি পার্সেল ট্র্যাক করতে এবং অফিশিয়াল ইনভয়েস ডাউনলোড করতে অ্যাকাউন্টে লগইন করুন।'
+              : 'An account is required to view order history, track live parcel status, and download official invoices.'}
           </p>
         </div>
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
@@ -135,13 +141,13 @@ export const MyOrdersPage: React.FC = () => {
             onClick={() => openAuthModal('login')}
             className="w-full sm:w-auto px-7 py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-black rounded-xl text-xs transition shadow-lg shadow-emerald-600/25 active:scale-95 cursor-pointer"
           >
-            লগইন / রেজিস্টার করুন (Sign In / Register)
+            {t('profile.signInBtn')}
           </button>
           <Link
             to="/shop"
             className="w-full sm:w-auto px-6 py-3.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-xl text-xs transition"
           >
-            Continue Shopping
+            {t('cart.continue')}
           </Link>
         </div>
       </div>

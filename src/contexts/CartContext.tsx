@@ -178,7 +178,12 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const addToCart = (product: Product, quantity = 1, color?: string, size?: string) => {
     if (!user) {
-      toast.error('পণ্য কার্টে যোগ করতে বা অর্ডার করতে প্রথমে অ্যাকাউন্টে লগইন করুন (Account Required)');
+      const lang = localStorage.getItem('kintesi_language') || 'en';
+      toast.error(
+        lang === 'bn' 
+          ? 'কার্টে পণ্য যোগ করতে বা অর্ডার করতে প্রথমে অ্যাকাউন্টে লগইন করুন।' 
+          : 'Please sign in to your account to add items to cart or order.'
+      );
       openAuthModal('login');
       return;
     }
