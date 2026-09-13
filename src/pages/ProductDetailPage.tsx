@@ -229,6 +229,21 @@ export const ProductDetailPage: React.FC = () => {
     return () => window.removeEventListener('kintesi_products_updated', loadProduct);
   }, [slug]);
 
+  const currentPrice = product ? (product.discount_price || product.price) : 0;
+
+  // Automatically attach product context for Live Chat (Called at top-level before early returns)
+  useEffect(() => {
+    if (product) {
+      setActiveProductContext({
+        id: product.id,
+        title: product.title,
+        price: currentPrice,
+        image: selectedImage || product.images?.[0] || '/logo.webp',
+        sku: product.sku,
+      });
+    }
+  }, [product?.id, currentPrice, selectedImage]);
+
   if (loading) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center">
@@ -249,26 +264,12 @@ export const ProductDetailPage: React.FC = () => {
     );
   }
 
-  const currentPrice = product.discount_price || product.price;
   const discountPercent = calculateDiscount(product.price, product.discount_price);
   const isWishlisted = isInWishlist(product.id);
 
   const relatedProducts = allProducts
     .filter((p) => p.id !== product.id && p.category_id === product.category_id)
     .slice(0, 4);
-
-  // Automatically attach product context for Live Chat
-  useEffect(() => {
-    if (product) {
-      setActiveProductContext({
-        id: product.id,
-        title: product.title,
-        price: currentPrice,
-        image: selectedImage || product.images?.[0] || '/logo.webp',
-        sku: product.sku,
-      });
-    }
-  }, [product?.id, currentPrice, selectedImage]);
 
   const handleAddToCart = () => {
     if (!user) {
