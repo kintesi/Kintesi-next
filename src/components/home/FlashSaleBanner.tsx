@@ -166,7 +166,7 @@ export const FlashSaleBanner: React.FC<FlashSaleBannerProps> = ({
         <div className={`absolute -left-10 -top-10 w-44 h-44 rounded-full blur-2xl pointer-events-none ${themeConfig.glowColor}`} />
 
         {/* Left Content Area: Tag, Title, Subtitle & Timer */}
-        <div className="flex-1 p-3.5 sm:p-4 flex flex-col justify-between z-10 min-w-0">
+        <div className="relative z-10 flex-1 p-3.5 sm:p-4 flex flex-col justify-between min-w-0 max-w-[62%] sm:max-w-[65%] min-h-[145px]">
           <div className="space-y-1.5">
             {/* Tag Badge */}
             <div
@@ -217,13 +217,13 @@ export const FlashSaleBanner: React.FC<FlashSaleBannerProps> = ({
           </div>
         </div>
 
-        {/* Right Showcase Image (100% CLEAR, NATURAL, SMOOTH FEATHER BLEND ON LEFT EDGE) */}
+        {/* Right Showcase Image (Pinned flush to right edge with 0px gap, smooth feather blend) */}
         {currentSlide.bgImage ? (
           <div
-            className="w-[42%] sm:w-[45%] shrink-0 relative overflow-hidden"
+            className="absolute inset-y-0 right-0 w-[46%] sm:w-[48%] pointer-events-none overflow-hidden"
             style={{
-              maskImage: 'linear-gradient(to right, transparent 0%, rgba(0,0,0,0.6) 12%, black 28%, black 100%)',
-              WebkitMaskImage: 'linear-gradient(to right, transparent 0%, rgba(0,0,0,0.6) 12%, black 28%, black 100%)',
+              maskImage: 'linear-gradient(to right, transparent 0%, rgba(0,0,0,0.5) 10%, black 25%, black 100%)',
+              WebkitMaskImage: 'linear-gradient(to right, transparent 0%, rgba(0,0,0,0.5) 10%, black 25%, black 100%)',
             }}
           >
             {activeSlides.map((slide, idx) => (
@@ -238,7 +238,7 @@ export const FlashSaleBanner: React.FC<FlashSaleBannerProps> = ({
             ))}
           </div>
         ) : (
-          <div className="w-[30%] shrink-0 flex items-center justify-center pr-4">
+          <div className="absolute inset-y-0 right-0 w-[30%] shrink-0 flex items-center justify-center pr-4 pointer-events-none">
             <Flame className="w-14 h-14 text-white/10" />
           </div>
         )}
@@ -260,7 +260,7 @@ export const FlashSaleBanner: React.FC<FlashSaleBannerProps> = ({
       <div className={`absolute left-1/3 -bottom-20 w-60 h-60 rounded-full blur-3xl pointer-events-none ${themeConfig.glowColor}`} />
 
       {/* Left Content Column: Tag, Bold Headline, Subtitle, HUD Timer */}
-      <div className="flex-1 p-7 sm:p-9 lg:p-10 flex flex-col justify-between z-10 min-w-0 max-w-2xl">
+      <div className="relative z-10 flex-1 p-7 sm:p-9 lg:p-10 flex flex-col justify-between min-w-0 max-w-xl lg:max-w-2xl min-h-[220px] sm:min-h-[250px] lg:min-h-[270px]">
         <div className="space-y-3">
           {/* Pill Badge */}
           <div
@@ -325,13 +325,13 @@ export const FlashSaleBanner: React.FC<FlashSaleBannerProps> = ({
         </div>
       </div>
 
-      {/* Right Column: Dynamic Showcase Image (100% CLEAR, NATURAL, ZERO OVERLAYS, SMOOTH FEATHER BLEND) */}
+      {/* Right Showcase Image Layer: Pinned flush to right edge (0px gap), smooth feather blend into card background */}
       {currentSlide.bgImage ? (
         <div
-          className="w-[44%] sm:w-[46%] lg:w-[48%] shrink-0 relative overflow-hidden"
+          className="absolute inset-y-0 right-0 w-[50%] sm:w-[54%] lg:w-[58%] pointer-events-none overflow-hidden"
           style={{
-            maskImage: 'linear-gradient(to right, transparent 0%, rgba(0,0,0,0.6) 12%, black 28%, black 100%)',
-            WebkitMaskImage: 'linear-gradient(to right, transparent 0%, rgba(0,0,0,0.6) 12%, black 28%, black 100%)',
+            maskImage: 'linear-gradient(to right, transparent 0%, rgba(0,0,0,0.35) 8%, black 22%, black 100%)',
+            WebkitMaskImage: 'linear-gradient(to right, transparent 0%, rgba(0,0,0,0.35) 8%, black 22%, black 100%)',
           }}
         >
           {activeSlides.map((slide, idx) => (
@@ -346,7 +346,7 @@ export const FlashSaleBanner: React.FC<FlashSaleBannerProps> = ({
           ))}
         </div>
       ) : (
-        <div className="w-[35%] shrink-0 flex items-center justify-center pr-8">
+        <div className="absolute inset-y-0 right-0 w-[35%] flex items-center justify-center pr-8 pointer-events-none">
           <Flame className="w-24 h-24 text-white/10" />
         </div>
       )}
