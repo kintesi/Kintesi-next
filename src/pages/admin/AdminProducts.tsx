@@ -363,7 +363,14 @@ export const AdminProducts: React.FC = () => {
   const handleOpenEditModal = (prod: Product) => {
     setEditingProduct(prod);
     const existingPercent = calculateDiscount(prod.price, prod.discount_price);
-    const specEntries = Object.entries(prod.specifications || {});
+    const specEntries = Object.entries(prod.specifications || {}).filter(
+      ([key, val]) =>
+        key !== 'custom_attributes' &&
+        typeof key === 'string' &&
+        val !== null &&
+        val !== undefined &&
+        typeof val !== 'object'
+    );
 
     const cat = (prod.category_id || '').toLowerCase();
     const hasHardwareSpecs = Boolean(prod.specifications && Object.keys(prod.specifications).length > 0);
@@ -485,12 +492,12 @@ export const AdminProducts: React.FC = () => {
       care_instructions: prod.care_instructions || '',
       origin: prod.origin || '',
       gender: prod.gender || '',
-      specKey1: specEntries[0]?.[0] || '',
-      specVal1: specEntries[0]?.[1] || '',
-      specKey2: specEntries[1]?.[0] || '',
-      specVal2: specEntries[1]?.[1] || '',
-      specKey3: specEntries[2]?.[0] || '',
-      specVal3: specEntries[2]?.[1] || '',
+      specKey1: specEntries[0]?.[0] ? String(specEntries[0][0]) : '',
+      specVal1: specEntries[0]?.[1] !== undefined ? String(specEntries[0][1]) : '',
+      specKey2: specEntries[1]?.[0] ? String(specEntries[1][0]) : '',
+      specVal2: specEntries[1]?.[1] !== undefined ? String(specEntries[1][1]) : '',
+      specKey3: specEntries[2]?.[0] ? String(specEntries[2][0]) : '',
+      specVal3: specEntries[2]?.[1] !== undefined ? String(specEntries[2][1]) : '',
       tags: Array.isArray(prod.tags) ? prod.tags.join(', ') : (typeof prod.tags === 'string' ? prod.tags : ''),
     });
     setActiveModalTab('general');
@@ -807,13 +814,21 @@ export const AdminProducts: React.FC = () => {
       });
 
       const highlightsList = [formData.highlight1, formData.highlight2, formData.highlight3]
-        .map((h) => (h || '').trim())
+        .map((h) => String(h || '').trim())
         .filter((h) => h.length > 0);
 
       const specsObj: Record<string, string> = {};
-      if (formData.specKey1?.trim() && formData.specVal1?.trim()) specsObj[formData.specKey1.trim()] = formData.specVal1.trim();
-      if (formData.specKey2?.trim() && formData.specVal2?.trim()) specsObj[formData.specKey2.trim()] = formData.specVal2.trim();
-      if (formData.specKey3?.trim() && formData.specVal3?.trim()) specsObj[formData.specKey3.trim()] = formData.specVal3.trim();
+      const sKey1 = String(formData.specKey1 || '').trim();
+      const sVal1 = typeof formData.specVal1 === 'object' ? '' : String(formData.specVal1 ?? '').trim();
+      if (sKey1 && sVal1) specsObj[sKey1] = sVal1;
+
+      const sKey2 = String(formData.specKey2 || '').trim();
+      const sVal2 = typeof formData.specVal2 === 'object' ? '' : String(formData.specVal2 ?? '').trim();
+      if (sKey2 && sVal2) specsObj[sKey2] = sVal2;
+
+      const sKey3 = String(formData.specKey3 || '').trim();
+      const sVal3 = typeof formData.specVal3 === 'object' ? '' : String(formData.specVal3 ?? '').trim();
+      if (sKey3 && sVal3) specsObj[sKey3] = sVal3;
 
       const userTags = Array.isArray(formData.tags)
         ? (formData.tags as any[]).map((t) => String(t || '').trim()).filter(Boolean)
@@ -833,7 +848,7 @@ export const AdminProducts: React.FC = () => {
       let cleanedFitType = '';
       let cleanedCare = '';
       let cleanedGender = '';
-      let cleanedWarranty = (formData.warranty || '').trim();
+      let cleanedWarranty = String(formData.warranty || '').trim();
       let cleanedSpecs: Record<string, string> = {};
 
       if (currentSpecMode === 'gadgets') {
@@ -844,17 +859,17 @@ export const AdminProducts: React.FC = () => {
         cleanedGender = '';
       } else if (currentSpecMode === 'fashion') {
         cleanedSpecs = {};
-        cleanedFabric = (formData.fabric || '').trim();
-        cleanedFitType = (formData.fit_type || '').trim();
-        cleanedCare = (formData.care_instructions || '').trim();
-        cleanedGender = (formData.gender || '').trim();
+        cleanedFabric = String(formData.fabric || '').trim();
+        cleanedFitType = String(formData.fit_type || '').trim();
+        cleanedCare = String(formData.care_instructions || '').trim();
+        cleanedGender = String(formData.gender || '').trim();
         cleanedWarranty = '';
       } else if (currentSpecMode === 'groceries') {
         cleanedSpecs = {};
-        cleanedFabric = (formData.fabric || '').trim();
-        cleanedFitType = (formData.fit_type || '').trim();
-        cleanedCare = (formData.care_instructions || '').trim();
-        cleanedWarranty = (formData.warranty || '').trim();
+        cleanedFabric = String(formData.fabric || '').trim();
+        cleanedFitType = String(formData.fit_type || '').trim();
+        cleanedCare = String(formData.care_instructions || '').trim();
+        cleanedWarranty = String(formData.warranty || '').trim();
         cleanedGender = '';
       } else {
         cleanedSpecs = {};
@@ -870,21 +885,21 @@ export const AdminProducts: React.FC = () => {
       const productPayload: any = {
         title: cleanTitle,
         slug: slug,
-        description: (formData.description || '').trim(),
+        description: String(formData.description || '').trim(),
         price: priceNum,
         discount_price: calculatedDiscountPrice,
         category_id: formData.category_id || categories[0]?.slug || 'mens-fashion',
         stock: effectiveStock,
         images: allImages.length > 0 ? allImages : ['/logo.webp'],
-        brand: (formData.brand || '').trim() || 'Kintesi',
-        sku: (formData.sku || '').trim() || ('KT-' + (editingProduct?.id || Date.now().toString()).slice(0, 6).toUpperCase()),
+        brand: String(formData.brand || '').trim() || 'Kintesi',
+        sku: String(formData.sku || '').trim() || ('KT-' + (editingProduct?.id || Date.now().toString()).slice(0, 6).toUpperCase()),
         warranty: cleanedWarranty,
-        delivery_note: (formData.delivery_note || '').trim(),
-        dropshipping_url: (formData.dropshipping_url || '').trim() || null,
+        delivery_note: String(formData.delivery_note || '').trim(),
+        dropshipping_url: String(formData.dropshipping_url || '').trim() || null,
         allowed_payment_methods: formData.allowed_payment_methods && formData.allowed_payment_methods.length > 0
           ? formData.allowed_payment_methods
           : ['cod', 'bkash', 'nagad', 'card'],
-        payment_instruction: (formData.payment_instruction || '').trim(),
+        payment_instruction: String(formData.payment_instruction || '').trim(),
         highlights: highlightsList,
         fabric: cleanedFabric,
         fit_type: cleanedFitType,
