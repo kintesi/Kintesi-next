@@ -176,9 +176,9 @@ export const CartPage: React.FC = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-6 sm:py-12 space-y-6 sm:space-y-8">
-      {/* Page Header (Identical design language to WishlistPage) */}
-      <div className="pb-4 sm:pb-6 border-b border-gray-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+    <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-2 sm:py-12 space-y-3 sm:space-y-8">
+      {/* Page Header (Hidden on mobile because mobile top bar already displays Shopping Cart header) */}
+      <div className="hidden sm:flex pb-4 sm:pb-6 border-b border-gray-200 flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
           <div className="flex items-center gap-2 text-rose-500 font-bold text-xs uppercase tracking-wider mb-1">
             <ShoppingBag className="w-4 h-4 fill-rose-500" />
