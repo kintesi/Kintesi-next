@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../contexts/CartContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -60,6 +60,8 @@ export const CartPage: React.FC = () => {
   const progressToFreeShipping = Math.min(100, (subtotal / freeShippingThreshold) * 100);
   const remainingForFreeShipping = Math.max(0, freeShippingThreshold - subtotal);
 
+  const validCart = cart.filter((item) => item && item.product && item.product.id);
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 space-y-6 sm:space-y-8">
       {/* Breadcrumb & Header */}
@@ -80,10 +82,10 @@ export const CartPage: React.FC = () => {
               <h1 className="text-2xl sm:text-3xl font-black text-gray-900">{t('cart.title')}</h1>
             </div>
             <p className="text-xs text-gray-500 mt-1 pl-10">
-              {cart.length} {t('cart.items')}
+              {validCart.length} {t('cart.items')}
             </p>
           </div>
-          {cart.length > 0 && (
+          {validCart.length > 0 && (
             <Link
               to="/shop"
               className="hidden sm:inline-flex items-center gap-1.5 text-xs font-bold text-rose-600 hover:text-rose-700 transition"
@@ -95,7 +97,7 @@ export const CartPage: React.FC = () => {
         </div>
       </div>
 
-      {cart.length === 0 ? (
+      {validCart.length === 0 ? (
         /* Empty State */
         <div className="text-center py-16 sm:py-24 bg-white rounded-3xl border border-gray-100 p-6 sm:p-10 shadow-xs max-w-xl mx-auto">
           <div className="w-20 h-20 bg-rose-50 text-rose-400 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -153,10 +155,10 @@ export const CartPage: React.FC = () => {
 
             {/* Cart Items */}
             <div className="bg-white rounded-3xl border border-gray-100 shadow-xs divide-y divide-gray-100 overflow-hidden">
-              {cart.map((item) => {
-                const currentPrice = item.product.discount_price || item.product.price;
-                const originalPrice = item.product.discount_price ? item.product.price : null;
-                const itemTotal = currentPrice * item.quantity;
+              {validCart.map((item) => {
+                const currentPrice = item.product?.discount_price || item.product?.price || 0;
+                const originalPrice = item.product?.discount_price ? item.product?.price : null;
+                const itemTotal = currentPrice * (item.quantity || 1);
 
                 return (
                   <div

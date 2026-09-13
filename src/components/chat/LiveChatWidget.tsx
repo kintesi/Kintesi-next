@@ -50,8 +50,10 @@ export const LiveChatWidget: React.FC = () => {
   };
 
   useEffect(() => {
-    scrollToBottom();
-  }, [messages, isTyping]);
+    if (isOpen) {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [messages, isTyping, isOpen]);
 
   const handleSend = (e: React.FormEvent) => {
     e.preventDefault();

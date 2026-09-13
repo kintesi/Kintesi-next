@@ -25,6 +25,30 @@ interface CartContextType {
   isLoading: boolean;
 }
 
+export const sanitizeCartItems = (rawList: any): CartItem[] => {
+  if (!Array.isArray(rawList)) return [];
+  const cleaned: CartItem[] = [];
+  for (const item of rawList) {
+    if (!item) continue;
+    if (!item.product && item.id && item.title) {
+      cleaned.push({
+        product: item as Product,
+        quantity: typeof item.quantity === 'number' && item.quantity > 0 ? item.quantity : 1,
+        selectedColor: item.selectedColor,
+        selectedSize: item.selectedSize,
+      });
+    } else if (item.product && item.product.id) {
+      cleaned.push({
+        product: item.product,
+        quantity: typeof item.quantity === 'number' && item.quantity > 0 ? item.quantity : 1,
+        selectedColor: item.selectedColor,
+        selectedSize: item.selectedSize,
+      });
+    }
+  }
+  return cleaned;
+};
+
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -34,7 +58,8 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [cart, setCart] = useState<CartItem[]>(() => {
     try {
       const saved = localStorage.getItem('kintesi_cart');
-      return saved ? JSON.parse(saved) : [];
+      if (!saved) return [];
+      return sanitizeCartItems(JSON.parse(saved));
     } catch {
       return [];
     }
@@ -69,15 +94,16 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       getDoc(userCartRef).then((snap) => {
         setIsLoading(false);
         if (snap.exists()) {
-          const remoteItems: CartItem[] = snap.data()?.items || [];
+          const remoteItems = sanitizeCartItems(snap.data()?.items);
           setCart((localCart) => {
+            const cleanLocal = sanitizeCartItems(localCart);
             // Merge guest cart with remote cart once
             const merged = [...remoteItems];
             let hasNew = false;
-            for (const item of localCart) {
+            for (const item of cleanLocal) {
               const existing = merged.find(
                 (m) =>
-                  m.product.id === item.product.id &&
+                  m.product?.id === item.product?.id &&
                   m.selectedColor === item.selectedColor &&
                   m.selectedSize === item.selectedSize
               );
@@ -98,7 +124,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
           // Check fallback profiles collection
           getDoc(userProfileRef).then((profSnap) => {
             if (profSnap.exists() && Array.isArray(profSnap.data()?.cart) && profSnap.data()?.cart.length > 0) {
-              const profileCart: CartItem[] = profSnap.data()?.cart;
+              const profileCart = sanitizeCartItems(profSnap.data()?.cart);
               setCart(profileCart);
               try {
                 localStorage.setItem('kintesi_cart', JSON.stringify(profileCart));
@@ -106,10 +132,11 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
               setDoc(userCartRef, { items: profileCart, updatedAt: new Date().toISOString() }, { merge: true }).catch(() => {});
             } else {
               setCart((localCart) => {
-                if (localCart.length > 0) {
-                  setDoc(userCartRef, { items: localCart, updatedAt: new Date().toISOString() }, { merge: true }).catch(() => {});
+                const cleanLocal = sanitizeCartItems(localCart);
+                if (cleanLocal.length > 0) {
+                  setDoc(userCartRef, { items: cleanLocal, updatedAt: new Date().toISOString() }, { merge: true }).catch(() => {});
                 }
-                return localCart;
+                return cleanLocal;
               });
             }
           }).catch(() => {});
@@ -128,7 +155,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (snapshot.metadata.hasPendingWrites) return;
 
         if (snapshot.exists()) {
-          const remoteItems: CartItem[] = snapshot.data()?.items || [];
+          const remoteItems = sanitizeCartItems(snapshot.data()?.items);
           setCart(remoteItems);
           try {
             localStorage.setItem('kintesi_cart', JSON.stringify(remoteItems));
@@ -189,7 +216,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     const existingIndex = cart.findIndex(
-      (item) => item.product.id === product.id && item.selectedColor === color && item.selectedSize === size
+      (item) => item?.product?.id === product.id && item.selectedColor === color && item.selectedSize === size
     );
 
     let updatedCart: CartItem[];
@@ -213,12 +240,12 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       updatedCart = [...cart, { product, quantity, selectedColor: color, selectedSize: size }];
     }
 
-    persistCart(updatedCart);
+    persistCart(sanitizeCartItems(updatedCart));
   };
 
   const removeFromCart = (productId: string) => {
-    const updatedCart = cart.filter((item) => item.product.id !== productId);
-    persistCart(updatedCart);
+    const updatedCart = cart.filter((item) => item?.product?.id !== productId);
+    persistCart(sanitizeCartItems(updatedCart));
     toast.info('Item removed from cart');
   };
 
@@ -229,8 +256,8 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     const updatedCart = cart.map((item) => {
-      if (item.product.id === productId) {
-        if (quantity > item.product.stock) {
+      if (item?.product?.id === productId) {
+        if (quantity > (item.product.stock || 999)) {
           toast.error(`Only ${item.product.stock} items available in stock!`);
           return item;
         }
@@ -239,7 +266,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return item;
     });
 
-    persistCart(updatedCart);
+    persistCart(sanitizeCartItems(updatedCart));
   };
 
   const clearCart = () => {
@@ -252,8 +279,10 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const subtotal = cart.reduce((acc, item) => {
-    const itemPrice = item.product.discount_price || item.product.price;
-    return acc + itemPrice * item.quantity;
+    if (!item?.product) return acc;
+    const itemPrice = item.product.discount_price || item.product.price || 0;
+    const qty = typeof item.quantity === 'number' && item.quantity > 0 ? item.quantity : 1;
+    return acc + itemPrice * qty;
   }, 0);
 
   // If cart subtotal drops below minimum order value of applied coupon, clear coupon
@@ -295,7 +324,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Free shipping for orders above ৳5000, otherwise standard ৳60 Inside Dhaka / ৳120 Outside
   const shippingFee = subtotal === 0 ? 0 : subtotal >= 5000 ? 0 : 60;
   const total = Math.max(0, subtotal - discountAmount + shippingFee);
-  const totalItemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
+  const totalItemCount = cart.reduce((sum, item) => sum + (typeof item?.quantity === 'number' ? item.quantity : 0), 0);
 
   return (
     <CartContext.Provider
