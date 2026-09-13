@@ -400,15 +400,8 @@ export const HomePage: React.FC = () => {
           </div>
         )}
 
-        {/* 4. ALL PRODUCTS: Clean Feed with Progressive Infinite Scroll */}
+        {/* 4. Product Feed with Progressive Infinite Scroll */}
         <div className="px-3 space-y-3 pt-1">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-1.5">
-              <Package className="w-4 h-4 text-rose-600" />
-              <h3 className="text-sm font-bold text-gray-900">All Products</h3>
-            </div>
-          </div>
-
           {personalizedProducts.length === 0 ? (
             isLoadingData ? (
               <div className="grid grid-cols-2 gap-2.5">
@@ -727,14 +720,9 @@ export const HomePage: React.FC = () => {
           </section>
         )}
 
-        {/* 4. DESKTOP ALL PRODUCTS */}
+        {/* 4. DESKTOP PRODUCT FEED */}
         <section className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 space-y-5">
           <div className="flex items-center justify-between border-b border-rose-100 pb-3">
-            <div className="flex items-center gap-2">
-              <Package className="w-5 h-5 text-rose-600" />
-              <h2 className="text-xl font-bold text-gray-900 tracking-tight">All Products</h2>
-            </div>
-
             <div className="flex gap-2 text-xs font-bold">
               {[
                 { key: 'all', label: 'All Items' },
