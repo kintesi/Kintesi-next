@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useChat } from '../../contexts/ChatContext';
 import { useAuth } from '../../contexts/AuthContext';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { toast } from 'sonner';
 import { formatPrice } from '../../lib/utils';
 import {
@@ -39,6 +40,7 @@ export const LiveChatWidget: React.FC = () => {
   } = useChat();
 
   const { user, openAuthModal } = useAuth();
+  const { language } = useLanguage();
   const [inputMessage, setInputMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -48,24 +50,15 @@ export const LiveChatWidget: React.FC = () => {
   };
 
   useEffect(() => {
-    if (isOpen) {
-      scrollToBottom();
-    }
-  }, [messages, isOpen]);
+    scrollToBottom();
+  }, [messages, isTyping]);
 
-  const handleSend = async (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
+  const handleSend = (e: React.FormEvent) => {
+    e.preventDefault();
     if (!inputMessage.trim()) return;
 
-    const textToSend = inputMessage;
+    sendMessage(inputMessage.trim());
     setInputMessage('');
-    setIsTyping(true);
-
-    await sendMessage(textToSend);
-
-    setTimeout(() => {
-      setIsTyping(false);
-    }, 1200);
   };
 
   const handleQuickQuestion = (q: string) => {
@@ -74,18 +67,22 @@ export const LiveChatWidget: React.FC = () => {
 
   return (
     <>
-      {/* Floating Chat Trigger Button */}
+      {/* Floating Chat Trigger Button - Elevated on Mobile to not collide with bottom dock */}
       {!isOpen && (
         <button
           onClick={() => {
             if (!user) {
-              toast.error('লাইভ চ্যাট করতে দয়া করে প্রথমে সাইন ইন বা রেজিস্ট্রেশন করুন।');
+              toast.error(
+                language === 'bn'
+                  ? 'লাইভ চ্যাট করতে দয়া করে প্রথমে সাইন ইন বা রেজিস্ট্রেশন করুন।'
+                  : 'Please sign in or register first to start live chat.'
+              );
               openAuthModal('login');
               return;
             }
             openChat();
           }}
-          className="fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-30 p-3 sm:p-4 bg-rose-600 hover:bg-rose-700 text-white rounded-full shadow-2xl transition-all duration-300 hover:scale-110 active:scale-95 flex items-center justify-center group ring-4 ring-rose-600/20"
+          className="fixed bottom-28 right-4 sm:bottom-6 sm:right-6 z-40 p-3 sm:p-4 bg-rose-600 hover:bg-rose-700 text-white rounded-full shadow-2xl transition-all duration-300 hover:scale-110 active:scale-95 flex items-center justify-center group ring-4 ring-rose-600/20"
           aria-label="Open Live Chat with Seller"
         >
           <div className="relative">
@@ -104,7 +101,7 @@ export const LiveChatWidget: React.FC = () => {
 
       {/* Live Chat Modal / Window */}
       {isOpen && (
-        <div className="fixed bottom-4 right-4 z-50 w-[92vw] sm:w-96 max-w-lg h-[540px] max-h-[85vh] bg-white rounded-3xl shadow-2xl border border-rose-100 flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-5 duration-300">
+        <div className="fixed bottom-20 sm:bottom-4 right-4 z-50 w-[92vw] sm:w-96 max-w-lg h-[540px] max-h-[85vh] bg-white rounded-3xl shadow-2xl border border-rose-100 flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-5 duration-300">
           
           {/* Header */}
           <div className="bg-gradient-to-r from-gray-950 via-gray-900 to-rose-950 p-4 text-white flex items-center justify-between shadow-md border-b border-rose-950/40">

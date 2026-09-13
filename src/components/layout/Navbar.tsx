@@ -324,16 +324,10 @@ export const Navbar: React.FC = () => {
               </Link>
 
               {/* Cart Button */}
-              <button
-                onClick={() => {
-                  if (!user) {
-                    setIsAuthOpen(true);
-                    return;
-                  }
-                  setIsCartOpen(true);
-                }}
+              <Link
+                to="/cart"
                 className="relative h-9 px-3.5 bg-gray-950 hover:bg-rose-600 text-white rounded-xl font-bold text-xs transition-all flex items-center gap-2 shadow-xs active:scale-95 cursor-pointer"
-                title={user ? t('cart.title') : t('product.loginRequired')}
+                title={t('cart.title')}
               >
                 <div className="relative">
                   <ShoppingCart className="w-4 h-4" />
@@ -344,7 +338,7 @@ export const Navbar: React.FC = () => {
                   )}
                 </div>
                 <span>{subtotal > 0 ? formatPrice(subtotal) : t('nav.cart')}</span>
-              </button>
+              </Link>
 
               {/* User Account / Profile */}
               {user ? (

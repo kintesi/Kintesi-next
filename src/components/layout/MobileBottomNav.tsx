@@ -19,7 +19,7 @@ export const MobileBottomNav: React.FC = () => {
   const { t } = useLanguage();
   const [isAuthOpen, setIsAuthOpen] = useState(false);
 
-  const isActive = (path: string) => location.pathname === path && !isCartOpen;
+  const isActive = (path: string) => location.pathname === path;
 
   // On product detail page, hide standard bottom navigation so Dynamic Bottom Island is fully visible and unobstructed
   if (location.pathname.startsWith('/product/')) {
@@ -63,24 +63,18 @@ export const MobileBottomNav: React.FC = () => {
             <span className="text-[10px] mt-0.5 tracking-tight">{t('nav.category')}</span>
           </Link>
 
-          {/* 3. Clean Modern Cart Button with Live Counter Badge */}
-          <button
-            onClick={() => {
-              if (!user) {
-                setIsAuthOpen(true);
-                return;
-              }
-              setIsCartOpen(!isCartOpen);
-            }}
+          {/* 3. Dedicated Cart Page Link (Uniform with other pages) */}
+          <Link
+            to="/cart"
             className={`flex flex-col items-center justify-center h-full rounded-full transition-all duration-200 relative cursor-pointer active:scale-90 ${
-              isCartOpen
+              isActive('/cart')
                 ? 'text-rose-600 bg-rose-50/90 font-bold shadow-xs scale-105'
                 : 'text-gray-400 hover:text-gray-700 font-medium'
             }`}
             aria-label="Shopping Cart"
           >
             <div className="relative">
-              <ShoppingBag className={`w-5 h-5 ${isCartOpen ? 'stroke-[2.5]' : 'stroke-[1.8]'}`} />
+              <ShoppingBag className={`w-5 h-5 ${isActive('/cart') ? 'stroke-[2.5]' : 'stroke-[1.8]'}`} />
               {totalItemCount > 0 && (
                 <span className="absolute -top-1 -right-2 bg-gradient-to-r from-rose-600 to-rose-700 text-white text-[9px] font-black rounded-full min-w-[17px] h-[17px] px-1 flex items-center justify-center shadow-xs ring-2 ring-white animate-scale-in">
                   {totalItemCount}
@@ -88,7 +82,7 @@ export const MobileBottomNav: React.FC = () => {
               )}
             </div>
             <span className="text-[10px] mt-0.5 tracking-tight">{t('nav.cart')}</span>
-          </button>
+          </Link>
 
           {/* 4. Wishlist */}
           <Link

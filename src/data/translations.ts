@@ -87,7 +87,7 @@ export const translations: Translations = {
   'product.loginRequired': { en: 'Please sign in to add items to your cart or order.', bn: 'কার্টে পণ্য যোগ করতে বা অর্ডার করতে অনুগ্রহ করে লগইন করুন।' },
   'product.off': { en: 'OFF', bn: 'ছাড়' },
 
-  // Cart Drawer
+  // Cart Page & Drawer
   'cart.title': { en: 'Shopping Cart', bn: 'শপিং কার্ট' },
   'cart.items': { en: 'items', bn: 'টি পণ্য' },
   'cart.empty': { en: 'Your Cart is Empty', bn: 'আপনার কার্ট খালি' },
@@ -104,6 +104,14 @@ export const translations: Translations = {
   'cart.apply': { en: 'Apply', bn: 'প্রয়োগ করুন' },
   'cart.remove': { en: 'Remove', bn: 'মুছুন' },
   'cart.removedNotice': { en: 'Item removed from cart', bn: 'পণ্য কার্ট থেকে মুছে ফেলা হয়েছে' },
+  'cart.orderSummary': { en: 'Order Summary', bn: 'অর্ডারের বিবরণ' },
+  'cart.secureCheckout': { en: '100% Secure Checkout', bn: '১০০% নিরাপদ চেকআউট' },
+  'cart.codAvailable': { en: 'Cash on Delivery Available', bn: 'ক্যাশ অন ডেলিভারি প্রযোজ্য' },
+  'cart.easyReturns': { en: '7-Day Easy Returns', bn: '৭ দিনের সহজ রিটার্ন' },
+  'cart.freeDeliveryUnlocked': { en: 'Congratulations! You qualify for Free Delivery.', bn: 'অভিনন্দন! আপনি ফ্রি ডেলিভারি পাওয়ার যোগ্য।' },
+  'cart.freeDeliveryProgress': { en: 'more for FREE DELIVERY!', bn: 'যোগ করলে ফ্রি ডেলিভারি পাবেন!' },
+  'cart.price': { en: 'Price', bn: 'মূল্য' },
+  'cart.quantity': { en: 'Quantity', bn: 'পরিমাণ' },
 
   // Wishlist
   'wishlist.title': { en: 'My Wishlist', bn: 'আমার পছন্দের তালিকা' },
