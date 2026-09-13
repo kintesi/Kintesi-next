@@ -117,16 +117,6 @@ export const AdminLayout: React.FC = () => {
           </div>
         </div>
 
-        {/* Desktop collapse button */}
-        <button
-          onClick={toggleDesktopSidebar}
-          className="hidden md:flex p-1.5 rounded-xl text-gray-400 hover:text-white hover:bg-gray-800 transition"
-          title="Hide Sidebar"
-          aria-label="Hide Sidebar"
-        >
-          <PanelLeftClose className="w-5 h-5 text-gray-400 hover:text-rose-400 transition" />
-        </button>
-
         {/* Mobile close button */}
         <button
           onClick={() => setIsMobileMenuOpen(false)}
@@ -159,24 +149,6 @@ export const AdminLayout: React.FC = () => {
           );
         })}
       </nav>
-
-      {/* User footer & Back to store */}
-      <div className="p-3 border-t border-gray-800 space-y-1.5">
-        <Link
-          to="/"
-          className="flex items-center gap-2.5 px-3.5 py-2 rounded-xl bg-gray-800/80 hover:bg-gray-700 text-gray-200 text-xs font-semibold transition"
-        >
-          <Store className="w-4 h-4 text-rose-400 flex-shrink-0" />
-          <span>Back to Storefront</span>
-        </Link>
-        <button
-          onClick={signOut}
-          className="w-full flex items-center gap-2.5 px-3.5 py-2 rounded-xl hover:bg-rose-950/40 text-rose-400 text-xs font-semibold transition"
-        >
-          <LogOut className="w-4 h-4 flex-shrink-0" />
-          <span>Sign Out</span>
-        </button>
-      </div>
     </div>
   );
 
@@ -280,6 +252,14 @@ export const AdminLayout: React.FC = () => {
             </Link>
             <span className="text-gray-700">|</span>
             <span className="font-semibold text-gray-300">{user?.email}</span>
+            <button
+              onClick={signOut}
+              className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-rose-400 hover:text-rose-300 hover:bg-rose-950/40 transition cursor-pointer"
+              title="Sign Out"
+            >
+              <LogOut className="w-3.5 h-3.5" />
+              <span className="text-[11px] font-semibold">Sign Out</span>
+            </button>
           </div>
         </div>
 
