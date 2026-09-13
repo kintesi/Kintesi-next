@@ -43,21 +43,7 @@ import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import { ImageUploader } from '../../components/common/ImageUploader';
 import { CategoryTagExplorer } from '../../components/admin/CategoryTagExplorer';
-
-const DEFAULT_POPULAR_SIZES = ['S', 'M', 'L', 'XL', 'XXL', '64GB', '128GB', '256GB', '512GB', '1TB', '500g', '1kg', '5L'];
-
-const DEFAULT_COLOR_PRESETS = [
-  { name: 'Pink', hex: '#EC4899' },
-  { name: 'Red', hex: '#EF4444' },
-  { name: 'Yellow', hex: '#EAB308' },
-  { name: 'White', hex: '#FFFFFF' },
-  { name: 'Black', hex: '#000000' },
-  { name: 'Navy Blue', hex: '#1E3A8A' },
-  { name: 'Olive Green', hex: '#65A30D' },
-  { name: 'Grey', hex: '#6B7280' },
-  { name: 'Beige', hex: '#D4B996' },
-  { name: 'Maroon', hex: '#881337' },
-];
+import { DEFAULT_COLOR_PRESETS, DEFAULT_SIZE_PRESETS, ColorPresetItem } from './AdminPresets';
 
 export interface ColorVariantSection {
   id: string;
@@ -204,7 +190,7 @@ export const AdminProducts: React.FC = () => {
     tags: '',
   });
   // Dynamic Color Presets (Selection only in product modal, managed in /admin/presets)
-  const [colorPresets, setColorPresets] = useState<{ name: string; hex: string }[]>(() => {
+  const [colorPresets, setColorPresets] = useState<ColorPresetItem[]>(() => {
     try {
       const saved = localStorage.getItem('kintesi_color_presets');
       if (saved) return JSON.parse(saved);
@@ -218,17 +204,27 @@ export const AdminProducts: React.FC = () => {
       const saved = localStorage.getItem('kintesi_size_presets');
       if (saved) return JSON.parse(saved);
     } catch (e) {}
-    return DEFAULT_POPULAR_SIZES;
+    return DEFAULT_SIZE_PRESETS;
   });
 
+  const [modalSizeCategory, setModalSizeCategory] = useState<'all' | 'apparel' | 'storage' | 'volume' | 'weight' | 'footwear'>('all');
+
+  const refreshPresetsFromStorage = () => {
+    try {
+      const c = localStorage.getItem('kintesi_color_presets');
+      if (c) setColorPresets(JSON.parse(c));
+      else setColorPresets(DEFAULT_COLOR_PRESETS);
+
+      const s = localStorage.getItem('kintesi_size_presets');
+      if (s) setSizePresets(JSON.parse(s));
+      else setSizePresets(DEFAULT_SIZE_PRESETS);
+    } catch (e) {}
+  };
+
   useEffect(() => {
+    refreshPresetsFromStorage();
     const syncPresets = () => {
-      try {
-        const c = localStorage.getItem('kintesi_color_presets');
-        if (c) setColorPresets(JSON.parse(c));
-        const s = localStorage.getItem('kintesi_size_presets');
-        if (s) setSizePresets(JSON.parse(s));
-      } catch {}
+      refreshPresetsFromStorage();
     };
     window.addEventListener('kintesi_presets_updated', syncPresets);
     return () => window.removeEventListener('kintesi_presets_updated', syncPresets);
@@ -276,6 +272,7 @@ export const AdminProducts: React.FC = () => {
   }, []);
 
   const handleOpenAddModal = () => {
+    refreshPresetsFromStorage();
     setEditingProduct(null);
     setFormData({
       title: '',
@@ -361,6 +358,7 @@ export const AdminProducts: React.FC = () => {
   };
 
   const handleOpenEditModal = (prod: Product) => {
+    refreshPresetsFromStorage();
     setEditingProduct(prod);
     const existingPercent = calculateDiscount(prod.price, prod.discount_price);
     const specEntries = Object.entries(prod.specifications || {}).filter(
@@ -1023,6 +1021,16 @@ export const AdminProducts: React.FC = () => {
       (p.brand && p.brand.toLowerCase().includes(searchQuery.toLowerCase())) ||
       (p.sku && p.sku.toLowerCase().includes(searchQuery.toLowerCase()))
   );
+
+  const filteredModalSizes = sizePresets.filter((s) => {
+    if (modalSizeCategory === 'all') return true;
+    if (modalSizeCategory === 'apparel') return ['XXS', 'XS', 'S', 'M', 'L', 'XL', 'XXL', '3XL', '4XL', 'Free Size', 'Semi-Stitched', 'Unstitched'].includes(s);
+    if (modalSizeCategory === 'storage') return s.endsWith('GB') || s.endsWith('TB');
+    if (modalSizeCategory === 'volume') return s.endsWith('ml') || s.endsWith('L');
+    if (modalSizeCategory === 'weight') return s.endsWith('g') || s.endsWith('kg');
+    if (modalSizeCategory === 'footwear') return ['35', '36', '37', '38', '39', '40', '41', '42', '43', '44', '45', '46'].includes(s);
+    return true;
+  });
 
   return (
     <div className="w-full space-y-6 pb-20">
@@ -1791,28 +1799,30 @@ export const AdminProducts: React.FC = () => {
                       </div>
 
                       {/* Quick Color Preset Chips (Selection Only) */}
-                      <div className="pt-2 border-t border-gray-800/80 space-y-1.5">
+                      <div className="pt-2 border-t border-gray-800/80 space-y-2">
                         <div className="flex items-center justify-between">
-                          <span className="text-[10px] uppercase font-bold text-gray-400">Quick Popular Presets:</span>
+                          <span className="text-[10px] uppercase font-bold text-gray-400">
+                            Quick Reusable Color Presets ({colorPresets.length} Colors Available):
+                          </span>
                           <Link
                             to="/admin/presets"
                             target="_blank"
-                            className="text-[10px] text-purple-400 hover:text-purple-300 font-bold underline flex items-center gap-1"
+                            className="text-[10px] text-rose-400 hover:text-rose-300 font-bold underline flex items-center gap-1"
                             title="Open Preset Management in new tab"
                           >
-                            <Sliders className="w-3 h-3" /> Manage Presets ↗
+                            <Sliders className="w-3 h-3" /> Manage Colors & Presets ↗
                           </Link>
                         </div>
-                        <div className="flex flex-wrap items-center gap-1.5">
+                        <div className="flex flex-wrap items-center gap-1.5 max-h-36 overflow-y-auto pr-1">
                           {colorPresets.map((preset) => (
                             <button
                               type="button"
                               key={preset.name}
                               onClick={() => handleAddColorVariant(preset.name, preset.hex)}
-                              className="px-2.5 py-1.5 flex items-center gap-1.5 bg-gray-900 hover:bg-gray-800 text-gray-300 hover:text-white border border-gray-700 hover:border-emerald-500/60 rounded-xl text-xs font-bold transition cursor-pointer"
-                              title={`Add ${preset.name} variant`}
+                              className="px-2.5 py-1.5 flex items-center gap-1.5 bg-gray-900 hover:bg-gray-800 text-gray-300 hover:text-white border border-gray-700 hover:border-rose-500/60 rounded-xl text-xs font-bold transition cursor-pointer active:scale-95"
+                              title={`Add ${preset.name} (${preset.hex}) variant`}
                             >
-                              <span className="w-3 h-3 rounded-full border border-black/30 shrink-0" style={{ backgroundColor: preset.hex }} />
+                              <span className="w-3 h-3 rounded-full border border-black/40 shrink-0 shadow-xs" style={{ backgroundColor: preset.hex }} />
                               <span>+ {preset.name}</span>
                             </button>
                           ))}
@@ -1854,21 +1864,49 @@ export const AdminProducts: React.FC = () => {
                         </div>
                       )}
 
-                      {/* Quick Popular Size Chips (Selection Only) */}
-                      <div className="space-y-1.5 mb-3">
-                        <div className="flex items-center justify-between">
-                          <span className="text-[10px] uppercase font-bold text-gray-400">Quick Popular Presets:</span>
+                      {/* Quick Popular Size Chips with Category Filter */}
+                      <div className="space-y-2 mb-3 bg-gray-900/50 p-3 rounded-2xl border border-gray-800">
+                        <div className="flex items-center justify-between flex-wrap gap-2">
+                          <span className="text-[10px] uppercase font-bold text-gray-400">
+                            Preset Variations ({sizePresets.length} items):
+                          </span>
                           <Link
                             to="/admin/presets"
                             target="_blank"
                             className="text-[10px] text-purple-400 hover:text-purple-300 font-bold underline flex items-center gap-1"
                             title="Open Preset Management in new tab"
                           >
-                            <Sliders className="w-3 h-3" /> Manage Presets ↗
+                            <Sliders className="w-3 h-3" /> Manage All Presets ↗
                           </Link>
                         </div>
-                        <div className="flex flex-wrap items-center gap-1.5">
-                          {sizePresets.map((size) => {
+
+                        {/* Category filter tabs */}
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          {[
+                            { id: 'all', label: `All (${sizePresets.length})` },
+                            { id: 'apparel', label: '👕 Apparel' },
+                            { id: 'storage', label: '💾 Storage / RAM' },
+                            { id: 'volume', label: '🧴 Volume / Liquid' },
+                            { id: 'weight', label: '⚖️ Weight' },
+                            { id: 'footwear', label: '👟 Footwear' },
+                          ].map((cat) => (
+                            <button
+                              key={cat.id}
+                              type="button"
+                              onClick={() => setModalSizeCategory(cat.id as any)}
+                              className={`text-[11px] px-2.5 py-1 rounded-xl font-bold transition cursor-pointer ${
+                                modalSizeCategory === cat.id
+                                  ? 'bg-purple-600 text-white shadow-xs'
+                                  : 'bg-gray-950 text-gray-400 hover:text-white border border-gray-800'
+                              }`}
+                            >
+                              {cat.label}
+                            </button>
+                          ))}
+                        </div>
+
+                        <div className="flex flex-wrap items-center gap-1.5 pt-1 max-h-40 overflow-y-auto pr-1">
+                          {filteredModalSizes.map((size) => {
                             const isSelected = formData.selectedSizes.includes(size);
                             return (
                               <button
@@ -1878,7 +1916,7 @@ export const AdminProducts: React.FC = () => {
                                 className={`px-2.5 py-1 rounded-lg text-xs font-bold transition cursor-pointer ${
                                   isSelected
                                     ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
-                                    : 'bg-gray-900 text-gray-400 border border-gray-700 hover:text-white hover:border-gray-500'
+                                    : 'bg-gray-950 text-gray-400 border border-gray-800 hover:text-white hover:border-gray-600'
                                 }`}
                                 title={isSelected ? `Remove ${size} from product` : `Select ${size}`}
                               >

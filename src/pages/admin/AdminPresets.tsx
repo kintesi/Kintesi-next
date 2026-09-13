@@ -19,28 +19,45 @@ export interface ColorPresetItem {
 }
 
 export const DEFAULT_COLOR_PRESETS: ColorPresetItem[] = [
-  { name: 'Pink', hex: '#EC4899' },
-  { name: 'Red', hex: '#EF4444' },
-  { name: 'Yellow', hex: '#EAB308' },
-  { name: 'White', hex: '#FFFFFF' },
   { name: 'Black', hex: '#000000' },
-  { name: 'Navy Blue', hex: '#1E3A8A' },
-  { name: 'Olive Green', hex: '#65A30D' },
+  { name: 'White', hex: '#FFFFFF' },
   { name: 'Grey', hex: '#6B7280' },
-  { name: 'Beige', hex: '#D4B996' },
-  { name: 'Maroon', hex: '#881337' },
-  { name: 'Purple', hex: '#A855F7' },
+  { name: 'Navy Blue', hex: '#1E3A8A' },
+  { name: 'Royal Blue', hex: '#2563EB' },
   { name: 'Sky Blue', hex: '#0EA5E9' },
+  { name: 'Red', hex: '#EF4444' },
+  { name: 'Maroon', hex: '#881337' },
+  { name: 'Burgundy', hex: '#800020' },
+  { name: 'Pink', hex: '#EC4899' },
   { name: 'Rose Gold', hex: '#B76E79' },
+  { name: 'Purple', hex: '#A855F7' },
+  { name: 'Lavender', hex: '#C084FC' },
   { name: 'Emerald', hex: '#10B981' },
+  { name: 'Olive Green', hex: '#65A30D' },
+  { name: 'Teal', hex: '#14B8A6' },
+  { name: 'Mint Green', hex: '#86EFAC' },
+  { name: 'Yellow', hex: '#EAB308' },
+  { name: 'Mustard', hex: '#CA8A04' },
+  { name: 'Orange', hex: '#F97316' },
+  { name: 'Coral', hex: '#FB7185' },
+  { name: 'Beige', hex: '#D4B996' },
+  { name: 'Brown', hex: '#78350F' },
+  { name: 'Chocolate', hex: '#451A03' },
+  { name: 'Gold', hex: '#EAB308' },
+  { name: 'Silver', hex: '#94A3B8' },
 ];
 
 export const DEFAULT_SIZE_PRESETS: string[] = [
-  'XS', 'S', 'M', 'L', 'XL', 'XXL', '3XL', 'Free Size',
-  '32GB', '64GB', '128GB', '256GB', '512GB', '1TB', '2TB',
-  '50ml', '100ml', '250ml', '500ml', '1L', '2L', '5L',
-  '100g', '250g', '500g', '1kg', '2kg', '5kg',
-  '38', '39', '40', '41', '42', '43', '44', '45',
+  // Apparel
+  'XXS', 'XS', 'S', 'M', 'L', 'XL', 'XXL', '3XL', '4XL', 'Free Size', 'Semi-Stitched', 'Unstitched',
+  // Digital Storage / RAM
+  '16GB', '32GB', '64GB', '128GB', '256GB', '512GB', '1TB', '2TB',
+  // Liquid / Volume
+  '30ml', '50ml', '100ml', '150ml', '200ml', '250ml', '500ml', '750ml', '1L', '1.5L', '2L', '5L',
+  // Weight
+  '50g', '100g', '200g', '250g', '500g', '1kg', '2kg', '5kg', '10kg',
+  // Footwear
+  '36', '37', '38', '39', '40', '41', '42', '43', '44', '45', '46',
 ];
 
 export const AdminPresets: React.FC = () => {
