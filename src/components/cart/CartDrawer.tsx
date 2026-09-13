@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useCart } from '../../contexts/CartContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { AuthModal } from '../auth/AuthModal';
-import { X, Trash2, Plus, Minus, ShoppingBag, ArrowRight, Tag, CheckCircle2 } from 'lucide-react';
+import { X, Trash2, Plus, Minus, ShoppingBag, ArrowRight, Tag } from 'lucide-react';
 import { formatPrice } from '../../lib/utils';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 
@@ -44,10 +44,6 @@ export const CartDrawer: React.FC = () => {
     }
   };
 
-  const freeShippingThreshold = 5000;
-  const progressToFreeShipping = Math.min(100, (subtotal / freeShippingThreshold) * 100);
-  const remainingForFreeShipping = Math.max(0, freeShippingThreshold - subtotal);
-
   return (
     <div className="fixed inset-0 z-[100] overflow-hidden animate-fade-in">
       <div
@@ -74,26 +70,6 @@ export const CartDrawer: React.FC = () => {
             >
               <X className="w-5 h-5" />
             </button>
-          </div>
-
-          {/* Free Shipping Tracker */}
-          <div className="bg-emerald-50/80 px-5 py-3 border-b border-emerald-100 text-xs">
-            {remainingForFreeShipping > 0 ? (
-              <p className="text-emerald-900 font-medium mb-1.5">
-                Add <span className="font-bold text-emerald-700">{formatPrice(remainingForFreeShipping)}</span> more for <span className="font-bold uppercase tracking-wider text-emerald-700">Free Delivery</span>!
-              </p>
-            ) : (
-              <div className="flex items-center gap-1.5 text-emerald-800 font-bold mb-1.5">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                <span>Congratulations! You qualify for Free Delivery.</span>
-              </div>
-            )}
-            <div className="w-full bg-emerald-200/60 rounded-full h-1.5 overflow-hidden">
-              <div
-                className="bg-emerald-600 h-full rounded-full transition-all duration-300"
-                style={{ width: `${progressToFreeShipping}%` }}
-              />
-            </div>
           </div>
 
           {/* Cart Item List */}
