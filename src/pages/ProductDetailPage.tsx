@@ -610,10 +610,10 @@ export const ProductDetailPage: React.FC = () => {
                           key={c.name}
                           type="button"
                           onClick={() => handleSelectColor(c)}
-                          className={`relative w-8 h-8 sm:w-9 sm:h-9 rounded-full transition-all duration-200 cursor-pointer flex items-center justify-center ${
+                          className={`relative w-6 h-6 rounded-full transition-all duration-150 cursor-pointer flex items-center justify-center shrink-0 ${
                             isSelected
-                              ? 'ring-2 ring-offset-2 ring-rose-600 scale-105 shadow-sm'
-                              : 'hover:scale-105 opacity-90 hover:opacity-100 ring-1 ring-black/15 hover:ring-black/30'
+                              ? 'ring-2 ring-offset-1.5 ring-rose-600 scale-105 shadow-xs'
+                              : 'hover:scale-105 opacity-85 hover:opacity-100 ring-1 ring-black/20 hover:ring-black/40'
                           }`}
                           style={{ backgroundColor: c.hex }}
                           title={c.name}
@@ -621,7 +621,7 @@ export const ProductDetailPage: React.FC = () => {
                         >
                           {isSelected && (
                             <span
-                              className={`w-2.5 h-2.5 rounded-full ${
+                              className={`w-1.5 h-1.5 rounded-full ${
                                 isLightColor ? 'bg-black/80' : 'bg-white shadow-xs'
                               }`}
                             />
