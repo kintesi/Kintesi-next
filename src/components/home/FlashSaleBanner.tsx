@@ -14,44 +14,64 @@ interface FlashSaleBannerProps {
 }
 
 interface ThemePalette {
-  bgGradient: string;
+  cardBg: string;
+  glowColor: string;
   badgeBg: string;
   timerBg: string;
+  timerSecBg: string;
+  timerSecText: string;
   dotActive: string;
+  border: string;
 }
 
 const getFlashThemeConfig = (theme?: string): ThemePalette => {
   switch (theme) {
     case 'emerald':
       return {
-        bgGradient: 'from-emerald-700 via-teal-600 to-emerald-500',
-        badgeBg: 'bg-teal-950 text-teal-200 border border-teal-800',
-        timerBg: 'bg-emerald-950/40 text-white border-emerald-400/30',
-        dotActive: 'bg-teal-200',
+        cardBg: 'from-[#05130d] via-[#091f16] to-[#040c08]',
+        glowColor: 'bg-emerald-500/15',
+        badgeBg: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/35',
+        timerBg: 'bg-black/55 border-emerald-500/25',
+        timerSecBg: 'bg-emerald-500/25 border-emerald-500/40',
+        timerSecText: 'text-emerald-300',
+        dotActive: 'bg-emerald-400 shadow-emerald-400/50',
+        border: 'border-emerald-500/25',
       };
     case 'cyber':
       return {
-        bgGradient: 'from-purple-700 via-indigo-600 to-pink-600',
-        badgeBg: 'bg-pink-500 text-white',
-        timerBg: 'bg-purple-950/40 text-white border-pink-400/30',
-        dotActive: 'bg-pink-300',
+        cardBg: 'from-[#0c0819] via-[#140f28] to-[#07050e]',
+        glowColor: 'bg-purple-500/15',
+        badgeBg: 'bg-purple-500/20 text-purple-300 border-purple-500/35',
+        timerBg: 'bg-black/55 border-purple-500/25',
+        timerSecBg: 'bg-purple-500/25 border-purple-500/40',
+        timerSecText: 'text-purple-300',
+        dotActive: 'bg-purple-400 shadow-purple-400/50',
+        border: 'border-purple-500/25',
       };
     case 'dark':
       return {
-        bgGradient: 'from-gray-950 via-slate-900 to-zinc-900',
-        badgeBg: 'bg-amber-500 text-gray-950',
-        timerBg: 'bg-black/60 text-white border-amber-500/30',
-        dotActive: 'bg-amber-400',
+        cardBg: 'from-[#09090b] via-[#141418] to-[#0a0a0c]',
+        glowColor: 'bg-white/8',
+        badgeBg: 'bg-white/10 text-white border-white/25',
+        timerBg: 'bg-black/60 border-white/20',
+        timerSecBg: 'bg-white/20 border-white/30',
+        timerSecText: 'text-white',
+        dotActive: 'bg-white shadow-white/50',
+        border: 'border-white/15',
       };
     case 'sunset':
     default:
-      // Exact color scheme as shown in the demo:
-      // Warm golden yellow background + vibrant hot pink badge!
+      // Kintesi Signature Luxury Brand: Deep Obsidian Ruby & Rose
+      // Modern, high-end, bespoke (NO cheap yellow, NO direct demo copy)
       return {
-        bgGradient: 'from-[#F5B81C] via-[#F7BE28] to-[#F2B212]',
-        badgeBg: 'bg-[#FF3366] text-white',
-        timerBg: 'bg-black/20 text-white border-white/25',
-        dotActive: 'bg-white',
+        cardBg: 'from-[#14080e] via-[#1c0c16] to-[#0b0509]',
+        glowColor: 'bg-rose-500/15',
+        badgeBg: 'bg-rose-500/20 text-rose-300 border-rose-500/35',
+        timerBg: 'bg-black/55 border-rose-500/25',
+        timerSecBg: 'bg-rose-500/25 border-rose-500/40',
+        timerSecText: 'text-rose-400',
+        dotActive: 'bg-rose-500 shadow-rose-500/50',
+        border: 'border-rose-500/25',
       };
   }
 };
@@ -71,17 +91,17 @@ export const FlashSaleBanner: React.FC<FlashSaleBannerProps> = ({
     slides && slides.length > 0
       ? slides.map((s, idx) => ({
           id: s.id || `slide-${idx}`,
-          tag: s.tag || defaultTag || '30% OFF',
-          title: s.title || defaultTitle || 'FLASH SALE',
-          subtitle: s.subtitle || defaultSubtitle || 'Exclusive offers across our store for a limited time.',
+          tag: s.tag || defaultTag || '⚡ FLASH SALE',
+          title: s.title || defaultTitle || 'EXCLUSIVE SUPER DEALS',
+          subtitle: s.subtitle || defaultSubtitle || 'Limited stock flash offers with up to 50% discount. Order before time runs out!',
           bgImage: s.bgImage || defaultBgImage || '',
         }))
       : [
           {
             id: 'default',
-            tag: defaultTag || '30% OFF',
-            title: defaultTitle || 'FLASH SALE',
-            subtitle: defaultSubtitle || 'Exclusive offers across our store for a limited time.',
+            tag: defaultTag || '⚡ FLASH SALE',
+            title: defaultTitle || 'EXCLUSIVE SUPER DEALS',
+            subtitle: defaultSubtitle || 'Limited stock flash offers with up to 50% discount. Order before time runs out!',
             bgImage: defaultBgImage || '',
           },
         ];
@@ -90,13 +110,13 @@ export const FlashSaleBanner: React.FC<FlashSaleBannerProps> = ({
   const [isPaused, setIsPaused] = useState(false);
   const touchStartX = useRef<number | null>(null);
 
-  // Auto-slide transition: 4.5 seconds
+  // Auto-slide transition: 5 seconds
   useEffect(() => {
     if (activeSlides.length <= 1 || isPaused) return;
 
     const timer = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % activeSlides.length);
-    }, 4500);
+    }, 5000);
 
     return () => clearInterval(timer);
   }, [activeSlides.length, isPaused]);
@@ -131,36 +151,39 @@ export const FlashSaleBanner: React.FC<FlashSaleBannerProps> = ({
   const themeConfig = getFlashThemeConfig(theme);
 
   // ==========================================
-  // MOBILE SPLIT BANNER (Styled like demo)
+  // MOBILE LUXURY FLASH SALE BANNER
   // ==========================================
   if (isMobile) {
     return (
       <div
-        className={`relative overflow-hidden rounded-[24px] shadow-lg flex select-none transition-all bg-gradient-to-r ${themeConfig.bgGradient} min-h-[145px]`}
+        className={`relative overflow-hidden rounded-[22px] sm:rounded-[24px] shadow-xl flex select-none transition-all bg-gradient-to-r ${themeConfig.cardBg} border ${themeConfig.border} min-h-[145px]`}
         onMouseEnter={() => setIsPaused(true)}
         onMouseLeave={() => setIsPaused(false)}
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
       >
-        {/* Left Column: Pill Badge, Bold Title, Subtitle & Timer */}
+        {/* Ambient background glow */}
+        <div className={`absolute -left-10 -top-10 w-44 h-44 rounded-full blur-2xl pointer-events-none ${themeConfig.glowColor}`} />
+
+        {/* Left Content Area: Tag, Title, Subtitle & Timer */}
         <div className="flex-1 p-3.5 sm:p-4 flex flex-col justify-between z-10 min-w-0">
-          <div className="space-y-1">
-            {/* Pill Badge (like 30% OFF in demo) */}
+          <div className="space-y-1.5">
+            {/* Tag Badge */}
             <div
-              className={`inline-flex items-center gap-1 px-3 py-0.5 rounded-full text-[11px] font-black uppercase tracking-wider shadow-sm self-start ${themeConfig.badgeBg}`}
+              className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10.5px] font-black uppercase tracking-wider shadow-xs self-start border backdrop-blur-md ${themeConfig.badgeBg}`}
             >
               <Flame className="w-3 h-3 fill-current animate-pulse" />
-              <span>{currentSlide.tag || '30% OFF'}</span>
+              <span>{currentSlide.tag || '⚡ FLASH SALE'}</span>
             </div>
 
-            {/* Bold Headline (like FLASH SALE in demo) */}
-            <h2 className="text-xl sm:text-2xl font-black text-white uppercase tracking-tight leading-tight drop-shadow-xs truncate">
-              {currentSlide.title || 'FLASH SALE'}
+            {/* Main Heading */}
+            <h2 className="text-base sm:text-lg font-black text-white uppercase tracking-tight leading-tight drop-shadow-xs truncate">
+              {currentSlide.title || 'EXCLUSIVE SUPER DEALS'}
             </h2>
 
             {/* Subtitle */}
             {currentSlide.subtitle && (
-              <p className="text-white/95 text-[10.5px] sm:text-xs font-medium leading-snug line-clamp-2 drop-shadow-xs">
+              <p className="text-gray-300 text-[10.5px] sm:text-xs font-normal leading-snug line-clamp-2">
                 {currentSlide.subtitle}
               </p>
             )}
@@ -168,13 +191,13 @@ export const FlashSaleBanner: React.FC<FlashSaleBannerProps> = ({
 
           {/* Bottom Area: Timer & Indicators */}
           <div className="pt-2 flex items-center justify-between gap-2">
-            <div className={`flex items-center gap-1 backdrop-blur-xs px-2.5 py-1 rounded-xl border text-[10px] font-mono font-black shadow-xs ${themeConfig.timerBg}`}>
-              <Timer className="w-3 h-3 text-white mr-0.5" />
+            <div className={`flex items-center gap-1 backdrop-blur-md px-2.5 py-1 rounded-xl border text-[10.5px] font-mono font-bold shadow-xs text-white ${themeConfig.timerBg}`}>
+              <Timer className="w-3 h-3 text-white/80 mr-0.5 shrink-0" />
               <span>{String(timeLeft.hours).padStart(2, '0')}h</span>
-              <span className="opacity-60">:</span>
+              <span className="opacity-40">:</span>
               <span>{String(timeLeft.minutes).padStart(2, '0')}m</span>
-              <span className="opacity-60">:</span>
-              <span>{String(timeLeft.seconds).padStart(2, '0')}s</span>
+              <span className="opacity-40">:</span>
+              <span className={`font-black ${themeConfig.timerSecText}`}>{String(timeLeft.seconds).padStart(2, '0')}s</span>
             </div>
 
             {activeSlides.length > 1 && (
@@ -183,8 +206,8 @@ export const FlashSaleBanner: React.FC<FlashSaleBannerProps> = ({
                   <button
                     key={i}
                     onClick={() => setCurrentIndex(i)}
-                    className={`h-1.5 rounded-full transition-all duration-300 ${
-                      i === safeIndex ? `w-4 ${themeConfig.dotActive}` : 'w-1.5 bg-white/40'
+                    className={`h-1.5 rounded-full transition-all duration-300 cursor-pointer ${
+                      i === safeIndex ? `w-4 ${themeConfig.dotActive}` : 'w-1.5 bg-white/30'
                     }`}
                     aria-label={`Go to slide ${i + 1}`}
                   />
@@ -194,9 +217,15 @@ export const FlashSaleBanner: React.FC<FlashSaleBannerProps> = ({
           </div>
         </div>
 
-        {/* Right Column: Dynamic Showcase Image (100% CLEAR, NATURAL, ZERO OVERLAYS) */}
+        {/* Right Showcase Image (100% CLEAR, NATURAL, SMOOTH FEATHER BLEND ON LEFT EDGE) */}
         {currentSlide.bgImage ? (
-          <div className="w-[42%] sm:w-[44%] shrink-0 relative overflow-hidden bg-black/5">
+          <div
+            className="w-[42%] sm:w-[45%] shrink-0 relative overflow-hidden"
+            style={{
+              maskImage: 'linear-gradient(to right, transparent 0%, rgba(0,0,0,0.6) 12%, black 28%, black 100%)',
+              WebkitMaskImage: 'linear-gradient(to right, transparent 0%, rgba(0,0,0,0.6) 12%, black 28%, black 100%)',
+            }}
+          >
             {activeSlides.map((slide, idx) => (
               <img
                 key={slide.id}
@@ -210,7 +239,7 @@ export const FlashSaleBanner: React.FC<FlashSaleBannerProps> = ({
           </div>
         ) : (
           <div className="w-[30%] shrink-0 flex items-center justify-center pr-4">
-            <Flame className="w-16 h-16 text-white/25" />
+            <Flame className="w-14 h-14 text-white/10" />
           </div>
         )}
       </div>
@@ -218,57 +247,61 @@ export const FlashSaleBanner: React.FC<FlashSaleBannerProps> = ({
   }
 
   // ==========================================
-  // DESKTOP SPLIT BANNER (Styled like demo)
+  // DESKTOP LUXURY FLASH SALE BANNER
   // ==========================================
   return (
     <div
-      className={`relative overflow-hidden rounded-[28px] sm:rounded-[32px] shadow-xl flex mb-6 text-white group select-none transition-all bg-gradient-to-r ${themeConfig.bgGradient} min-h-[220px] sm:min-h-[250px] lg:min-h-[280px]`}
+      className={`relative overflow-hidden rounded-[26px] sm:rounded-[30px] shadow-2xl flex mb-6 text-white group select-none transition-all bg-gradient-to-r ${themeConfig.cardBg} border ${themeConfig.border} min-h-[220px] sm:min-h-[250px] lg:min-h-[270px]`}
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
     >
-      {/* Left Column: Tag, Large Bold Title, Subtitle & Timer (55% width) */}
-      <div className="flex-1 p-7 sm:p-9 lg:p-11 flex flex-col justify-between z-10 min-w-0">
-        <div className="space-y-3 max-w-xl">
-          {/* Pill Badge (like 30% OFF in demo) */}
+      {/* Ambient background glows for luxury depth */}
+      <div className={`absolute -left-20 -top-20 w-80 h-80 rounded-full blur-3xl pointer-events-none ${themeConfig.glowColor}`} />
+      <div className={`absolute left-1/3 -bottom-20 w-60 h-60 rounded-full blur-3xl pointer-events-none ${themeConfig.glowColor}`} />
+
+      {/* Left Content Column: Tag, Bold Headline, Subtitle, HUD Timer */}
+      <div className="flex-1 p-7 sm:p-9 lg:p-10 flex flex-col justify-between z-10 min-w-0 max-w-2xl">
+        <div className="space-y-3">
+          {/* Pill Badge */}
           <div
-            className={`inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-wider shadow-sm self-start ${themeConfig.badgeBg}`}
+            className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-black uppercase tracking-wider backdrop-blur-md self-start border shadow-sm ${themeConfig.badgeBg}`}
           >
             <Flame className="w-3.5 h-3.5 fill-current animate-pulse" />
-            <span>{currentSlide.tag || '30% OFF'}</span>
+            <span>{currentSlide.tag || '⚡ FLASH SALE'}</span>
           </div>
 
-          {/* Huge Bold Title (like FLASH SALE in demo) */}
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white uppercase tracking-tight leading-none drop-shadow-xs">
-            {currentSlide.title || 'FLASH SALE'}
+          {/* Main Headline */}
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-white uppercase tracking-tight leading-tight drop-shadow-sm">
+            {currentSlide.title || 'EXCLUSIVE SUPER DEALS'}
           </h2>
 
           {/* Subtitle */}
           {currentSlide.subtitle && (
-            <p className="text-white/95 text-xs sm:text-sm lg:text-base font-medium leading-relaxed max-w-md drop-shadow-xs">
+            <p className="text-gray-300 text-xs sm:text-sm font-normal leading-relaxed max-w-lg">
               {currentSlide.subtitle}
             </p>
           )}
         </div>
 
-        {/* Bottom Area: Timer & Indicators */}
-        <div className="pt-4 flex items-center justify-between gap-4">
-          {/* Countdown Timer */}
-          <div className={`flex items-center gap-2 backdrop-blur-xs px-4 py-2 rounded-2xl border shadow-md ${themeConfig.timerBg}`}>
-            <Timer className="w-4 h-4 text-white shrink-0" />
+        {/* Bottom Area: Modern HUD Countdown Timer & Slide Indicators */}
+        <div className="pt-5 flex items-center justify-between gap-4">
+          {/* Countdown Timer HUD */}
+          <div className={`flex items-center gap-2.5 backdrop-blur-md px-4 py-2.5 rounded-2xl border shadow-lg ${themeConfig.timerBg}`}>
+            <Timer className="w-4 h-4 text-white/80 shrink-0" />
             <div className="flex items-center gap-1.5 font-mono text-sm font-black tracking-wide">
-              <div className="text-center">
-                <span>{String(timeLeft.hours).padStart(2, '0')}</span>
-                <span className="text-[9px] uppercase font-sans font-bold block leading-none opacity-80">Hrs</span>
+              <div className="bg-white/10 px-2.5 py-1 rounded-lg text-center min-w-[38px]">
+                <span className="text-white block leading-none">{String(timeLeft.hours).padStart(2, '0')}</span>
+                <span className="text-[8px] uppercase tracking-wider text-gray-400 font-sans font-bold block mt-0.5">Hrs</span>
               </div>
-              <span className="opacity-60 mb-2">:</span>
-              <div className="text-center">
-                <span>{String(timeLeft.minutes).padStart(2, '0')}</span>
-                <span className="text-[9px] uppercase font-sans font-bold block leading-none opacity-80">Min</span>
+              <span className="text-white/40 font-bold">:</span>
+              <div className="bg-white/10 px-2.5 py-1 rounded-lg text-center min-w-[38px]">
+                <span className="text-white block leading-none">{String(timeLeft.minutes).padStart(2, '0')}</span>
+                <span className="text-[8px] uppercase tracking-wider text-gray-400 font-sans font-bold block mt-0.5">Min</span>
               </div>
-              <span className="opacity-60 mb-2">:</span>
-              <div className="text-center">
-                <span>{String(timeLeft.seconds).padStart(2, '0')}</span>
-                <span className="text-[9px] uppercase font-sans font-bold block leading-none opacity-80">Sec</span>
+              <span className="text-white/40 font-bold">:</span>
+              <div className={`px-2.5 py-1 rounded-lg text-center min-w-[38px] border ${themeConfig.timerSecBg}`}>
+                <span className={`block leading-none ${themeConfig.timerSecText}`}>{String(timeLeft.seconds).padStart(2, '0')}</span>
+                <span className={`text-[8px] uppercase tracking-wider font-sans font-bold block mt-0.5 ${themeConfig.timerSecText} opacity-85`}>Sec</span>
               </div>
             </div>
           </div>
@@ -282,7 +315,7 @@ export const FlashSaleBanner: React.FC<FlashSaleBannerProps> = ({
                   type="button"
                   onClick={() => setCurrentIndex(i)}
                   className={`h-2 rounded-full transition-all duration-300 cursor-pointer ${
-                    i === safeIndex ? `w-6 ${themeConfig.dotActive} shadow-xs` : 'w-2 bg-white/40 hover:bg-white/70'
+                    i === safeIndex ? `w-7 ${themeConfig.dotActive} shadow-xs` : 'w-2 bg-white/30 hover:bg-white/60'
                   }`}
                   aria-label={`Go to slide ${i + 1}`}
                 />
@@ -292,9 +325,15 @@ export const FlashSaleBanner: React.FC<FlashSaleBannerProps> = ({
         </div>
       </div>
 
-      {/* Right Column: Dynamic Showcase Image (100% CLEAR, NATURAL, ZERO OVERLAYS) */}
+      {/* Right Column: Dynamic Showcase Image (100% CLEAR, NATURAL, ZERO OVERLAYS, SMOOTH FEATHER BLEND) */}
       {currentSlide.bgImage ? (
-        <div className="w-[42%] sm:w-[45%] lg:w-[46%] shrink-0 relative overflow-hidden bg-black/5">
+        <div
+          className="w-[44%] sm:w-[46%] lg:w-[48%] shrink-0 relative overflow-hidden"
+          style={{
+            maskImage: 'linear-gradient(to right, transparent 0%, rgba(0,0,0,0.6) 12%, black 28%, black 100%)',
+            WebkitMaskImage: 'linear-gradient(to right, transparent 0%, rgba(0,0,0,0.6) 12%, black 28%, black 100%)',
+          }}
+        >
           {activeSlides.map((slide, idx) => (
             <img
               key={slide.id}
@@ -308,7 +347,7 @@ export const FlashSaleBanner: React.FC<FlashSaleBannerProps> = ({
         </div>
       ) : (
         <div className="w-[35%] shrink-0 flex items-center justify-center pr-8">
-          <Flame className="w-24 h-24 text-white/20" />
+          <Flame className="w-24 h-24 text-white/10" />
         </div>
       )}
 
@@ -318,7 +357,7 @@ export const FlashSaleBanner: React.FC<FlashSaleBannerProps> = ({
           <button
             type="button"
             onClick={handlePrev}
-            className="absolute left-3 top-1/2 -translate-y-1/2 z-20 w-9 h-9 rounded-full bg-black/40 hover:bg-black/70 backdrop-blur-md border border-white/20 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 active:scale-90 cursor-pointer shadow-md"
+            className="absolute left-3 top-1/2 -translate-y-1/2 z-20 w-9 h-9 rounded-full bg-black/50 hover:bg-black/80 backdrop-blur-md border border-white/20 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 active:scale-90 cursor-pointer shadow-md"
             aria-label="Previous Slide"
           >
             <ChevronLeft className="w-5 h-5" />
@@ -326,7 +365,7 @@ export const FlashSaleBanner: React.FC<FlashSaleBannerProps> = ({
           <button
             type="button"
             onClick={handleNext}
-            className="absolute right-3 top-1/2 -translate-y-1/2 z-20 w-9 h-9 rounded-full bg-black/40 hover:bg-black/70 backdrop-blur-md border border-white/20 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 active:scale-90 cursor-pointer shadow-md"
+            className="absolute right-3 top-1/2 -translate-y-1/2 z-20 w-9 h-9 rounded-full bg-black/50 hover:bg-black/80 backdrop-blur-md border border-white/20 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 active:scale-90 cursor-pointer shadow-md"
             aria-label="Next Slide"
           >
             <ChevronRight className="w-5 h-5" />
