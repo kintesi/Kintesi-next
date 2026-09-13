@@ -542,18 +542,36 @@ export const ProductDetailPage: React.FC = () => {
                   )}
                 </div>
 
-                <button
-                  type="button"
-                  onClick={() => {
-                    navigator.clipboard.writeText(window.location.href);
-                    toast.success('Product link copied to clipboard!');
-                  }}
-                  className="text-gray-400 hover:text-gray-700 p-1.5 rounded-lg hover:bg-gray-100 transition inline-flex items-center gap-1 cursor-pointer"
-                  title="Share link"
-                >
-                  <Share2 className="w-3.5 h-3.5" />
-                  <span className="text-[11px] font-medium hidden sm:inline">Share</span>
-                </button>
+                <div className="flex items-center gap-1">
+                  <button
+                    type="button"
+                    onClick={() => toggleWishlist(product)}
+                    className={`p-1.5 rounded-lg transition inline-flex items-center gap-1 cursor-pointer ${
+                      isInWishlist(product.id)
+                        ? 'text-rose-600 bg-rose-50 hover:bg-rose-100'
+                        : 'text-gray-400 hover:text-rose-600 hover:bg-gray-100'
+                    }`}
+                    title={isInWishlist(product.id) ? 'Remove from Wishlist' : 'Add to Wishlist'}
+                  >
+                    <Heart className={`w-4 h-4 ${isInWishlist(product.id) ? 'fill-rose-500 text-rose-500' : ''}`} />
+                    <span className="text-[11px] font-medium hidden sm:inline">
+                      {isInWishlist(product.id) ? (language === 'bn' ? 'সংরক্ষিত' : 'Saved') : (language === 'bn' ? 'উইশলিস্ট' : 'Wishlist')}
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      navigator.clipboard.writeText(window.location.href);
+                      toast.success('Product link copied to clipboard!');
+                    }}
+                    className="text-gray-400 hover:text-gray-700 p-1.5 rounded-lg hover:bg-gray-100 transition inline-flex items-center gap-1 cursor-pointer"
+                    title="Share link"
+                  >
+                    <Share2 className="w-3.5 h-3.5" />
+                    <span className="text-[11px] font-medium hidden sm:inline">Share</span>
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -775,26 +793,6 @@ export const ProductDetailPage: React.FC = () => {
                     <span>{language === 'bn' ? 'এখনই কিনুন' : 'Buy Now'}</span>
                   </button>
                 </div>
-
-                {/* Instant Live Chat Inquiry Button */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    openChat({
-                      product: {
-                        id: product.id,
-                        title: product.title,
-                        price: currentPrice,
-                        image: selectedImage || product.images?.[0] || '/logo.webp',
-                        sku: product.sku,
-                      },
-                    });
-                  }}
-                  className="w-full mt-2.5 py-2.5 px-3 bg-gray-50 hover:bg-rose-50/70 text-gray-700 hover:text-rose-700 font-bold rounded-xl border border-gray-200/80 hover:border-rose-200 transition-all flex items-center justify-center gap-2 text-xs cursor-pointer group"
-                >
-                  <MessageCircle className="w-3.5 h-3.5 text-rose-600 group-hover:scale-110 transition-transform" />
-                  <span>{language === 'bn' ? 'প্রোডাক্ট সম্পর্কে চ্যাট করুন' : 'Chat with Seller about this item'}</span>
-                </button>
               </div>
             </div>
 
@@ -974,46 +972,6 @@ export const ProductDetailPage: React.FC = () => {
                   </p>
                 </div>
               )}
-            </div>
-
-            {/* Card 4: Quick Assistance & Seller Chat */}
-            <div className="bg-white rounded-2xl sm:rounded-3xl border border-gray-100 p-3 sm:p-4 shadow-xs grid grid-cols-2 gap-2">
-              <button
-                type="button"
-                onClick={() => {
-                  if (!user) {
-                    toast.error('সেলার সাথে লাইভ চ্যাট করতে দয়া করে প্রথমে সাইন ইন বা রেজিস্ট্রেশন করুন।');
-                    openAuthModal('login');
-                    return;
-                  }
-                  openChat({
-                    product: {
-                      id: product.id,
-                      title: product.title,
-                      price: currentPrice,
-                      image: selectedImage || product.images?.[0],
-                      sku: product.sku,
-                    },
-                  });
-                }}
-                className="py-2.5 px-3 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200/90 font-bold text-xs rounded-xl transition flex items-center justify-center gap-1.5 shadow-xs active:scale-95 cursor-pointer"
-              >
-                <MessageCircle className="w-4 h-4 text-emerald-600" />
-                <span>Chat Seller</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => toggleWishlist(product)}
-                className={`py-2.5 px-3 rounded-xl text-xs font-bold border transition flex items-center justify-center gap-1.5 cursor-pointer active:scale-95 ${
-                  isInWishlist(product.id)
-                    ? 'border-rose-200 bg-rose-50 text-rose-600'
-                    : 'border-gray-200 text-gray-700 hover:bg-gray-50'
-                }`}
-              >
-                <Heart className={`w-4 h-4 ${isInWishlist(product.id) ? 'fill-rose-500 text-rose-500' : ''}`} />
-                <span>{isInWishlist(product.id) ? 'Saved' : 'Wishlist'}</span>
-              </button>
             </div>
 
           </div>
