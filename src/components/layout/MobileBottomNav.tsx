@@ -21,10 +21,9 @@ export const MobileBottomNav: React.FC = () => {
 
   const isActive = (path: string) => location.pathname === path;
 
-  // On product detail, cart, and checkout pages, hide standard bottom navigation so sticky bottom checkout bars are unobstructed
+  // On product detail and checkout pages, hide standard bottom navigation so bottom action bar is unobstructed
   if (
     location.pathname.startsWith('/product/') ||
-    location.pathname === '/cart' ||
     location.pathname === '/checkout'
   ) {
     return null;

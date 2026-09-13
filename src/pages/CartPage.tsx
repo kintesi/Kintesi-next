@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useCart } from '../contexts/CartContext';
+import { useCart, sanitizeCartItems } from '../contexts/CartContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { formatPrice } from '../lib/utils';
@@ -32,7 +32,8 @@ export const CartPage: React.FC = () => {
 
   const [couponCode, setCouponCode] = useState('');
 
-  const validCart = cart.filter((item) => item && item.product && item.product.id);
+  const rawValidCart = cart.filter((item) => item && item.product && item.product.id);
+  const validCart = sanitizeCartItems(rawValidCart);
 
   const getItemKey = (item: any) =>
     `${item.product.id}_${item.selectedColor || ''}_${item.selectedSize || ''}`;
@@ -221,7 +222,7 @@ export const CartPage: React.FC = () => {
         </div>
       ) : (
         /* Cart Content Grid (2 Columns: Items on Left, Order Summary on Right) */
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start pb-24 sm:pb-0">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start pb-44 sm:pb-0">
           {/* Main Item List (8 cols) */}
           <div className="lg:col-span-8 space-y-3">
             {/* Master Select All Header Bar */}
@@ -623,13 +624,13 @@ export const CartPage: React.FC = () => {
         </div>
       )}
 
-      {/* Mobile Sticky Bottom Checkout Bar */}
+      {/* Mobile Dynamic Floating Checkout Bar (Floats gracefully above Main MobileBottomNav Dock) */}
       {validCart.length > 0 && (
-        <div className="sm:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-gray-200 px-4 py-3 shadow-[0_-4px_20px_rgba(0,0,0,0.08)]">
-          <div className="flex items-center justify-between gap-3 max-w-lg mx-auto">
-            {/* Select All Checkbox & Total */}
-            <div className="flex items-center gap-2.5">
-              <label className="flex items-center gap-1.5 cursor-pointer select-none">
+        <div className="sm:hidden fixed bottom-[72px] left-3.5 right-3.5 max-w-md mx-auto z-30 bg-white/95 backdrop-blur-2xl border border-gray-200/90 shadow-[0_12px_40px_rgba(0,0,0,0.15)] rounded-2xl p-2.5 px-3.5">
+          <div className="flex items-center justify-between gap-2.5">
+            {/* Select All Checkbox & Total with Shipping Fee Info */}
+            <div className="flex items-center gap-2 min-w-0">
+              <label className="flex items-center gap-1.5 cursor-pointer select-none shrink-0">
                 <input
                   type="checkbox"
                   checked={isAllSelected}
@@ -641,8 +642,13 @@ export const CartPage: React.FC = () => {
                 </span>
               </label>
 
-              <div className="border-l border-gray-200 pl-2.5">
-                <div className="text-[10px] text-gray-500 font-medium leading-none">{t('cart.total')}</div>
+              <div className="border-l border-gray-200 pl-2 min-w-0">
+                <div className="text-[9px] text-gray-500 font-bold uppercase tracking-tight leading-none truncate flex items-center gap-1">
+                  <span>{t('cart.total')}</span>
+                  <span className="text-gray-400 font-normal">
+                    ({selectedShippingFee === 0 ? (language === 'bn' ? 'ফ্রি ডেলিভারি' : 'Free Ship') : `${formatPrice(selectedShippingFee)} ${language === 'bn' ? 'ডেলিভারি' : 'ship'}`})
+                  </span>
+                </div>
                 <div className="text-sm font-black text-rose-600 leading-tight mt-0.5">
                   {formatPrice(selectedTotal)}
                 </div>
@@ -654,7 +660,7 @@ export const CartPage: React.FC = () => {
               type="button"
               disabled={selectedItems.length === 0}
               onClick={handleProceedToCheckout}
-              className="px-5 py-2.5 bg-rose-600 hover:bg-rose-700 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold rounded-xl text-xs transition shadow-md shadow-rose-600/20 active:scale-95 flex items-center gap-1.5 cursor-pointer"
+              className="px-4 py-2.5 bg-rose-600 hover:bg-rose-700 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold rounded-xl text-xs transition shadow-md shadow-rose-600/20 active:scale-95 flex items-center gap-1 cursor-pointer shrink-0"
             >
               <span>
                 {language === 'bn'

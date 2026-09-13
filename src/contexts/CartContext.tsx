@@ -28,19 +28,40 @@ interface CartContextType {
 export const sanitizeCartItems = (rawList: any): CartItem[] => {
   if (!Array.isArray(rawList)) return [];
   const cleaned: CartItem[] = [];
+
   for (const item of rawList) {
     if (!item) continue;
-    if (!item.product && item.id && item.title) {
+    const prod = item.product && item.product.id ? item.product : (item.id && item.title ? item : null);
+    if (!prod || !prod.id) continue;
+
+    const qty = typeof item.quantity === 'number' && item.quantity > 0 ? item.quantity : 1;
+    const color = (item.selectedColor || '').trim();
+    const size = (item.selectedSize || '').trim();
+
+    // Check if this product is already in the list
+    const existingIndex = cleaned.findIndex((c) => {
+      if (c.product.id !== prod.id) return false;
+      const cColor = (c.selectedColor || '').trim();
+      const cSize = (c.selectedSize || '').trim();
+      // If colors/sizes match, or if either item has no variant specified
+      if (cColor === color && cSize === size) return true;
+      if ((!cColor && !cSize) || (!color && !size)) return true;
+      return false;
+    });
+
+    if (existingIndex > -1) {
+      cleaned[existingIndex].quantity += qty;
+      // Adopt color/size if the existing one didn't have it
+      if (!cleaned[existingIndex].selectedColor && color) {
+        cleaned[existingIndex].selectedColor = color;
+      }
+      if (!cleaned[existingIndex].selectedSize && size) {
+        cleaned[existingIndex].selectedSize = size;
+      }
+    } else {
       cleaned.push({
-        product: item as Product,
-        quantity: typeof item.quantity === 'number' && item.quantity > 0 ? item.quantity : 1,
-        selectedColor: item.selectedColor,
-        selectedSize: item.selectedSize,
-      });
-    } else if (item.product && item.product.id) {
-      cleaned.push({
-        product: item.product,
-        quantity: typeof item.quantity === 'number' && item.quantity > 0 ? item.quantity : 1,
+        product: prod,
+        quantity: qty,
         selectedColor: item.selectedColor,
         selectedSize: item.selectedSize,
       });
@@ -215,9 +236,17 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return;
     }
 
-    const existingIndex = cart.findIndex(
-      (item) => item?.product?.id === product.id && item.selectedColor === color && item.selectedSize === size
-    );
+    const normalizedColor = (color || '').trim();
+    const normalizedSize = (size || '').trim();
+
+    const existingIndex = cart.findIndex((item) => {
+      if (item?.product?.id !== product.id) return false;
+      const itemColor = (item.selectedColor || '').trim();
+      const itemSize = (item.selectedSize || '').trim();
+      if (itemColor === normalizedColor && itemSize === normalizedSize) return true;
+      if ((!itemColor && !itemSize) || (!normalizedColor && !normalizedSize)) return true;
+      return false;
+    });
 
     let updatedCart: CartItem[];
 
@@ -229,6 +258,12 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return;
       }
       newCart[existingIndex].quantity = newQty;
+      if (!newCart[existingIndex].selectedColor && color) {
+        newCart[existingIndex].selectedColor = color;
+      }
+      if (!newCart[existingIndex].selectedSize && size) {
+        newCart[existingIndex].selectedSize = size;
+      }
       toast.success(`Updated ${product.title} quantity to ${newQty}`);
       updatedCart = newCart;
     } else {

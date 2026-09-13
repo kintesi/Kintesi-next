@@ -29,6 +29,7 @@ import {
   Landmark,
   Copy,
   Check,
+  X,
 } from 'lucide-react';
 import { BkashLogo, NagadLogo, RocketLogo, VisaLogo, MastercardLogo } from '../components/common/PaymentLogos';
 import { AuthModal } from '../components/auth/AuthModal';
@@ -48,6 +49,83 @@ export const CheckoutPage: React.FC = () => {
   const [selectedAddressId, setSelectedAddressId] = useState<string>('');
   const [isAddingNewAddress, setIsAddingNewAddress] = useState(false);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
+  const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
+  const [modalForm, setModalForm] = useState({
+    label: 'Home',
+    recipient_name: '',
+    phone: '',
+    street_address: '',
+    city: 'Dhaka',
+    thana: '',
+    customThana: '',
+    isCustomThana: false,
+    postal_code: '',
+  });
+
+  const handleOpenAddAddressModal = () => {
+    const initialCity = 'Dhaka';
+    const thanasList = getThanasByDistrict(initialCity);
+    setModalForm({
+      label: 'Home',
+      recipient_name: profile?.full_name || '',
+      phone: profile?.phone || '',
+      street_address: '',
+      city: initialCity,
+      thana: thanasList[0] || '',
+      customThana: '',
+      isCustomThana: false,
+      postal_code: '',
+    });
+    setIsAddressModalOpen(true);
+  };
+
+  const handleSaveModalAddress = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!modalForm.recipient_name.trim()) {
+      toast.error(language === 'bn' ? 'প্রাপকের নাম আবশ্যক' : 'Recipient name is required');
+      return;
+    }
+    if (!modalForm.phone.trim()) {
+      toast.error(language === 'bn' ? 'ফোন নম্বর আবশ্যক' : 'Phone number is required');
+      return;
+    }
+    if (!modalForm.street_address.trim()) {
+      toast.error(language === 'bn' ? 'ডেলিভারি ঠিকানা আবশ্যক' : 'Street address is required');
+      return;
+    }
+
+    const finalThana = modalForm.isCustomThana ? modalForm.customThana.trim() : modalForm.thana.trim();
+    const finalCity = finalThana ? `${modalForm.city} (${finalThana})` : modalForm.city;
+
+    const isFirst = addresses.length === 0;
+    const payload = {
+      label: modalForm.label,
+      recipient_name: modalForm.recipient_name.trim(),
+      phone: modalForm.phone.trim(),
+      street_address: modalForm.street_address.trim(),
+      city: finalCity,
+      postal_code: modalForm.postal_code.trim(),
+      is_default: isFirst,
+    };
+
+    try {
+      await addAddress(payload);
+      setName(payload.recipient_name);
+      setPhone(payload.phone);
+      setAddress(payload.street_address);
+      setCity(modalForm.city);
+      setThana(finalThana);
+      setPostalCode(payload.postal_code);
+      setIsAddressModalOpen(false);
+      toast.success(
+        language === 'bn'
+          ? 'অ্যাড্রেস বুকে নতুন ঠিকানা সংরক্ষিত হয়েছে'
+          : 'Address saved to Address Book successfully'
+      );
+    } catch (err: any) {
+      toast.error(err?.message || 'Failed to save address');
+    }
+  };
 
   // Read selected cart keys
   const getItemKey = (item: any) =>
@@ -439,67 +517,70 @@ export const CheckoutPage: React.FC = () => {
         {/* Left Column: Shipping & Payment Details */}
         <div className="lg:col-span-7 space-y-8">
           
-          {/* Address Book Selection */}
+          {/* Address Book Selection (100% from Address Book, No manual fields on page) */}
           <div className="bg-white p-6 sm:p-8 rounded-3xl border border-gray-100 shadow-sm space-y-6">
             <div className="flex items-center justify-between">
               <h3 className="font-extrabold text-gray-900 text-lg flex items-center gap-2">
-                <MapPin className="w-5 h-5 text-emerald-600" />
+                <MapPin className="w-5 h-5 text-rose-600" />
                 <span>{language === 'bn' ? '১. ডেলিভারি ঠিকানা' : '1. Delivery Address'}</span>
               </h3>
-              <Link to="/profile" className="text-xs text-emerald-600 font-bold hover:underline">
+              <Link to="/profile" className="text-xs text-rose-600 font-bold hover:underline">
                 {language === 'bn' ? 'অ্যাড্রেস বুক পরিচালনা' : 'Manage Address Book'}
               </Link>
             </div>
 
-            {/* If user has no saved addresses, prompt to add address */}
-            {addresses.length === 0 && (
-              <div className="p-4 bg-amber-50 rounded-2xl border border-amber-200 flex items-start gap-3">
-                <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+            {/* When user has no saved addresses: Clean prompt with button to add to Address Book */}
+            {addresses.length === 0 ? (
+              <div className="bg-rose-50/60 border-2 border-dashed border-rose-200 rounded-3xl p-6 sm:p-8 text-center space-y-3">
+                <div className="w-12 h-12 rounded-2xl bg-rose-100 text-rose-600 flex items-center justify-center mx-auto shadow-xs">
+                  <MapPin className="w-6 h-6" />
+                </div>
                 <div>
-                  <h4 className="text-xs font-bold text-amber-900">
-                    {language === 'bn' ? 'কোনো সংরক্ষিত ডেলিভারি ঠিকানা নেই' : 'No Saved Delivery Address Found'}
+                  <h4 className="font-extrabold text-gray-900 text-sm">
+                    {language === 'bn' ? 'অ্যাড্রেস বুকে কোনো সংরক্ষিত ঠিকানা নেই' : 'No Address in Address Book'}
                   </h4>
-                  <p className="text-xs text-amber-700 mt-0.5 leading-relaxed">
+                  <p className="text-xs text-gray-500 max-w-sm mx-auto mt-1 leading-relaxed">
                     {language === 'bn'
-                      ? 'অর্ডার করতে অনুগ্রহ করে নিচে আপনার ডেলিভারি ঠিকানা দিন। এটি ভবিষ্যতে ব্যবহারের জন্য আপনার অ্যাড্রেস বুকে সংরক্ষিত হবে।'
-                      : 'Please enter your delivery address below to complete your order. It will be saved in your Address Book for next time.'}
+                      ? 'অর্ডার করতে আপনার অ্যাড্রেস বুকে একটি ডেলিভারি ঠিকানা যুক্ত করুন।'
+                      : 'Please add a delivery address to your Address Book to proceed with checkout.'}
                   </p>
                 </div>
+                <button
+                  type="button"
+                  onClick={handleOpenAddAddressModal}
+                  className="px-6 py-3 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl text-xs transition shadow-md shadow-rose-600/20 active:scale-95 cursor-pointer inline-flex items-center gap-2"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>{language === 'bn' ? 'অ্যাড্রেস বুকে ডেলিভারি ঠিকানা যোগ করুন' : 'Add Delivery Address to Address Book'}</span>
+                </button>
               </div>
-            )}
-
-            {/* Saved Address Cards (Select directly without filling form) */}
-            {addresses.length > 0 && (
+            ) : (
+              /* When user has saved addresses: Select directly from cards. If multiple addresses, all are selectable! */
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">
                     {language === 'bn' ? 'সংরক্ষিত ঠিকানা নির্বাচন করুন' : 'Choose Saved Address'}
                   </p>
-                  {isAddingNewAddress && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setIsAddingNewAddress(false);
-                        if (defaultAddress) handleSelectSavedAddress(defaultAddress.id);
-                        else if (addresses[0]) handleSelectSavedAddress(addresses[0].id);
-                      }}
-                      className="text-xs text-rose-600 font-bold hover:underline"
-                    >
-                      {language === 'bn' ? 'সংরক্ষিত ঠিকানায় ফেরত যান' : 'Use Saved Address'}
-                    </button>
-                  )}
+                  <button
+                    type="button"
+                    onClick={handleOpenAddAddressModal}
+                    className="text-xs text-rose-600 font-bold hover:underline flex items-center gap-1 cursor-pointer"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>{language === 'bn' ? 'নতুন ঠিকানা যোগ করুন' : 'Add New Address'}</span>
+                  </button>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {addresses.map((addr) => {
-                    const isSelected = selectedAddressId === addr.id && !isAddingNewAddress;
+                    const isSelected = selectedAddressId === addr.id;
                     return (
                       <div
                         key={addr.id}
                         onClick={() => handleSelectSavedAddress(addr.id)}
                         className={`p-4 rounded-2xl border-2 cursor-pointer transition relative flex flex-col justify-between ${
                           isSelected
-                            ? 'border-emerald-600 bg-emerald-50/50 shadow-sm ring-2 ring-emerald-600/20'
+                            ? 'border-rose-600 bg-rose-50/40 shadow-xs ring-2 ring-rose-600/20'
                             : 'border-gray-200 hover:border-gray-300'
                         }`}
                       >
@@ -508,249 +589,19 @@ export const CheckoutPage: React.FC = () => {
                             {getLabelIcon(addr.label)}
                             <span className="font-bold text-xs text-gray-900">{addr.label}</span>
                           </div>
-                          {isSelected && <CheckCircle2 className="w-4 h-4 text-emerald-600" />}
+                          {isSelected && <CheckCircle2 className="w-4 h-4 text-rose-600" />}
                         </div>
                         <div className="text-xs text-gray-600 space-y-0.5">
-                          <p className="font-bold text-gray-800">{addr.recipient_name}</p>
-                          <p className="text-gray-500">{addr.phone}</p>
-                          <p className="text-gray-600 line-clamp-1">{addr.street_address}, {addr.city}</p>
+                          <p className="font-bold text-gray-900">{addr.recipient_name}</p>
+                          <p className="text-gray-500 font-mono text-[11px]">{addr.phone}</p>
+                          <p className="text-gray-600 line-clamp-2 mt-0.5">{addr.street_address}, {addr.city}</p>
                         </div>
                       </div>
                     );
                   })}
                 </div>
-
-                {!isAddingNewAddress && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setIsAddingNewAddress(true);
-                      setSelectedAddressId('');
-                      setName('');
-                      setPhone('');
-                      setAddress('');
-                      setPostalCode('');
-                    }}
-                    className="w-full py-2.5 px-4 rounded-2xl border-2 border-dashed border-gray-300 hover:border-emerald-500 text-gray-600 hover:text-emerald-700 font-bold text-xs flex items-center justify-center gap-2 transition cursor-pointer"
-                  >
-                    <Plus className="w-4 h-4" />
-                    <span>{language === 'bn' ? '+ নতুন ঠিকানায় ডেলিভারি নিন' : '+ Deliver to a Different Address'}</span>
-                  </button>
-                )}
               </div>
             )}
-
-            {/* Address Form Inputs (Shown ONLY if user has 0 saved addresses or clicked "+ Deliver to a Different Address") */}
-            {(addresses.length === 0 || isAddingNewAddress) && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-gray-100">
-                <div>
-                  <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">
-                    Recipient Name *
-                  </label>
-                  <div className="relative">
-                    <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                    <input
-                      type="text"
-                      required
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      placeholder="e.g. Tanvir Ahmed"
-                      className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-xs focus:ring-2 focus:ring-emerald-500"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">
-                    Phone Number *
-                  </label>
-                  <div className="relative">
-                    <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                    <input
-                      type="tel"
-                      required
-                      value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
-                      placeholder="e.g. 01700000000"
-                      className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-xs focus:ring-2 focus:ring-emerald-500"
-                    />
-                  </div>
-                </div>
-
-                <div className="sm:col-span-2">
-                  <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">
-                    Email Address *
-                  </label>
-                  <div className="relative">
-                    <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                    <input
-                      type="email"
-                      required
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="e.g. customer@gmail.com"
-                      className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-xs focus:ring-2 focus:ring-emerald-500"
-                    />
-                  </div>
-                </div>
-
-                <div className="sm:col-span-2">
-                  <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">
-                    Full Street Address (House, Road, Area) *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={address}
-                    onChange={(e) => setAddress(e.target.value)}
-                    placeholder="e.g. House 12, Road 4, Sector 7, Area name"
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-xs focus:ring-2 focus:ring-emerald-500"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">
-                    District / City (64 Districts) *
-                  </label>
-                  <select
-                    value={city}
-                    onChange={(e) => {
-                      const newDistrict = e.target.value;
-                      setCity(newDistrict);
-                      const newThanas = getThanasByDistrict(newDistrict);
-                      if (newThanas.length > 0) {
-                        setThana(newThanas[0]);
-                        setIsCustomThana(false);
-                        setCustomThana('');
-                      } else {
-                        setIsCustomThana(true);
-                        setCustomThana('');
-                      }
-                    }}
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-emerald-500"
-                  >
-                    <option value="Dhaka">Dhaka (ঢাকা) - Inside Dhaka ৳60</option>
-                    {['Dhaka', 'Chattogram', 'Rajshahi', 'Khulna', 'Barishal', 'Sylhet', 'Rangpur', 'Mymensingh'].map((div) => {
-                      const districtsInDiv = BD_DISTRICTS.filter((d) => d.division === div && d.name !== 'Dhaka');
-                      return (
-                        <optgroup key={div} label={`── ${div} Division (৳120) ──`}>
-                          {districtsInDiv.map((d) => (
-                            <option key={d.name} value={d.name}>
-                              {d.name} ({d.bnName})
-                            </option>
-                          ))}
-                        </optgroup>
-                      );
-                    })}
-                  </select>
-                </div>
-
-                {/* Thana / Upazila Selector with Manual Option */}
-                <div>
-                  <div className="flex items-center justify-between mb-1.5">
-                    <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider">
-                      Thana / Upazila *
-                    </label>
-                    <button
-                      type="button"
-                      onClick={() => setIsCustomThana(!isCustomThana)}
-                      className="text-[10px] text-emerald-600 hover:text-emerald-700 font-bold underline"
-                    >
-                      {isCustomThana ? 'Choose from list' : '+ Type Manually'}
-                    </button>
-                  </div>
-
-                  {isCustomThana ? (
-                    <input
-                      type="text"
-                      required
-                      value={customThana}
-                      onChange={(e) => setCustomThana(e.target.value)}
-                      placeholder="Type your Thana / Area / Union name..."
-                      className="w-full px-4 py-3 bg-gray-50 border border-emerald-400 rounded-xl text-xs focus:ring-2 focus:ring-emerald-500 font-medium"
-                    />
-                  ) : (
-                    <select
-                      value={thana}
-                      onChange={(e) => {
-                        if (e.target.value === '__OTHER__') {
-                          setIsCustomThana(true);
-                          setCustomThana('');
-                        } else {
-                          setThana(e.target.value);
-                        }
-                      }}
-                      className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-emerald-500"
-                    >
-                      {getThanasByDistrict(city).map((t) => (
-                        <option key={t} value={t}>
-                          {t}
-                        </option>
-                      ))}
-                      <option value="__OTHER__">➕ Other / Missing Thana (অন্যান্য / কাস্টম থানা)</option>
-                    </select>
-                  )}
-                </div>
-
-                <div className="sm:col-span-2">
-                  <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">
-                    Postal / Zip Code (Optional)
-                  </label>
-                  <input
-                    type="text"
-                    value={postalCode}
-                    onChange={(e) => setPostalCode(e.target.value)}
-                    placeholder="e.g. 1230"
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-xs focus:ring-2 focus:ring-emerald-500"
-                  />
-                </div>
-
-                <div className="sm:col-span-2 pt-2">
-                  {user ? (
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="checkbox"
-                        id="save_addr"
-                        checked={saveToAddressBook}
-                        onChange={(e) => setSaveToAddressBook(e.target.checked)}
-                        className="w-4 h-4 accent-emerald-600 rounded"
-                      />
-                      <label htmlFor="save_addr" className="text-xs font-bold text-gray-700 cursor-pointer">
-                        Save this address in my Address Book for future orders
-                      </label>
-                    </div>
-                  ) : (
-                    <div className="flex items-center gap-2 text-xs text-gray-500 bg-gray-50 p-2.5 rounded-xl border border-gray-100">
-                      <MapPin className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                      <span>
-                        Want to save this address?{' '}
-                        <button
-                          type="button"
-                          onClick={() => setIsAuthOpen(true)}
-                          className="text-emerald-600 font-bold hover:underline"
-                        >
-                          Log in or create an account
-                        </button>{' '}
-                        to use the Address Book.
-                      </span>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-
-            <div className="pt-2 border-t border-gray-100">
-              <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">
-                Special Delivery Instructions (Optional)
-              </label>
-              <textarea
-                rows={2}
-                value={customerNote}
-                onChange={(e) => setCustomerNote(e.target.value)}
-                placeholder="Call before arrival / Leave at security gate"
-                className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs focus:ring-2 focus:ring-emerald-500"
-              />
-            </div>
           </div>
 
           {/* Payment Choice with Central Store Owner Gateway */}
@@ -1230,6 +1081,232 @@ export const CheckoutPage: React.FC = () => {
         </div>
 
       </form>
+
+      {/* Address Book Modal */}
+      {isAddressModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="bg-white w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] border border-gray-100">
+            {/* Modal Header */}
+            <div className="p-5 sm:p-6 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center">
+                  <MapPin className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-gray-900">
+                    {language === 'bn' ? 'অ্যাড্রেস বুকে নতুন ঠিকানা যোগ করুন' : 'Add New Address to Address Book'}
+                  </h3>
+                  <p className="text-[11px] text-gray-400">
+                    {language === 'bn' ? 'দ্রুত চেকআউট ও ডেলিভারির জন্য ঠিকানা সংরক্ষণ করুন' : 'Save address for 1-click checkout and delivery'}
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsAddressModalOpen(false)}
+                className="p-2 hover:bg-gray-100 text-gray-400 hover:text-gray-700 rounded-full transition cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Modal Scrollable Body */}
+            <form id="checkout-address-modal-form" onSubmit={handleSaveModalAddress} className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-4 text-xs">
+              {/* Address Label Pills */}
+              <div>
+                <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">
+                  {language === 'bn' ? 'ঠিকানার ধরন' : 'Address Label'}
+                </label>
+                <div className="grid grid-cols-3 gap-2">
+                  {[
+                    { id: 'Home', label: language === 'bn' ? 'বাসা' : 'Home', icon: Home },
+                    { id: 'Office', label: language === 'bn' ? 'অফিস' : 'Office', icon: Briefcase },
+                    { id: 'Other', label: language === 'bn' ? 'অন্যান্য' : 'Other', icon: Building2 },
+                  ].map(({ id, label: lbl, icon: Icon }) => (
+                    <button
+                      key={id}
+                      type="button"
+                      onClick={() => setModalForm({ ...modalForm, label: id })}
+                      className={`py-2 px-3 rounded-xl font-bold border flex items-center justify-center gap-1.5 transition cursor-pointer ${
+                        modalForm.label === id
+                          ? 'bg-rose-50 text-rose-700 border-rose-300 shadow-xs'
+                          : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100'
+                      }`}
+                    >
+                      <Icon className="w-3.5 h-3.5" />
+                      <span>{lbl}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Name & Phone */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[11px] font-bold text-gray-700 uppercase tracking-wider mb-1">
+                    {language === 'bn' ? 'প্রাপকের নাম *' : 'Recipient Name *'}
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={modalForm.recipient_name}
+                    onChange={(e) => setModalForm({ ...modalForm, recipient_name: e.target.value })}
+                    placeholder={language === 'bn' ? 'উদাঃ তানভীর আহমেদ' : 'e.g. Tanvir Ahmed'}
+                    className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl font-medium focus:ring-2 focus:ring-rose-500 focus:border-rose-500 focus:bg-white transition"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold text-gray-700 uppercase tracking-wider mb-1">
+                    {language === 'bn' ? 'ফোন নম্বর *' : 'Phone Number *'}
+                  </label>
+                  <input
+                    type="tel"
+                    required
+                    value={modalForm.phone}
+                    onChange={(e) => setModalForm({ ...modalForm, phone: e.target.value })}
+                    placeholder="e.g. 01700000000"
+                    className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl font-medium focus:ring-2 focus:ring-rose-500 focus:border-rose-500 focus:bg-white transition"
+                  />
+                </div>
+              </div>
+
+              {/* Street Address */}
+              <div>
+                <label className="block text-[11px] font-bold text-gray-700 uppercase tracking-wider mb-1">
+                  {language === 'bn' ? 'রাস্তা / বাসা / এলাকা *' : 'Street Address (House, Road, Area) *'}
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={modalForm.street_address}
+                  onChange={(e) => setModalForm({ ...modalForm, street_address: e.target.value })}
+                  placeholder={language === 'bn' ? 'উদাঃ বাড়ি ১২, রোড ৪, সেক্টর ৭, উত্তরা' : 'e.g. House 12, Road 4, Sector 7, Uttara'}
+                  className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl font-medium focus:ring-2 focus:ring-rose-500 focus:border-rose-500 focus:bg-white transition"
+                />
+              </div>
+
+              {/* District & Thana */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[11px] font-bold text-gray-700 uppercase tracking-wider mb-1">
+                    {language === 'bn' ? 'জেলা (৬৪ জেলা) *' : 'District (64 Districts) *'}
+                  </label>
+                  <select
+                    value={modalForm.city}
+                    onChange={(e) => {
+                      const newCity = e.target.value;
+                      const thanasList = getThanasByDistrict(newCity);
+                      setModalForm({
+                        ...modalForm,
+                        city: newCity,
+                        thana: thanasList.length > 0 ? thanasList[0] : '',
+                        isCustomThana: thanasList.length === 0,
+                        customThana: '',
+                      });
+                    }}
+                    className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl font-medium focus:ring-2 focus:ring-rose-500 focus:border-rose-500 focus:bg-white text-xs transition"
+                  >
+                    <option value="Dhaka">Dhaka (ঢাকা)</option>
+                    {['Dhaka', 'Chattogram', 'Rajshahi', 'Khulna', 'Barishal', 'Sylhet', 'Rangpur', 'Mymensingh'].map((div) => {
+                      const districtsInDiv = BD_DISTRICTS.filter((d) => d.division === div && d.name !== 'Dhaka');
+                      return (
+                        <optgroup key={div} label={`── ${div} Division ──`}>
+                          {districtsInDiv.map((d) => (
+                            <option key={d.name} value={d.name}>
+                              {d.name} ({d.bnName})
+                            </option>
+                          ))}
+                        </optgroup>
+                      );
+                    })}
+                  </select>
+                </div>
+
+                {/* Thana / Upazila */}
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block text-[11px] font-bold text-gray-700 uppercase tracking-wider">
+                      {language === 'bn' ? 'থানা / উপজেলা *' : 'Thana / Upazila *'}
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setModalForm({ ...modalForm, isCustomThana: !modalForm.isCustomThana })
+                      }
+                      className="text-[10px] text-rose-600 hover:text-rose-700 font-bold underline cursor-pointer"
+                    >
+                      {modalForm.isCustomThana ? (language === 'bn' ? 'তালিকা থেকে' : 'From List') : (language === 'bn' ? '+ লিখুন' : '+ Type')}
+                    </button>
+                  </div>
+
+                  {modalForm.isCustomThana ? (
+                    <input
+                      type="text"
+                      required
+                      value={modalForm.customThana}
+                      onChange={(e) => setModalForm({ ...modalForm, customThana: e.target.value })}
+                      placeholder={language === 'bn' ? 'থানা / ইউনিয়ন লিখুন...' : 'Type Thana / Union...'}
+                      className="w-full px-3.5 py-2.5 bg-rose-50/50 border border-rose-300 rounded-xl text-xs font-semibold focus:ring-2 focus:ring-rose-500 focus:bg-white"
+                    />
+                  ) : (
+                    <select
+                      value={modalForm.thana}
+                      onChange={(e) => {
+                        if (e.target.value === '__OTHER__') {
+                          setModalForm({ ...modalForm, isCustomThana: true, customThana: '' });
+                        } else {
+                          setModalForm({ ...modalForm, thana: e.target.value });
+                        }
+                      }}
+                      className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl font-medium focus:ring-2 focus:ring-rose-500 focus:border-rose-500 focus:bg-white text-xs transition"
+                    >
+                      {getThanasByDistrict(modalForm.city).map((t) => (
+                        <option key={t} value={t}>
+                          {t}
+                        </option>
+                      ))}
+                      <option value="__OTHER__">➕ {language === 'bn' ? 'অন্যান্য / নতুন থানা' : 'Other / Missing Thana'}</option>
+                    </select>
+                  )}
+                </div>
+              </div>
+
+              {/* Postal Code */}
+              <div>
+                <label className="block text-[11px] font-bold text-gray-700 uppercase tracking-wider mb-1">
+                  {language === 'bn' ? 'পোস্টাল কোড (ঐচ্ছিক)' : 'Postal Code (Optional)'}
+                </label>
+                <input
+                  type="text"
+                  value={modalForm.postal_code}
+                  onChange={(e) => setModalForm({ ...modalForm, postal_code: e.target.value })}
+                  placeholder="e.g. 1230"
+                  className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl font-medium focus:ring-2 focus:ring-rose-500 focus:border-rose-500 focus:bg-white transition"
+                />
+              </div>
+            </form>
+
+            {/* Modal Footer */}
+            <div className="p-5 sm:p-6 border-t border-gray-100 bg-gray-50/50 flex items-center justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => setIsAddressModalOpen(false)}
+                className="px-5 py-2.5 text-gray-600 hover:text-gray-900 font-bold text-xs rounded-xl hover:bg-gray-100 transition cursor-pointer"
+              >
+                {language === 'bn' ? 'বাতিল' : 'Cancel'}
+              </button>
+              <button
+                type="submit"
+                form="checkout-address-modal-form"
+                className="px-6 py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-xl shadow-md shadow-rose-600/20 transition cursor-pointer active:scale-95"
+              >
+                {language === 'bn' ? 'ঠিকানা সংরক্ষণ করুন' : 'Save Address'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <AuthModal isOpen={isAuthOpen} onClose={() => setIsAuthOpen(false)} />
     </div>
