@@ -349,21 +349,29 @@ export const ProductDetailPage: React.FC = () => {
             {/* Card 1: Pricing, Title & Rating (Daraz-style clean header card) */}
             <div className="bg-white rounded-2xl sm:rounded-3xl border border-gray-100 p-4 sm:p-6 shadow-xs space-y-3">
               
-              {/* Price row: Big prominent price + original strikethrough + discount badge */}
-              <div className="flex flex-wrap items-baseline gap-2.5 sm:gap-3">
-                <span className="text-2xl sm:text-3xl font-black text-rose-600">
-                  {formatPrice(currentPrice)}
-                </span>
-                {product.discount_price && (
-                  <span className="text-sm sm:text-base text-gray-400 line-through font-semibold">
-                    {formatPrice(product.price)}
+              {/* Price row: Big prominent price + original strikethrough + discount badge on left, SKU on right */}
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex flex-wrap items-baseline gap-2.5 sm:gap-3">
+                  <span className="text-2xl sm:text-3xl font-black text-rose-600">
+                    {formatPrice(currentPrice)}
                   </span>
-                )}
-                {discountPercent > 0 && (
-                  <span className="text-xs font-extrabold text-rose-700 bg-rose-50 border border-rose-200/80 px-2 py-0.5 rounded-md">
-                    -{discountPercent}% OFF
+                  {product.discount_price && (
+                    <span className="text-sm sm:text-base text-gray-400 line-through font-semibold">
+                      {formatPrice(product.price)}
+                    </span>
+                  )}
+                  {discountPercent > 0 && (
+                    <span className="text-xs font-extrabold text-rose-700 bg-rose-50 border border-rose-200/80 px-2 py-0.5 rounded-md">
+                      -{discountPercent}% OFF
+                    </span>
+                  )}
+                </div>
+
+                <div className="shrink-0">
+                  <span className="inline-flex items-center px-2.5 py-1 bg-gray-100 text-gray-600 border border-gray-200/80 rounded-lg text-xs font-bold font-mono tracking-wide">
+                    SKU: {product.sku || 'KT-' + product.id.slice(0, 6).toUpperCase()}
                   </span>
-                )}
+                </div>
               </div>
 
               {/* Product Title */}
@@ -858,9 +866,6 @@ export const ProductDetailPage: React.FC = () => {
                   </p>
                 </div>
               </div>
-              <span className="px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-xs font-bold font-mono">
-                SKU: {product.sku || 'KT-' + product.id.slice(0, 6).toUpperCase()}
-              </span>
             </div>
 
             {/* 1. GADGET & HARDWARE DETAILS ONLY */}

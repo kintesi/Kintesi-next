@@ -29,9 +29,12 @@ import {
   Trash2,
   Plus,
   Layers,
+  Search,
+  X,
 } from 'lucide-react';
 import { FlashSaleSlide } from '../../contexts/SettingsContext';
 import { FlashSaleBanner } from '../../components/home/FlashSaleBanner';
+import { getProductsFromDB, saveProductToDB } from '../../lib/dbService';
 
 export const AdminBanners: React.FC = () => {
   const { settings, updateBanners, isLoading } = useSettings();
@@ -44,21 +47,98 @@ export const AdminBanners: React.FC = () => {
   const [isSavingFeatured, setIsSavingFeatured] = useState(false);
   const [selectedSlideIndex, setSelectedSlideIndex] = useState(0);
   const [catalogProducts, setCatalogProducts] = useState<Product[]>([]);
+  const [spotlightSearch, setSpotlightSearch] = useState('');
+  const [featuredSearch, setFeaturedSearch] = useState('');
+  const [isTogglingFeatured, setIsTogglingFeatured] = useState<string | null>(null);
 
   useEffect(() => {
     async function loadCatalog() {
       try {
-        const savedCustom: Product[] = JSON.parse(localStorage.getItem('kintesi_custom_products') || '[]');
-        const { data } = await supabase.from('products').select('*');
-        const merged = [...savedCustom, ...(data || [])].filter((p) => p && p.id);
-        const unique = Array.from(new Map(merged.map((p) => [p.id, p])).values());
-        setCatalogProducts(unique);
+        const prods = await getProductsFromDB();
+        setCatalogProducts(prods);
       } catch (err) {
-        console.warn('Error loading products for spotlight dropdown:', err);
+        console.warn('Error loading products for catalog:', err);
       }
     }
     loadCatalog();
+    const handleUpdate = () => loadCatalog();
+    window.addEventListener('kintesi_products_updated', handleUpdate);
+    return () => window.removeEventListener('kintesi_products_updated', handleUpdate);
   }, []);
+
+  // Filter products for Hero Spotlight by Title or SKU
+  const filteredSpotlightProducts = spotlightSearch.trim()
+    ? catalogProducts.filter((p) => {
+        const q = spotlightSearch.toLowerCase().trim();
+        const titleMatch = (p.title || '').toLowerCase().includes(q);
+        const skuMatch = (p.sku || '').toLowerCase().includes(q);
+        const brandMatch = (p.brand || '').toLowerCase().includes(q);
+        return titleMatch || skuMatch || brandMatch;
+      })
+    : [];
+
+  // Filter products for Featured Products selector by Title or SKU
+  const searchedProductsForFeatured = featuredSearch.trim()
+    ? catalogProducts.filter((p) => {
+        const q = featuredSearch.toLowerCase().trim();
+        const titleMatch = (p.title || '').toLowerCase().includes(q);
+        const skuMatch = (p.sku || '').toLowerCase().includes(q);
+        const brandMatch = (p.brand || '').toLowerCase().includes(q);
+        return titleMatch || skuMatch || brandMatch;
+      })
+    : [];
+
+  const featuredProductsList = catalogProducts.filter((p) => Boolean(p.is_featured));
+
+  const applyProductToSpotlight = (prod: Product) => {
+    const price = prod.price || 0;
+    const discount = prod.discount_price || Math.round(price * 0.85);
+    const savings = price > discount ? `Save ৳${price - discount} Today` : 'Special Promo';
+    setForm((prev) => ({
+      ...prev,
+      showSpotlight: true,
+      spotlightTitle: prod.title,
+      spotlightBrand: prod.brand || 'Kintesi Exclusive',
+      spotlightPrice: price,
+      spotlightDiscountPrice: discount,
+      spotlightImage: (prod.images && prod.images[0]) || prev.spotlightImage,
+      spotlightBtnLink: `/product/${prod.id}`,
+      spotlightStockText: prod.stock ? `${prod.stock} Left in Stock` : 'Limited Stock',
+      spotlightSavingsText: savings,
+      spotlightBadge: '🔥 Deal of the Day',
+    }));
+    setSpotlightSearch('');
+    toast.success(`Spotlight filled with "${prod.title}"! Click "Save" to publish live.`);
+  };
+
+  const handleToggleProductFeatured = async (product: Product, featuredState: boolean) => {
+    try {
+      setIsTogglingFeatured(product.id);
+      const updatedProduct: Product = {
+        ...product,
+        is_featured: featuredState,
+      };
+
+      // 1. Instant local state update for zero-latency UI
+      setCatalogProducts((prev) =>
+        prev.map((p) => (p.id === product.id ? updatedProduct : p))
+      );
+
+      // 2. Persist to Supabase, Firebase and LocalStorage
+      await saveProductToDB(updatedProduct);
+
+      if (featuredState) {
+        toast.success(`"${product.title}" Featured Products-এ যোগ করা হয়েছে!`);
+      } else {
+        toast.info(`"${product.title}" Featured Products থেকে রিমুভ করা হয়েছে।`);
+      }
+    } catch (err) {
+      console.error('Error toggling featured status:', err);
+      toast.error('Failed to update featured status. Please try again.');
+    } finally {
+      setIsTogglingFeatured(null);
+    }
+  };
 
   useEffect(() => {
     if (settings.banners) {
@@ -699,11 +779,11 @@ export const AdminBanners: React.FC = () => {
               </div>
             </div>
 
-            {/* 1-Click Product Selector from Store Catalog */}
-            <div className="bg-gray-900/90 border border-orange-500/30 rounded-2xl p-4 space-y-3">
-              <div className="flex items-center justify-between">
+            {/* 1-Click Product Selector from Store Catalog (with Title & SKU Search) */}
+            <div className="bg-gray-900/90 border border-orange-500/30 rounded-2xl p-4 sm:p-5 space-y-3.5">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                 <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-xl bg-orange-500/20 text-orange-400 flex items-center justify-center">
+                  <div className="w-8 h-8 rounded-xl bg-orange-500/20 text-orange-400 flex items-center justify-center shrink-0">
                     <Package className="w-4 h-4" />
                   </div>
                   <div>
@@ -711,50 +791,122 @@ export const AdminBanners: React.FC = () => {
                       Select Product from Store (1-Click Auto Fill)
                     </h3>
                     <p className="text-[11px] text-gray-400">
-                      Pick any existing product to instantly fill title, image, price, discount & link
+                      প্রোডাক্টের টাইটেল অথবা SKU দিয়ে সার্চ করে ১-ক্লিকে স্পটলাইটে বসান
                     </p>
                   </div>
                 </div>
                 {catalogProducts.length > 0 && (
-                  <span className="text-[10px] bg-gray-800 text-orange-300 font-bold px-2.5 py-1 rounded-full border border-gray-700">
+                  <span className="text-[10px] bg-gray-800 text-orange-300 font-bold px-2.5 py-1 rounded-full border border-gray-700 self-start sm:self-auto">
                     {catalogProducts.length} Products Found
                   </span>
                 )}
               </div>
 
-              <select
-                onChange={(e) => {
-                  const prod = catalogProducts.find((p) => p.id === e.target.value);
-                  if (prod) {
-                    const price = prod.price || 0;
-                    const discount = prod.discount_price || Math.round(price * 0.85);
-                    const savings = price > discount ? `Save ৳${price - discount} Today` : 'Special Promo';
-                    setForm((prev) => ({
-                      ...prev,
-                      showSpotlight: true,
-                      spotlightTitle: prod.title,
-                      spotlightBrand: prod.brand || 'Kintesi Exclusive',
-                      spotlightPrice: price,
-                      spotlightDiscountPrice: discount,
-                      spotlightImage: (prod.images && prod.images[0]) || prev.spotlightImage,
-                      spotlightBtnLink: `/product/${prod.id}`,
-                      spotlightStockText: prod.stock ? `${prod.stock} Left in Stock` : 'Limited Stock',
-                      spotlightSavingsText: savings,
-                      spotlightBadge: '🔥 Deal of the Day',
-                    }));
-                    toast.success(`Spotlight filled with "${prod.title}"! Click "Save" to publish live.`);
-                  }
-                }}
-                defaultValue=""
-                className="w-full px-4 py-2.5 bg-gray-950 border border-gray-700 rounded-xl text-xs text-white font-medium focus:border-orange-400 focus:outline-none"
-              >
-                <option value="" disabled>-- Select a product to feature in hero spotlight --</option>
-                {catalogProducts.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.title} — ৳{p.discount_price || p.price} ({p.brand || 'Kintesi'})
-                  </option>
-                ))}
-              </select>
+              {/* Title & SKU Search Bar */}
+              <div className="space-y-2">
+                <div className="relative flex items-center">
+                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
+                    <Search className="w-4 h-4" />
+                  </div>
+                  <input
+                    type="text"
+                    value={spotlightSearch}
+                    onChange={(e) => setSpotlightSearch(e.target.value)}
+                    placeholder="Search by Product Title or SKU (e.g. KT-..., Polo, Watch)..."
+                    className="w-full pl-10 pr-24 py-2.5 bg-gray-950 border border-gray-700 rounded-xl text-xs text-white placeholder-gray-500 font-medium focus:border-orange-400 focus:outline-none"
+                  />
+                  {spotlightSearch && (
+                    <button
+                      type="button"
+                      onClick={() => setSpotlightSearch('')}
+                      className="absolute right-20 text-gray-400 hover:text-white p-1"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    className="absolute right-1.5 top-1.5 bottom-1.5 px-3 bg-orange-500 hover:bg-orange-400 text-gray-950 font-bold rounded-lg text-xs transition active:scale-95 flex items-center gap-1"
+                  >
+                    <Search className="w-3.5 h-3.5" />
+                    <span>Search</span>
+                  </button>
+                </div>
+
+                {/* Instant Live Search Results */}
+                {spotlightSearch.trim().length > 0 && (
+                  <div className="bg-gray-950 border border-orange-500/40 rounded-xl p-2 max-h-64 overflow-y-auto space-y-1.5 shadow-2xl divide-y divide-gray-800">
+                    {filteredSpotlightProducts.length === 0 ? (
+                      <div className="py-4 text-center text-xs text-gray-400">
+                        "{spotlightSearch}" দিয়ে টাইটেল বা SKU-তে কোনো প্রোডাক্ট খুঁজে পাওয়া যায়নি।
+                      </div>
+                    ) : (
+                      filteredSpotlightProducts.map((p) => (
+                        <div
+                          key={p.id}
+                          className="pt-2 first:pt-0 flex items-center justify-between gap-3 p-2 hover:bg-gray-900 rounded-xl transition"
+                        >
+                          <div className="flex items-center gap-3 min-w-0">
+                            <div className="w-10 h-10 rounded-lg bg-gray-800 overflow-hidden shrink-0 border border-gray-700">
+                              {p.images && p.images[0] ? (
+                                <img src={p.images[0]} alt={p.title} className="w-full h-full object-cover" />
+                              ) : (
+                                <Package className="w-5 h-5 text-gray-500 m-auto mt-2.5" />
+                              )}
+                            </div>
+                            <div className="min-w-0">
+                              <h4 className="text-xs font-bold text-white truncate">{p.title}</h4>
+                              <div className="flex items-center gap-2 mt-0.5">
+                                <span className="text-[10px] font-mono font-bold bg-gray-800 text-orange-300 px-1.5 py-0.5 rounded border border-gray-700">
+                                  SKU: {p.sku || 'KT-' + p.id.slice(0, 6).toUpperCase()}
+                                </span>
+                                <span className="text-[11px] text-emerald-400 font-bold">
+                                  ৳{p.discount_price || p.price}
+                                </span>
+                                {p.discount_price && (
+                                  <span className="text-[10px] text-gray-400 line-through">
+                                    ৳{p.price}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => applyProductToSpotlight(p)}
+                            className="shrink-0 px-3 py-1.5 bg-orange-500 hover:bg-orange-400 text-gray-950 font-bold rounded-lg text-xs shadow transition active:scale-95 flex items-center gap-1"
+                          >
+                            <Sparkles className="w-3.5 h-3.5" />
+                            <span>1-Click Fill</span>
+                          </button>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Or Select from All Products Dropdown */}
+              <div className="pt-1">
+                <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">
+                  Or Pick from Catalog List ({catalogProducts.length} Products)
+                </label>
+                <select
+                  onChange={(e) => {
+                    const prod = catalogProducts.find((p) => p.id === e.target.value);
+                    if (prod) applyProductToSpotlight(prod);
+                  }}
+                  defaultValue=""
+                  className="w-full px-4 py-2.5 bg-gray-950 border border-gray-700 rounded-xl text-xs text-white font-medium focus:border-orange-400 focus:outline-none"
+                >
+                  <option value="" disabled>-- Select a product to feature in hero spotlight --</option>
+                  {catalogProducts.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.title} [SKU: {p.sku || ('KT-' + p.id.slice(0, 6).toUpperCase())}] — ৳{p.discount_price || p.price}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5 text-xs">
@@ -1209,9 +1361,221 @@ export const AdminBanners: React.FC = () => {
                 </p>
                 <p className="text-[11px] mt-0.5 text-gray-300">
                   {form.showFeaturedProducts !== false
-                    ? 'হোমপেজে অল আইটেমস, ফ্যাশন, গ্রোসারি ও টেক ক্যাটাগরি ট্যাবসহ এই সেকশনটি দর্শকদের কাছে দেখা যাবে।'
-                    : 'এই সেকশনটি বন্ধ রাখলে হোমপেজ থেকে সম্পূর্ণ Featured Products ও ফিল্টার ট্যাবগুলো সম্পূর্ণরূপে লুকানো থাকবে।'}
+                    ? 'হোমপেজে শুধুমাত্র নিচে সিলেক্ট করা ফিচার্ড প্রোডাক্টগুলোই প্রদর্শিত হবে।'
+                    : 'এই সেকশনটি বন্ধ রাখলে হোমপেজ থেকে সম্পূর্ণ Featured Products সেকশন সম্পূর্ণরূপে লুকানো থাকবে।'}
                 </p>
+              </div>
+            </div>
+
+            {/* Featured Products Manager with Product Search by Title & SKU */}
+            <div className="bg-gray-900/90 border border-rose-500/30 rounded-2xl p-4 sm:p-5 space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-gray-800 pb-3">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-rose-500/20 text-rose-400 flex items-center justify-center shrink-0">
+                    <ShoppingBag className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h3 className="text-xs font-bold text-white uppercase tracking-wide">
+                      Select & Add Featured Products (ফিচার্ড প্রোডাক্ট নির্বাচন)
+                    </h3>
+                    <p className="text-[11px] text-gray-400">
+                      টাইটেল বা SKU দিয়ে সার্চ করে প্রোডাক্ট অ্যাড করুন (হোমপেজে শুধুমাত্র এগুলোই শো করবে)
+                    </p>
+                  </div>
+                </div>
+                <span className="text-[11px] bg-rose-950 text-rose-300 font-bold px-3 py-1 rounded-full border border-rose-800/80 self-start sm:self-auto">
+                  {featuredProductsList.length} Active Featured Products
+                </span>
+              </div>
+
+              {/* Product Search Bar (by Title or SKU) */}
+              <div className="space-y-2">
+                <label className="block text-[11px] font-bold text-gray-300 uppercase tracking-wide">
+                  Search Product by Title or SKU (টাইটেল বা SKU দিয়ে সার্চ করুন)
+                </label>
+                <div className="relative flex items-center">
+                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
+                    <Search className="w-4 h-4" />
+                  </div>
+                  <input
+                    type="text"
+                    value={featuredSearch}
+                    onChange={(e) => setFeaturedSearch(e.target.value)}
+                    placeholder="Type Product Title or SKU (e.g. KT-..., Cotton Shirt, Watch)..."
+                    className="w-full pl-10 pr-24 py-2.5 bg-gray-950 border border-gray-700 rounded-xl text-xs text-white placeholder-gray-500 font-medium focus:border-rose-400 focus:outline-none"
+                  />
+                  {featuredSearch && (
+                    <button
+                      type="button"
+                      onClick={() => setFeaturedSearch('')}
+                      className="absolute right-20 text-gray-400 hover:text-white p-1"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    className="absolute right-1.5 top-1.5 bottom-1.5 px-3 bg-rose-600 hover:bg-rose-500 text-white font-bold rounded-lg text-xs transition active:scale-95 flex items-center gap-1"
+                  >
+                    <Search className="w-3.5 h-3.5" />
+                    <span>Search</span>
+                  </button>
+                </div>
+
+                {/* Instant Search Results Dropdown/List */}
+                {featuredSearch.trim().length > 0 && (
+                  <div className="bg-gray-950 border border-rose-500/40 rounded-xl p-2.5 max-h-64 overflow-y-auto space-y-2 shadow-2xl divide-y divide-gray-800">
+                    {searchedProductsForFeatured.length === 0 ? (
+                      <div className="py-4 text-center text-xs text-gray-400">
+                        "{featuredSearch}" দিয়ে টাইটেল বা SKU-তে কোনো প্রোডাক্ট খুঁজে পাওয়া যায়নি।
+                      </div>
+                    ) : (
+                      searchedProductsForFeatured.map((p) => {
+                        const isFeatured = Boolean(p.is_featured);
+                        return (
+                          <div
+                            key={p.id}
+                            className="pt-2 first:pt-0 flex items-center justify-between gap-3 p-2 hover:bg-gray-900 rounded-xl transition"
+                          >
+                            <div className="flex items-center gap-3 min-w-0">
+                              <div className="w-11 h-11 rounded-lg bg-gray-800 overflow-hidden shrink-0 border border-gray-700">
+                                {p.images && p.images[0] ? (
+                                  <img src={p.images[0]} alt={p.title} className="w-full h-full object-cover" />
+                                ) : (
+                                  <Package className="w-5 h-5 text-gray-500 m-auto mt-3" />
+                                )}
+                              </div>
+                              <div className="min-w-0">
+                                <h4 className="text-xs font-bold text-white truncate">{p.title}</h4>
+                                <div className="flex items-center gap-2 mt-0.5">
+                                  <span className="text-[10px] font-mono font-bold bg-gray-800 text-rose-300 px-1.5 py-0.5 rounded border border-gray-700">
+                                    SKU: {p.sku || 'KT-' + p.id.slice(0, 6).toUpperCase()}
+                                  </span>
+                                  <span className="text-[11px] text-emerald-400 font-bold">
+                                    ৳{p.discount_price || p.price}
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+
+                            {isFeatured ? (
+                              <button
+                                type="button"
+                                disabled={isTogglingFeatured === p.id}
+                                onClick={() => handleToggleProductFeatured(p, false)}
+                                className="shrink-0 px-3 py-1.5 bg-rose-950/80 hover:bg-rose-900 text-rose-300 border border-rose-700/80 font-bold rounded-lg text-xs transition active:scale-95 flex items-center gap-1.5 disabled:opacity-50"
+                              >
+                                <Check className="w-3.5 h-3.5 text-emerald-400" />
+                                <span>Featured (Remove)</span>
+                              </button>
+                            ) : (
+                              <button
+                                type="button"
+                                disabled={isTogglingFeatured === p.id}
+                                onClick={() => handleToggleProductFeatured(p, true)}
+                                className="shrink-0 px-3 py-1.5 bg-rose-600 hover:bg-rose-500 text-white font-bold rounded-lg text-xs shadow transition active:scale-95 flex items-center gap-1.5 disabled:opacity-50"
+                              >
+                                <Plus className="w-3.5 h-3.5" />
+                                <span>+ Add to Featured</span>
+                              </button>
+                            )}
+                          </div>
+                        );
+                      })
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Or Quick Select from catalog */}
+              <div>
+                <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">
+                  Or Pick Directly from Store Catalog
+                </label>
+                <select
+                  onChange={(e) => {
+                    const prod = catalogProducts.find((p) => p.id === e.target.value);
+                    if (prod) {
+                      handleToggleProductFeatured(prod, true);
+                      e.target.value = '';
+                    }
+                  }}
+                  defaultValue=""
+                  className="w-full px-4 py-2.5 bg-gray-950 border border-gray-700 rounded-xl text-xs text-white font-medium focus:border-rose-400 focus:outline-none"
+                >
+                  <option value="" disabled>-- Select a product to add to Featured List --</option>
+                  {catalogProducts
+                    .filter((p) => !p.is_featured)
+                    .map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {p.title} [SKU: {p.sku || ('KT-' + p.id.slice(0, 6).toUpperCase())}] — ৳{p.discount_price || p.price}
+                      </option>
+                    ))}
+                </select>
+              </div>
+
+              {/* Currently Featured Products List */}
+              <div className="pt-3 border-t border-gray-800 space-y-3">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-xs font-bold text-gray-200 uppercase tracking-wide flex items-center gap-1.5">
+                    <span>Currently Active Featured Products</span>
+                    <span className="px-2 py-0.5 bg-rose-900/60 text-rose-300 rounded-full text-[10px] font-bold">
+                      {featuredProductsList.length}
+                    </span>
+                  </h4>
+                </div>
+
+                {featuredProductsList.length === 0 ? (
+                  <div className="bg-gray-950/60 border border-dashed border-gray-800 rounded-2xl p-6 text-center space-y-2">
+                    <ShoppingBag className="w-8 h-8 text-gray-600 mx-auto" />
+                    <p className="text-xs font-bold text-gray-300">কোনো প্রোডাক্ট Featured লিস্টে নেই</p>
+                    <p className="text-[11px] text-gray-500 max-w-md mx-auto">
+                      উপরের সার্চ বক্স বা ড্রপডাউন থেকে প্রোডাক্ট অ্যাড করুন। আপনি এখানে যে প্রোডাক্টগুলো সিলেক্ট করবেন, হোমপেজে শুধুমাত্র সেগুলোই Featured Products হিসেবে দেখাবে।
+                    </p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 max-h-80 overflow-y-auto pr-1">
+                    {featuredProductsList.map((p) => (
+                      <div
+                        key={p.id}
+                        className="bg-gray-950 border border-gray-800 hover:border-gray-700 rounded-xl p-3 flex items-center justify-between gap-2.5 transition"
+                      >
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <div className="w-10 h-10 rounded-lg bg-gray-800 overflow-hidden shrink-0 border border-gray-700">
+                            {p.images && p.images[0] ? (
+                              <img src={p.images[0]} alt={p.title} className="w-full h-full object-cover" />
+                            ) : (
+                              <Package className="w-5 h-5 text-gray-500 m-auto mt-2.5" />
+                            )}
+                          </div>
+                          <div className="min-w-0">
+                            <h5 className="text-xs font-bold text-white truncate" title={p.title}>
+                              {p.title}
+                            </h5>
+                            <div className="flex items-center gap-1.5 mt-0.5">
+                              <span className="text-[9px] font-mono font-bold bg-gray-800 text-rose-300 px-1 py-0.5 rounded border border-gray-700">
+                                {p.sku || 'KT-' + p.id.slice(0, 6).toUpperCase()}
+                              </span>
+                              <span className="text-[10px] text-emerald-400 font-bold">
+                                ৳{p.discount_price || p.price}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
+                        <button
+                          type="button"
+                          disabled={isTogglingFeatured === p.id}
+                          onClick={() => handleToggleProductFeatured(p, false)}
+                          className="shrink-0 p-1.5 text-gray-400 hover:text-rose-400 hover:bg-rose-950/40 rounded-lg transition"
+                          title="Remove from featured"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           </div>
