@@ -7,6 +7,7 @@ import { formatPrice } from '../lib/utils';
 import { toast } from 'sonner';
 import {
   ShoppingBag,
+  ShoppingCart,
   Trash2,
   Plus,
   Minus,
@@ -225,6 +226,28 @@ export const CartPage: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start pb-44 sm:pb-0">
           {/* Main Item List (8 cols) */}
           <div className="lg:col-span-8 space-y-3">
+            {/* Mobile Top Checkout Bar (Directly beneath top header, above Select All) */}
+            <div className="sm:hidden">
+              <button
+                type="button"
+                disabled={selectedItems.length === 0}
+                onClick={handleProceedToCheckout}
+                className="w-full py-3.5 px-4 bg-rose-600 hover:bg-rose-700 disabled:opacity-40 disabled:cursor-not-allowed text-white font-extrabold rounded-2xl transition shadow-md shadow-rose-600/20 flex items-center justify-between text-xs active:scale-[0.98] cursor-pointer"
+              >
+                <div className="flex items-center gap-2">
+                  <ShoppingCart className="w-4 h-4" />
+                  <span>
+                    {language === 'bn' ? 'চেকআউট করুন' : 'Proceed to Checkout'}
+                    {selectedCount > 0 && ` (${selectedCount})`}
+                  </span>
+                </div>
+                <div className="flex items-center gap-1 font-black text-sm">
+                  <span>{formatPrice(selectedTotal)}</span>
+                  <ArrowRight className="w-4 h-4" />
+                </div>
+              </button>
+            </div>
+
             {/* Master Select All Header Bar */}
             <div className="bg-white rounded-2xl border border-gray-100 p-3.5 sm:p-4 shadow-xs flex items-center justify-between">
               <label className="flex items-center gap-2.5 cursor-pointer select-none">

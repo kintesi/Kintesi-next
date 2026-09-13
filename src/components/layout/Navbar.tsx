@@ -185,19 +185,9 @@ export const Navbar: React.FC = () => {
           {/* Mobile Top Bar */}
           {location.pathname === '/cart' ? (
             <div className="md:hidden py-3 flex items-center justify-between">
-              <div className="flex items-center gap-2.5">
-                <button
-                  type="button"
-                  onClick={() => (window.history.length > 1 ? navigate(-1) : navigate('/'))}
-                  className="p-1.5 -ml-1 text-gray-700 hover:text-rose-600 transition cursor-pointer"
-                  aria-label="Back"
-                >
-                  <ArrowLeft className="w-5 h-5" />
-                </button>
-                <h1 className="text-base font-black text-gray-900 tracking-tight">
-                  {language === 'bn' ? 'শপিং কার্ট' : 'Shopping Cart'}
-                </h1>
-              </div>
+              <h1 className="text-base font-black text-gray-900 tracking-tight">
+                {language === 'bn' ? 'শপিং কার্ট' : 'Shopping Cart'}
+              </h1>
               {totalItemCount > 0 && (
                 <span className="text-xs font-bold text-rose-600 bg-rose-50 px-2.5 py-0.5 rounded-full border border-rose-100">
                   {totalItemCount} {language === 'bn' ? 'টি পণ্য' : 'items'}
