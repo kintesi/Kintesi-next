@@ -83,6 +83,7 @@ export const AdminProducts: React.FC = () => {
   const [activeModalTab, setActiveModalTab] = useState<'general' | 'variants' | 'specs' | 'delivery' | 'tags'>('general');
   const [isColorImageUploading, setIsColorImageUploading] = useState(false);
   const [showColorUrlInput, setShowColorUrlInput] = useState(false);
+  const [isSavingProduct, setIsSavingProduct] = useState(false);
   const colorFileInputRef = useRef<HTMLInputElement>(null);
 
   const getCategorySpecMode = (catId: string): 'gadgets' | 'fashion' | 'groceries' => {
@@ -730,22 +731,38 @@ export const AdminProducts: React.FC = () => {
     toast.info('কালার ভ্যারিয়েন্ট ডিলিট করা হয়েছে');
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!formData.title || !formData.price) {
-      toast.error('Product Title and Price are required');
+  const handleSubmit = async (e?: React.FormEvent) => {
+    if (e && e.preventDefault) e.preventDefault();
+    if (isSavingProduct) return;
+
+    // 1. Validate Title
+    const cleanTitle = (formData.title || '').trim();
+    if (!cleanTitle) {
+      toast.error('Product Title is required');
+      setActiveModalTab('general');
       return;
     }
 
-    const priceNum = Number(formData.price);
-    const percentNum = Number(formData.discount_percent);
-    let calculatedDiscountPrice: number | null = null;
+    // 2. Validate Price (allow master price or variant price)
+    const effectivePrice = formData.price || formData.colorVariants?.[0]?.price || '';
+    if (!effectivePrice || Number(effectivePrice) <= 0) {
+      toast.error('Product Regular Price is required');
+      setActiveModalTab('variants');
+      return;
+    }
 
+    setIsSavingProduct(true);
+    const toastId = toast.loading(editingProduct ? 'Saving changes...' : 'Creating product...');
+
+    const priceNum = Number(effectivePrice);
+    const percentNum = Number(formData.discount_percent || 0);
+    let calculatedDiscountPrice: number | null = null;
     if (percentNum > 0 && percentNum < 100) {
       calculatedDiscountPrice = Math.round(priceNum - (priceNum * percentNum) / 100);
     }
 
-    const slug = formData.slug.trim() || formData.title.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+    const rawSlug = formData.slug?.trim() || cleanTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+    const slug = rawSlug.replace(/^-+|-+$/g, '') || ('product-' + Date.now());
 
     // Collect all valid image URLs across all color variants
     const allImages: string[] = [];
@@ -766,13 +783,13 @@ export const AdminProducts: React.FC = () => {
         .map((u) => (u || '').trim())
         .filter(Boolean);
 
-      const colorPriceNum = cv.price && !isNaN(Number(cv.price)) ? Number(cv.price) : (formData.price ? Number(formData.price) : null);
-      const colorDiscountNum = cv.discount_percent && !isNaN(Number(cv.discount_percent)) ? Number(cv.discount_percent) : (formData.discount_percent ? Number(formData.discount_percent) : 0);
+      const colorPriceNum = cv.price && !isNaN(Number(cv.price)) ? Number(cv.price) : priceNum;
+      const colorDiscountNum = cv.discount_percent && !isNaN(Number(cv.discount_percent)) ? Number(cv.discount_percent) : percentNum;
       let calculatedColorDiscountPrice: number | null = null;
       if (colorPriceNum && colorDiscountNum > 0 && colorDiscountNum < 100) {
         calculatedColorDiscountPrice = Math.round(colorPriceNum - (colorPriceNum * colorDiscountNum) / 100);
       }
-      const colorStockNum = cv.stock && !isNaN(Number(cv.stock)) ? Number(cv.stock) : (formData.stock ? Number(formData.stock) : null);
+      const colorStockNum = cv.stock && !isNaN(Number(cv.stock)) ? Number(cv.stock) : (formData.stock ? Number(formData.stock) : 10);
 
       if (name || colorImages.length > 0) {
         compiledColors.push({
@@ -789,37 +806,30 @@ export const AdminProducts: React.FC = () => {
     });
 
     const highlightsList = [formData.highlight1, formData.highlight2, formData.highlight3]
-      .map((h) => h.trim())
+      .map((h) => (h || '').trim())
       .filter((h) => h.length > 0);
 
     const specsObj: Record<string, string> = {};
-    if (formData.specKey1.trim() && formData.specVal1.trim()) {
-      specsObj[formData.specKey1.trim()] = formData.specVal1.trim();
-    }
-    if (formData.specKey2.trim() && formData.specVal2.trim()) {
-      specsObj[formData.specKey2.trim()] = formData.specVal2.trim();
-    }
-    if (formData.specKey3.trim() && formData.specVal3.trim()) {
-      specsObj[formData.specKey3.trim()] = formData.specVal3.trim();
-    }
+    if (formData.specKey1?.trim() && formData.specVal1?.trim()) specsObj[formData.specKey1.trim()] = formData.specVal1.trim();
+    if (formData.specKey2?.trim() && formData.specVal2?.trim()) specsObj[formData.specKey2.trim()] = formData.specVal2.trim();
+    if (formData.specKey3?.trim() && formData.specVal3?.trim()) specsObj[formData.specKey3.trim()] = formData.specVal3.trim();
 
     const userTags = formData.tags
       ? formData.tags.split(',').map((t) => t.trim()).filter(Boolean)
       : [];
     const autoKeywords = [
       ...userTags,
-      formData.title.toLowerCase(),
-      currentSpecMode === 'fashion' ? formData.fabric.toLowerCase() : '',
-      currentSpecMode === 'fashion' ? formData.gender.toLowerCase() : '',
+      cleanTitle.toLowerCase(),
+      currentSpecMode === 'fashion' ? (formData.fabric || '').toLowerCase() : '',
+      currentSpecMode === 'fashion' ? (formData.gender || '').toLowerCase() : '',
     ];
     const uniqueTags = Array.from(new Set(autoKeywords.filter(Boolean)));
 
-    // Strict niche specification isolation: When a mode is active, completely clear/disable all other niche fields
     let cleanedFabric = '';
     let cleanedFitType = '';
     let cleanedCare = '';
     let cleanedGender = '';
-    let cleanedWarranty = formData.warranty.trim();
+    let cleanedWarranty = (formData.warranty || '').trim();
     let cleanedSpecs: Record<string, string> = {};
 
     if (currentSpecMode === 'gadgets') {
@@ -828,23 +838,21 @@ export const AdminProducts: React.FC = () => {
       cleanedFitType = '';
       cleanedCare = '';
       cleanedGender = '';
-      // Warranty and origin stay as gadget warranty & origin
     } else if (currentSpecMode === 'fashion') {
       cleanedSpecs = {};
-      cleanedFabric = formData.fabric.trim();
-      cleanedFitType = formData.fit_type.trim();
-      cleanedCare = formData.care_instructions.trim();
-      cleanedGender = formData.gender.trim();
-      cleanedWarranty = ''; // No gadget warranty for fashion
+      cleanedFabric = (formData.fabric || '').trim();
+      cleanedFitType = (formData.fit_type || '').trim();
+      cleanedCare = (formData.care_instructions || '').trim();
+      cleanedGender = (formData.gender || '').trim();
+      cleanedWarranty = '';
     } else if (currentSpecMode === 'groceries') {
       cleanedSpecs = {};
-      cleanedFabric = formData.fabric.trim(); // Net Weight/Volume
-      cleanedFitType = formData.fit_type.trim(); // Certification
-      cleanedCare = formData.care_instructions.trim(); // Storage
-      cleanedWarranty = formData.warranty.trim(); // Shelf Life
+      cleanedFabric = (formData.fabric || '').trim();
+      cleanedFitType = (formData.fit_type || '').trim();
+      cleanedCare = (formData.care_instructions || '').trim();
+      cleanedWarranty = (formData.warranty || '').trim();
       cleanedGender = '';
     } else {
-      // 'none'
       cleanedSpecs = {};
       cleanedFabric = '';
       cleanedFitType = '';
@@ -853,161 +861,54 @@ export const AdminProducts: React.FC = () => {
       cleanedWarranty = '';
     }
 
+    const effectiveStock = Number(formData.stock) || (compiledColors.reduce((sum, c) => sum + (c.stock || 0), 0) || 10);
+
     const productPayload: any = {
-      title: formData.title.trim(),
+      title: cleanTitle,
       slug: slug,
-      description: formData.description.trim(),
+      description: (formData.description || '').trim(),
       price: priceNum,
       discount_price: calculatedDiscountPrice,
-      category_id: formData.category_id,
-      stock: Number(formData.stock),
+      category_id: formData.category_id || categories[0]?.slug || 'mens-fashion',
+      stock: effectiveStock,
       images: allImages.length > 0 ? allImages : ['/logo.webp'],
-      brand: formData.brand.trim() || 'Kintesi',
-      sku: formData.sku.trim(),
+      brand: (formData.brand || '').trim() || 'Kintesi',
+      sku: (formData.sku || '').trim() || ('KT-' + (editingProduct?.id || Date.now().toString()).slice(0, 6).toUpperCase()),
       warranty: cleanedWarranty,
-      delivery_note: formData.delivery_note.trim(),
-      dropshipping_url: formData.dropshipping_url.trim() || null,
-      allowed_payment_methods: formData.allowed_payment_methods.length > 0
+      delivery_note: (formData.delivery_note || '').trim(),
+      dropshipping_url: (formData.dropshipping_url || '').trim() || null,
+      allowed_payment_methods: formData.allowed_payment_methods && formData.allowed_payment_methods.length > 0
         ? formData.allowed_payment_methods
-        : ['cod', 'bkash', 'nagad', 'rocket', 'bank'],
-      payment_instruction: formData.payment_instruction.trim(),
+        : ['cod', 'bkash', 'nagad', 'card'],
+      payment_instruction: (formData.payment_instruction || '').trim(),
       highlights: highlightsList,
       fabric: cleanedFabric,
       fit_type: cleanedFitType,
       care_instructions: cleanedCare,
-      origin: currentSpecMode === 'none' ? '' : formData.origin.trim(),
-      gender: cleanedGender,
+      origin: currentSpecMode === 'none' ? '' : (formData.origin || '').trim() || 'Made in Bangladesh',
+      gender: cleanedGender || 'Unisex',
       specifications: {
         ...cleanedSpecs,
-        custom_attributes: formData.customAttributes,
+        custom_attributes: formData.customAttributes || [],
       },
       tags: uniqueTags,
-      sizes: currentSpecMode === 'none' ? [] : formData.selectedSizes,
+      sizes: currentSpecMode === 'none' ? [] : (formData.selectedSizes || []),
       colors: compiledColors,
-      custom_attributes: formData.customAttributes,
-      is_featured: formData.is_featured,
-      is_trending: formData.is_trending,
+      custom_attributes: formData.customAttributes || [],
+      is_featured: !!formData.is_featured,
+      is_trending: !!formData.is_trending,
       rating: editingProduct?.rating || 5.0,
       review_count: editingProduct?.review_count || 0,
     };
 
-    const isUUID = (str?: string) =>
-      str ? /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str) : false;
-
-    let savedCloudProduct: any = null;
-
-    try {
-      if (editingProduct && isUUID(editingProduct.id)) {
-        const { data, error } = await supabase
-          .from('products')
-          .update(productPayload)
-          .eq('id', editingProduct.id)
-          .select()
-          .single();
-
-        if (error) {
-          console.warn('Supabase update retry with core fields:', error.message);
-          // Fallback retaining all valid schema columns including delivery_note
-          const corePayload = {
-            title: productPayload.title,
-            slug: productPayload.slug,
-            description: productPayload.description,
-            price: productPayload.price,
-            discount_price: productPayload.discount_price,
-            category_id: productPayload.category_id,
-            stock: productPayload.stock,
-            images: productPayload.images,
-            brand: productPayload.brand,
-            sku: productPayload.sku,
-            warranty: productPayload.warranty,
-            delivery_note: productPayload.delivery_note,
-            highlights: productPayload.highlights,
-            fabric: productPayload.fabric,
-            fit_type: productPayload.fit_type,
-            care_instructions: productPayload.care_instructions,
-            origin: productPayload.origin,
-            gender: productPayload.gender,
-            specifications: productPayload.specifications,
-            tags: productPayload.tags,
-            sizes: productPayload.sizes,
-            colors: productPayload.colors,
-            allowed_payment_methods: productPayload.allowed_payment_methods,
-            payment_instruction: productPayload.payment_instruction,
-            is_featured: productPayload.is_featured,
-            is_trending: productPayload.is_trending,
-          };
-          const { data: retryData } = await supabase
-            .from('products')
-            .update(corePayload)
-            .eq('id', editingProduct.id)
-            .select()
-            .single();
-          if (retryData) savedCloudProduct = retryData;
-        } else {
-          savedCloudProduct = data;
-        }
-      } else {
-        // Upsert by slug for new or mock products
-        const { data, error } = await supabase
-          .from('products')
-          .upsert({ slug: slug, ...productPayload }, { onConflict: 'slug' })
-          .select()
-          .single();
-
-        if (error) {
-          console.warn('Supabase upsert retry with core fields:', error.message);
-          const corePayload = {
-            title: productPayload.title,
-            slug: productPayload.slug,
-            description: productPayload.description,
-            price: productPayload.price,
-            discount_price: productPayload.discount_price,
-            category_id: productPayload.category_id,
-            stock: productPayload.stock,
-            images: productPayload.images,
-            brand: productPayload.brand,
-            sku: productPayload.sku,
-            warranty: productPayload.warranty,
-            delivery_note: productPayload.delivery_note,
-            highlights: productPayload.highlights,
-            fabric: productPayload.fabric,
-            fit_type: productPayload.fit_type,
-            care_instructions: productPayload.care_instructions,
-            origin: productPayload.origin,
-            gender: productPayload.gender,
-            specifications: productPayload.specifications,
-            tags: productPayload.tags,
-            sizes: productPayload.sizes,
-            colors: productPayload.colors,
-            allowed_payment_methods: productPayload.allowed_payment_methods,
-            payment_instruction: productPayload.payment_instruction,
-            is_featured: productPayload.is_featured,
-            is_trending: productPayload.is_trending,
-          };
-          const { data: retryData } = await supabase
-            .from('products')
-            .upsert({ slug: slug, ...corePayload }, { onConflict: 'slug' })
-            .select()
-            .single();
-          if (retryData) savedCloudProduct = retryData;
-        } else {
-          savedCloudProduct = data;
-        }
-      }
-
-      toast.success('Product saved to Cloud Database & Store successfully!');
-    } catch (err: any) {
-      console.warn('Supabase product sync note:', err?.message || err);
-    }
-
-    // Always update local & persistent storage with Cloud ID if available
-    const savedCustom: Product[] = JSON.parse(localStorage.getItem('kintesi_custom_products') || '[]');
-    const targetId = savedCloudProduct?.id || editingProduct?.id || ('local-' + Date.now());
+    const targetId = editingProduct?.id || ('local-' + Date.now());
     const completeProduct: Product = {
       id: targetId,
       ...productPayload,
     } as Product;
 
+    // 1. INSTANT LOCAL REACTIVITY (0ms - Closes modal immediately so user is never stuck!)
+    const savedCustom: Product[] = JSON.parse(localStorage.getItem('kintesi_custom_products') || '[]');
     const existingIdx = savedCustom.findIndex(
       (p) => (editingProduct && p.id === editingProduct.id) || p.slug === slug
     );
@@ -1023,9 +924,6 @@ export const AdminProducts: React.FC = () => {
     localStorage.setItem('kintesi_custom_products', JSON.stringify(updatedCustom));
     window.dispatchEvent(new Event('kintesi_products_updated'));
 
-    // Sync with Firestore Cloud Database
-    await saveProductToDB(completeProduct);
-
     setProducts((prev) => {
       const idx = prev.findIndex((p) => (editingProduct && p.id === editingProduct.id) || p.slug === slug);
       if (idx >= 0) {
@@ -1037,7 +935,18 @@ export const AdminProducts: React.FC = () => {
     });
 
     setIsModalOpen(false);
-    loadProducts();
+    setIsSavingProduct(false);
+    toast.success('Product saved successfully!', { id: toastId });
+
+    // 2. BACKGROUND CLOUD SYNC (Non-blocking: saves to Supabase and Firestore in background)
+    Promise.resolve().then(async () => {
+      try {
+        await saveProductToDB(completeProduct);
+        loadProducts();
+      } catch (cloudErr) {
+        console.warn('Background cloud product save notice:', cloudErr);
+      }
+    });
   };
 
   const handleDelete = async (prod: Product) => {
@@ -1345,14 +1254,16 @@ export const AdminProducts: React.FC = () => {
               </button>
               <button
                 type="button"
-                onClick={(e) => {
-                  const formEl = document.getElementById('admin-product-studio-form') as HTMLFormElement;
-                  if (formEl) formEl.requestSubmit();
-                }}
-                className="px-6 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-black rounded-xl text-xs transition shadow-lg shadow-emerald-600/30 flex items-center gap-2 active:scale-95 cursor-pointer"
+                disabled={isSavingProduct}
+                onClick={() => handleSubmit()}
+                className="px-6 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-black rounded-xl text-xs transition shadow-lg shadow-emerald-600/30 flex items-center gap-2 active:scale-95 cursor-pointer disabled:opacity-50"
               >
-                <Check className="w-4 h-4" />
-                <span>{editingProduct ? 'Save Changes' : 'Create Product'}</span>
+                {isSavingProduct ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Check className="w-4 h-4" />
+                )}
+                <span>{isSavingProduct ? 'Saving...' : (editingProduct ? 'Save Changes' : 'Create Product')}</span>
               </button>
               <button
                 onClick={() => setIsModalOpen(false)}
@@ -1398,7 +1309,7 @@ export const AdminProducts: React.FC = () => {
 
           {/* Studio Scrollable Full-Page Body */}
           <div className="flex-1 overflow-y-auto p-4 sm:p-8 bg-gray-950">
-            <form id="admin-product-studio-form" onSubmit={handleSubmit} className="w-full max-w-7xl mx-auto space-y-6 pb-12">
+            <form id="admin-product-studio-form" noValidate onSubmit={handleSubmit} className="w-full max-w-7xl mx-auto space-y-6 pb-12">
               {/* Tab 1: General & Pricing */}
               {activeModalTab === 'general' && (
                 <div className="space-y-6 animate-fadeIn">
@@ -1413,7 +1324,6 @@ export const AdminProducts: React.FC = () => {
                     <label className="block text-xs font-bold text-gray-300 mb-1">Product Title *</label>
                     <input
                       type="text"
-                      required
                       placeholder="e.g. Sony WH-1000XM5 Wireless Noise Cancelling Headphones"
                       value={formData.title}
                       onChange={(e) => setFormData({ ...formData, title: e.target.value })}
@@ -2887,11 +2797,17 @@ export const AdminProducts: React.FC = () => {
                     Cancel
                   </button>
                   <button
-                    type="submit"
-                    className="px-8 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-black rounded-xl text-xs transition shadow-lg shadow-emerald-600/30 flex items-center gap-2 active:scale-95 cursor-pointer"
+                    type="button"
+                    disabled={isSavingProduct}
+                    onClick={() => handleSubmit()}
+                    className="px-8 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-black rounded-xl text-xs transition shadow-lg shadow-emerald-600/30 flex items-center gap-2 active:scale-95 cursor-pointer disabled:opacity-50"
                   >
-                    <Check className="w-4 h-4" />
-                    <span>{editingProduct ? 'Save Changes' : 'Create Product'}</span>
+                    {isSavingProduct ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Check className="w-4 h-4" />
+                    )}
+                    <span>{isSavingProduct ? 'Saving...' : (editingProduct ? 'Save Changes' : 'Create Product')}</span>
                   </button>
                 </div>
               </div>

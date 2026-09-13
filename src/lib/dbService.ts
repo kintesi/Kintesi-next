@@ -1,4 +1,4 @@
-﻿import {
+import {
   collection,
   doc,
   getDocs,
@@ -90,22 +90,58 @@ export async function saveProductToDB(product: Product): Promise<void> {
   localStorage.setItem('kintesi_custom_products', JSON.stringify(updated));
   window.dispatchEvent(new Event('kintesi_products_updated'));
 
+  const isUUID = (str?: string) =>
+    str ? /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str) : false;
+
   // 2. Primary: Save to Supabase (PostgreSQL)
   try {
-    const { error } = await supabase.from('products').upsert([product]);
+    const cleanPayload: any = {};
+    Object.entries(product).forEach(([key, val]) => {
+      if (val !== undefined) cleanPayload[key] = val;
+    });
+
+    // If ID is not a valid UUID, strip it so Supabase generates a UUID on upsert
+    if (!isUUID(cleanPayload.id)) {
+      delete cleanPayload.id;
+    }
+
+    const { data: supaData, error } = await supabase
+      .from('products')
+      .upsert(cleanPayload, { onConflict: 'slug' })
+      .select()
+      .single();
+
     if (error) {
       console.warn('Supabase product upsert warning:', error.message);
+      // Fallback with standard core columns if new columns not yet migrated
+      const coreFields: any = {
+        title: product.title,
+        slug: product.slug,
+        description: product.description,
+        price: product.price,
+        discount_price: product.discount_price,
+        category_id: product.category_id,
+        stock: product.stock,
+        images: product.images,
+        brand: product.brand,
+        sku: product.sku,
+        is_featured: product.is_featured,
+      };
+      await supabase.from('products').upsert(coreFields, { onConflict: 'slug' });
+    } else if (supaData?.id && supaData.id !== product.id) {
+      product.id = supaData.id;
     }
   } catch (err) {
     console.error('Supabase product save error:', err);
   }
 
-  // 3. Real-time Secondary Backup: Save to Firebase Firestore
+  // 3. Real-time Secondary Backup: Save to Firebase Firestore (non-blocking with timeout)
   try {
+    const cleanForFirebase: any = JSON.parse(JSON.stringify(product));
     const docRef = doc(db, 'products', product.id);
-    await setDoc(docRef, product, { merge: true });
+    await withTimeout(setDoc(docRef, cleanForFirebase, { merge: true }), 3000);
   } catch (err) {
-    console.error('Firebase product backup error:', err);
+    console.warn('Firebase product backup notice:', err);
   }
 }
 
