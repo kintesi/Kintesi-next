@@ -138,9 +138,6 @@ export const CategoryTagExplorer: React.FC<CategoryTagExplorerProps> = ({
               Search Keywords, Tags & Category Taxonomy Explorer
             </h4>
           </div>
-          <p className="text-[11px] text-gray-400 mt-0.5">
-            ২,০০,০০০+ ই-কমার্স ক্যাটাগরি, পার্সোনাল কেয়ার ও সার্চ কীওয়ার্ড ট্যাক্সোনমি (অন-ডিমান্ড ও প্রগ্রেসিভ লোডিং)
-          </p>
         </div>
 
         {/* Selected count badge */}
@@ -256,19 +253,13 @@ export const CategoryTagExplorer: React.FC<CategoryTagExplorerProps> = ({
           <div className="p-8 text-center bg-gray-900/40 rounded-xl border border-dashed border-gray-800 flex flex-col items-center justify-center gap-2">
             <Loader2 className="w-5 h-5 text-amber-400 animate-spin" />
             <span className="text-xs text-gray-300 font-semibold">
-              অন-ডিমান্ড লোড হচ্ছে ১,৮০,০০০+ ক্যাটাগরি ও কীওয়ার্ড ট্যাক্সোনমি...
-            </span>
-            <span className="text-[10px] text-gray-500">
-              ওয়েবসাইটের স্পিড ফাস্ট রাখতে ক্যাটাগরিগুলো একবারে নয়, ধাপে ধাপে প্রগ্রেসিভলি লোড হচ্ছে।
+              Loading categories & keywords...
             </span>
           </div>
         ) : filteredCategories.length === 0 ? (
           <div className="p-6 text-center bg-gray-900/40 rounded-xl border border-dashed border-gray-800">
             <p className="text-xs text-gray-400">
-              কোনো ক্যাটাগরি বা ট্যাগ পাওয়া যায়নি "{searchQuery}" এর জন্য।
-            </p>
-            <p className="text-[11px] text-gray-500 mt-1">
-              ওপরের বক্সে লিখে <strong>"+ Add Tag"</strong> বাটনে ক্লিক করে সরাসরি যেকোনো কাস্টম ট্যাগ যুক্ত করতে পারেন।
+              No categories or tags found matching "{searchQuery}"
             </p>
           </div>
         ) : (
