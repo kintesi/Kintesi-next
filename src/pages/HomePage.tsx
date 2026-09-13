@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { getCategoriesFromDB, getProductsFromDB } from '../lib/dbService';
@@ -7,6 +7,7 @@ import { INITIAL_PRODUCTS, INITIAL_CATEGORIES } from '../data/mockData';
 import { ProductCard } from '../components/common/ProductCard';
 import { FlashSaleBanner } from '../components/home/FlashSaleBanner';
 import { useSettings } from '../contexts/SettingsContext';
+import { getPersonalizedAndRotatedProducts } from '../lib/recommendationEngine';
 import {
   ArrowRight,
   Sparkles,
@@ -58,21 +59,8 @@ const ICON_MAP: Record<string, any> = {
   Dumbbell,
 };
 
-const getFlashThemeClasses = (theme?: string) => {
-  switch (theme) {
-    case 'emerald':
-      return 'from-emerald-700 via-teal-700 to-cyan-800';
-    case 'cyber':
-      return 'from-purple-800 via-indigo-700 to-pink-700';
-    case 'dark':
-      return 'from-gray-950 via-slate-900 to-zinc-900 border border-amber-500/30';
-    default:
-      return 'from-rose-600 via-orange-600 to-amber-500';
-  }
-};
-
 export const HomePage: React.FC = () => {
-  const { settings, updateBanners } = useSettings();
+  const { settings } = useSettings();
   const banners = settings.banners;
 
   const [products, setProducts] = useState<Product[]>(() => {
@@ -87,6 +75,7 @@ export const HomePage: React.FC = () => {
       return [];
     }
   });
+
   const [categories, setCategories] = useState<Category[]>(() => {
     try {
       const saved = localStorage.getItem('kintesi_custom_categories');
@@ -98,10 +87,17 @@ export const HomePage: React.FC = () => {
       return [];
     }
   });
+
   const [isLoadingData, setIsLoadingData] = useState(false);
   const [activeTab, setActiveTab] = useState<'all' | 'groceries' | 'fashion' | 'tech'>('all');
 
-  // Flash sale countdown timer state (Accurate timestamp-based with Auto-Off on expiry)
+  // Progressive batch loading / Infinite scroll states
+  const [mobileVisibleCount, setMobileVisibleCount] = useState(12);
+  const [desktopVisibleCount, setDesktopVisibleCount] = useState(16);
+  const mobileSentinelRef = useRef<HTMLDivElement | null>(null);
+  const desktopSentinelRef = useRef<HTMLDivElement | null>(null);
+
+  // Flash sale countdown timer state
   const calculateFlashTime = () => {
     if (!banners.flashSaleEndsAt) {
       return { hours: banners.flashSaleHours || 4, minutes: 0, seconds: 0, isExpired: false };
@@ -163,35 +159,93 @@ export const HomePage: React.FC = () => {
     (Number(banners.spotlightPrice) > 0 || Number(banners.spotlightDiscountPrice) > 0)
   );
 
-  const activeFlashProducts = React.useMemo(() => {
-    // Only real products added by store admin
+  const activeFlashProducts = useMemo(() => {
     const discounted = products.filter((p) => p.discount_price && p.discount_price < p.price);
     if (discounted.length > 0) return discounted;
     return products.slice(0, 4);
   }, [products]);
 
-  const tabFilteredProducts = products.filter((p) => {
-    if (activeTab === 'groceries') {
-      return (
-        p.category_id.includes('groceries') ||
-        p.category_id.includes('home') ||
-        p.category_id.includes('beauty')
-      );
-    }
-    if (activeTab === 'fashion') {
-      return p.category_id.includes('fashion') || p.category_id.includes('footwear');
-    }
-    if (activeTab === 'tech') {
-      return (
-        p.category_id.includes('smartphones') ||
-        p.category_id.includes('laptops') ||
-        p.category_id.includes('audio') ||
-        p.category_id.includes('cameras') ||
-        p.category_id.includes('watches')
-      );
-    }
-    return true;
-  });
+  // 1. Featured Products: ONLY products where admin checked is_featured === true
+  const featuredProducts = useMemo(() => {
+    return products.filter((p) => Boolean(p.is_featured));
+  }, [products]);
+
+  // 2. Personalized & Periodically Rotated Products (Matches user search, category visits, and dynamically shifts order every 2 hours)
+  const personalizedProducts = useMemo(() => {
+    return getPersonalizedAndRotatedProducts(products, 2);
+  }, [products]);
+
+  // Filtered by department tabs for desktop
+  const filteredPersonalizedProducts = useMemo(() => {
+    return personalizedProducts.filter((p) => {
+      if (activeTab === 'groceries') {
+        return (
+          p.category_id.includes('groceries') ||
+          p.category_id.includes('home') ||
+          p.category_id.includes('beauty')
+        );
+      }
+      if (activeTab === 'fashion') {
+        return p.category_id.includes('fashion') || p.category_id.includes('footwear');
+      }
+      if (activeTab === 'tech') {
+        return (
+          p.category_id.includes('smartphones') ||
+          p.category_id.includes('laptops') ||
+          p.category_id.includes('audio') ||
+          p.category_id.includes('cameras') ||
+          p.category_id.includes('watches')
+        );
+      }
+      return true;
+    });
+  }, [personalizedProducts, activeTab]);
+
+  // Infinite scroll observer for Mobile
+  useEffect(() => {
+    const sentinel = mobileSentinelRef.current;
+    if (!sentinel) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          setMobileVisibleCount((prev) => {
+            if (prev < personalizedProducts.length) {
+              return prev + 12;
+            }
+            return prev;
+          });
+        }
+      },
+      { rootMargin: '350px' }
+    );
+
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [personalizedProducts.length]);
+
+  // Infinite scroll observer for Desktop
+  useEffect(() => {
+    const sentinel = desktopSentinelRef.current;
+    if (!sentinel) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          setDesktopVisibleCount((prev) => {
+            if (prev < filteredPersonalizedProducts.length) {
+              return prev + 12;
+            }
+            return prev;
+          });
+        }
+      },
+      { rootMargin: '350px' }
+    );
+
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [filteredPersonalizedProducts.length]);
 
   return (
     <div className="pb-20">
@@ -199,9 +253,9 @@ export const HomePage: React.FC = () => {
       {/* ========================================================
           📱 MOBILE VIEW: Clean & Authentic E-Commerce (All Devices)
          ======================================================== */}
-      <div className="block md:hidden bg-white min-h-screen space-y-4 pb-28 pt-2.5">
+      <div className="block md:hidden bg-white min-h-screen space-y-5 pb-28 pt-2.5">
         
-        {/* 1. Mobile Hero Banner - 100% Authentic, Clean & Minimal */}
+        {/* 1. Mobile Hero Banner */}
         {banners.showHeroSection !== false && (
           <div className="px-3">
             <div className="relative rounded-2xl bg-gradient-to-br from-rose-50/70 via-white to-rose-50/40 border border-rose-100/90 p-4 shadow-[0_2px_12px_rgba(225,29,72,0.03)] space-y-2.5">
@@ -313,42 +367,96 @@ export const HomePage: React.FC = () => {
           </div>
         )}
 
-        {/* 3. Trendy Collections Grid */}
-        {banners.showFeaturedProducts !== false && (
-          <div className="px-3 space-y-2.5">
+        {/* 3. FEATURED PRODUCTS (ONLY SHOWN IF ADMIN EXPLICITLY MARKED PRODUCTS AS FEATURED) */}
+        {featuredProducts.length > 0 && (
+          <div className="px-3 space-y-2.5 pt-1">
             <div className="flex items-center justify-between">
-              <h3 className="text-sm font-black text-gray-900">{banners.featuredProductsTitle || 'Trendy Collections'}</h3>
-              <Link to="/shop" className="text-xs text-rose-600 font-bold flex items-center">
+              <div className="flex items-center gap-1.5">
+                <div className="w-6 h-6 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center">
+                  <Star className="w-3.5 h-3.5 fill-rose-600 text-rose-600" />
+                </div>
+                <h3 className="text-sm font-black text-gray-900">Featured Products</h3>
+                <span className="text-[9px] font-extrabold text-rose-700 bg-rose-50 border border-rose-200/80 px-1.5 py-0.2 rounded-full uppercase">
+                  Selected
+                </span>
+              </div>
+              <Link to="/shop?featured=true" className="text-xs text-rose-600 font-bold flex items-center">
                 <span>View All</span>
                 <ChevronRight className="w-3.5 h-3.5" />
               </Link>
             </div>
 
-            {products.length === 0 ? (
-              isLoadingData ? (
-                <div className="grid grid-cols-2 gap-2.5">
-                  {[1, 2, 3, 4].map((n) => (
-                    <ProductSkeleton key={n} />
-                  ))}
+            <div className="grid grid-cols-2 gap-2.5">
+              {featuredProducts.slice(0, 6).map((product) => (
+                <ProductCard key={product.id} product={product} />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* 4. ALL PRODUCTS / JUST FOR YOU: Intelligent Feed with Progressive Infinite Scroll */}
+        <div className="px-3 space-y-3 pt-1">
+          <div className="flex items-center justify-between">
+            <div className="space-y-0.5">
+              <div className="flex items-center gap-1.5">
+                <div className="w-6 h-6 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center">
+                  <Sparkles className="w-3.5 h-3.5 text-rose-600" />
                 </div>
-              ) : (
-                <div className="bg-white rounded-2xl p-6 text-center space-y-2 border border-gray-100 shadow-xs">
-                  <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center mx-auto">
-                    <Package className="w-5 h-5" />
-                  </div>
-                  <p className="text-xs font-bold text-gray-800">No Products Yet</p>
-                  <p className="text-[10px] text-gray-400">Add products from your Admin Panel</p>
-                </div>
-              )
-            ) : (
+                <h3 className="text-sm font-black text-gray-900">Just For You</h3>
+                <span className="text-[9px] font-bold text-rose-700 bg-rose-50 border border-rose-200/80 px-1.5 py-0.2 rounded-full">
+                  Personalized
+                </span>
+              </div>
+              <p className="text-[10px] text-gray-500">Curated recommendations dynamically refreshed for you</p>
+            </div>
+          </div>
+
+          {personalizedProducts.length === 0 ? (
+            isLoadingData ? (
               <div className="grid grid-cols-2 gap-2.5">
-                {products.map((product) => (
+                {[1, 2, 3, 4].map((n) => (
+                  <ProductSkeleton key={n} />
+                ))}
+              </div>
+            ) : (
+              <div className="bg-white rounded-2xl p-6 text-center space-y-2 border border-gray-100 shadow-xs">
+                <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center mx-auto">
+                  <Package className="w-5 h-5" />
+                </div>
+                <p className="text-xs font-bold text-gray-800">No Products Yet</p>
+                <p className="text-[10px] text-gray-400">Add products from your Admin Panel</p>
+              </div>
+            )
+          ) : (
+            <>
+              {/* Product Grid Loaded in Progressive Batches */}
+              <div className="grid grid-cols-2 gap-2.5">
+                {personalizedProducts.slice(0, mobileVisibleCount).map((product) => (
                   <ProductCard key={product.id} product={product} />
                 ))}
               </div>
-            )}
-          </div>
-        )}
+
+              {/* Mobile Infinite Scroll Sentinel & Indicator */}
+              <div ref={mobileSentinelRef} className="w-full flex items-center justify-center py-4">
+                {mobileVisibleCount < personalizedProducts.length ? (
+                  <div className="flex items-center gap-2 text-xs text-gray-500 bg-gray-50 px-4 py-2 rounded-full border border-gray-200/60 shadow-2xs">
+                    <div className="w-3.5 h-3.5 rounded-full border-2 border-rose-500 border-t-transparent animate-spin" />
+                    <span>Loading more products...</span>
+                  </div>
+                ) : (
+                  personalizedProducts.length > 12 && (
+                    <div className="text-center py-2 space-y-1">
+                      <p className="text-[11px] font-medium text-gray-400">
+                        ✓ All {personalizedProducts.length} items loaded
+                      </p>
+                    </div>
+                  )
+                )}
+              </div>
+            </>
+          )}
+        </div>
+
       </div>
 
       {/* ========================================================
@@ -356,7 +464,7 @@ export const HomePage: React.FC = () => {
          ======================================================== */}
       <div className="hidden md:block space-y-10 sm:space-y-12">
         
-        {/* 1. Desktop Hero Banner - Sleek, Minimal, Compact & Highly Professional (Zero Fake Items) */}
+        {/* 1. Desktop Hero Banner */}
         {banners.showHeroSection !== false && (
           <section className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-2">
             <div className="relative rounded-3xl bg-gradient-to-br from-rose-50/40 via-white to-gray-50/70 border border-rose-100/90 shadow-[0_2px_16px_rgba(225,29,72,0.03)] overflow-hidden">
@@ -425,7 +533,7 @@ export const HomePage: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Right Column: Hero Spotlight Promo Product Card (Deal of the Day) */}
+                  {/* Right Column: Hero Spotlight Promo Product Card */}
                   {hasValidSpotlight ? (
                     <div className="lg:col-span-5 relative">
                       <div className="relative rounded-3xl bg-white border border-rose-100/90 shadow-[0_8px_30px_rgb(0,0,0,0.06)] p-5 sm:p-6 overflow-hidden transition-all duration-300 hover:shadow-xl hover:border-rose-200">
@@ -547,7 +655,7 @@ export const HomePage: React.FC = () => {
           </section>
         )}
 
-        {/* 3. Desktop Flash Sale */}
+        {/* 2. Desktop Flash Sale */}
         {isFlashSaleActive && (
           <section className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
             <FlashSaleBanner
@@ -588,71 +696,134 @@ export const HomePage: React.FC = () => {
           </section>
         )}
 
-        {/* 4. Desktop Featured Tabs */}
-        {banners.showFeaturedProducts !== false && (
+        {/* 3. DESKTOP FEATURED PRODUCTS (ONLY SHOWN IF ADMIN EXPLICITLY MARKED PRODUCTS AS FEATURED) */}
+        {featuredProducts.length > 0 && (
           <section className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
             <div className="flex items-center justify-between border-b border-rose-100 pb-4">
-              <div>
-                <h2 className="text-2xl font-black text-gray-900 tracking-tight">{banners.featuredProductsTitle || 'Featured Products'}</h2>
-                <p className="text-xs text-gray-500 mt-0.5">{banners.featuredProductsSubtitle || 'Top-rated selections for home, fashion, and tech'}</p>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center border border-rose-100">
+                  <Star className="w-5 h-5 fill-rose-600 text-rose-600" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h2 className="text-2xl font-black text-gray-900 tracking-tight">Featured Products</h2>
+                    <span className="px-2.5 py-0.5 bg-rose-50 text-rose-700 border border-rose-200/80 text-[10px] font-bold rounded-full uppercase tracking-wider">
+                      Handpicked
+                    </span>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-0.5">Special spotlight collections curated directly by our store editors</p>
+                </div>
               </div>
 
-              <div className="flex gap-2 text-xs font-bold">
-                {[
-                  { key: 'all', label: 'All Items' },
-                  { key: 'groceries', label: 'Groceries & Home' },
-                  { key: 'fashion', label: 'Fashion & Footwear' },
-                  { key: 'tech', label: 'Tech & Gadgets' },
-                ].map((tab) => (
-                  <button
-                    key={tab.key}
-                    onClick={() => setActiveTab(tab.key as any)}
-                    className={`px-3.5 py-2 rounded-xl transition ${
-                      activeTab === tab.key
-                        ? 'bg-gray-950 text-white shadow-sm'
-                        : 'bg-white text-gray-600 border border-rose-100/90 hover:border-rose-300 hover:bg-rose-50/40'
-                    }`}
-                  >
-                    {tab.label}
-                  </button>
-                ))}
+              <Link
+                to="/shop?featured=true"
+                className="px-4 py-2 text-xs font-bold text-rose-600 hover:text-white bg-rose-50 hover:bg-rose-600 rounded-xl transition flex items-center gap-1.5"
+              >
+                <span>View Featured ({featuredProducts.length})</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
+            </div>
+
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+              {featuredProducts.slice(0, 8).map((product) => (
+                <ProductCard key={product.id} product={product} />
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* 4. DESKTOP ALL PRODUCTS / JUST FOR YOU (With Infinite Batch Scroll & Department Tabs) */}
+        <section className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+          <div className="flex items-center justify-between border-b border-rose-100 pb-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center border border-rose-100">
+                <Sparkles className="w-5 h-5 text-rose-600" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h2 className="text-2xl font-black text-gray-900 tracking-tight">Just For You</h2>
+                  <span className="px-2.5 py-0.5 bg-rose-50 text-rose-700 border border-rose-200/80 text-[10px] font-bold rounded-full uppercase tracking-wider">
+                    Smart Feed
+                  </span>
+                </div>
+                <p className="text-xs text-gray-500 mt-0.5">Personalized recommendations dynamically refreshed based on your browsing</p>
               </div>
             </div>
 
-            {tabFilteredProducts.length === 0 ? (
-              isLoadingData ? (
-                <div className="grid grid-cols-4 gap-6">
-                  {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => (
-                    <ProductSkeleton key={n} />
-                  ))}
-                </div>
-              ) : (
-                <div className="py-16 text-center space-y-3 bg-white rounded-3xl border border-rose-100 p-8 shadow-xs">
-                  <div className="w-12 h-12 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center mx-auto border border-rose-100">
-                    <ShoppingBag className="w-6 h-6" />
-                  </div>
-                  <h3 className="text-base font-bold text-gray-900">Your Store Catalog is Ready</h3>
-                  <p className="text-xs text-gray-500 max-w-sm mx-auto">
-                    No products in this department yet. Add products from your Admin Panel to showcase them here.
-                  </p>
-                  <Link
-                    to="/admin/products"
-                    className="inline-flex items-center gap-2 px-5 py-2.5 bg-rose-600 text-white font-bold rounded-xl text-xs shadow-md shadow-rose-600/20 hover:bg-rose-700 transition"
-                  >
-                    <Plus className="w-4 h-4" />
-                    <span>Add Products in Admin</span>
-                  </Link>
-                </div>
-              )
-            ) : (
+            <div className="flex gap-2 text-xs font-bold">
+              {[
+                { key: 'all', label: 'All Items' },
+                { key: 'groceries', label: 'Groceries & Home' },
+                { key: 'fashion', label: 'Fashion & Footwear' },
+                { key: 'tech', label: 'Tech & Gadgets' },
+              ].map((tab) => (
+                <button
+                  key={tab.key}
+                  onClick={() => setActiveTab(tab.key as any)}
+                  className={`px-3.5 py-2 rounded-xl transition cursor-pointer ${
+                    activeTab === tab.key
+                      ? 'bg-rose-600 text-white shadow-sm'
+                      : 'bg-white text-gray-600 border border-rose-100/90 hover:border-rose-300 hover:bg-rose-50/40'
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {filteredPersonalizedProducts.length === 0 ? (
+            isLoadingData ? (
               <div className="grid grid-cols-4 gap-6">
-                {tabFilteredProducts.map((product) => (
+                {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => (
+                  <ProductSkeleton key={n} />
+                ))}
+              </div>
+            ) : (
+              <div className="py-16 text-center space-y-3 bg-white rounded-3xl border border-rose-100 p-8 shadow-xs">
+                <div className="w-12 h-12 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center mx-auto border border-rose-100">
+                  <ShoppingBag className="w-6 h-6" />
+                </div>
+                <h3 className="text-base font-bold text-gray-900">Your Store Catalog is Ready</h3>
+                <p className="text-xs text-gray-500 max-w-sm mx-auto">
+                  No products in this department yet. Add products from your Admin Panel to showcase them here.
+                </p>
+                <Link
+                  to="/admin/products"
+                  className="inline-flex items-center gap-2 px-5 py-2.5 bg-rose-600 text-white font-bold rounded-xl text-xs shadow-md shadow-rose-600/20 hover:bg-rose-700 transition"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>Add Products in Admin</span>
+                </Link>
+              </div>
+            )
+          ) : (
+            <>
+              {/* Product Grid Loaded in Progressive Batches */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                {filteredPersonalizedProducts.slice(0, desktopVisibleCount).map((product) => (
                   <ProductCard key={product.id} product={product} />
                 ))}
               </div>
-            )}
-          </section>
-        )}
+
+              {/* Desktop Infinite Scroll Sentinel & Indicator */}
+              <div ref={desktopSentinelRef} className="w-full flex items-center justify-center pt-4">
+                {desktopVisibleCount < filteredPersonalizedProducts.length ? (
+                  <div className="flex items-center gap-2 text-xs text-gray-500 bg-gray-50 px-5 py-2.5 rounded-full border border-gray-200/60 shadow-2xs">
+                    <div className="w-4 h-4 rounded-full border-2 border-rose-500 border-t-transparent animate-spin" />
+                    <span>Loading more curated products...</span>
+                  </div>
+                ) : (
+                  filteredPersonalizedProducts.length > 16 && (
+                    <p className="text-xs text-gray-400 text-center py-2">
+                      ✓ All {filteredPersonalizedProducts.length} items loaded
+                    </p>
+                  )
+                )}
+              </div>
+            </>
+          )}
+        </section>
 
       </div>
 

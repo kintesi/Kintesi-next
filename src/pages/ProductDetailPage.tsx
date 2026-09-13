@@ -12,6 +12,7 @@ import { useSettings } from '../contexts/SettingsContext';
 import { useChat } from '../contexts/ChatContext';
 import { formatPrice, calculateDiscount } from '../lib/utils';
 import { ProductCard } from '../components/common/ProductCard';
+import { trackProductView } from '../lib/recommendationEngine';
 import {
   Star,
   ShieldCheck,
@@ -186,6 +187,7 @@ export const ProductDetailPage: React.FC = () => {
 
         if (localProd) {
           setProduct(localProd);
+          trackProductView(localProd);
           setSelectedImage(localProd.images?.[0] || '/logo.webp');
           if (localProd.sizes && localProd.sizes.length > 0) setSelectedSize(localProd.sizes[0]);
           if (localProd.colors && localProd.colors.length > 0) setSelectedColor(localProd.colors[0].name);
@@ -198,6 +200,7 @@ export const ProductDetailPage: React.FC = () => {
         const found = allProds.find((p) => (p.slug === slug || p.id === slug) && !p.id?.startsWith('prod-'));
         if (found) {
           setProduct(found);
+          trackProductView(found);
           setSelectedImage(found.images?.[0] || '/logo.webp');
           if (found.sizes && found.sizes.length > 0) setSelectedSize(found.sizes[0]);
           if (found.colors && found.colors.length > 0) setSelectedColor(found.colors[0].name);

@@ -7,6 +7,7 @@ import { ProductCard } from '../components/common/ProductCard';
 import { Filter, SlidersHorizontal, ArrowUpDown, X, Check } from 'lucide-react';
 import { formatPrice } from '../lib/utils';
 import { matchesProductSearch } from '../lib/searchUtils';
+import { trackSearchQuery, trackCategoryView } from '../lib/recommendationEngine';
 
 import { getCategoriesFromDB, getProductsFromDB } from '../lib/dbService';
 
@@ -44,8 +45,12 @@ export const ShopPage: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    setSelectedCategory(searchParams.get('category') || 'all');
-    setSearchQuery(searchParams.get('search') || '');
+    const cat = searchParams.get('category') || 'all';
+    const q = searchParams.get('search') || '';
+    setSelectedCategory(cat);
+    setSearchQuery(q);
+    if (q) trackSearchQuery(q);
+    if (cat && cat !== 'all') trackCategoryView(cat);
   }, [searchParams]);
 
   const handleApplyMaxPrice = (e?: React.FormEvent) => {
@@ -67,8 +72,14 @@ export const ShopPage: React.FC = () => {
   };
 
   const filteredProducts = useMemo(() => {
+    const isFeatured = searchParams.get('featured') === 'true';
+
     return products
       .filter((product) => {
+        // Featured only filter
+        if (isFeatured && !product.is_featured) {
+          return false;
+        }
         // Category filter
         if (selectedCategory !== 'all' && product.category_id !== selectedCategory) {
           return false;

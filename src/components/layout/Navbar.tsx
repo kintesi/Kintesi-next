@@ -24,6 +24,7 @@ import { formatPrice } from '../../lib/utils';
 import { matchesProductSearch, getAllLiveProducts } from '../../lib/searchUtils';
 import { Product } from '../../types';
 import { useSettings } from '../../contexts/SettingsContext';
+import { trackSearchQuery } from '../../lib/recommendationEngine';
 
 export const Navbar: React.FC = () => {
   const { user, profile, isAdmin, isSuperAdmin, signOut } = useAuth();
@@ -155,6 +156,7 @@ export const Navbar: React.FC = () => {
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
+      trackSearchQuery(searchQuery.trim());
       setShowSearchResults(false);
       navigate(`/shop?search=${encodeURIComponent(searchQuery.trim())}`);
     }
