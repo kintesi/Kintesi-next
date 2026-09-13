@@ -372,13 +372,8 @@ export const HomePage: React.FC = () => {
           <div className="px-3 space-y-2.5 pt-1">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-1.5">
-                <div className="w-6 h-6 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center">
-                  <Star className="w-3.5 h-3.5 fill-rose-600 text-rose-600" />
-                </div>
-                <h3 className="text-sm font-black text-gray-900">Featured Products</h3>
-                <span className="text-[9px] font-extrabold text-rose-700 bg-rose-50 border border-rose-200/80 px-1.5 py-0.2 rounded-full uppercase">
-                  Selected
-                </span>
+                <Star className="w-4 h-4 fill-rose-600 text-rose-600" />
+                <h3 className="text-sm font-bold text-gray-900">Featured Products</h3>
               </div>
               <Link to="/shop?featured=true" className="text-xs text-rose-600 font-bold flex items-center">
                 <span>View All</span>
@@ -394,20 +389,12 @@ export const HomePage: React.FC = () => {
           </div>
         )}
 
-        {/* 4. ALL PRODUCTS / JUST FOR YOU: Intelligent Feed with Progressive Infinite Scroll */}
+        {/* 4. ALL PRODUCTS / JUST FOR YOU: Clean Feed with Progressive Infinite Scroll */}
         <div className="px-3 space-y-3 pt-1">
           <div className="flex items-center justify-between">
-            <div className="space-y-0.5">
-              <div className="flex items-center gap-1.5">
-                <div className="w-6 h-6 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center">
-                  <Sparkles className="w-3.5 h-3.5 text-rose-600" />
-                </div>
-                <h3 className="text-sm font-black text-gray-900">Just For You</h3>
-                <span className="text-[9px] font-bold text-rose-700 bg-rose-50 border border-rose-200/80 px-1.5 py-0.2 rounded-full">
-                  Personalized
-                </span>
-              </div>
-              <p className="text-[10px] text-gray-500">Curated recommendations dynamically refreshed for you</p>
+            <div className="flex items-center gap-1.5">
+              <Sparkles className="w-4 h-4 text-rose-600" />
+              <h3 className="text-sm font-bold text-gray-900">Just For You</h3>
             </div>
           </div>
 
@@ -698,29 +685,19 @@ export const HomePage: React.FC = () => {
 
         {/* 3. DESKTOP FEATURED PRODUCTS (ONLY SHOWN IF ADMIN EXPLICITLY MARKED PRODUCTS AS FEATURED) */}
         {featuredProducts.length > 0 && (
-          <section className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
-            <div className="flex items-center justify-between border-b border-rose-100 pb-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center border border-rose-100">
-                  <Star className="w-5 h-5 fill-rose-600 text-rose-600" />
-                </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <h2 className="text-2xl font-black text-gray-900 tracking-tight">Featured Products</h2>
-                    <span className="px-2.5 py-0.5 bg-rose-50 text-rose-700 border border-rose-200/80 text-[10px] font-bold rounded-full uppercase tracking-wider">
-                      Handpicked
-                    </span>
-                  </div>
-                  <p className="text-xs text-gray-500 mt-0.5">Special spotlight collections curated directly by our store editors</p>
-                </div>
+          <section className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 space-y-5">
+            <div className="flex items-center justify-between border-b border-rose-100 pb-3">
+              <div className="flex items-center gap-2">
+                <Star className="w-5 h-5 fill-rose-600 text-rose-600" />
+                <h2 className="text-xl font-bold text-gray-900 tracking-tight">Featured Products</h2>
               </div>
 
               <Link
                 to="/shop?featured=true"
-                className="px-4 py-2 text-xs font-bold text-rose-600 hover:text-white bg-rose-50 hover:bg-rose-600 rounded-xl transition flex items-center gap-1.5"
+                className="text-xs font-bold text-rose-600 hover:text-rose-700 transition flex items-center gap-1"
               >
-                <span>View Featured ({featuredProducts.length})</span>
-                <ArrowRight className="w-3.5 h-3.5" />
+                <span>View All ({featuredProducts.length})</span>
+                <ChevronRight className="w-4 h-4" />
               </Link>
             </div>
 
@@ -732,22 +709,12 @@ export const HomePage: React.FC = () => {
           </section>
         )}
 
-        {/* 4. DESKTOP ALL PRODUCTS / JUST FOR YOU (With Infinite Batch Scroll & Department Tabs) */}
-        <section className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
-          <div className="flex items-center justify-between border-b border-rose-100 pb-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center border border-rose-100">
-                <Sparkles className="w-5 h-5 text-rose-600" />
-              </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <h2 className="text-2xl font-black text-gray-900 tracking-tight">Just For You</h2>
-                  <span className="px-2.5 py-0.5 bg-rose-50 text-rose-700 border border-rose-200/80 text-[10px] font-bold rounded-full uppercase tracking-wider">
-                    Smart Feed
-                  </span>
-                </div>
-                <p className="text-xs text-gray-500 mt-0.5">Personalized recommendations dynamically refreshed based on your browsing</p>
-              </div>
+        {/* 4. DESKTOP ALL PRODUCTS / JUST FOR YOU */}
+        <section className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 space-y-5">
+          <div className="flex items-center justify-between border-b border-rose-100 pb-3">
+            <div className="flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-rose-600" />
+              <h2 className="text-xl font-bold text-gray-900 tracking-tight">Just For You</h2>
             </div>
 
             <div className="flex gap-2 text-xs font-bold">
