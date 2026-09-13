@@ -26,32 +26,39 @@ export const MobileBottomNav: React.FC = () => {
 
   return (
     <>
-      {/* Sleek, Symmetrical & Ultra-Clean Mobile Bottom Navigation */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-30 bg-white border-t border-rose-100 shadow-[0_-4px_25px_rgba(225,29,72,0.04)]">
-        <div className="max-w-md mx-auto grid grid-cols-5 items-center h-[62px] px-1 text-center">
+      {/* Ultra-Premium Floating Dynamic Island Mobile Navigation Dock */}
+      <nav
+        aria-label="Mobile Navigation Dock"
+        className="md:hidden fixed bottom-3.5 left-3.5 right-3.5 max-w-md mx-auto z-40 bg-white/92 backdrop-blur-2xl border border-gray-200/90 shadow-[0_14px_45px_rgba(0,0,0,0.14),0_2px_10px_rgba(0,0,0,0.06)] rounded-full p-1.5 px-2 text-gray-900 ring-1 ring-black/[0.04] transition-all duration-300"
+      >
+        <div className="grid grid-cols-5 items-center h-[54px] text-center">
           
           {/* 1. Home */}
           <Link
             to="/"
             onClick={() => setIsCartOpen(false)}
-            className={`flex flex-col items-center justify-center h-full py-1 transition ${
-              isActive('/') ? 'text-rose-600 font-bold' : 'text-gray-400 hover:text-gray-700 font-medium'
+            className={`flex flex-col items-center justify-center h-full rounded-full transition-all duration-200 active:scale-90 ${
+              isActive('/')
+                ? 'text-rose-600 bg-rose-50/90 font-bold shadow-xs scale-105'
+                : 'text-gray-400 hover:text-gray-700 font-medium'
             }`}
           >
-            <Home className={`w-5.5 h-5.5 ${isActive('/') ? 'stroke-[2.5]' : 'stroke-[1.8]'}`} />
-            <span className="text-[10px] mt-1 tracking-tight font-medium">Home</span>
+            <Home className={`w-5 h-5 ${isActive('/') ? 'stroke-[2.5]' : 'stroke-[1.8]'}`} />
+            <span className="text-[10px] mt-0.5 tracking-tight">Home</span>
           </Link>
 
           {/* 2. Category */}
           <Link
             to="/shop"
             onClick={() => setIsCartOpen(false)}
-            className={`flex flex-col items-center justify-center h-full py-1 transition ${
-              isActive('/shop') ? 'text-rose-600 font-bold' : 'text-gray-400 hover:text-gray-700 font-medium'
+            className={`flex flex-col items-center justify-center h-full rounded-full transition-all duration-200 active:scale-90 ${
+              isActive('/shop')
+                ? 'text-rose-600 bg-rose-50/90 font-bold shadow-xs scale-105'
+                : 'text-gray-400 hover:text-gray-700 font-medium'
             }`}
           >
-            <LayoutGrid className={`w-5.5 h-5.5 ${isActive('/shop') ? 'stroke-[2.5]' : 'stroke-[1.8]'}`} />
-            <span className="text-[10px] mt-1 tracking-tight font-medium">Category</span>
+            <LayoutGrid className={`w-5 h-5 ${isActive('/shop') ? 'stroke-[2.5]' : 'stroke-[1.8]'}`} />
+            <span className="text-[10px] mt-0.5 tracking-tight">Category</span>
           </Link>
 
           {/* 3. Clean Modern Cart Button with Live Counter Badge */}
@@ -63,32 +70,36 @@ export const MobileBottomNav: React.FC = () => {
               }
               setIsCartOpen(!isCartOpen);
             }}
-            className={`flex flex-col items-center justify-center h-full py-1 transition relative cursor-pointer ${
-              isCartOpen ? 'text-rose-600 font-bold' : 'text-gray-400 hover:text-gray-700 font-medium'
+            className={`flex flex-col items-center justify-center h-full rounded-full transition-all duration-200 relative cursor-pointer active:scale-90 ${
+              isCartOpen
+                ? 'text-rose-600 bg-rose-50/90 font-bold shadow-xs scale-105'
+                : 'text-gray-400 hover:text-gray-700 font-medium'
             }`}
             aria-label="Shopping Cart"
           >
             <div className="relative">
-              <ShoppingBag className={`w-5.5 h-5.5 ${isCartOpen ? 'stroke-[2.5]' : 'stroke-[1.8]'}`} />
+              <ShoppingBag className={`w-5 h-5 ${isCartOpen ? 'stroke-[2.5]' : 'stroke-[1.8]'}`} />
               {totalItemCount > 0 && (
-                <span className="absolute -top-1.5 -right-2 bg-rose-600 text-white text-[9px] font-black rounded-full w-4.5 h-4.5 flex items-center justify-center shadow-xs animate-scale-in">
+                <span className="absolute -top-1 -right-2 bg-gradient-to-r from-rose-600 to-rose-700 text-white text-[9px] font-black rounded-full min-w-[17px] h-[17px] px-1 flex items-center justify-center shadow-xs ring-2 ring-white animate-scale-in">
                   {totalItemCount}
                 </span>
               )}
             </div>
-            <span className="text-[10px] mt-1 tracking-tight font-medium">Cart</span>
+            <span className="text-[10px] mt-0.5 tracking-tight">Cart</span>
           </button>
 
           {/* 4. Wishlist */}
           <Link
             to="/wishlist"
             onClick={() => setIsCartOpen(false)}
-            className={`flex flex-col items-center justify-center h-full py-1 transition ${
-              isActive('/wishlist') ? 'text-rose-600 font-bold' : 'text-gray-400 hover:text-gray-700 font-medium'
+            className={`flex flex-col items-center justify-center h-full rounded-full transition-all duration-200 active:scale-90 ${
+              isActive('/wishlist')
+                ? 'text-rose-600 bg-rose-50/90 font-bold shadow-xs scale-105'
+                : 'text-gray-400 hover:text-gray-700 font-medium'
             }`}
           >
-            <Heart className={`w-5.5 h-5.5 ${isActive('/wishlist') ? 'stroke-[2.5]' : 'stroke-[1.8]'}`} />
-            <span className="text-[10px] mt-1 tracking-tight font-medium">Wishlist</span>
+            <Heart className={`w-5 h-5 ${isActive('/wishlist') ? 'stroke-[2.5]' : 'stroke-[1.8]'}`} />
+            <span className="text-[10px] mt-0.5 tracking-tight">Wishlist</span>
           </Link>
 
           {/* 5. Profile */}
@@ -96,17 +107,19 @@ export const MobileBottomNav: React.FC = () => {
             <Link
               to="/profile"
               onClick={() => setIsCartOpen(false)}
-              className={`flex flex-col items-center justify-center h-full py-1 transition ${
-                isActive('/profile') ? 'text-rose-600 font-bold' : 'text-gray-400 hover:text-gray-700 font-medium'
+              className={`flex flex-col items-center justify-center h-full rounded-full transition-all duration-200 active:scale-90 ${
+                isActive('/profile')
+                  ? 'text-rose-600 bg-rose-50/90 font-bold shadow-xs scale-105'
+                : 'text-gray-400 hover:text-gray-700 font-medium'
               }`}
             >
               <div className="relative">
-                <User className={`w-5.5 h-5.5 ${isActive('/profile') ? 'stroke-[2.5]' : 'stroke-[1.8]'}`} />
+                <User className={`w-5 h-5 ${isActive('/profile') ? 'stroke-[2.5]' : 'stroke-[1.8]'}`} />
                 {isAdmin && (
-                  <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-rose-600 rounded-full border border-white" />
+                  <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-rose-600 rounded-full border-2 border-white" />
                 )}
               </div>
-              <span className="text-[10px] mt-1 tracking-tight font-medium">Profile</span>
+              <span className="text-[10px] mt-0.5 tracking-tight">Profile</span>
             </Link>
           ) : (
             <button
@@ -114,10 +127,10 @@ export const MobileBottomNav: React.FC = () => {
                 setIsCartOpen(false);
                 setIsAuthOpen(true);
               }}
-              className="flex flex-col items-center justify-center h-full py-1 text-gray-400 hover:text-rose-600 transition font-medium cursor-pointer"
+              className="flex flex-col items-center justify-center h-full rounded-full text-gray-400 hover:text-rose-600 transition-all duration-200 font-medium cursor-pointer active:scale-90"
             >
-              <User className="w-5.5 h-5.5 stroke-[1.8]" />
-              <span className="text-[10px] mt-1 tracking-tight font-medium">Profile</span>
+              <User className="w-5 h-5 stroke-[1.8]" />
+              <span className="text-[10px] mt-0.5 tracking-tight">Profile</span>
             </button>
           )}
 
