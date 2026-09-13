@@ -78,8 +78,11 @@ export const ProductDetailPage: React.FC = () => {
   // Touch Swipe Gesture State for Product Images
   const [touchStartX, setTouchStartX] = useState<number | null>(null);
   const [touchStartY, setTouchStartY] = useState<number | null>(null);
-
-  const productImages = product?.images && product.images.length > 0 ? product.images : [selectedImage || '/logo.webp'];
+  const activeColorObj = product?.colors?.find((c) => c.name === selectedColor);
+  const colorSpecificImages = (activeColorObj?.images && activeColorObj.images.length > 0)
+    ? activeColorObj.images
+    : (activeColorObj?.image ? [activeColorObj.image] : null);
+  const productImages = colorSpecificImages || (product?.images && product.images.length > 0 ? product.images : [selectedImage || '/logo.webp']);
   const currentImageIndex = productImages.indexOf(selectedImage) !== -1 ? productImages.indexOf(selectedImage) : 0;
 
   const handleNextImage = () => {
@@ -222,7 +225,10 @@ export const ProductDetailPage: React.FC = () => {
           if (found.sizes && found.sizes.length > 0) setSelectedSize(found.sizes[0]);
           if (found.colors && found.colors.length > 0) {
             setSelectedColor(found.colors[0].name);
-            if (found.colors[0].image) setSelectedImage(found.colors[0].image);
+            const firstColorImg = (found.colors[0].images && found.colors[0].images.length > 0)
+              ? found.colors[0].images[0]
+              : found.colors[0].image;
+            if (firstColorImg) setSelectedImage(firstColorImg);
           }
           const customAttrs: any[] = found.custom_attributes || (found.specifications as any)?.custom_attributes || [];
           if (customAttrs.length > 0) {
@@ -257,7 +263,6 @@ export const ProductDetailPage: React.FC = () => {
   }, [slug]);
 
   // Compute active variant pricing based on selected color or custom attribute
-  const activeColorObj = product?.colors?.find((c) => c.name === selectedColor);
   let activeVariantPrice: number | null = null;
   if (activeColorObj && typeof activeColorObj.price === 'number' && activeColorObj.price > 0) {
     activeVariantPrice = activeColorObj.price;
@@ -289,8 +294,9 @@ export const ProductDetailPage: React.FC = () => {
 
   const handleSelectColor = (c: any) => {
     setSelectedColor(c.name);
-    if (c.image) {
-      setSelectedImage(c.image);
+    const firstImg = (c.images && c.images.length > 0) ? c.images[0] : c.image;
+    if (firstImg) {
+      setSelectedImage(firstImg);
     }
   };
 
@@ -451,9 +457,9 @@ export const ProductDetailPage: React.FC = () => {
             </div>
 
             {/* Thumbnail list */}
-            {product.images && product.images.length > 1 && (
+            {productImages && productImages.length > 1 && (
               <div className="flex gap-2.5 overflow-x-auto pb-1 px-0.5">
-                {product.images.map((img, idx) => (
+                {productImages.map((img, idx) => (
                   <button
                     key={idx}
                     onClick={() => setSelectedImage(img)}

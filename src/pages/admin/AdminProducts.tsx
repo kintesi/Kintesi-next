@@ -57,12 +57,15 @@ const POPULAR_COLOR_PRESETS = [
   { name: 'Maroon', hex: '#881337' },
 ];
 
-export interface MediaCardItem {
+export interface ColorVariantSection {
   id: string;
   colorName: string;
   colorHex: string;
   price: string;
-  imageUrl: string;
+  imageUrl1: string;
+  imageUrl2: string;
+  imageUrl3: string;
+  imageUrl4: string;
 }
 
 export const AdminProducts: React.FC = () => {
@@ -147,12 +150,18 @@ export const AdminProducts: React.FC = () => {
     imageUrl2: '',
     imageUrl3: '',
     imageUrl4: '',
-    colorPhotos: [
-      { id: '1', colorName: '', colorHex: '#EC4899', price: '', imageUrl: '' },
-      { id: '2', colorName: '', colorHex: '#FFFFFF', price: '', imageUrl: '' },
-      { id: '3', colorName: '', colorHex: '#000000', price: '', imageUrl: '' },
-      { id: '4', colorName: '', colorHex: '#3B82F6', price: '', imageUrl: '' },
-    ] as MediaCardItem[],
+    colorVariants: [
+      {
+        id: 'cv_1',
+        colorName: '',
+        colorHex: '#EC4899',
+        price: '',
+        imageUrl1: '',
+        imageUrl2: '',
+        imageUrl3: '',
+        imageUrl4: '',
+      },
+    ] as ColorVariantSection[],
     // Sizes
     selectedSizes: [] as string[],
     customSizeInput: '',
@@ -267,11 +276,17 @@ export const AdminProducts: React.FC = () => {
       imageUrl2: '',
       imageUrl3: '',
       imageUrl4: '',
-      colorPhotos: [
-        { id: '1', colorName: '', colorHex: '#EC4899', price: '', imageUrl: '' },
-        { id: '2', colorName: '', colorHex: '#FFFFFF', price: '', imageUrl: '' },
-        { id: '3', colorName: '', colorHex: '#000000', price: '', imageUrl: '' },
-        { id: '4', colorName: '', colorHex: '#3B82F6', price: '', imageUrl: '' },
+      colorVariants: [
+        {
+          id: 'cv_1',
+          colorName: '',
+          colorHex: '#EC4899',
+          price: '',
+          imageUrl1: '',
+          imageUrl2: '',
+          imageUrl3: '',
+          imageUrl4: '',
+        },
       ],
       selectedSizes: [],
       customSizeInput: '',
@@ -325,39 +340,34 @@ export const AdminProducts: React.FC = () => {
     }
     setSpecMode(detectedMode);
 
-    const mappedCards: MediaCardItem[] = [];
+    const mappedVariants: ColorVariantSection[] = [];
     if (prod.colors && prod.colors.length > 0) {
       prod.colors.forEach((c: any, i: number) => {
-        mappedCards.push({
-          id: 'card_col_' + i + '_' + Date.now(),
+        const cImages = (c.images && c.images.length > 0)
+          ? c.images
+          : (c.image ? [c.image] : []);
+        mappedVariants.push({
+          id: 'cv_' + i + '_' + Date.now(),
           colorName: c.name || '',
           colorHex: c.hex || '#EC4899',
           price: c.price !== undefined && c.price !== null ? String(c.price) : '',
-          imageUrl: c.image || '',
+          imageUrl1: cImages[0] || (i === 0 ? prod.images?.[0] || '' : ''),
+          imageUrl2: cImages[1] || (i === 0 ? prod.images?.[1] || '' : ''),
+          imageUrl3: cImages[2] || (i === 0 ? prod.images?.[2] || '' : ''),
+          imageUrl4: cImages[3] || (i === 0 ? prod.images?.[3] || '' : ''),
         });
       });
     }
-    const existingImagesInCards = new Set(mappedCards.map((mc) => mc.imageUrl).filter(Boolean));
-    if (prod.images && prod.images.length > 0) {
-      prod.images.forEach((img: string, i: number) => {
-        if (!existingImagesInCards.has(img)) {
-          mappedCards.push({
-            id: 'card_img_' + i + '_' + Date.now(),
-            colorName: '',
-            colorHex: '#94A3B8',
-            price: '',
-            imageUrl: img,
-          });
-        }
-      });
-    }
-    while (mappedCards.length < 4) {
-      mappedCards.push({
-        id: 'card_slot_' + mappedCards.length + '_' + Date.now(),
+    if (mappedVariants.length === 0) {
+      mappedVariants.push({
+        id: 'cv_1',
         colorName: '',
         colorHex: '#EC4899',
         price: '',
-        imageUrl: '',
+        imageUrl1: prod.images?.[0] || '',
+        imageUrl2: prod.images?.[1] || '',
+        imageUrl3: prod.images?.[2] || '',
+        imageUrl4: prod.images?.[3] || '',
       });
     }
 
@@ -399,7 +409,7 @@ export const AdminProducts: React.FC = () => {
       imageUrl2: prod.images?.[1] || '',
       imageUrl3: prod.images?.[2] || '',
       imageUrl4: prod.images?.[3] || '',
-      colorPhotos: mappedCards,
+      colorVariants: mappedVariants,
       selectedSizes: prod.sizes || [],
       customSizeInput: '',
       colors: prod.colors
@@ -615,50 +625,45 @@ export const AdminProducts: React.FC = () => {
     }));
   };
 
-  const handleUpdateCardColor = (id: string, colorName: string, colorHex: string, price: string) => {
+  const handleUpdateVariantField = (id: string, field: keyof ColorVariantSection, value: string) => {
     setFormData((prev) => ({
       ...prev,
-      colorPhotos: (prev.colorPhotos || []).map((item) =>
-        item.id === id ? { ...item, colorName, colorHex, price } : item
+      colorVariants: (prev.colorVariants || []).map((item) =>
+        item.id === id ? { ...item, [field]: value } : item
       ),
     }));
   };
 
-  const handleUpdateCardImage = (id: string, imageUrl: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      colorPhotos: (prev.colorPhotos || []).map((item) =>
-        item.id === id ? { ...item, imageUrl } : item
-      ),
-    }));
-  };
-
-  const handleAddColorPhotoCard = (colorName: string = '', colorHex: string = '#EC4899') => {
-    const newCard: MediaCardItem = {
-      id: 'card_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+  const handleAddColorVariant = (colorName: string = '', colorHex: string = '#EC4899') => {
+    const newVariant: ColorVariantSection = {
+      id: 'cv_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
       colorName,
       colorHex,
       price: '',
-      imageUrl: '',
+      imageUrl1: '',
+      imageUrl2: '',
+      imageUrl3: '',
+      imageUrl4: '',
     };
     setFormData((prev) => ({
       ...prev,
-      colorPhotos: [...(prev.colorPhotos || []), newCard],
+      colorVariants: [...(prev.colorVariants || []), newVariant],
     }));
-    toast.success(colorName ? `"${colorName}" কালার কার্ড যুক্ত হয়েছে!` : 'নতুন ফটো / কালার কার্ড যুক্ত হয়েছে!');
+    toast.success(colorName ? `"${colorName}" কালার ভ্যারিয়েন্ট যোগ করা হয়েছে!` : 'নতুন কালার ভ্যারিয়েন্ট যোগ করা হয়েছে!');
   };
 
-  const handleRemoveColorPhotoCard = (id: string) => {
+  const handleRemoveColorVariant = (id: string) => {
     setFormData((prev) => {
-      if ((prev.colorPhotos || []).length <= 1) {
-        toast.error('কমপক্ষে ১টি ফটো কার্ড থাকতে হবে!');
+      if ((prev.colorVariants || []).length <= 1) {
+        toast.error('কমপক্ষে ১টি কালার ভ্যারিয়েন্ট থাকতে হবে!');
         return prev;
       }
       return {
         ...prev,
-        colorPhotos: prev.colorPhotos.filter((item) => item.id !== id),
+        colorVariants: prev.colorVariants.filter((item) => item.id !== id),
       };
     });
+    toast.info('কালার ভ্যারিয়েন্ট ডিলিট করা হয়েছে');
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -678,27 +683,35 @@ export const AdminProducts: React.FC = () => {
 
     const slug = formData.slug.trim() || formData.title.toLowerCase().replace(/[^a-z0-9]+/g, '-');
 
-    // Collect all valid image URLs from colorPhotos
-    const imageList = (formData.colorPhotos || [])
-      .map((cp) => (cp.imageUrl || '').trim())
-      .filter((url) => url.length > 0);
+    // Collect all valid image URLs across all color variants
+    const allImages: string[] = [];
+    (formData.colorVariants || []).forEach((cv) => {
+      [cv.imageUrl1, cv.imageUrl2, cv.imageUrl3, cv.imageUrl4].forEach((url) => {
+        const trimmed = (url || '').trim();
+        if (trimmed && !allImages.includes(trimmed)) {
+          allImages.push(trimmed);
+        }
+      });
+    });
 
-    // Extract unique color options from colorPhotos
-    const colorsMap = new Map<string, ProductColorOption>();
-    (formData.colorPhotos || []).forEach((cp) => {
-      const name = (cp.colorName || '').trim();
-      if (!name) return;
-      const key = name.toLowerCase();
-      if (!colorsMap.has(key)) {
-        colorsMap.set(key, {
-          name: name,
-          hex: cp.colorHex || '#EC4899',
-          price: cp.price && !isNaN(Number(cp.price)) ? Number(cp.price) : null,
-          image: (cp.imageUrl || '').trim() || null,
+    // Extract color variants with their individual 4 images each!
+    const compiledColors: ProductColorOption[] = [];
+    (formData.colorVariants || []).forEach((cv) => {
+      const name = (cv.colorName || '').trim();
+      const colorImages = [cv.imageUrl1, cv.imageUrl2, cv.imageUrl3, cv.imageUrl4]
+        .map((u) => (u || '').trim())
+        .filter(Boolean);
+
+      if (name || colorImages.length > 0) {
+        compiledColors.push({
+          name: name || 'Default',
+          hex: cv.colorHex || '#EC4899',
+          price: cv.price && !isNaN(Number(cv.price)) ? Number(cv.price) : null,
+          image: colorImages[0] || null,
+          images: colorImages,
         });
       }
     });
-    const compiledColors: ProductColorOption[] = Array.from(colorsMap.values());
 
     const highlightsList = [formData.highlight1, formData.highlight2, formData.highlight3]
       .map((h) => h.trim())
@@ -773,7 +786,7 @@ export const AdminProducts: React.FC = () => {
       discount_price: calculatedDiscountPrice,
       category_id: formData.category_id,
       stock: Number(formData.stock),
-      images: imageList.length > 0 ? imageList : ['/logo.webp'],
+      images: allImages.length > 0 ? allImages : ['/logo.webp'],
       brand: formData.brand.trim() || 'Kintesi',
       sku: formData.sku.trim(),
       warranty: cleanedWarranty,
@@ -1282,7 +1295,7 @@ export const AdminProducts: React.FC = () => {
           <div className="flex items-center gap-1 border-b border-gray-800 bg-gray-900/60 px-4 sm:px-8 py-2 overflow-x-auto no-scrollbar shrink-0">
             {[
               { id: 'general', label: '📦 General & Pricing', desc: 'Title, Price & Stock' },
-              { id: 'variants', label: '🎨 Photos, Colors & Sizes', count: (formData.colorPhotos?.filter(cp => Boolean(cp.imageUrl) || Boolean(cp.colorName)).length || 0) + formData.selectedSizes.length },
+              { id: 'variants', label: '🎨 Photos, Colors & Sizes', count: (formData.colorVariants?.length || 0) + formData.selectedSizes.length },
               { id: 'specs', label: '📋 Description & Specs', desc: 'Details & Specs' },
               { id: 'delivery', label: '🚚 Delivery & Payment', desc: 'Shipping & Payment' },
               { id: 'tags', label: '🏷️ Search Tags & Taxonomy', desc: 'Keywords' },
@@ -1548,148 +1561,152 @@ export const AdminProducts: React.FC = () => {
               {/* Tab 2: Sizes & Colors */}
               {activeModalTab === 'variants' && (
                 <div className="space-y-6 animate-fadeIn">
-                  {/* Section 1: Unified Product Photos & Color Variants */}
-                  <div className="space-y-4 bg-gray-950/60 p-5 rounded-2xl border border-blue-500/30 shadow-xs">
+                  {/* Section 1: Color Variants & Their 4 High-Res Photos */}
+                  <div className="space-y-6">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-gray-800">
                       <div>
-                        <h4 className="text-xs font-black uppercase tracking-wider text-blue-400 flex items-center gap-1.5">
-                          <ImageIcon className="w-4 h-4" /> Product Photos & Color Variants (প্রোডাক্টের ছবি ও কালার ভ্যারিয়েন্ট)
+                        <h4 className="text-xs font-black uppercase tracking-wider text-rose-400 flex items-center gap-1.5">
+                          <Palette className="w-4 h-4" /> Color Variants & 4 Photos Per Color (প্রতিটি কালারের জন্য আলাদা ৪টি ছবি)
                         </h4>
                         <p className="text-[11px] text-gray-400 mt-0.5">
-                          প্রতিটি কার্ডে সরাসরি ডিভাইস থেকে ছবি আপলোড করুন এবং সাথে কালার সিলেক্ট করুন (যেমন Pink, White, Black)।
+                          প্রতিটি কালার ভ্যারিয়েন্টের জন্য নিজস্ব ৪টি করে ছবি আপলোড করুন (Main Cover, Side, Detail, Close-up)। কাস্টমার যে কালার সিলেক্ট করবেন সেই কালারের ছবি দেখতে পাবেন।
                         </p>
                       </div>
-                      <span className="text-[10px] bg-blue-500/10 text-blue-300 font-bold px-2.5 py-1 rounded-full border border-blue-500/20 shrink-0">
-                        High-Res WebP Cloud Storage
+                      <span className="text-[10px] bg-rose-500/10 text-rose-300 font-bold px-2.5 py-1 rounded-full border border-rose-500/20 shrink-0">
+                        High-Res Multi-Angle WebP
                       </span>
                     </div>
 
-                    {/* Quick 1-Click Color Adders */}
-                    <div className="space-y-1.5 bg-gray-900/60 p-3 rounded-xl border border-gray-800">
-                      <span className="text-[10px] uppercase font-bold text-gray-400 block">
-                        ১-ক্লিকে নতুন কালার কার্ড যোগ করুন (Quick Color Adders):
-                      </span>
-                      <div className="flex flex-wrap gap-1.5">
-                        {POPULAR_COLOR_PRESETS.map((preset) => (
-                          <button
-                            type="button"
-                            key={preset.name}
-                            onClick={() => handleAddColorPhotoCard(preset.name, preset.hex)}
-                            className="px-2.5 py-1 bg-gray-900 hover:bg-gray-800 text-gray-300 hover:text-white border border-gray-700 hover:border-rose-500 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
-                          >
-                            <span className="w-2.5 h-2.5 rounded-full border border-black/20" style={{ backgroundColor: preset.hex }} />
-                            <span>+ {preset.name}</span>
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Responsive Grid of Photo & Color Cards */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                      {(formData.colorPhotos || []).map((card, idx) => (
+                    {/* Color Variant Groups */}
+                    <div className="space-y-6">
+                      {(formData.colorVariants || []).map((variant, vIdx) => (
                         <div
-                          key={card.id}
-                          className={`p-3.5 bg-gray-900/90 rounded-2xl border transition relative space-y-3 flex flex-col justify-between ${
-                            card.imageUrl ? 'border-emerald-500/40 shadow-xs' : 'border-gray-800 hover:border-gray-700'
-                          }`}
+                          key={variant.id}
+                          className="space-y-4 bg-gray-950/80 p-5 rounded-2xl border border-gray-800 shadow-md transition hover:border-gray-700"
                         >
-                          {/* Card Top: Numbering + Delete */}
-                          <div className="flex items-center justify-between gap-1.5">
-                            <span className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md ${
-                              idx === 0
-                                ? 'bg-blue-500/20 text-blue-300 border border-blue-500/30'
-                                : 'bg-gray-800 text-gray-400'
-                            }`}>
-                              {idx === 0 ? '⭐ Photo 1 (Cover)' : `Photo ${idx + 1}`}
-                            </span>
+                          {/* Header of this Color Variant: Color Swatch + Name + Price + Delete */}
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-gray-800/80">
+                            <div className="flex items-center gap-3 flex-wrap">
+                              <span className="px-2.5 py-1 bg-rose-500/15 text-rose-300 border border-rose-500/30 text-xs font-black rounded-xl flex items-center gap-1.5">
+                                <Palette className="w-3.5 h-3.5" />
+                                <span>কালার {vIdx + 1} {vIdx === 0 ? '(মূল কালার)' : ''}</span>
+                              </span>
 
-                            {(formData.colorPhotos || []).length > 1 && (
+                              {/* Color Picker Swatch */}
+                              <div className="flex items-center gap-2">
+                                <input
+                                  type="color"
+                                  value={variant.colorHex}
+                                  onChange={(e) => handleUpdateVariantField(variant.id, 'colorHex', e.target.value)}
+                                  className="w-8 h-8 rounded-xl cursor-pointer bg-transparent border-0 p-0 shrink-0"
+                                  title="কালার সিলেক্ট করুন"
+                                />
+                                <input
+                                  type="text"
+                                  placeholder="কালারের নাম (যেমন: Pink, White, Black)"
+                                  value={variant.colorName}
+                                  onChange={(e) => handleUpdateVariantField(variant.id, 'colorName', e.target.value)}
+                                  className="bg-gray-900 border border-gray-700 rounded-xl px-3 py-1.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-rose-500 font-bold w-52"
+                                />
+                              </div>
+
+                              {/* Price Override for this color */}
+                              <div className="flex items-center gap-1 bg-gray-900 border border-gray-700 rounded-xl px-2.5 py-1.5">
+                                <span className="text-xs text-gray-400 font-bold">৳</span>
+                                <input
+                                  type="number"
+                                  placeholder={`দাম (ডিফল্ট: ৳${formData.price || '0'})`}
+                                  value={variant.price}
+                                  onChange={(e) => handleUpdateVariantField(variant.id, 'price', e.target.value)}
+                                  className="bg-transparent text-xs text-emerald-400 placeholder-gray-500 font-black focus:outline-none w-36"
+                                />
+                              </div>
+                            </div>
+
+                            {/* Delete button (if more than 1 variant) */}
+                            {(formData.colorVariants || []).length > 1 && (
                               <button
                                 type="button"
-                                onClick={() => handleRemoveColorPhotoCard(card.id)}
-                                className="p-1 text-gray-500 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition cursor-pointer"
-                                title="Remove this card"
+                                onClick={() => handleRemoveColorVariant(variant.id)}
+                                className="px-3 py-1.5 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 rounded-xl text-xs font-bold transition flex items-center gap-1.5 self-start sm:self-auto cursor-pointer"
                               >
-                                <X className="w-3.5 h-3.5" />
+                                <Trash2 className="w-3.5 h-3.5" />
+                                <span>কালারটি মুছুন (Delete)</span>
                               </button>
                             )}
                           </div>
 
-                          {/* Color Picker & Name & Price Box */}
-                          <div className="space-y-2 bg-gray-950/70 p-2.5 rounded-xl border border-gray-800/80">
-                            <div className="flex items-center justify-between">
-                              <span className="text-[10px] font-bold uppercase tracking-wider text-rose-400 flex items-center gap-1">
-                                <Palette className="w-3 h-3" /> Color Picker
-                              </span>
-                              {card.colorName && (
-                                <button
-                                  type="button"
-                                  onClick={() => handleUpdateCardColor(card.id, '', card.colorHex, card.price)}
-                                  className="text-[9px] text-gray-500 hover:text-rose-400 font-semibold cursor-pointer"
-                                >
-                                  Clear Color
-                                </button>
-                              )}
-                            </div>
-
-                            {/* Color Swatch Dot & Color Name Input */}
-                            <div className="flex items-center gap-2">
-                              <input
-                                type="color"
-                                value={card.colorHex}
-                                onChange={(e) => handleUpdateCardColor(card.id, card.colorName, e.target.value, card.price)}
-                                className="w-8 h-8 rounded-lg cursor-pointer bg-transparent border-0 p-0 shrink-0"
-                                title="Choose Color Code"
-                              />
-                              <input
-                                type="text"
-                                placeholder="Color (e.g. Pink)"
-                                value={card.colorName}
-                                onChange={(e) => handleUpdateCardColor(card.id, e.target.value, card.colorHex, card.price)}
-                                className="w-full bg-gray-900 border border-gray-700 rounded-lg px-2.5 py-1 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-rose-500 font-bold"
-                              />
-                            </div>
-
-                            {/* Custom Price override for this specific color */}
-                            <div className="flex items-center gap-1 bg-gray-900 border border-gray-700/80 rounded-lg px-2 py-0.5">
-                              <span className="text-[10px] text-gray-400 font-bold">৳</span>
-                              <input
-                                type="number"
-                                placeholder={`Price (Default: ৳${formData.price || '0'})`}
-                                value={card.price}
-                                onChange={(e) => handleUpdateCardColor(card.id, card.colorName, card.colorHex, e.target.value)}
-                                className="w-full bg-transparent text-xs text-emerald-400 placeholder-gray-500 font-bold focus:outline-none"
-                              />
-                            </div>
-                          </div>
-
-                          {/* Image Uploader Component */}
-                          <div className="pt-0.5">
+                          {/* 4 Image Uploaders for THIS color - Exact layout from user's screenshot! */}
+                          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3.5">
                             <ImageUploader
-                              label={card.colorName ? `${card.colorName} Photo` : (idx === 0 ? 'Cover Photo *' : `Photo ${idx + 1}`)}
-                              value={card.imageUrl}
-                              onChange={(url) => handleUpdateCardImage(card.id, url)}
-                              required={idx === 0}
-                              helpText={idx === 0 ? 'Primary catalog cover' : (card.colorName ? `Auto switches on ${card.colorName}` : 'Additional angle')}
+                              label="Photo 1 (Main Cover)"
+                              value={variant.imageUrl1}
+                              onChange={(url) => handleUpdateVariantField(variant.id, 'imageUrl1', url)}
+                              required={vIdx === 0}
+                              helpText={variant.colorName ? `${variant.colorName} কালারের মূল কভার ছবি` : 'Primary photo shown across catalog'}
+                            />
+
+                            <ImageUploader
+                              label="Photo 2 (Side / Angle)"
+                              value={variant.imageUrl2}
+                              onChange={(url) => handleUpdateVariantField(variant.id, 'imageUrl2', url)}
+                              helpText={variant.colorName ? `${variant.colorName} সাইড বা মডেল পরা ভিউ` : 'Back view, packaging, or texture'}
+                            />
+
+                            <ImageUploader
+                              label="Photo 3 (Detail / Lifestyle)"
+                              value={variant.imageUrl3}
+                              onChange={(url) => handleUpdateVariantField(variant.id, 'imageUrl3', url)}
+                              helpText={variant.colorName ? `${variant.colorName} ক্লোজ-আপ ডিটেইল শট` : 'Side angle or lifestyle shot'}
+                            />
+
+                            <ImageUploader
+                              label="Photo 4 (Close-up / Extra)"
+                              value={variant.imageUrl4}
+                              onChange={(url) => handleUpdateVariantField(variant.id, 'imageUrl4', url)}
+                              helpText={variant.colorName ? `${variant.colorName} এক্সেসরিজ বা প্যাকেজিং ভিউ` : 'Close-up detail or accessories'}
                             />
                           </div>
                         </div>
                       ))}
                     </div>
 
-                    {/* Button to Add More Cards */}
-                    <div className="pt-2 flex items-center justify-between flex-wrap gap-2 border-t border-gray-800">
-                      <button
-                        type="button"
-                        onClick={() => handleAddColorPhotoCard()}
-                        className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl text-xs transition flex items-center gap-1.5 shadow-sm cursor-pointer"
-                      >
-                        <Plus className="w-4 h-4" />
-                        <span>Add Another Photo / Color Card (আরেকটি কার্ড যোগ করুন)</span>
-                      </button>
-                      <span className="text-[11px] text-gray-400">
-                        মোট {(formData.colorPhotos || []).length}টি ফটো / কালার স্লট কনফিগার করা আছে
-                      </span>
+                    {/* Quick 1-Click Color Adders & Add Button */}
+                    <div className="p-4 bg-gray-900/60 rounded-2xl border border-gray-800 space-y-3">
+                      <div className="flex items-center justify-between flex-wrap gap-2">
+                        <div>
+                          <h5 className="text-xs font-bold text-gray-200 flex items-center gap-1.5">
+                            <Plus className="w-4 h-4 text-emerald-400" /> আরেকটি কালার ভ্যারিয়েন্ট যোগ করুন:
+                          </h5>
+                          <p className="text-[11px] text-gray-400 mt-0.5">
+                            নিচের যেকোনো কালারে ক্লিক করলেই নতুন কালারের জন্য আলাদা ৪টি ছবির বক্স তৈরি হবে।
+                          </p>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => handleAddColorVariant('', '#EC4899')}
+                          className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs transition flex items-center gap-1.5 shadow-md shadow-emerald-600/20 cursor-pointer"
+                        >
+                          <Plus className="w-4 h-4" />
+                          <span>Add Custom Color (+ নতুন কালার)</span>
+                        </button>
+                      </div>
+
+                      {/* Quick Color Preset Chips */}
+                      <div className="flex flex-wrap gap-1.5 pt-1 border-t border-gray-800/80">
+                        {POPULAR_COLOR_PRESETS.map((preset) => (
+                          <button
+                            type="button"
+                            key={preset.name}
+                            onClick={() => handleAddColorVariant(preset.name, preset.hex)}
+                            className="px-3 py-1.5 bg-gray-900 hover:bg-gray-800 text-gray-300 hover:text-white border border-gray-700 hover:border-rose-500 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
+                          >
+                            <span className="w-3 h-3 rounded-full border border-black/20" style={{ backgroundColor: preset.hex }} />
+                            <span>+ {preset.name}</span>
+                          </button>
+                        ))}
+                      </div>
                     </div>
                   </div>
 
