@@ -1,4 +1,4 @@
-﻿import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 
 export type AdminTheme = 'light' | 'dark';
 
@@ -30,6 +30,26 @@ export const AdminThemeProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const toggleTheme = () => {
     setTheme(theme === 'light' ? 'dark' : 'light');
   };
+
+  useEffect(() => {
+    const root = document.documentElement;
+    const body = document.body;
+    if (theme === 'light') {
+      root.classList.add('admin-light');
+      root.classList.remove('admin-dark');
+      body.classList.add('admin-light');
+      body.classList.remove('admin-dark');
+    } else {
+      root.classList.add('admin-dark');
+      root.classList.remove('admin-light');
+      body.classList.add('admin-dark');
+      body.classList.remove('admin-light');
+    }
+    return () => {
+      root.classList.remove('admin-light', 'admin-dark');
+      body.classList.remove('admin-light', 'admin-dark');
+    };
+  }, [theme]);
 
   return (
     <AdminThemeContext.Provider value={{ theme, isLight: theme === 'light', toggleTheme, setTheme }}>

@@ -201,12 +201,12 @@ const AdminLayoutInner: React.FC = () => {
       </nav>
 
       {/* Sidebar Footer Theme Mode Info */}
-      <div className={`p-3 border-t flex items-center justify-between text-xs ${isLight ? 'border-rose-100/80 bg-rose-50/40 text-gray-500' : 'border-gray-800/80 bg-gray-900/50 text-gray-400'}`}>
+      <div className={`p-3 border-t flex items-center justify-between text-xs ${isLight ? 'border-rose-100 bg-white text-gray-600' : 'border-gray-800/80 bg-gray-900/50 text-gray-400'}`}>
         <span className="text-[11px] font-bold">Theme: {isLight ? '☀️ White Mood' : '🌙 Dark Mood'}</span>
         <button
           type="button"
           onClick={toggleTheme}
-          className={`px-2 py-1 rounded-lg text-[10.5px] font-bold transition cursor-pointer border ${isLight ? 'bg-white hover:bg-rose-100 text-rose-700 border-rose-200' : 'bg-gray-800 hover:bg-gray-700 text-amber-300 border-gray-700'}`}
+          className={`px-2 py-1 rounded-lg text-[10.5px] font-bold transition cursor-pointer border ${isLight ? 'bg-white hover:bg-rose-50 text-rose-700 border-rose-200' : 'bg-gray-800 hover:bg-gray-700 text-amber-300 border-gray-700'}`}
         >
           {isLight ? 'Switch to Dark' : 'Switch to White'}
         </button>
@@ -215,14 +215,14 @@ const AdminLayoutInner: React.FC = () => {
   );
 
   return (
-    <div className={`${isLight ? 'bg-[#f8fafc] text-gray-900' : 'bg-gray-900 text-gray-100'} flex flex-col md:flex-row ${isChat ? 'h-screen max-h-screen overflow-hidden' : 'min-h-screen'} transition-colors duration-200`}>
+    <div className={`admin-root ${isLight ? 'admin-light bg-white text-gray-900' : 'admin-dark bg-gray-900 text-gray-100'} flex flex-col md:flex-row ${isChat ? 'h-screen max-h-screen overflow-hidden' : 'min-h-screen'} transition-colors duration-200`}>
       
       {/* Mobile Top Sticky Bar with Burger Button */}
-      <header className={`md:hidden sticky top-0 z-30 border-b px-4 py-2.5 flex items-center justify-between ${isLight ? 'bg-white/95 border-rose-100 text-gray-900 shadow-xs' : 'bg-gray-950 border-gray-800 text-white'}`}>
+      <header className={`md:hidden sticky top-0 z-30 border-b px-4 py-2.5 flex items-center justify-between ${isLight ? 'bg-white border-rose-100 text-gray-900 shadow-xs' : 'bg-gray-950 border-gray-800 text-white'}`}>
         <div className="flex items-center gap-3">
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className={`p-2 rounded-xl border transition active:scale-95 ${isLight ? 'bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100' : 'bg-gray-900 border-gray-800 text-gray-300 hover:text-white'}`}
+            className={`p-2 rounded-xl border transition active:scale-95 ${isLight ? 'bg-white border-gray-200 text-gray-700 hover:bg-rose-50' : 'bg-gray-900 border-gray-800 text-gray-300 hover:text-white'}`}
             aria-label="Toggle navigation menu"
             title="Open navigation menu"
           >
@@ -241,15 +241,15 @@ const AdminLayoutInner: React.FC = () => {
           <button
             type="button"
             onClick={toggleTheme}
-            className={`p-2 rounded-xl border transition cursor-pointer ${isLight ? 'bg-rose-50 text-rose-600 border-rose-200 hover:bg-rose-100' : 'bg-gray-900 text-amber-400 border-gray-800 hover:bg-gray-800'}`}
+            className={`p-2 rounded-xl border transition cursor-pointer ${isLight ? 'bg-white text-slate-800 border-gray-200 hover:bg-rose-50' : 'bg-gray-900 text-amber-400 border-gray-800 hover:bg-gray-800'}`}
             title={isLight ? 'Switch to Dark Mode' : 'Switch to White Mode'}
           >
-            {isLight ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
+            {isLight ? <Moon className="w-4 h-4 text-slate-800" /> : <Sun className="w-4 h-4" />}
           </button>
 
           <Link
             to="/"
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-bold border transition ${isLight ? 'bg-rose-50 text-rose-700 border-rose-200/80 hover:bg-rose-100' : 'bg-gray-800 text-gray-200 border-gray-700 hover:bg-gray-700'}`}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-bold border transition ${isLight ? 'bg-white text-rose-700 border-rose-200 hover:bg-rose-50' : 'bg-gray-800 text-gray-200 border-gray-700 hover:bg-gray-700'}`}
           >
             <Store className="w-3.5 h-3.5 text-rose-500" />
             <span>Store</span>
@@ -277,7 +277,7 @@ const AdminLayoutInner: React.FC = () => {
       {/* Desktop Sidebar (Collapsible with width transition) */}
       <aside
         className={`hidden md:flex flex-col flex-shrink-0 border-r transition-all duration-250 ease-in-out ${
-          isLight ? 'bg-white border-rose-100/90 shadow-[2px_0_12px_rgba(225,29,72,0.02)]' : 'bg-gray-950 border-gray-800'
+          isLight ? 'bg-white border-rose-100 shadow-[2px_0_12px_rgba(225,29,72,0.02)]' : 'bg-gray-950 border-gray-800'
         } ${isSidebarOpen ? 'w-64 opacity-100' : 'w-0 opacity-0 border-r-0 overflow-hidden'} ${isChat ? 'h-screen max-h-screen' : ''}`}
       >
         <div className="w-64 h-full">
@@ -290,7 +290,7 @@ const AdminLayoutInner: React.FC = () => {
         
         {/* Desktop Top Header Bar with Burger Toggle & Theme Switcher */}
         <div className={`hidden md:flex items-center justify-between px-6 py-2.5 border-b backdrop-blur-md sticky top-0 z-20 transition-colors ${
-          isLight ? 'bg-white/85 border-rose-100/90 shadow-xs' : 'bg-gray-950/70 border-gray-800'
+          isLight ? 'bg-white/95 border-rose-100 shadow-xs' : 'bg-gray-950/70 border-gray-800'
         }`}>
           <div className="flex items-center gap-3">
             {/* Burger toggle button to hide / unhide sidebar */}
@@ -298,7 +298,7 @@ const AdminLayoutInner: React.FC = () => {
               onClick={toggleDesktopSidebar}
               className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-bold border transition active:scale-95 shadow-xs cursor-pointer ${
                 isLight
-                  ? 'bg-gray-50 hover:bg-gray-100 text-gray-700 border-gray-200'
+                  ? 'bg-white hover:bg-rose-50 text-gray-700 border-gray-200'
                   : 'bg-gray-900 hover:bg-gray-800 text-gray-300 hover:text-white border-gray-800'
               }`}
               title={isSidebarOpen ? 'Hide sidebar menu' : 'Unhide sidebar menu'}
@@ -329,7 +329,7 @@ const AdminLayoutInner: React.FC = () => {
               onClick={toggleTheme}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold border transition cursor-pointer shadow-xs ${
                 isLight
-                  ? 'bg-white hover:bg-gray-50 text-gray-700 border-gray-200'
+                  ? 'bg-white hover:bg-rose-50 text-gray-700 border-gray-200'
                   : 'bg-gray-900 hover:bg-gray-800 text-amber-300 border-gray-800'
               }`}
               title={isLight ? 'Switch to Dark Mode' : 'Switch to White Mode'}
@@ -351,7 +351,7 @@ const AdminLayoutInner: React.FC = () => {
               to="/"
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border transition font-bold ${
                 isLight
-                  ? 'bg-rose-50 hover:bg-rose-100/80 border-rose-200 text-rose-700'
+                  ? 'bg-white hover:bg-rose-50 border-rose-200 text-rose-700 shadow-xs'
                   : 'bg-gray-900 hover:bg-gray-800 border-gray-800 text-gray-300 hover:text-white'
               }`}
             >
@@ -376,7 +376,7 @@ const AdminLayoutInner: React.FC = () => {
 
         <main
           className={`flex-1 transition-colors duration-200 ${
-            isLight ? 'bg-[#f8fafc]' : 'bg-gray-900'
+            isLight ? 'bg-white' : 'bg-gray-900'
           } ${
             isChat
               ? 'p-0 flex flex-col w-full h-full min-h-0 overflow-hidden'

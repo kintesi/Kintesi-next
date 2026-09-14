@@ -272,7 +272,7 @@ export const AdminPresets: React.FC = () => {
             onClick={handleResetDefaults}
             className={`px-3.5 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 cursor-pointer border ${
               isLight
-                ? 'bg-gray-50 hover:bg-gray-100 text-gray-700 border-gray-200 shadow-xs'
+                ? 'bg-white hover:bg-rose-50 text-gray-700 border-gray-200 shadow-xs'
                 : 'bg-gray-900 hover:bg-gray-800 text-gray-400 hover:text-white border-gray-800'
             }`}
             title="Restore standard preset library"
@@ -302,7 +302,7 @@ export const AdminPresets: React.FC = () => {
                 ? 'bg-white border-rose-500 shadow-md ring-2 ring-rose-500/15'
                 : 'bg-rose-500/10 border-rose-500/50 text-white shadow-lg shadow-rose-500/5'
               : isLight
-              ? 'bg-white/80 border-gray-200 text-gray-600 hover:bg-white hover:border-gray-300 shadow-xs'
+              ? 'bg-white border-gray-200 text-gray-600 hover:border-gray-300 shadow-xs'
               : 'bg-gray-900/60 border-gray-800 text-gray-400 hover:text-gray-200 hover:bg-gray-900'
           }`}
         >
@@ -310,7 +310,7 @@ export const AdminPresets: React.FC = () => {
             <div className={`w-11 h-11 rounded-xl flex items-center justify-center transition ${
               activeTab === 'colors'
                 ? isLight ? 'bg-rose-100 text-rose-600' : 'bg-rose-500/20 text-rose-300'
-                : isLight ? 'bg-gray-100 text-gray-500' : 'bg-gray-800 text-gray-400'
+                : isLight ? 'bg-rose-50 text-gray-500' : 'bg-gray-800 text-gray-400'
             }`}>
               <Palette className="w-5 h-5" />
             </div>
@@ -327,7 +327,7 @@ export const AdminPresets: React.FC = () => {
             isLight
               ? activeTab === 'colors'
                 ? 'bg-rose-100 text-rose-700 border-rose-300'
-                : 'bg-gray-100 text-gray-600 border-gray-200'
+                : 'bg-white text-gray-600 border-gray-200'
               : activeTab === 'colors'
               ? 'bg-rose-500/20 text-rose-300 border-rose-500/30'
               : 'bg-gray-800 text-gray-400 border-gray-700'
@@ -345,7 +345,7 @@ export const AdminPresets: React.FC = () => {
                 ? 'bg-white border-purple-500 shadow-md ring-2 ring-purple-500/15'
                 : 'bg-purple-500/10 border-purple-500/50 text-white shadow-lg shadow-purple-500/5'
               : isLight
-              ? 'bg-white/80 border-gray-200 text-gray-600 hover:bg-white hover:border-gray-300 shadow-xs'
+              ? 'bg-white border-gray-200 text-gray-600 hover:border-gray-300 shadow-xs'
               : 'bg-gray-900/60 border-gray-800 text-gray-400 hover:text-gray-200 hover:bg-gray-900'
           }`}
         >
@@ -353,7 +353,7 @@ export const AdminPresets: React.FC = () => {
             <div className={`w-11 h-11 rounded-xl flex items-center justify-center transition ${
               activeTab === 'sizes'
                 ? isLight ? 'bg-purple-100 text-purple-600' : 'bg-purple-500/20 text-purple-300'
-                : isLight ? 'bg-gray-100 text-gray-500' : 'bg-gray-800 text-gray-400'
+                : isLight ? 'bg-purple-50 text-gray-500' : 'bg-gray-800 text-gray-400'
             }`}>
               <Layers className="w-5 h-5" />
             </div>
@@ -370,7 +370,7 @@ export const AdminPresets: React.FC = () => {
             isLight
               ? activeTab === 'sizes'
                 ? 'bg-purple-100 text-purple-700 border-purple-300'
-                : 'bg-gray-100 text-gray-600 border-gray-200'
+                : 'bg-white text-gray-600 border-gray-200'
               : activeTab === 'sizes'
               ? 'bg-purple-500/20 text-purple-300 border-purple-500/30'
               : 'bg-gray-800 text-gray-400 border-gray-700'
@@ -383,7 +383,7 @@ export const AdminPresets: React.FC = () => {
       {/* Search & Sync Status Banner */}
       <div className={`border rounded-2xl p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
         isLight
-          ? 'bg-white border-gray-200/90 shadow-xs'
+          ? 'bg-white border-gray-200 shadow-xs'
           : 'bg-gray-900/80 border-gray-800'
       }`}>
         <div className="relative flex-1">
@@ -395,7 +395,7 @@ export const AdminPresets: React.FC = () => {
             onChange={(e) => setSearchQuery(e.target.value)}
             className={`w-full border rounded-xl pl-10 pr-4 py-2.5 text-xs font-semibold focus:outline-none transition ${
               isLight
-                ? 'bg-gray-50 border-gray-200 text-gray-900 placeholder:text-gray-400 focus:bg-white focus:border-rose-500'
+                ? 'bg-white border-gray-200 text-gray-900 placeholder:text-gray-400 focus:border-rose-500'
                 : 'bg-gray-950 border-gray-800 text-white placeholder:text-gray-500 focus:border-rose-500'
             }`}
           />
@@ -432,7 +432,7 @@ export const AdminPresets: React.FC = () => {
             <form onSubmit={handleAddColor} className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-center">
               {/* Color Swatch Picker */}
               <div className={`sm:col-span-4 flex items-center gap-3 p-2 rounded-xl border ${
-                isLight ? 'bg-gray-50 border-gray-200' : 'bg-gray-900 border-gray-800'
+                isLight ? 'bg-white border-gray-200 shadow-xs' : 'bg-gray-900 border-gray-800'
               }`}>
                 <div className="relative">
                   <input
@@ -467,7 +467,7 @@ export const AdminPresets: React.FC = () => {
                   onChange={(e) => setNewColorName(e.target.value)}
                   className={`w-full border rounded-xl px-4 py-3 text-xs font-bold focus:outline-none transition ${
                     isLight
-                      ? 'bg-gray-50 border-gray-200 text-gray-900 placeholder:text-gray-400 focus:bg-white focus:border-rose-500'
+                      ? 'bg-white border-gray-200 text-gray-900 placeholder:text-gray-400 focus:border-rose-500'
                       : 'bg-gray-900 border-gray-800 text-white placeholder:text-gray-500 focus:border-rose-500'
                   }`}
                 />
@@ -514,7 +514,7 @@ export const AdminPresets: React.FC = () => {
                   }}
                   className={`text-[10.5px] px-2.5 py-1 rounded-lg border flex items-center gap-1.5 transition cursor-pointer font-bold ${
                     isLight
-                      ? 'bg-gray-50 hover:bg-gray-100 text-gray-700 border-gray-200/80'
+                      ? 'bg-white hover:bg-rose-50 text-gray-700 border-gray-200 shadow-2xs'
                       : 'bg-gray-900 hover:bg-gray-850 text-gray-300 border-gray-800'
                   }`}
                 >
@@ -549,7 +549,7 @@ export const AdminPresets: React.FC = () => {
                     key={preset.name}
                     className={`group relative rounded-2xl p-3.5 transition flex flex-col justify-between border ${
                       isLight
-                        ? 'bg-white border-gray-200/90 hover:border-rose-300 hover:shadow-md shadow-xs'
+                        ? 'bg-white border-gray-200 hover:border-rose-300 hover:shadow-md shadow-xs'
                         : 'bg-gray-900/90 border-gray-800 hover:border-rose-500/50 shadow-md'
                     }`}
                   >
@@ -567,7 +567,7 @@ export const AdminPresets: React.FC = () => {
                           onClick={() => handleCopyHex(preset.hex)}
                           className={`mt-0.5 inline-flex items-center gap-1 text-[10px] font-mono font-bold px-1.5 py-0.5 rounded transition cursor-pointer ${
                             isLight
-                              ? 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+                              ? 'bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200'
                               : 'bg-gray-800 hover:bg-gray-750 text-gray-300'
                           }`}
                           title="Click to copy hex code"
@@ -640,7 +640,7 @@ export const AdminPresets: React.FC = () => {
                   onChange={(e) => setNewSizeInput(e.target.value)}
                   className={`w-full border rounded-xl px-4 py-3 text-xs font-bold focus:outline-none transition ${
                     isLight
-                      ? 'bg-gray-50 border-gray-200 text-gray-900 placeholder:text-gray-400 focus:bg-white focus:border-purple-500'
+                      ? 'bg-white border-gray-200 text-gray-900 placeholder:text-gray-400 focus:border-purple-500'
                       : 'bg-gray-900 border-gray-800 text-white placeholder:text-gray-500 focus:border-purple-500'
                   }`}
                 />
@@ -684,7 +684,7 @@ export const AdminPresets: React.FC = () => {
                           ? 'bg-purple-600 text-white border-purple-600 shadow-xs'
                           : 'bg-purple-500/20 text-purple-300 border-purple-500/40'
                         : isLight
-                        ? 'bg-gray-50 text-gray-600 hover:text-gray-900 hover:bg-gray-100 border-gray-200'
+                        ? 'bg-white text-gray-600 hover:text-gray-900 hover:bg-purple-50 border-gray-200 shadow-2xs'
                         : 'bg-gray-900 text-gray-400 hover:text-white border-gray-800'
                     }`}
                   >
