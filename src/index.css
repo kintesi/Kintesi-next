@@ -89,6 +89,16 @@
 }
 
 /*
+ * Admin dark mode
+ */
+.admin-dark,
+body.admin-dark,
+html.admin-dark {
+  background: #111827 !important;
+  color: #f3f4f6 !important;
+}
+
+/*
  * Admin white mode
  *
  * This is intentionally a small, single-source theme.  Every normal child is

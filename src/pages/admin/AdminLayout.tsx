@@ -151,7 +151,7 @@ const AdminLayoutInner: React.FC = () => {
         </div>
       </div>
 
-      {/* Navigation list */}
+      {/* Navigation list - Cleanly scrollable if needed, without email/logout at bottom */}
       <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-4">
         {navSections.map((section, idx) => (
           <div key={idx} className="space-y-1">
@@ -200,43 +200,17 @@ const AdminLayoutInner: React.FC = () => {
           </div>
         ))}
       </nav>
-
-      {/* User Footer */}
-      <div
-        className={`p-3 border-t flex-shrink-0 transition-colors ${
-          isLight ? 'border-slate-200 bg-slate-50' : 'border-gray-800/80 bg-gray-950/50'
-        }`}
-      >
-        <div className="flex items-center justify-between gap-2 px-2 py-1.5">
-          <div className="min-w-0 flex-1">
-            <p className="text-xs font-black truncate" style={isLight ? { color: '#000000' } : { color: '#ffffff' }}>
-              {user?.email}
-            </p>
-            <p className="text-[10px] font-bold text-rose-600 capitalize">
-              {isMasterOwner ? 'Super Admin' : 'Admin'}
-            </p>
-          </div>
-          <button
-            onClick={signOut}
-            className={`p-2 rounded-xl border transition cursor-pointer ${
-              isLight
-                ? 'bg-white hover:bg-rose-50 border-slate-300 hover:border-rose-300 shadow-xs'
-                : 'bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-rose-400 border-gray-700'
-            }`}
-            style={isLight ? { color: '#000000' } : {}}
-            title="Sign Out"
-            aria-label="Sign out"
-          >
-            <LogOut className="w-4 h-4" style={isLight ? { color: '#000000' } : { color: '#f43f5e' }} />
-          </button>
-        </div>
-      </div>
     </div>
   );
 
   return (
-    <div className={`admin-root ${isLight ? 'admin-light bg-white text-slate-900' : 'admin-dark bg-gray-900 text-gray-100'} flex flex-col md:flex-row h-screen max-h-screen overflow-hidden transition-colors duration-200`}>
-      
+    <div
+      className={`admin-root min-h-screen ${
+        isLight ? 'admin-light bg-slate-50 text-slate-900' : 'admin-dark bg-gray-900 text-gray-100'
+      } flex flex-col md:flex-row transition-colors duration-200 ${
+        isChat ? 'h-screen max-h-screen overflow-hidden' : ''
+      }`}
+    >
       {/* Mobile Top Sticky Bar */}
       <header
         className={`md:hidden sticky top-0 z-30 border-b px-4 py-2.5 flex items-center justify-between shadow-xs flex-shrink-0 ${
@@ -317,9 +291,9 @@ const AdminLayoutInner: React.FC = () => {
         {sidebarContent}
       </aside>
 
-      {/* Desktop Sidebar: Sticky & Permanently Fixed on the Left */}
+      {/* Desktop Sidebar: Permanently Sticky & Fixed on the Left */}
       <aside
-        className={`hidden md:flex flex-col flex-shrink-0 border-r h-screen max-h-screen sticky top-0 z-20 transition-all duration-200 ease-in-out ${
+        className={`hidden md:flex flex-col flex-shrink-0 border-r h-screen max-h-screen sticky top-0 self-start z-20 transition-all duration-200 ease-in-out ${
           isLight ? 'bg-white border-slate-200' : 'bg-gray-950 border-gray-800'
         } ${isSidebarOpen ? 'w-64 opacity-100' : 'w-0 opacity-0 border-r-0 overflow-hidden'}`}
       >
@@ -328,13 +302,13 @@ const AdminLayoutInner: React.FC = () => {
         </div>
       </aside>
 
-      {/* Main Content Area: scrolls independently */}
-      <div className="flex-1 flex flex-col min-w-0 h-screen max-h-screen overflow-hidden">
+      {/* Main Content Area */}
+      <div className={`flex-1 flex flex-col min-w-0 ${isChat ? 'h-screen max-h-screen overflow-hidden' : 'min-h-screen'}`}>
         
         {/* Desktop Top Header Bar with Burger Toggle & Theme Switcher */}
         <div
           className={`hidden md:flex items-center justify-between px-6 py-2.5 border-b sticky top-0 z-20 flex-shrink-0 transition-colors ${
-            isLight ? 'bg-white border-slate-200 shadow-xs' : 'bg-gray-950/70 border-gray-800'
+            isLight ? 'bg-white border-slate-200 shadow-xs' : 'bg-gray-950/80 border-gray-800 backdrop-blur-xs'
           }`}
         >
           <div className="flex items-center gap-3">
@@ -408,14 +382,14 @@ const AdminLayoutInner: React.FC = () => {
           </div>
         </div>
 
-        {/* Independently scrolling main view */}
+        {/* Main Page View - Expands to full height without cutting off */}
         <main
           className={`flex-1 transition-colors duration-200 ${
-            isLight ? 'bg-white' : 'bg-gray-900'
+            isLight ? 'bg-slate-50' : 'bg-gray-900'
           } ${
             isChat
               ? 'p-0 flex flex-col w-full h-full min-h-0 overflow-hidden'
-              : 'overflow-y-auto p-4 sm:p-5 lg:p-6 w-full flex flex-col min-h-0'
+              : 'p-4 sm:p-5 lg:p-6 w-full flex flex-col min-h-0'
           }`}
         >
           <div className={isChat ? 'w-full h-full flex flex-col flex-1 min-h-0 overflow-hidden' : 'w-full min-h-full flex flex-col flex-1'}>
