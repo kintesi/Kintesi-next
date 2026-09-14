@@ -27,7 +27,7 @@ import { AdminThemeProvider, useAdminTheme } from '../../contexts/AdminThemeCont
 
 const AdminLayoutInner: React.FC = () => {
   const { user, isAdmin, isLoading, signOut } = useAuth();
-  const { isLight, toggleTheme } = useAdminTheme();
+  const { isLight, setTheme, toggleTheme } = useAdminTheme();
   const location = useLocation();
 
   // Desktop sidebar collapse state with localStorage persistence
@@ -199,18 +199,6 @@ const AdminLayoutInner: React.FC = () => {
           </div>
         ))}
       </nav>
-
-      {/* Sidebar Footer Theme Mode Info */}
-      <div className={`p-3 border-t flex items-center justify-between text-xs ${isLight ? 'border-rose-100 bg-white text-gray-600' : 'border-gray-800/80 bg-gray-900/50 text-gray-400'}`}>
-        <span className="text-[11px] font-bold">Theme: {isLight ? '☀️ White Mood' : '🌙 Dark Mood'}</span>
-        <button
-          type="button"
-          onClick={toggleTheme}
-          className={`px-2 py-1 rounded-lg text-[10.5px] font-bold transition cursor-pointer border ${isLight ? 'bg-white hover:bg-rose-50 text-rose-700 border-rose-200' : 'bg-gray-800 hover:bg-gray-700 text-amber-300 border-gray-700'}`}
-        >
-          {isLight ? 'Switch to Dark' : 'Switch to White'}
-        </button>
-      </div>
     </div>
   );
 
@@ -241,10 +229,24 @@ const AdminLayoutInner: React.FC = () => {
           <button
             type="button"
             onClick={toggleTheme}
-            className={`p-2 rounded-xl border transition cursor-pointer ${isLight ? 'bg-white text-slate-800 border-gray-200 hover:bg-rose-50' : 'bg-gray-900 text-amber-400 border-gray-800 hover:bg-gray-800'}`}
+            className={`px-2.5 py-1.5 rounded-xl border transition cursor-pointer flex items-center gap-1.5 text-xs font-bold ${
+              isLight
+                ? 'bg-white text-rose-700 border-rose-200 shadow-xs'
+                : 'bg-gray-900 text-amber-400 border-gray-800'
+            }`}
             title={isLight ? 'Switch to Dark Mode' : 'Switch to White Mode'}
           >
-            {isLight ? <Moon className="w-4 h-4 text-slate-800" /> : <Sun className="w-4 h-4" />}
+            {isLight ? (
+              <>
+                <Sun className="w-3.5 h-3.5 text-amber-500" />
+                <span className="text-[11px] font-black">White</span>
+              </>
+            ) : (
+              <>
+                <Moon className="w-3.5 h-3.5 text-indigo-400" />
+                <span className="text-[11px] font-black">Dark</span>
+              </>
+            )}
           </button>
 
           <Link
@@ -322,54 +324,60 @@ const AdminLayoutInner: React.FC = () => {
             </span>
           </div>
 
-          <div className="flex items-center gap-3 text-xs">
-            {/* White Mood / Dark Mood Switcher */}
+          <div className="flex items-center gap-2 text-xs">
+            {/* White / Dark Switcher - Minimal with small icon */}
             <button
               type="button"
               onClick={toggleTheme}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold border transition cursor-pointer shadow-xs ${
+              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border text-[11px] font-bold transition cursor-pointer ${
                 isLight
-                  ? 'bg-white hover:bg-rose-50 text-gray-700 border-gray-200'
-                  : 'bg-gray-900 hover:bg-gray-800 text-amber-300 border-gray-800'
+                  ? 'bg-slate-50 hover:bg-slate-100 text-slate-900 border-slate-300 shadow-2xs'
+                  : 'bg-gray-800 hover:bg-gray-700 text-amber-300 border-gray-700'
               }`}
-              title={isLight ? 'Switch to Dark Mode' : 'Switch to White Mode'}
+              title={isLight ? 'Current: White Mood. Click for Dark Mood' : 'Current: Dark Mood. Click for White Mood'}
             >
-              {isLight ? (
-                <>
-                  <Moon className="w-3.5 h-3.5 text-slate-700" />
-                  <span>White Mood</span>
-                </>
-              ) : (
-                <>
-                  <Sun className="w-3.5 h-3.5 text-amber-400" />
-                  <span>Dark Mood</span>
-                </>
-              )}
+              {isLight ? <Sun className="w-3.5 h-3.5 text-amber-500 shrink-0" /> : <Moon className="w-3.5 h-3.5 text-indigo-400 shrink-0" />}
+              <span className="font-bold text-slate-900 dark:text-gray-100">{isLight ? 'White Mood' : 'Dark Mood'}</span>
             </button>
 
+            {/* View Storefront - Minimal with small icon */}
             <Link
               to="/"
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border transition font-bold ${
+              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border text-[11px] font-bold transition ${
                 isLight
-                  ? 'bg-white hover:bg-rose-50 border-rose-200 text-rose-700 shadow-xs'
-                  : 'bg-gray-900 hover:bg-gray-800 border-gray-800 text-gray-300 hover:text-white'
+                  ? 'bg-slate-50 hover:bg-rose-50 text-slate-900 hover:text-rose-700 border-slate-300 shadow-2xs'
+                  : 'bg-gray-800 hover:bg-gray-700 text-gray-200 border-gray-700'
               }`}
+              title="View Storefront"
             >
-              <Store className="w-3.5 h-3.5 text-rose-500" />
-              <span>View Storefront</span>
+              <Store className="w-3.5 h-3.5 text-rose-500 shrink-0" />
+              <span className="font-bold text-slate-900 dark:text-gray-100">Store</span>
             </Link>
 
-            <span className={isLight ? 'text-gray-300' : 'text-gray-700'}>|</span>
-            <span className={`font-semibold ${isLight ? 'text-gray-700' : 'text-gray-300'}`}>{user?.email}</span>
+            <span className={`text-xs ${isLight ? 'text-slate-300' : 'text-gray-700'}`}>|</span>
+
+            {/* Admin Email - Minimal badge */}
+            <div className={`hidden md:flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border text-[11px] font-bold ${
+              isLight
+                ? 'bg-slate-50 text-slate-900 border-slate-300'
+                : 'bg-gray-800 text-gray-200 border-gray-700'
+            }`}>
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
+              <span className="font-semibold text-slate-900 dark:text-gray-200 truncate max-w-[170px]">{user?.email}</span>
+            </div>
+
+            {/* Sign Out - Minimal button with small icon */}
             <button
               onClick={signOut}
-              className={`flex items-center gap-1 px-2.5 py-1 rounded-lg transition cursor-pointer ${
-                isLight ? 'text-rose-600 hover:bg-rose-50' : 'text-rose-400 hover:text-rose-300 hover:bg-rose-950/40'
+              className={`flex items-center gap-1 px-2.5 py-1.5 rounded-xl border text-[11px] font-bold transition cursor-pointer ${
+                isLight
+                  ? 'bg-slate-50 hover:bg-rose-50 text-slate-900 hover:text-rose-700 border-slate-300 hover:border-rose-300 shadow-2xs'
+                  : 'bg-gray-800 hover:bg-gray-700 text-rose-400 border-gray-700'
               }`}
               title="Sign Out"
             >
-              <LogOut className="w-3.5 h-3.5" />
-              <span className="text-[11px] font-semibold">Sign Out</span>
+              <LogOut className="w-3.5 h-3.5 text-rose-500 shrink-0" />
+              <span className="font-bold text-slate-900 dark:text-gray-100">Sign Out</span>
             </button>
           </div>
         </div>

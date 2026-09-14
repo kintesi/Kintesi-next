@@ -11,6 +11,7 @@ import {
   Package,
   Maximize2,
   Minimize2,
+  ShieldCheck,
 } from 'lucide-react';
 import { UserAvatar } from '../../components/common/UserAvatar';
 
@@ -318,7 +319,7 @@ export const AdminLiveChat: React.FC = () => {
 
                 {isSeller && (
                   <div className="w-8 h-8 rounded-full shrink-0 overflow-hidden bg-emerald-700 border border-emerald-500/80 text-white flex items-center justify-center font-black text-xs shadow-xs mb-1">
-                    👑
+                    <ShieldCheck className="w-4 h-4 text-white" />
                   </div>
                 )}
               </div>

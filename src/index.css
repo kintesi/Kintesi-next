@@ -109,196 +109,286 @@
    Ensures zero dark backgrounds or mismatched dark text across all admin views
    ========================================================================== */
 .admin-light,
-.admin-light body {
+.admin-light body,
+body.admin-light,
+html.admin-light {
   background-color: #ffffff !important;
   color: #0f172a !important;
 }
 
-/* Convert all dark gray/black backgrounds to pure white */
-.admin-light .bg-gray-950,
-.admin-light .bg-gray-900,
-.admin-light .bg-gray-850,
-.admin-light .bg-gray-800,
-.admin-light .bg-gray-750,
-.admin-light .bg-gray-700,
-.admin-light .bg-slate-950,
-.admin-light .bg-slate-900,
-.admin-light .bg-slate-800,
-.admin-light .bg-slate-850,
-.admin-light .bg-gray-950\/50,
-.admin-light .bg-gray-950\/80,
-.admin-light .bg-gray-950\/90,
-.admin-light .bg-gray-900\/40,
-.admin-light .bg-gray-900\/50,
-.admin-light .bg-gray-900\/60,
-.admin-light .bg-gray-900\/70,
-.admin-light .bg-gray-900\/80,
-.admin-light .bg-gray-900\/90,
-.admin-light .bg-gray-900\/95,
-.admin-light .bg-gray-800\/40,
-.admin-light .bg-gray-800\/50,
-.admin-light .bg-gray-800\/60,
-.admin-light .bg-gray-800\/70,
-.admin-light .bg-gray-800\/80,
-.admin-light .bg-gray-800\/90 {
+/* 1. UNIVERSAL BACKGROUND OVERRIDE:
+   Any container having dark shades (gray, slate, zinc, neutral, black)
+   automatically becomes 100% pure white (#ffffff) */
+.admin-light [class*="bg-gray-"],
+.admin-light [class*="bg-slate-"],
+.admin-light [class*="bg-zinc-"],
+.admin-light [class*="bg-neutral-"],
+body.admin-light [class*="bg-gray-"],
+body.admin-light [class*="bg-slate-"],
+body.admin-light [class*="bg-zinc-"],
+body.admin-light [class*="bg-neutral-"] {
   background-color: #ffffff !important;
 }
 
-/* Light hover states */
-.admin-light .hover\:bg-gray-900:hover,
-.admin-light .hover\:bg-gray-850:hover,
-.admin-light .hover\:bg-gray-800:hover,
-.admin-light .hover\:bg-gray-750:hover,
-.admin-light .hover\:bg-gray-700:hover,
-.admin-light .hover\:bg-gray-800\/40:hover,
-.admin-light .hover\:bg-gray-800\/60:hover {
-  background-color: #f8fafc !important;
-}
-
-/* Borders - replace dark gray borders with clean, soft slate borders */
-.admin-light .border-gray-950,
-.admin-light .border-gray-900,
-.admin-light .border-gray-850,
-.admin-light .border-gray-800,
-.admin-light .border-gray-750,
-.admin-light .border-gray-700,
-.admin-light .border-gray-600,
-.admin-light .border-gray-800\/80,
-.admin-light .border-gray-800\/60 {
-  border-color: #e2e8f0 !important;
-}
-
-.admin-light .divide-gray-900 > :not([hidden]) ~ :not([hidden]),
-.admin-light .divide-gray-800 > :not([hidden]) ~ :not([hidden]),
-.admin-light .divide-gray-700 > :not([hidden]) ~ :not([hidden]),
-.admin-light .divide-gray-800\/60 > :not([hidden]) ~ :not([hidden]) {
-  border-color: #e2e8f0 !important;
-}
-
-/* Tables in admin-light */
-.admin-light table,
-.admin-light thead,
-.admin-light tbody,
-.admin-light tr {
+/* Specific 950 deep dark shades converted to clean white cards */
+.admin-light [class*="bg-emerald-950"], body.admin-light [class*="bg-emerald-950"] {
   background-color: #ffffff !important;
+  border-color: #cbd5e1 !important;
+  color: #0f172a !important;
 }
-
-.admin-light thead tr,
-.admin-light th {
-  background-color: #f8fafc !important;
-  color: #475569 !important;
-  border-color: #e2e8f0 !important;
+.admin-light [class*="bg-rose-950"], body.admin-light [class*="bg-rose-950"] {
+  background-color: #ffffff !important;
+  border-color: #cbd5e1 !important;
+  color: #0f172a !important;
 }
-
-.admin-light tbody tr:hover {
-  background-color: #fff1f2 !important;
+.admin-light [class*="bg-indigo-950"], body.admin-light [class*="bg-indigo-950"] {
+  background-color: #ffffff !important;
+  border-color: #cbd5e1 !important;
+  color: #0f172a !important;
 }
-
-/* Typography */
-.admin-light .text-white {
+.admin-light [class*="bg-amber-950"], body.admin-light [class*="bg-amber-950"] {
+  background-color: #ffffff !important;
+  border-color: #cbd5e1 !important;
+  color: #0f172a !important;
+}
+.admin-light [class*="bg-cyan-950"], body.admin-light [class*="bg-cyan-950"] {
+  background-color: #ffffff !important;
+  border-color: #cbd5e1 !important;
+  color: #0f172a !important;
+}
+.admin-light [class*="bg-purple-950"], body.admin-light [class*="bg-purple-950"] {
+  background-color: #ffffff !important;
+  border-color: #cbd5e1 !important;
   color: #0f172a !important;
 }
 
-.admin-light .text-gray-100,
-.admin-light .text-gray-200,
-.admin-light .text-gray-300 {
+/* 2. UNIVERSAL BORDER OVERRIDE:
+   All dark borders (border-gray-, border-slate-, border-zinc-) become soft clean slate (#e2e8f0) */
+.admin-light [class*="border-gray-"],
+.admin-light [class*="border-slate-"],
+.admin-light [class*="border-zinc-"],
+body.admin-light [class*="border-gray-"],
+body.admin-light [class*="border-slate-"],
+body.admin-light [class*="border-zinc-"] {
+  border-color: #e2e8f0 !important;
+}
+
+.admin-light [class*="divide-gray-"] > :not([hidden]) ~ :not([hidden]),
+.admin-light [class*="divide-slate-"] > :not([hidden]) ~ :not([hidden]),
+body.admin-light [class*="divide-gray-"] > :not([hidden]) ~ :not([hidden]),
+body.admin-light [class*="divide-slate-"] > :not([hidden]) ~ :not([hidden]) {
+  border-color: #e2e8f0 !important;
+}
+
+/* 3. UNIVERSAL TEXT OVERRIDES:
+   All text-white and text-gray- turn dark slate */
+.admin-light .text-white,
+body.admin-light .text-white {
+  color: #0f172a !important;
+}
+
+.admin-light [class*="text-gray-1"],
+.admin-light [class*="text-gray-2"],
+.admin-light [class*="text-gray-3"],
+body.admin-light [class*="text-gray-1"],
+body.admin-light [class*="text-gray-2"],
+body.admin-light [class*="text-gray-3"] {
   color: #1e293b !important;
 }
 
-.admin-light .text-gray-400,
-.admin-light .text-gray-500 {
+.admin-light [class*="text-gray-4"],
+.admin-light [class*="text-gray-5"],
+body.admin-light [class*="text-gray-4"],
+body.admin-light [class*="text-gray-5"] {
   color: #64748b !important;
 }
 
-/* Soft accent colored text readable on white */
-.admin-light .text-rose-400 {
-  color: #e11d48 !important;
-}
-.admin-light .text-emerald-400 {
-  color: #059669 !important;
-}
-.admin-light .text-blue-400 {
-  color: #2563eb !important;
-}
-.admin-light .text-purple-400 {
-  color: #9333ea !important;
-}
-.admin-light .text-amber-400 {
-  color: #d97706 !important;
+.admin-light label,
+body.admin-light label {
+  color: #1e293b !important;
 }
 
-/* Form inputs & textareas */
+/* 4. FORM INPUTS & TEXTAREAS:
+   Always white background with dark text and clean border */
 .admin-light input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([type="range"]),
 .admin-light select,
-.admin-light textarea {
+.admin-light textarea,
+body.admin-light input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([type="range"]),
+body.admin-light select,
+body.admin-light textarea {
   background-color: #ffffff !important;
   color: #0f172a !important;
-  border-color: #e2e8f0 !important;
+  border-color: #cbd5e1 !important;
 }
 
 .admin-light input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([type="range"]):focus,
 .admin-light select:focus,
-.admin-light textarea:focus {
+.admin-light textarea:focus,
+body.admin-light input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([type="range"]):focus,
+body.admin-light select:focus,
+body.admin-light textarea:focus {
   border-color: #e11d48 !important;
   box-shadow: 0 0 0 1px #e11d48 !important;
   background-color: #ffffff !important;
 }
 
 .admin-light input::placeholder,
-.admin-light textarea::placeholder {
+.admin-light textarea::placeholder,
+body.admin-light input::placeholder,
+body.admin-light textarea::placeholder {
   color: #94a3b8 !important;
 }
 
-/* Solid colored buttons & badges MUST keep colored background and white text */
-.admin-light .bg-rose-600,
-.admin-light .bg-rose-500 {
-  background-color: #e11d48 !important;
-  color: #ffffff !important;
-}
-.admin-light .bg-emerald-600,
-.admin-light .bg-emerald-500 {
-  background-color: #059669 !important;
-  color: #ffffff !important;
-}
-.admin-light .bg-purple-600,
-.admin-light .bg-purple-500 {
-  background-color: #9333ea !important;
-  color: #ffffff !important;
-}
-.admin-light .bg-blue-600,
-.admin-light .bg-blue-500 {
-  background-color: #2563eb !important;
-  color: #ffffff !important;
-}
-.admin-light .bg-red-600 {
-  background-color: #dc2626 !important;
-  color: #ffffff !important;
-}
-.admin-light .bg-amber-500 {
-  background-color: #f59e0b !important;
-  color: #ffffff !important;
-}
-
-.admin-light .bg-rose-600 *,
-.admin-light .bg-rose-500 *,
-.admin-light .bg-emerald-600 *,
-.admin-light .bg-emerald-500 *,
-.admin-light .bg-purple-600 *,
-.admin-light .bg-purple-500 *,
-.admin-light .bg-blue-600 *,
-.admin-light .bg-blue-500 *,
-.admin-light .bg-red-600 *,
-.admin-light .bg-amber-500 * {
-  color: #ffffff !important;
-}
-
-/* Fullscreen modal / studio dialogs in admin-light */
-.admin-light .fixed.inset-0.bg-gray-950 {
+/* 5. TABLES */
+.admin-light table,
+.admin-light thead,
+.admin-light tbody,
+.admin-light tr,
+body.admin-light table,
+body.admin-light thead,
+body.admin-light tbody,
+body.admin-light tr {
   background-color: #ffffff !important;
 }
 
-.admin-light .fixed.inset-0.bg-black\/60,
-.admin-light .fixed.inset-0.bg-black\/50 {
-  background-color: rgba(15, 23, 42, 0.4) !important;
+.admin-light thead tr,
+.admin-light th,
+body.admin-light thead tr,
+body.admin-light th {
+  background-color: #f8fafc !important;
+  color: #475569 !important;
+  border-color: #e2e8f0 !important;
+}
+
+.admin-light tbody tr:hover,
+body.admin-light tbody tr:hover {
+  background-color: #f8fafc !important;
+}
+
+/* 6. HOVER STATES FOR LIGHT THEME */
+.admin-light [class*="hover:bg-gray-"]:hover,
+.admin-light [class*="hover:bg-slate-"]:hover,
+body.admin-light [class*="hover:bg-gray-"]:hover,
+body.admin-light [class*="hover:bg-slate-"]:hover {
+  background-color: #f8fafc !important;
+}
+
+/* 7. SOFT ACCENT PASTEL BADGES */
+.admin-light .text-rose-400, body.admin-light .text-rose-400 { color: #e11d48 !important; }
+.admin-light .text-emerald-400, body.admin-light .text-emerald-400 { color: #047857 !important; }
+.admin-light .text-blue-400, body.admin-light .text-blue-400 { color: #2563eb !important; }
+.admin-light .text-purple-400, body.admin-light .text-purple-400 { color: #9333ea !important; }
+.admin-light .text-amber-400, body.admin-light .text-amber-400 { color: #b45309 !important; }
+.admin-light .text-indigo-400, body.admin-light .text-indigo-400 { color: #4338ca !important; }
+
+.admin-light .bg-amber-500\/10, body.admin-light .bg-amber-500\/10 {
+  background-color: #fffbeb !important;
+  border-color: #fde68a !important;
+}
+.admin-light .bg-amber-500\/20, body.admin-light .bg-amber-500\/20 {
+  background-color: #fef3c7 !important;
+}
+.admin-light .bg-indigo-500\/15, body.admin-light .bg-indigo-500\/15 {
+  background-color: #eef2ff !important;
+  border-color: #c7d2fe !important;
+  color: #3730a3 !important;
+}
+.admin-light .bg-rose-500\/10, body.admin-light .bg-rose-500\/10 {
+  background-color: #fff1f2 !important;
+  border-color: #fecdd3 !important;
+}
+.admin-light .bg-emerald-500\/10, body.admin-light .bg-emerald-500\/10 {
+  background-color: #ecfdf5 !important;
+  border-color: #a7f3d0 !important;
+}
+
+/* 8. BUTTONS: GRAY BUTTONS BECOME CLEAN LIGHT OUTLINE BUTTONS */
+.admin-light button[class*="bg-gray-800"],
+body.admin-light button[class*="bg-gray-800"] {
+  background-color: #f1f5f9 !important;
+  color: #334155 !important;
+  border: 1px solid #cbd5e1 !important;
+}
+.admin-light button[class*="bg-gray-800"]:hover,
+body.admin-light button[class*="bg-gray-800"]:hover {
+  background-color: #e2e8f0 !important;
+  color: #0f172a !important;
+}
+.admin-light button[class*="bg-gray-900"],
+body.admin-light button[class*="bg-gray-900"] {
+  background-color: #ffffff !important;
+  color: #475569 !important;
+  border: 1px solid #cbd5e1 !important;
+}
+.admin-light button[class*="bg-gray-900"]:hover,
+body.admin-light button[class*="bg-gray-900"]:hover {
+  background-color: #f8fafc !important;
+  color: #0f172a !important;
+  border-color: #94a3b8 !important;
+}
+
+/* 9. SOLID COLORED BUTTONS & BADGES PRESERVE COLOR & WHITE TEXT */
+.admin-light [class*="bg-rose-600"], body.admin-light [class*="bg-rose-600"],
+.admin-light [class*="bg-rose-500"], body.admin-light [class*="bg-rose-500"] {
+  background-color: #e11d48 !important;
+  color: #ffffff !important;
+}
+.admin-light [class*="bg-emerald-600"], body.admin-light [class*="bg-emerald-600"],
+.admin-light [class*="bg-emerald-500"], body.admin-light [class*="bg-emerald-500"] {
+  background-color: #059669 !important;
+  color: #ffffff !important;
+}
+.admin-light [class*="bg-purple-600"], body.admin-light [class*="bg-purple-600"],
+.admin-light [class*="bg-purple-500"], body.admin-light [class*="bg-purple-500"] {
+  background-color: #9333ea !important;
+  color: #ffffff !important;
+}
+.admin-light [class*="bg-blue-600"], body.admin-light [class*="bg-blue-600"],
+.admin-light [class*="bg-blue-500"], body.admin-light [class*="bg-blue-500"] {
+  background-color: #2563eb !important;
+  color: #ffffff !important;
+}
+.admin-light [class*="bg-red-600"], body.admin-light [class*="bg-red-600"] {
+  background-color: #dc2626 !important;
+  color: #ffffff !important;
+}
+.admin-light [class*="bg-amber-500"], body.admin-light [class*="bg-amber-500"] {
+  background-color: #f59e0b !important;
+  color: #ffffff !important;
+}
+.admin-light [class*="bg-indigo-600"], body.admin-light [class*="bg-indigo-600"] {
+  background-color: #4f46e5 !important;
+  color: #ffffff !important;
+}
+
+.admin-light [class*="bg-rose-600"] *, body.admin-light [class*="bg-rose-600"] *,
+.admin-light [class*="bg-rose-500"] *, body.admin-light [class*="bg-rose-500"] *,
+.admin-light [class*="bg-emerald-600"] *, body.admin-light [class*="bg-emerald-600"] *,
+.admin-light [class*="bg-emerald-500"] *, body.admin-light [class*="bg-emerald-500"] *,
+.admin-light [class*="bg-purple-600"] *, body.admin-light [class*="bg-purple-600"] *,
+.admin-light [class*="bg-purple-500"] *, body.admin-light [class*="bg-purple-500"] *,
+.admin-light [class*="bg-blue-600"] *, body.admin-light [class*="bg-blue-600"] *,
+.admin-light [class*="bg-blue-500"] *, body.admin-light [class*="bg-blue-500"] *,
+.admin-light [class*="bg-red-600"] *, body.admin-light [class*="bg-red-600"] *,
+.admin-light [class*="bg-amber-500"] *, body.admin-light [class*="bg-amber-500"] *,
+.admin-light [class*="bg-indigo-600"] *, body.admin-light [class*="bg-indigo-600"] * {
+  color: #ffffff !important;
+}
+
+/* 10. FULLSCREEN MODAL / STUDIO DIALOGS IN ADMIN LIGHT */
+.admin-light .fixed.inset-0[class*="bg-gray-"],
+body.admin-light .fixed.inset-0[class*="bg-gray-"] {
+  background-color: #ffffff !important;
+}
+
+.admin-light .fixed.inset-0[class*="bg-black\/"],
+body.admin-light .fixed.inset-0[class*="bg-black\/"] {
+  background-color: rgba(15, 23, 42, 0.5) !important;
+}
+
+/* Color swatch border on white table rows */
+.admin-light .border-white\/20,
+body.admin-light .border-white\/20 {
+  border-color: #cbd5e1 !important;
 }
 

@@ -44,6 +44,7 @@ import { toast } from 'sonner';
 import { ImageUploader } from '../../components/common/ImageUploader';
 import { CategoryTagExplorer } from '../../components/admin/CategoryTagExplorer';
 import { DEFAULT_COLOR_PRESETS, DEFAULT_SIZE_PRESETS, ColorPresetItem } from './AdminPresets';
+import { useAdminTheme } from '../../contexts/AdminThemeContext';
 
 export interface ColorVariantSection {
   id: string;
@@ -60,6 +61,7 @@ export interface ColorVariantSection {
 
 export const AdminProducts: React.FC = () => {
   const { user, isSuperAdmin } = useAuth();
+  const { isLight } = useAdminTheme();
   const [products, setProducts] = useState<Product[]>(INITIAL_PRODUCTS);
   const [categories, setCategories] = useState<Category[]>(INITIAL_CATEGORIES);
   const [searchQuery, setSearchQuery] = useState('');
@@ -1196,11 +1198,11 @@ export const AdminProducts: React.FC = () => {
                             </div>
                           )}
                           {prod.colors && prod.colors.length > 0 && (
-                            <div className="flex items-center gap-1">
+                            <div className="flex items-center gap-1.5 flex-wrap">
                               {prod.colors.map((c, i) => (
                                 <span
                                   key={i}
-                                  className="w-3 h-3 rounded-full border border-white/20"
+                                  className="w-3.5 h-3.5 rounded-full border-[1.5px] border-dashed border-slate-500/80 shadow-2xs inline-block shrink-0"
                                   style={{ backgroundColor: c.hex }}
                                   title={c.name}
                                 />
@@ -1277,16 +1279,16 @@ export const AdminProducts: React.FC = () => {
           FULL-PAGE RICH ADD / EDIT PRODUCT STUDIO
          ======================================================== */}
       {isModalOpen && createPortal(
-        <div className="fixed inset-0 top-0 left-0 right-0 bottom-0 z-[9999] w-screen h-screen m-0 p-0 bg-gray-950 flex flex-col overflow-hidden">
+        <div className={`fixed inset-0 top-0 left-0 right-0 bottom-0 z-[9999] w-screen h-screen m-0 p-0 ${isLight ? 'bg-white admin-light text-gray-900' : 'bg-gray-950 text-white'} flex flex-col overflow-hidden`}>
           
           {/* Studio Top Fixed Header */}
-          <div className="px-6 py-4 border-b border-gray-800 bg-gray-900/95 backdrop-blur-md flex items-center justify-between shrink-0 shadow-md">
+          <div className={`px-6 py-4 border-b ${isLight ? 'bg-white/95 border-gray-200 shadow-xs' : 'bg-gray-900/95 border-gray-800 shadow-md'} backdrop-blur-md flex items-center justify-between shrink-0`}>
             <div>
-              <h3 className="text-xl font-black text-white flex items-center gap-2.5">
-                <Package className="w-6 h-6 text-emerald-400" />
+              <h3 className={`text-xl font-black ${isLight ? 'text-gray-900' : 'text-white'} flex items-center gap-2.5`}>
+                <Package className="w-6 h-6 text-emerald-500" />
                 <span>{editingProduct ? 'Edit Product Details' : 'Add New Product'}</span>
                 {formData.title && (
-                  <span className="text-sm font-bold text-gray-400 truncate max-w-md hidden sm:inline">
+                  <span className={`text-sm font-bold ${isLight ? 'text-gray-500' : 'text-gray-400'} truncate max-w-md hidden sm:inline`}>
                     — {formData.title}
                   </span>
                 )}
@@ -1298,7 +1300,7 @@ export const AdminProducts: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setIsModalOpen(false)}
-                className="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 font-bold rounded-xl text-xs transition"
+                className={`px-4 py-2 ${isLight ? 'bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300' : 'bg-gray-800 hover:bg-gray-700 text-gray-300'} font-bold rounded-xl text-xs transition cursor-pointer`}
               >
                 Cancel
               </button>
@@ -1317,7 +1319,7 @@ export const AdminProducts: React.FC = () => {
               </button>
               <button
                 onClick={() => setIsModalOpen(false)}
-                className="p-2 hover:bg-gray-800 text-gray-400 hover:text-white rounded-full transition ml-2"
+                className={`p-2 ${isLight ? 'hover:bg-slate-100 text-slate-500 hover:text-slate-900' : 'hover:bg-gray-800 text-gray-400 hover:text-white'} rounded-full transition ml-2 cursor-pointer`}
                 title="Close"
               >
                 <X className="w-5 h-5" />
@@ -1326,7 +1328,7 @@ export const AdminProducts: React.FC = () => {
           </div>
 
           {/* Minimal Studio Segmented Tabs */}
-          <div className="flex items-center gap-1 border-b border-gray-800 bg-gray-900/60 px-4 sm:px-8 py-2 overflow-x-auto no-scrollbar shrink-0">
+          <div className={`flex items-center gap-1 border-b ${isLight ? 'border-gray-200 bg-slate-50/80' : 'border-gray-800 bg-gray-900/60'} px-4 sm:px-8 py-2 overflow-x-auto no-scrollbar shrink-0`}>
             {[
               { id: 'general', label: '📦 General & Pricing', desc: 'Title, Price & Stock' },
               { id: 'variants', label: '🎨 Colors, Photos & Pricing', count: (formData.colorVariants?.length || 0) + formData.selectedSizes.length },
@@ -1340,15 +1342,19 @@ export const AdminProducts: React.FC = () => {
                   type="button"
                   key={tab.id}
                   onClick={() => setActiveModalTab(tab.id as any)}
-                  className={`px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 shrink-0 ${
+                  className={`px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 shrink-0 cursor-pointer ${
                     isActive
-                      ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 shadow-xs'
+                      ? isLight
+                        ? 'bg-white text-emerald-700 border border-emerald-300 shadow-2xs font-black'
+                        : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 shadow-xs'
+                      : isLight
+                      ? 'text-gray-600 hover:text-gray-900 hover:bg-white border border-transparent'
                       : 'text-gray-400 hover:text-gray-200 hover:bg-gray-800/60 border border-transparent'
                   }`}
                 >
                   <span>{tab.label}</span>
                   {tab.count !== undefined && tab.count > 0 && (
-                    <span className="px-1.5 py-0.5 rounded-full bg-emerald-500/30 text-emerald-300 text-[10px] font-black">
+                    <span className="px-1.5 py-0.5 rounded-full bg-emerald-500/30 text-emerald-700 dark:text-emerald-300 text-[10px] font-black">
                       {tab.count}
                     </span>
                   )}
@@ -1358,20 +1364,20 @@ export const AdminProducts: React.FC = () => {
           </div>
 
           {/* Studio Scrollable Full-Page Body */}
-          <div className="flex-1 overflow-y-auto p-4 sm:p-8 bg-gray-950">
+          <div className={`flex-1 overflow-y-auto p-4 sm:p-8 ${isLight ? 'bg-slate-50/60' : 'bg-gray-950'}`}>
             <form id="admin-product-studio-form" noValidate onSubmit={handleSubmit} className="w-full max-w-7xl mx-auto space-y-6 pb-12">
               {/* Tab 1: General & Pricing */}
               {activeModalTab === 'general' && (
                 <div className="space-y-6 animate-fadeIn">
                   {/* Section 1: Basic Identifiers */}
-              <div className="space-y-4 bg-gray-950/60 p-4 rounded-2xl border border-gray-800/80">
-                <h4 className="text-xs font-black uppercase tracking-wider text-emerald-400 flex items-center gap-1.5">
+              <div className={`space-y-4 p-5 rounded-2xl border ${isLight ? 'bg-white border-gray-200 shadow-xs' : 'bg-gray-950/60 border-gray-800/80'}`}>
+                <h4 className="text-xs font-black uppercase tracking-wider text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
                   <Tag className="w-4 h-4" /> Basic Identifiers & Brand
                 </h4>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="sm:col-span-2">
-                    <label className="block text-xs font-bold text-gray-300 mb-1">Product Title *</label>
+                    <label className={`block text-xs font-bold ${isLight ? 'text-gray-700' : 'text-gray-300'} mb-1`}>Product Title *</label>
                     <input
                       type="text"
                       placeholder="e.g. Sony WH-1000XM5 Wireless Noise Cancelling Headphones"
@@ -1382,7 +1388,7 @@ export const AdminProducts: React.FC = () => {
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-gray-300 mb-1">Brand Name</label>
+                    <label className={`block text-xs font-bold ${isLight ? 'text-gray-700' : 'text-gray-300'} mb-1`}>Brand Name</label>
                     <input
                       type="text"
                       placeholder="e.g. Apple, Nike, CeraVe, Sony"
@@ -1393,7 +1399,7 @@ export const AdminProducts: React.FC = () => {
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-gray-300 mb-1">Category *</label>
+                    <label className={`block text-xs font-bold ${isLight ? 'text-gray-700' : 'text-gray-300'} mb-1`}>Category *</label>
                     <select
                       value={formData.category_id}
                       onChange={(e) => setFormData({ ...formData, category_id: e.target.value })}
@@ -1408,7 +1414,7 @@ export const AdminProducts: React.FC = () => {
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-gray-300 mb-1">SKU / Model Code</label>
+                    <label className={`block text-xs font-bold ${isLight ? 'text-gray-700' : 'text-gray-300'} mb-1`}>SKU / Model Code</label>
                     <input
                       type="text"
                       placeholder="e.g. CF-SONY-XM5-BLK"
@@ -1420,14 +1426,14 @@ export const AdminProducts: React.FC = () => {
 
                   <div>
                     <div className="flex items-center justify-between mb-1">
-                      <label className="block text-xs font-bold text-gray-300">
+                      <label className={`block text-xs font-bold ${isLight ? 'text-gray-700' : 'text-gray-300'}`}>
                         Warranty Policy / Period (Optional)
                       </label>
                       {formData.warranty && (
                         <button
                           type="button"
                           onClick={() => setFormData({ ...formData, warranty: '' })}
-                          className="text-[10px] text-rose-400 hover:text-rose-300 font-bold"
+                          className="text-[10px] text-rose-500 hover:text-rose-600 font-bold cursor-pointer"
                         >
                           ✕ Turn Off / No Warranty
                         </button>
@@ -1454,9 +1460,11 @@ export const AdminProducts: React.FC = () => {
                           type="button"
                           key={item.label}
                           onClick={() => setFormData({ ...formData, warranty: item.val })}
-                          className={`text-[10px] px-2 py-0.5 rounded-lg border transition ${
+                          className={`text-[10px] px-2 py-0.5 rounded-lg border transition cursor-pointer ${
                             formData.warranty === item.val
                               ? 'bg-emerald-600 text-white border-emerald-500 font-bold shadow-xs'
+                              : isLight
+                              ? 'bg-slate-50 hover:bg-slate-100 text-gray-700 border-gray-200'
                               : 'bg-gray-900 hover:bg-gray-800 text-gray-400 border-gray-800'
                           }`}
                         >
@@ -1468,13 +1476,13 @@ export const AdminProducts: React.FC = () => {
                 </div>
 
                 {/* Dropshipping & Supplier Source Link (Admin Only) */}
-                <div className="pt-2 border-t border-gray-800/80">
+                <div className={`pt-2 border-t ${isLight ? 'border-gray-200' : 'border-gray-800/80'}`}>
                   <div className="flex items-center justify-between mb-1.5">
-                    <label className="text-xs font-bold text-indigo-400 flex items-center gap-1.5">
-                      <Globe className="w-3.5 h-3.5 text-indigo-400" />
+                    <label className="text-xs font-bold text-indigo-600 dark:text-indigo-400 flex items-center gap-1.5">
+                      <Globe className="w-3.5 h-3.5" />
                       <span>Dropshipping / Supplier Source Link (ড্রপশিপিং ও সাপ্লায়ার লিংক)</span>
                     </label>
-                    <span className="text-[10px] bg-indigo-500/15 text-indigo-300 font-bold px-2 py-0.5 rounded-md border border-indigo-500/30">
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md border ${isLight ? 'bg-indigo-50 text-indigo-700 border-indigo-200' : 'bg-indigo-500/15 text-indigo-300 border-indigo-500/30'}`}>
                       🔒 শুধুমাত্র অ্যাডমিনের জন্য
                     </span>
                   </div>
@@ -1486,7 +1494,7 @@ export const AdminProducts: React.FC = () => {
                       onChange={(e) => setFormData({ ...formData, dropshipping_url: e.target.value })}
                       className="w-full bg-gray-900 border border-indigo-500/30 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-indigo-400 font-mono pl-9"
                     />
-                    <Globe className="w-4 h-4 text-indigo-400 absolute left-3 top-3 pointer-events-none" />
+                    <Globe className="w-4 h-4 text-indigo-500 absolute left-3 top-3 pointer-events-none" />
                     {formData.dropshipping_url && (
                       <a
                         href={formData.dropshipping_url}
@@ -1502,29 +1510,29 @@ export const AdminProducts: React.FC = () => {
                 </div>
               </div>
                   {/* Section 2: Pricing & Color Variants Quick Link & Badges */}
-              <div className="space-y-4 bg-gray-950/60 p-4 rounded-2xl border border-gray-800/80">
+              <div className={`space-y-4 p-5 rounded-2xl border ${isLight ? 'bg-white border-gray-200 shadow-xs' : 'bg-gray-950/60 border-gray-800/80'}`}>
                 {/* Feature & Trending Toggles */}
                 <div>
-                  <h4 className="text-xs font-black uppercase tracking-wider text-emerald-400 mb-3 flex items-center gap-1.5">
+                  <h4 className="text-xs font-black uppercase tracking-wider text-emerald-600 dark:text-emerald-400 mb-3 flex items-center gap-1.5">
                     <Sparkles className="w-4 h-4" /> Visibility & Promotion Badges
                   </h4>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-gray-300 p-2.5 bg-gray-900/60 rounded-xl border border-gray-800 hover:border-emerald-500/50 transition">
+                    <label className={`flex items-center gap-2 cursor-pointer text-xs font-bold p-2.5 rounded-xl border transition ${isLight ? 'bg-slate-50/80 border-gray-200 text-gray-800 hover:border-gray-300' : 'bg-gray-900/60 border-gray-800 text-gray-300'}`}>
                       <input
                         type="checkbox"
                         checked={formData.is_featured}
                         onChange={(e) => setFormData({ ...formData, is_featured: e.target.checked })}
-                        className="w-4 h-4 rounded border-gray-700 text-emerald-600 focus:ring-emerald-500"
+                        className="w-4 h-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
                       />
                       <span>🌟 Feature on Homepage Spotlight</span>
                     </label>
 
-                    <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-gray-300 p-2.5 bg-gray-900/60 rounded-xl border border-gray-800 hover:border-amber-500/50 transition">
+                    <label className={`flex items-center gap-2 cursor-pointer text-xs font-bold p-2.5 rounded-xl border transition ${isLight ? 'bg-slate-50/80 border-gray-200 text-gray-800 hover:border-gray-300' : 'bg-gray-900/60 border-gray-800 text-gray-300'}`}>
                       <input
                         type="checkbox"
                         checked={formData.is_trending}
                         onChange={(e) => setFormData({ ...formData, is_trending: e.target.checked })}
-                        className="w-4 h-4 rounded border-gray-700 text-amber-500 focus:ring-amber-500"
+                        className="w-4 h-4 rounded border-gray-300 text-amber-500 focus:ring-amber-500"
                       />
                       <span>🔥 Mark as Trending Best-Seller</span>
                     </label>
@@ -1532,22 +1540,21 @@ export const AdminProducts: React.FC = () => {
                 </div>
 
                 {/* Direct Link to Tab 2 for Pricing & Colors */}
-                <div className="p-3.5 bg-amber-500/10 border border-amber-500/30 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className={`p-3.5 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${isLight ? 'bg-amber-50 border-amber-200 text-amber-950' : 'bg-amber-500/10 border-amber-500/30 text-white'}`}>
                   <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center shrink-0">
+                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${isLight ? 'bg-amber-100 text-amber-700' : 'bg-amber-500/20 text-amber-400'}`}>
                       <Percent className="w-4 h-4" />
                     </div>
                     <div>
-                      <p className="text-xs font-bold text-white">
+                      <p className={`text-xs font-bold ${isLight ? 'text-amber-950' : 'text-white'}`}>
                         Pricing, Discounts & Inventory are managed in Colors & Photos
                       </p>
-                      
                     </div>
                   </div>
                   <button
                     type="button"
                     onClick={() => setActiveModalTab('variants')}
-                    className="px-3.5 py-2 bg-amber-500 hover:bg-amber-400 text-gray-950 font-black rounded-xl text-xs transition shrink-0 cursor-pointer shadow-xs"
+                    className="px-3.5 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black rounded-xl text-xs transition shrink-0 cursor-pointer shadow-xs"
                   >
                     Go to Pricing & Colors →
                   </button>
@@ -1560,8 +1567,8 @@ export const AdminProducts: React.FC = () => {
               {activeModalTab === 'variants' && (
                 <div className="space-y-6 animate-fadeIn">
                   {/* Section 1: Master Pricing, Discount & Stock Controller */}
-                  <div className="space-y-4 bg-gray-950/80 p-5 rounded-2xl border border-amber-500/30 shadow-md">
-                    <div className="flex items-center justify-between gap-2 pb-2 border-b border-gray-800">
+                  <div className={`space-y-4 p-5 rounded-2xl border shadow-xs ${isLight ? 'bg-white border-amber-300' : 'bg-gray-950/80 border-amber-500/30'}`}>
+                    <div className={`flex items-center justify-between gap-2 pb-2 border-b ${isLight ? 'border-gray-200' : 'border-gray-800'}`}>
                       <h4 className="text-xs font-black uppercase tracking-wider text-amber-400 flex items-center gap-1.5">
                         <Percent className="w-4 h-4" /> Master Pricing & Inventory
                       </h4>
@@ -2846,14 +2853,14 @@ export const AdminProducts: React.FC = () => {
                     return (
                       <label
                         key={m.id}
-                        className={`p-3 rounded-xl border cursor-pointer transition flex flex-col justify-between ${
+                        className={`p-3 rounded-xl cursor-pointer transition flex flex-col justify-between bg-white ${
                           isChecked
-                            ? 'bg-emerald-950/40 border-emerald-500/60 text-white'
-                            : 'bg-gray-900 border-gray-800 text-gray-400 opacity-60'
+                            ? 'border-2 border-emerald-600 shadow-xs text-gray-900'
+                            : 'border border-gray-200 text-gray-500 hover:border-gray-300 opacity-80'
                         }`}
                       >
                         <div className="flex items-center justify-between">
-                          <span className="text-xs font-bold">{m.label}</span>
+                          <span className={`text-xs ${isChecked ? 'font-black text-gray-900' : 'font-bold text-gray-600'}`}>{m.label}</span>
                           <input
                             type="checkbox"
                             checked={isChecked}
@@ -2874,10 +2881,10 @@ export const AdminProducts: React.FC = () => {
                                 });
                               }
                             }}
-                            className="w-4 h-4 accent-emerald-500 rounded"
+                            className="w-4 h-4 accent-emerald-600 rounded cursor-pointer"
                           />
                         </div>
-                        <span className="text-[10px] text-gray-400 mt-1">{m.desc}</span>
+                        <span className={`text-[10px] mt-1 font-medium ${isChecked ? 'text-emerald-700 font-semibold' : 'text-gray-400'}`}>{m.desc}</span>
                       </label>
                     );
                   })}

@@ -3,7 +3,7 @@ import { supabase } from '../../lib/supabase';
 import { INITIAL_PRODUCTS } from '../../data/mockData';
 import { Product, Order } from '../../types';
 import { formatPrice } from '../../lib/utils';
-import { DollarSign, ShoppingCart, Package, Users, TrendingUp, ArrowUpRight, ShieldCheck, Crown } from 'lucide-react';
+import { DollarSign, ShoppingCart, Package, Users, TrendingUp, ArrowUpRight, ShieldCheck } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 
@@ -109,15 +109,15 @@ export const AdminDashboard: React.FC = () => {
         <div className="bg-gray-800/80 p-6 rounded-3xl border border-gray-700 shadow-sm space-y-3">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold uppercase tracking-wider text-gray-400">Admin Account</span>
-            <div className={`p-2 rounded-xl ${isSuperAdmin ? 'bg-amber-500/10 text-amber-400' : 'bg-emerald-500/10 text-emerald-400'}`}>
-              {isSuperAdmin ? <Crown className="w-5 h-5" /> : <ShieldCheck className="w-5 h-5" />}
+            <div className={`p-2 rounded-xl ${isSuperAdmin ? 'bg-amber-500/10 text-amber-500' : 'bg-emerald-500/10 text-emerald-500'}`}>
+              <ShieldCheck className="w-5 h-5" />
             </div>
           </div>
-          <p className="text-sm font-bold text-emerald-400 truncate">
+          <p className="text-sm font-bold text-emerald-500 truncate">
             {user?.email || profile?.full_name || 'Admin'}
           </p>
           <p className="text-[11px] text-gray-400">
-            {isSuperAdmin ? '👑 Master Admin (Owner)' : '🛡️ Admin'}
+            {isSuperAdmin ? 'Master Admin (Owner)' : 'Admin'}
           </p>
         </div>
 
