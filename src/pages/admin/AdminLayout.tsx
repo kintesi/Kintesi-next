@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import { isAdminUser } from '../../lib/supabase';
 import {
   LayoutDashboard,
   Package,
@@ -18,7 +17,6 @@ import {
   Menu,
   X,
   PanelLeftClose,
-  PanelLeftOpen,
   Palette,
   Sun,
   Moon,
@@ -27,7 +25,7 @@ import { AdminThemeProvider, useAdminTheme } from '../../contexts/AdminThemeCont
 
 const AdminLayoutInner: React.FC = () => {
   const { user, isAdmin, isLoading, signOut } = useAuth();
-  const { isLight, setTheme, toggleTheme } = useAdminTheme();
+  const { isLight, toggleTheme } = useAdminTheme();
   const location = useLocation();
 
   // Desktop sidebar collapse state with localStorage persistence
@@ -120,57 +118,46 @@ const AdminLayoutInner: React.FC = () => {
         { name: 'Discount Coupons', path: '/admin/coupons', icon: Tag },
       ],
     },
-    ...(isMasterOwner
-      ? [
-          {
-            label: 'Settings & Administration',
-            items: [
-              { name: 'Merchant & Payment Settings', path: '/admin/payment-settings', icon: CreditCard },
-              { name: 'Staff & Team Admins', path: '/admin/team', icon: Users },
-            ],
-          },
-        ]
-      : []),
+    {
+      label: 'System & Security',
+      items: [
+        ...(isMasterOwner ? [{ name: 'Admins & Staff', path: '/admin/users', icon: Users }] : []),
+        { name: 'Payment Setup', path: '/admin/payment-settings', icon: CreditCard },
+      ],
+    },
   ];
 
   const allNavItems = navSections.flatMap((s) => s.items);
-
   const isChat = location.pathname === '/admin/chat';
 
-  // Reusable navigation content for desktop & mobile
   const sidebarContent = (
-    <div className={`flex flex-col h-full ${isLight ? 'bg-white' : 'bg-gray-950 text-gray-100'}`}>
-      {/* Brand & Toggle Button */}
-      <div className={`p-5 border-b flex items-center justify-between ${isLight ? 'border-slate-200 bg-white' : 'border-gray-800 bg-gray-950'}`}>
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-2xl bg-white p-1 flex items-center justify-center shadow-xs border border-rose-100/60">
-            <img src="/logo.webp" alt="Kintesi" className="w-full h-full object-contain" />
-          </div>
-          <div>
-            <h1 className={`font-black text-sm leading-tight ${isLight ? 'text-black' : 'text-white'}`}>Kintesi Admin</h1>
-            <span className={`text-[10px] font-black px-2.5 py-0.5 rounded-full ${isLight ? 'bg-rose-100 text-rose-800 border border-rose-300' : 'bg-rose-500/20 text-rose-400'}`}>
-              {isMasterOwner ? 'Master Admin' : 'Admin'}
-            </span>
-          </div>
+    <div className="flex flex-col h-full select-none">
+      {/* Brand Header without K logo image */}
+      <div
+        className={`px-5 py-4 border-b flex items-center justify-between flex-shrink-0 transition-colors ${
+          isLight ? 'border-slate-200' : 'border-gray-800'
+        }`}
+      >
+        <div className="flex flex-col">
+          <span className="font-black text-base tracking-tight text-rose-600">
+            Kintesi Admin
+          </span>
+          <span
+            className="text-[10px] font-bold uppercase tracking-wider mt-0.5"
+            style={isLight ? { color: '#475569' } : { color: '#9ca3af' }}
+          >
+            {isMasterOwner ? 'Super Admin' : 'Admin Console'}
+          </span>
         </div>
-
-        {/* Mobile close button */}
-        <button
-          onClick={() => setIsMobileMenuOpen(false)}
-          className={`md:hidden p-2 rounded-xl border transition active:scale-95 ${isLight ? 'text-black border-slate-300 bg-white hover:bg-slate-100' : 'text-gray-400 hover:text-white hover:bg-gray-800 border-gray-700'}`}
-          aria-label="Close menu"
-        >
-          <X className="w-5 h-5" style={isLight ? { color: '#000000' } : {}} />
-        </button>
       </div>
 
-      {/* Grouped Nav List with Clear Category Headings */}
-      <nav className="p-3 space-y-2.5 flex-1 overflow-y-auto">
-        {navSections.map((section, sIdx) => (
-          <div key={sIdx} className={sIdx > 0 ? `pt-2.5 border-t space-y-1 ${isLight ? 'border-slate-200' : 'border-gray-800/80'}` : 'space-y-1'}>
+      {/* Navigation list */}
+      <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-4">
+        {navSections.map((section, idx) => (
+          <div key={idx} className="space-y-1">
             {section.label && (
               <div
-                className="px-3 pb-1 text-[10px] uppercase tracking-wider select-none font-black"
+                className="px-3 text-[10px] font-black uppercase tracking-wider pb-1"
                 style={isLight ? { color: '#000000' } : { color: '#6b7280' }}
               >
                 {section.label}
@@ -188,21 +175,21 @@ const AdminLayoutInner: React.FC = () => {
                     className={`flex items-center gap-3 px-3.5 py-2 rounded-xl text-xs font-black transition ${
                       isActive
                         ? isLight
-                          ? 'bg-white border border-rose-500 shadow-sm'
+                          ? 'bg-rose-50 text-rose-600 border border-rose-200 shadow-xs'
                           : 'bg-rose-600 text-white shadow-lg shadow-rose-600/25'
                         : isLight
-                        ? 'hover:bg-rose-50 hover:text-rose-700'
+                        ? 'hover:bg-slate-100 hover:text-slate-900 text-slate-800'
                         : 'text-gray-400 hover:text-white hover:bg-gray-800/60'
                     }`}
-                    style={isActive ? {} : isLight ? { color: '#000000' } : {}}
+                    style={isActive ? { color: isLight ? '#e11d48' : '#ffffff' } : isLight ? { color: '#000000' } : {}}
                   >
                     <Icon
                       className="w-4 h-4 flex-shrink-0"
-                      style={isActive ? { color: isLight ? '#0f172a' : '#ffffff' } : isLight ? { color: '#000000' } : { color: '#9ca3af' }}
+                      style={isActive ? { color: isLight ? '#e11d48' : '#ffffff' } : isLight ? { color: '#000000' } : { color: '#9ca3af' }}
                     />
                     <span
                       className="truncate"
-                      style={isActive ? { color: isLight ? '#0f172a' : '#ffffff' } : isLight ? { color: '#000000' } : {}}
+                      style={isActive ? { color: isLight ? '#e11d48' : '#ffffff' } : isLight ? { color: '#000000' } : {}}
                     >
                       {item.name}
                     </span>
@@ -213,21 +200,56 @@ const AdminLayoutInner: React.FC = () => {
           </div>
         ))}
       </nav>
+
+      {/* User Footer */}
+      <div
+        className={`p-3 border-t flex-shrink-0 transition-colors ${
+          isLight ? 'border-slate-200 bg-slate-50' : 'border-gray-800/80 bg-gray-950/50'
+        }`}
+      >
+        <div className="flex items-center justify-between gap-2 px-2 py-1.5">
+          <div className="min-w-0 flex-1">
+            <p className="text-xs font-black truncate" style={isLight ? { color: '#000000' } : { color: '#ffffff' }}>
+              {user?.email}
+            </p>
+            <p className="text-[10px] font-bold text-rose-600 capitalize">
+              {isMasterOwner ? 'Super Admin' : 'Admin'}
+            </p>
+          </div>
+          <button
+            onClick={signOut}
+            className={`p-2 rounded-xl border transition cursor-pointer ${
+              isLight
+                ? 'bg-white hover:bg-rose-50 border-slate-300 hover:border-rose-300 shadow-xs'
+                : 'bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-rose-400 border-gray-700'
+            }`}
+            style={isLight ? { color: '#000000' } : {}}
+            title="Sign Out"
+            aria-label="Sign out"
+          >
+            <LogOut className="w-4 h-4" style={isLight ? { color: '#000000' } : { color: '#f43f5e' }} />
+          </button>
+        </div>
+      </div>
     </div>
   );
 
   return (
-    <div className={`admin-root ${isLight ? 'admin-light bg-white' : 'admin-dark bg-gray-900 text-gray-100'} flex flex-col md:flex-row ${isChat ? 'h-screen max-h-screen overflow-hidden' : 'min-h-screen'} transition-colors duration-200`}>
+    <div className={`admin-root ${isLight ? 'admin-light bg-white text-slate-900' : 'admin-dark bg-gray-900 text-gray-100'} flex flex-col md:flex-row h-screen max-h-screen overflow-hidden transition-colors duration-200`}>
       
-      {/* Mobile Top Sticky Bar with Burger Button */}
+      {/* Mobile Top Sticky Bar */}
       <header
-        className={`md:hidden sticky top-0 z-30 border-b px-4 py-2.5 flex items-center justify-between shadow-xs ${isLight ? 'bg-white border-slate-200' : 'bg-gray-950 border-gray-800'}`}
+        className={`md:hidden sticky top-0 z-30 border-b px-4 py-2.5 flex items-center justify-between shadow-xs flex-shrink-0 ${
+          isLight ? 'bg-white border-slate-200' : 'bg-gray-950 border-gray-800'
+        }`}
         style={isLight ? { color: '#000000' } : {}}
       >
         <div className="flex items-center gap-3">
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className={`p-2 rounded-xl border transition active:scale-95 ${isLight ? 'bg-white border-slate-300 hover:bg-slate-100' : 'bg-gray-900 border-gray-800 text-gray-300 hover:text-white'}`}
+            className={`p-2 rounded-xl border transition active:scale-95 ${
+              isLight ? 'bg-white border-slate-300 hover:bg-slate-100' : 'bg-gray-900 border-gray-800 text-gray-300 hover:text-white'
+            }`}
             style={isLight ? { color: '#000000' } : {}}
             aria-label="Toggle navigation menu"
             title="Open navigation menu"
@@ -236,12 +258,7 @@ const AdminLayoutInner: React.FC = () => {
               ? <X className="w-5 h-5" style={isLight ? { color: '#000000' } : {}} />
               : <Menu className="w-5 h-5" style={isLight ? { color: '#000000' } : {}} />}
           </button>
-          <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-white p-0.5 flex items-center justify-center border border-rose-100">
-              <img src="/logo.webp" alt="Kintesi" className="w-full h-full object-contain" />
-            </div>
-            <span className="font-black text-sm" style={isLight ? { color: '#000000' } : { color: '#ffffff' }}>Kintesi Admin</span>
-          </div>
+          <span className="font-black text-sm text-rose-600">Kintesi Admin</span>
         </div>
 
         <div className="flex items-center gap-2">
@@ -272,7 +289,9 @@ const AdminLayoutInner: React.FC = () => {
 
           <Link
             to="/"
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-black border transition ${isLight ? 'bg-white border-slate-300 hover:bg-slate-100' : 'bg-gray-800 text-gray-200 border-gray-700 hover:bg-gray-700'}`}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-black border transition ${
+              isLight ? 'bg-white border-slate-300 hover:bg-slate-100' : 'bg-gray-800 text-gray-200 border-gray-700 hover:bg-gray-700'
+            }`}
             style={isLight ? { color: '#000000' } : {}}
           >
             <Store className="w-3.5 h-3.5" style={isLight ? { color: '#000000' } : { color: '#f43f5e' }} />
@@ -298,23 +317,23 @@ const AdminLayoutInner: React.FC = () => {
         {sidebarContent}
       </aside>
 
-      {/* Desktop Sidebar (Collapsible with width transition) */}
+      {/* Desktop Sidebar: Sticky & Permanently Fixed on the Left */}
       <aside
-        className={`hidden md:flex flex-col flex-shrink-0 border-r transition-all duration-250 ease-in-out ${
+        className={`hidden md:flex flex-col flex-shrink-0 border-r h-screen max-h-screen sticky top-0 z-20 transition-all duration-200 ease-in-out ${
           isLight ? 'bg-white border-slate-200' : 'bg-gray-950 border-gray-800'
-        } ${isSidebarOpen ? 'w-64 opacity-100' : 'w-0 opacity-0 border-r-0 overflow-hidden'} ${isChat ? 'h-screen max-h-screen' : ''}`}
+        } ${isSidebarOpen ? 'w-64 opacity-100' : 'w-0 opacity-0 border-r-0 overflow-hidden'}`}
       >
-        <div className="w-64 h-full">
+        <div className="w-64 h-full flex flex-col overflow-hidden">
           {sidebarContent}
         </div>
       </aside>
 
-      {/* Main Content Area */}
-      <div className={`flex-1 flex flex-col min-w-0 ${isChat ? 'h-screen max-h-screen overflow-hidden' : ''}`}>
+      {/* Main Content Area: scrolls independently */}
+      <div className="flex-1 flex flex-col min-w-0 h-screen max-h-screen overflow-hidden">
         
         {/* Desktop Top Header Bar with Burger Toggle & Theme Switcher */}
         <div
-          className={`hidden md:flex items-center justify-between px-6 py-2.5 border-b sticky top-0 z-20 transition-colors ${
+          className={`hidden md:flex items-center justify-between px-6 py-2.5 border-b sticky top-0 z-20 flex-shrink-0 transition-colors ${
             isLight ? 'bg-white border-slate-200 shadow-xs' : 'bg-gray-950/70 border-gray-800'
           }`}
         >
@@ -331,17 +350,8 @@ const AdminLayoutInner: React.FC = () => {
               title={isSidebarOpen ? 'Hide sidebar menu' : 'Unhide sidebar menu'}
               aria-label={isSidebarOpen ? 'Hide sidebar menu' : 'Unhide sidebar menu'}
             >
-              {isSidebarOpen ? (
-                <>
-                  <PanelLeftClose className="w-4 h-4" style={isLight ? { color: '#000000' } : { color: '#f43f5e' }} />
-                  <span style={isLight ? { color: '#000000' } : {}}>Hide Sidebar</span>
-                </>
-              ) : (
-                <>
-                  <Menu className="w-4 h-4" style={isLight ? { color: '#000000' } : { color: '#f43f5e' }} />
-                  <span style={isLight ? { color: '#000000' } : {}}>Show Sidebar</span>
-                </>
-              )}
+              <PanelLeftClose className="w-4 h-4" style={isLight ? { color: '#000000' } : { color: '#f43f5e' }} />
+              <span style={isLight ? { color: '#000000' } : {}}>{isSidebarOpen ? 'Hide Sidebar' : 'Show Sidebar'}</span>
             </button>
 
             <span className="text-xs font-black" style={isLight ? { color: '#000000' } : { color: '#9ca3af' }}>
@@ -360,8 +370,8 @@ const AdminLayoutInner: React.FC = () => {
                   : 'bg-gray-800 hover:bg-gray-700 text-amber-300 border-gray-700'
               }`}
               style={isLight ? { color: '#000000' } : {}}
-              title={isLight ? 'Current: White Mood. Click for Dark Mood' : 'Current: Dark Mood. Click for White Mood'}
-              aria-label={isLight ? 'Switch to Dark Mood' : 'Switch to White Mood'}
+              title={isLight ? 'Current: White Mode. Click for Dark Mode' : 'Current: Dark Mode. Click for White Mode'}
+              aria-label="Switch to Dark Mode"
             >
               {isLight ? <Sun className="w-5 h-5 text-amber-500 shrink-0" /> : <Moon className="w-5 h-5 text-indigo-400 shrink-0" />}
             </button>
@@ -393,18 +403,19 @@ const AdminLayoutInner: React.FC = () => {
               title="Sign Out"
               aria-label="Sign out"
             >
-              <LogOut className="w-5 h-5 shrink-0" style={isLight ? { color: '#000000' } : { color: '#f43f5e' }} />
+              <LogOut className="w-4 h-4" style={isLight ? { color: '#000000' } : { color: '#f43f5e' }} />
             </button>
           </div>
         </div>
 
+        {/* Independently scrolling main view */}
         <main
           className={`flex-1 transition-colors duration-200 ${
             isLight ? 'bg-white' : 'bg-gray-900'
           } ${
             isChat
               ? 'p-0 flex flex-col w-full h-full min-h-0 overflow-hidden'
-              : 'overflow-y-auto p-4 sm:p-5 lg:p-6 w-full flex flex-col'
+              : 'overflow-y-auto p-4 sm:p-5 lg:p-6 w-full flex flex-col min-h-0'
           }`}
         >
           <div className={isChat ? 'w-full h-full flex flex-col flex-1 min-h-0 overflow-hidden' : 'w-full min-h-full flex flex-col flex-1'}>
