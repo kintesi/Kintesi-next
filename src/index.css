@@ -7,6 +7,7 @@
     font-size: 15px;
     background-color: #ffffff;
   }
+
   body {
     @apply antialiased text-gray-900 bg-white;
   }
@@ -31,20 +32,10 @@
 }
 
 /* Custom scrollbar */
-::-webkit-scrollbar {
-  width: 7px;
-  height: 7px;
-}
-::-webkit-scrollbar-track {
-  background: #f1f5f9;
-}
-::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 9999px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
-}
+::-webkit-scrollbar { width: 7px; height: 7px; }
+::-webkit-scrollbar-track { background: #f1f5f9; }
+::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
+::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
 /* Dedicated Print Styles for Clean Exact Invoice Printing */
 @media print {
@@ -57,12 +48,8 @@
     print-color-adjust: exact !important;
   }
 
-  /* Completely hide the background website application */
-  body > #root {
-    display: none !important;
-  }
+  body > #root { display: none !important; }
 
-  /* Portal wrapper */
   #kintesi-invoice-portal {
     display: block !important;
     position: static !important;
@@ -98,435 +85,173 @@
     border-radius: 0 !important;
   }
 
-  @page {
-    size: A4 portrait;
-    margin: 12mm 15mm;
-  }
+  @page { size: A4 portrait; margin: 12mm 15mm; }
 }
 
-/* ==========================================================================
-   100% PURE WHITE MOOD (LIGHT THEME) FOR ADMIN CONSOLE
-   Ensures zero dark backgrounds or mismatched dark text across all admin views
-   ========================================================================== */
+/*
+ * Admin white mode
+ *
+ * This is intentionally a small, single-source theme.  Every normal child is
+ * dark on a white (or soft radish) surface.  White text is reserved exclusively
+ * for solid primary actions, so nested tabs, chips, alerts and sidebar links
+ * cannot accidentally inherit invisible white text.
+ */
 .admin-light,
-.admin-light body,
 body.admin-light,
 html.admin-light {
-  background-color: #ffffff !important;
-  color: #000000 !important;
+  background: #ffffff !important;
+  color: #0f172a !important;
 }
 
-/* NUCLEAR BLACK TEXT RULE:
-   Every single element inside admin-light gets crisp black text.
-   This is the most reliable approach - no CSS specificity fights. */
 .admin-light * {
-  color: #000000 !important;
+  color: #0f172a !important;
 }
 
-/* EXCEPTION: Solid colored buttons/badges keep their white text */
-.admin-light [class*="bg-rose-6"] *,
-.admin-light [class*="bg-rose-7"] *,
-.admin-light [class*="bg-rose-5"] *,
-.admin-light [class*="bg-red-6"] *,
-.admin-light [class*="bg-purple-6"] *,
-.admin-light [class*="bg-blue-6"] *,
-.admin-light [class*="bg-indigo-6"] *,
-.admin-light [class*="bg-amber-5"] * {
-  color: #ffffff !important;
-}
-
-/* EXCEPTION: Preserve colored icon colors (amber sun, indigo moon, rose dot) */
-.admin-light .text-amber-500 { color: #f59e0b !important; }
-.admin-light .text-indigo-400 { color: #818cf8 !important; }
-.admin-light .text-rose-500  { color: #f43f5e !important; }
-.admin-light .text-rose-800  { color: #9f1239 !important; }
-.admin-light .text-rose-400  { color: #fb7185 !important; }
-.admin-light .text-blue-400  { color: #60a5fa !important; }
-.admin-light .text-purple-400 { color: #c084fc !important; }
-
-
-/* 1. UNIVERSAL BACKGROUND OVERRIDE:
-   Any container having dark shades (gray, slate, zinc, neutral, black)
-   automatically becomes 100% pure white (#ffffff) */
+/* Convert legacy dark admin surfaces into real white-mode panels. */
 .admin-light [class*="bg-gray-"],
 .admin-light [class*="bg-slate-"],
 .admin-light [class*="bg-zinc-"],
 .admin-light [class*="bg-neutral-"],
-body.admin-light [class*="bg-gray-"],
-body.admin-light [class*="bg-slate-"],
-body.admin-light [class*="bg-zinc-"],
-body.admin-light [class*="bg-neutral-"] {
+.admin-light [class*="bg-black"],
+.admin-light [class*="bg-rose-950"],
+.admin-light [class*="bg-emerald-950"],
+.admin-light [class*="bg-purple-950"],
+.admin-light [class*="bg-indigo-950"],
+.admin-light [class*="bg-amber-950"] {
   background-color: #ffffff !important;
 }
 
-/* Specific 950 deep dark shades converted to clean white cards */
-.admin-light [class*="bg-emerald-950"], body.admin-light [class*="bg-emerald-950"] {
+/* Dark gradient headers used by the banner editor become daylight cards too. */
+.admin-light [class*="bg-gradient"][class*="from-gray-"][class*="to-gray-"] {
   background-color: #ffffff !important;
-  border-color: #cbd5e1 !important;
-  color: #0f172a !important;
-}
-.admin-light [class*="bg-rose-950"], body.admin-light [class*="bg-rose-950"] {
-  background-color: #ffffff !important;
-  border-color: #cbd5e1 !important;
-  color: #0f172a !important;
-}
-.admin-light [class*="bg-indigo-950"], body.admin-light [class*="bg-indigo-950"] {
-  background-color: #ffffff !important;
-  border-color: #cbd5e1 !important;
-  color: #0f172a !important;
-}
-.admin-light [class*="bg-amber-950"], body.admin-light [class*="bg-amber-950"] {
-  background-color: #ffffff !important;
-  border-color: #cbd5e1 !important;
-  color: #0f172a !important;
-}
-.admin-light [class*="bg-cyan-950"], body.admin-light [class*="bg-cyan-950"] {
-  background-color: #ffffff !important;
-  border-color: #cbd5e1 !important;
-  color: #0f172a !important;
-}
-.admin-light [class*="bg-purple-950"], body.admin-light [class*="bg-purple-950"] {
-  background-color: #ffffff !important;
-  border-color: #cbd5e1 !important;
-  color: #0f172a !important;
+  background-image: none !important;
+  border-color: #dbe3ef !important;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08) !important;
 }
 
-/* 2. UNIVERSAL BORDER OVERRIDE:
-   All dark borders (border-gray-, border-slate-, border-zinc-) become soft clean slate (#e2e8f0) */
+/* A subtle canvas separates white editor cards without reintroducing darkness. */
+.admin-light main {
+  background-color: #f8fafc !important;
+}
+
 .admin-light [class*="border-gray-"],
 .admin-light [class*="border-slate-"],
 .admin-light [class*="border-zinc-"],
-body.admin-light [class*="border-gray-"],
-body.admin-light [class*="border-slate-"],
-body.admin-light [class*="border-zinc-"] {
-  border-color: #e2e8f0 !important;
+.admin-light [class*="border-neutral-"] {
+  border-color: #dbe3ef !important;
 }
 
 .admin-light [class*="divide-gray-"] > :not([hidden]) ~ :not([hidden]),
-.admin-light [class*="divide-slate-"] > :not([hidden]) ~ :not([hidden]),
-body.admin-light [class*="divide-gray-"] > :not([hidden]) ~ :not([hidden]),
-body.admin-light [class*="divide-slate-"] > :not([hidden]) ~ :not([hidden]) {
+.admin-light [class*="divide-slate-"] > :not([hidden]) ~ :not([hidden]) {
   border-color: #e2e8f0 !important;
 }
 
-/* 3. UNIVERSAL TEXT & ICON OVERRIDES:
-   All text and icons in White Mood are pure, crisp black (#000000) for flawless visibility */
-.admin-light,
-.admin-light body,
-body.admin-light,
-html.admin-light {
-  background-color: #ffffff !important;
-  color: #000000 !important;
-}
-
-.admin-light .text-white,
-body.admin-light .text-white {
-  color: #000000 !important;
-}
-
-.admin-light [class*="text-gray-"],
-.admin-light [class*="text-slate-"],
-.admin-light [class*="text-zinc-"],
-.admin-light [class*="text-neutral-"],
-body.admin-light [class*="text-gray-"],
-body.admin-light [class*="text-slate-"],
-body.admin-light [class*="text-zinc-"],
-body.admin-light [class*="text-neutral-"] {
-  color: #000000 !important;
-}
-
-.admin-light label,
-body.admin-light label {
-  color: #000000 !important;
-  font-weight: 700 !important;
-}
-
-/* 4. FORM INPUTS & TEXTAREAS:
-   Crisp white background with high-contrast black text and solid border */
+/* Inputs retain strong contrast and use radish as their focus color. */
 .admin-light input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([type="range"]),
 .admin-light select,
-.admin-light textarea,
-body.admin-light input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([type="range"]),
-body.admin-light select,
-body.admin-light textarea {
-  background-color: #ffffff !important;
-  color: #000000 !important;
-  font-weight: 600 !important;
+.admin-light textarea {
+  background: #ffffff !important;
+  color: #0f172a !important;
   border-color: #cbd5e1 !important;
 }
 
-.admin-light select option,
-body.admin-light select option {
-  background-color: #ffffff !important;
-  color: #000000 !important;
-}
+.admin-light input::placeholder,
+.admin-light textarea::placeholder { color: #64748b !important; }
 
-.admin-light input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([type="range"]):focus,
+.admin-light input:focus,
 .admin-light select:focus,
-.admin-light textarea:focus,
-body.admin-light input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([type="range"]):focus,
-body.admin-light select:focus,
-body.admin-light textarea:focus {
+.admin-light textarea:focus {
   border-color: #e11d48 !important;
   box-shadow: 0 0 0 1px #e11d48 !important;
-  background-color: #ffffff !important;
-  color: #000000 !important;
 }
 
-.admin-light input::placeholder,
-.admin-light textarea::placeholder,
-body.admin-light input::placeholder,
-body.admin-light textarea::placeholder {
-  color: #64748b !important;
-  font-weight: 500 !important;
-}
-
-/* 5. TABLES: Crisp Black Text & Clean Borders */
+/* Keep table headers and rows readable even when source markup was dark-first. */
 .admin-light table,
 .admin-light thead,
 .admin-light tbody,
 .admin-light tr,
-body.admin-light table,
-body.admin-light thead,
-body.admin-light tbody,
-body.admin-light tr {
-  background-color: #ffffff !important;
-  color: #000000 !important;
-}
+.admin-light td { color: #0f172a !important; }
 
-.admin-light thead tr,
-.admin-light th,
-body.admin-light thead tr,
-body.admin-light th {
-  background-color: #f8fafc !important;
-  color: #000000 !important;
-  font-weight: 800 !important;
-  border-color: #cbd5e1 !important;
-}
-
-.admin-light td,
-body.admin-light td {
-  color: #000000 !important;
-  font-weight: 600 !important;
+.admin-light th {
+  background: #f8fafc !important;
+  color: #334155 !important;
   border-color: #e2e8f0 !important;
 }
 
-.admin-light tbody tr:hover,
-body.admin-light tbody tr:hover {
-  background-color: #f8fafc !important;
-}
+.admin-light td { border-color: #e2e8f0 !important; }
 
-/* 6. HOVER STATES FOR LIGHT THEME */
-.admin-light [class*="hover:bg-gray-"]:hover,
-.admin-light [class*="hover:bg-slate-"]:hover,
-body.admin-light [class*="hover:bg-gray-"]:hover,
-body.admin-light [class*="hover:bg-slate-"]:hover {
-  background-color: #f1f5f9 !important;
-}
-
-/* 7. SOFT ACCENT PASTEL BADGES */
-.admin-light .text-rose-400, body.admin-light .text-rose-400 { color: #e11d48 !important; }
-.admin-light .text-emerald-400, body.admin-light .text-emerald-400,
-.admin-light .text-emerald-500, body.admin-light .text-emerald-500,
-.admin-light .text-emerald-600, body.admin-light .text-emerald-600 { color: #e11d48 !important; }
-.admin-light .text-blue-400, body.admin-light .text-blue-400 { color: #2563eb !important; }
-.admin-light .text-purple-400, body.admin-light .text-purple-400 { color: #9333ea !important; }
-.admin-light .text-amber-400, body.admin-light .text-amber-400 { color: #b45309 !important; }
-.admin-light .text-indigo-400, body.admin-light .text-indigo-400 { color: #4338ca !important; }
-
-.admin-light .bg-amber-500\/10, body.admin-light .bg-amber-500\/10 {
-  background-color: #fffbeb !important;
-  border-color: #fde68a !important;
-}
-.admin-light .bg-amber-500\/20, body.admin-light .bg-amber-500\/20 {
-  background-color: #fef3c7 !important;
-}
-.admin-light .bg-indigo-500\/15, body.admin-light .bg-indigo-500\/15 {
-  background-color: #eef2ff !important;
-  border-color: #c7d2fe !important;
-  color: #3730a3 !important;
-}
-.admin-light .bg-rose-500\/10, body.admin-light .bg-rose-500\/10,
-.admin-light .bg-rose-500\/15, body.admin-light .bg-rose-500\/15,
-.admin-light .bg-rose-500\/20, body.admin-light .bg-rose-500\/20 {
-  background-color: #fff1f2 !important;
-  border-color: #fecdd3 !important;
-  color: #e11d48 !important;
-}
-.admin-light .bg-emerald-500\/10, body.admin-light .bg-emerald-500\/10,
-.admin-light .bg-emerald-500\/15, body.admin-light .bg-emerald-500\/15,
-.admin-light .bg-emerald-500\/20, body.admin-light .bg-emerald-500\/20 {
-  background-color: #fff1f2 !important;
-  border-color: #fecdd3 !important;
-  color: #e11d48 !important;
-}
-
-/* 8. BUTTONS: SOLID BLACK TEXT & SOLID BLACK ICONS */
-.admin-light button:not([class*="bg-rose"]):not([class*="bg-red"]):not([class*="bg-purple"]):not([class*="bg-blue"]):not([class*="bg-indigo"]):not([class*="bg-amber"]),
-body.admin-light button:not([class*="bg-rose"]):not([class*="bg-red"]):not([class*="bg-purple"]):not([class*="bg-blue"]):not([class*="bg-indigo"]):not([class*="bg-amber"]) {
-  color: #000000 !important;
-  border-color: #cbd5e1 !important;
-}
-
-.admin-light button:not([class*="bg-rose"]):not([class*="bg-red"]):not([class*="bg-purple"]):not([class*="bg-blue"]):not([class*="bg-indigo"]):not([class*="bg-amber"]) *,
-body.admin-light button:not([class*="bg-rose"]):not([class*="bg-red"]):not([class*="bg-purple"]):not([class*="bg-blue"]):not([class*="bg-indigo"]):not([class*="bg-amber"]) * {
-  color: #000000 !important;
-}
-
-.admin-light button:not([class*="bg-rose"]):not([class*="bg-red"]):not([class*="bg-purple"]):not([class*="bg-blue"]):not([class*="bg-indigo"]):not([class*="bg-amber"]) svg,
-body.admin-light button:not([class*="bg-rose"]):not([class*="bg-red"]):not([class*="bg-purple"]):not([class*="bg-blue"]):not([class*="bg-indigo"]):not([class*="bg-amber"]) svg {
-  color: #000000 !important;
-  stroke: currentColor !important;
-}
-
-.admin-light button:not([class*="bg-rose"]):not([class*="bg-red"]):not([class*="bg-purple"]):not([class*="bg-blue"]):not([class*="bg-indigo"]):not([class*="bg-amber"]):hover,
-body.admin-light button:not([class*="bg-rose"]):not([class*="bg-red"]):not([class*="bg-purple"]):not([class*="bg-blue"]):not([class*="bg-indigo"]):not([class*="bg-amber"]):hover {
-  background-color: #f1f5f9 !important;
-  color: #000000 !important;
-  border-color: #94a3b8 !important;
-}
-
-.admin-light button:not([class*="bg-rose"]):not([class*="bg-red"]):not([class*="bg-purple"]):not([class*="bg-blue"]):not([class*="bg-indigo"]):not([class*="bg-amber"]):hover *,
-body.admin-light button:not([class*="bg-rose"]):not([class*="bg-red"]):not([class*="bg-purple"]):not([class*="bg-blue"]):not([class*="bg-indigo"]):not([class*="bg-amber"]):hover * {
-  color: #000000 !important;
-}
-
-.admin-light button:not([class*="bg-rose"]):not([class*="bg-red"]):not([class*="bg-purple"]):not([class*="bg-blue"]):not([class*="bg-indigo"]):not([class*="bg-amber"]):hover svg,
-body.admin-light button:not([class*="bg-rose"]):not([class*="bg-red"]):not([class*="bg-purple"]):not([class*="bg-blue"]):not([class*="bg-indigo"]):not([class*="bg-amber"]):hover svg {
-  color: #000000 !important;
-  stroke: currentColor !important;
-}
-
-/* Gray background buttons specifically become clean outline cards with black text */
-.admin-light button[class*="bg-gray-800"],
-.admin-light button[class*="bg-gray-900"],
-.admin-light button[class*="bg-slate-800"],
-.admin-light button[class*="bg-slate-900"],
-body.admin-light button[class*="bg-gray-800"],
-body.admin-light button[class*="bg-gray-900"],
-body.admin-light button[class*="bg-slate-800"],
-body.admin-light button[class*="bg-slate-900"] {
-  background-color: #ffffff !important;
-  color: #000000 !important;
-  border: 1px solid #cbd5e1 !important;
-  font-weight: 700 !important;
-}
-
-.admin-light button[class*="bg-gray-800"]:hover,
-.admin-light button[class*="bg-gray-900"]:hover,
-.admin-light button[class*="bg-slate-800"]:hover,
-.admin-light button[class*="bg-slate-900"]:hover,
-body.admin-light button[class*="bg-gray-800"]:hover,
-body.admin-light button[class*="bg-gray-900"]:hover,
-body.admin-light button[class*="bg-slate-800"]:hover,
-body.admin-light button[class*="bg-slate-900"]:hover {
-  background-color: #f1f5f9 !important;
-  color: #000000 !important;
-  border-color: #94a3b8 !important;
-}
-
-/* Interactive links & navigation items */
-.admin-light a:not([class*="bg-rose"]):not([class*="bg-red"]):not([class*="text-rose"]):not([class*="text-red"]):not([class*="bg-purple"]):not([class*="bg-blue"]):not([class*="bg-indigo"]):not([class*="bg-amber"]),
-body.admin-light a:not([class*="bg-rose"]):not([class*="bg-red"]):not([class*="text-rose"]):not([class*="text-red"]):not([class*="bg-purple"]):not([class*="bg-blue"]):not([class*="bg-indigo"]):not([class*="bg-amber"]) {
-  color: #000000 !important;
-}
-
-.admin-light a:not([class*="bg-rose"]):not([class*="bg-red"]):not([class*="text-rose"]):not([class*="text-red"]):not([class*="bg-purple"]):not([class*="bg-blue"]):not([class*="bg-indigo"]):not([class*="bg-amber"]) svg,
-body.admin-light a:not([class*="bg-rose"]):not([class*="bg-red"]):not([class*="text-rose"]):not([class*="text-red"]):not([class*="bg-purple"]):not([class*="bg-blue"]):not([class*="bg-indigo"]):not([class*="bg-amber"]) svg {
-  color: #000000 !important;
-  stroke: currentColor !important;
-}
-
-/* Neutralize hover:text-white across entire White Mood */
-.admin-light [class*="hover:text-white"]:hover:not([class*="bg-rose"]):not([class*="bg-red"]):not([class*="bg-purple"]):not([class*="bg-blue"]):not([class*="bg-indigo"]):not([class*="bg-amber"]),
-body.admin-light [class*="hover:text-white"]:hover:not([class*="bg-rose"]):not([class*="bg-red"]):not([class*="bg-purple"]):not([class*="bg-blue"]):not([class*="bg-indigo"]):not([class*="bg-amber"]) {
-  color: #000000 !important;
-}
-
-.admin-light [class*="hover:text-white"]:hover:not([class*="bg-rose"]):not([class*="bg-red"]):not([class*="bg-purple"]):not([class*="bg-blue"]):not([class*="bg-indigo"]):not([class*="bg-amber"]) svg,
-body.admin-light [class*="hover:text-white"]:hover:not([class*="bg-rose"]):not([class*="bg-red"]):not([class*="bg-purple"]):not([class*="bg-blue"]):not([class*="bg-indigo"]):not([class*="bg-amber"]) svg {
-  color: #000000 !important;
-  stroke: currentColor !important;
-}
-
-/* All SVGs that had text-white, text-gray, text-slate become solid black */
-.admin-light svg.text-white:not([class*="bg-rose"] *):not([class*="bg-red"] *):not([class*="bg-purple"] *):not([class*="bg-blue"] *):not([class*="bg-indigo"] *),
-.admin-light svg[class*="text-gray-"],
-.admin-light svg[class*="text-slate-"],
-.admin-light svg[class*="text-zinc-"],
-.admin-light svg[class*="text-neutral-"],
-body.admin-light svg.text-white:not([class*="bg-rose"] *):not([class*="bg-red"] *):not([class*="bg-purple"] *):not([class*="bg-blue"] *):not([class*="bg-indigo"] *),
-body.admin-light svg[class*="text-gray-"],
-body.admin-light svg[class*="text-slate-"],
-body.admin-light svg[class*="text-zinc-"],
-body.admin-light svg[class*="text-neutral-"] {
-  color: #000000 !important;
-  stroke: currentColor !important;
-}
-
-/* 9. SOLID COLORED BUTTONS & BADGES PRESERVE COLOR & CRISP WHITE TEXT/ICONS */
-.admin-light [class*="bg-rose-600"], body.admin-light [class*="bg-rose-600"],
-.admin-light [class*="bg-rose-700"], body.admin-light [class*="bg-rose-700"],
-.admin-light [class*="bg-rose-500"], body.admin-light [class*="bg-rose-500"],
-.admin-light [class*="bg-emerald-600"], body.admin-light [class*="bg-emerald-600"],
-.admin-light [class*="bg-emerald-500"], body.admin-light [class*="bg-emerald-500"],
-.admin-light [class*="bg-purple-600"], body.admin-light [class*="bg-purple-600"],
-.admin-light [class*="bg-purple-500"], body.admin-light [class*="bg-purple-500"],
-.admin-light [class*="bg-blue-600"], body.admin-light [class*="bg-blue-600"],
-.admin-light [class*="bg-blue-500"], body.admin-light [class*="bg-blue-500"],
-.admin-light [class*="bg-red-600"], body.admin-light [class*="bg-red-600"],
-.admin-light [class*="bg-amber-500"], body.admin-light [class*="bg-amber-500"],
-.admin-light [class*="bg-indigo-600"], body.admin-light [class*="bg-indigo-600"] {
+/* Radish is the shared primary action color. Exact class matching avoids
+   treating bg-rose-500/10 (a pale panel) as a solid button. */
+.admin-light [class~="bg-rose-500"],
+.admin-light [class~="bg-rose-600"],
+.admin-light [class~="bg-rose-700"],
+.admin-light [class~="bg-emerald-500"],
+.admin-light [class~="bg-emerald-600"],
+.admin-light [class~="bg-red-600"],
+.admin-light [class~="bg-purple-600"],
+.admin-light [class~="bg-blue-600"],
+.admin-light [class~="bg-indigo-600"],
+.admin-light [class~="bg-amber-500"] {
   background-color: #e11d48 !important;
-  color: #ffffff !important;
-}
-.admin-light [class*="bg-purple-600"], body.admin-light [class*="bg-purple-600"] { background-color: #9333ea !important; }
-.admin-light [class*="bg-blue-600"], body.admin-light [class*="bg-blue-600"] { background-color: #2563eb !important; }
-.admin-light [class*="bg-red-600"], body.admin-light [class*="bg-red-600"] { background-color: #dc2626 !important; }
-.admin-light [class*="bg-amber-500"], body.admin-light [class*="bg-amber-500"] { background-color: #f59e0b !important; }
-.admin-light [class*="bg-indigo-600"], body.admin-light [class*="bg-indigo-600"] { background-color: #4f46e5 !important; }
-
-.admin-light [class*="bg-rose-600"] *, body.admin-light [class*="bg-rose-600"] *,
-.admin-light [class*="bg-rose-700"] *, body.admin-light [class*="bg-rose-700"] *,
-.admin-light [class*="bg-rose-500"] *, body.admin-light [class*="bg-rose-500"] *,
-.admin-light [class*="bg-emerald-600"] *, body.admin-light [class*="bg-emerald-600"] *,
-.admin-light [class*="bg-emerald-500"] *, body.admin-light [class*="bg-emerald-500"] *,
-.admin-light [class*="bg-purple-600"] *, body.admin-light [class*="bg-purple-600"] *,
-.admin-light [class*="bg-purple-500"] *, body.admin-light [class*="bg-purple-500"] *,
-.admin-light [class*="bg-blue-600"] *, body.admin-light [class*="bg-blue-600"] *,
-.admin-light [class*="bg-blue-500"] *, body.admin-light [class*="bg-blue-500"] *,
-.admin-light [class*="bg-red-600"] *, body.admin-light [class*="bg-red-600"] *,
-.admin-light [class*="bg-amber-500"] *, body.admin-light [class*="bg-amber-500"] *,
-.admin-light [class*="bg-indigo-600"] *, body.admin-light [class*="bg-indigo-600"] * {
-  color: #ffffff !important;
 }
 
-.admin-light [class*="bg-rose-600"] svg, body.admin-light [class*="bg-rose-600"] svg,
-.admin-light [class*="bg-rose-700"] svg, body.admin-light [class*="bg-rose-700"] svg,
-.admin-light [class*="bg-rose-500"] svg, body.admin-light [class*="bg-rose-500"] svg,
-.admin-light [class*="bg-red-600"] svg, body.admin-light [class*="bg-red-600"] svg,
-.admin-light [class*="bg-purple-600"] svg, body.admin-light [class*="bg-purple-600"] svg,
-.admin-light [class*="bg-blue-600"] svg, body.admin-light [class*="bg-blue-600"] svg,
-.admin-light [class*="bg-indigo-600"] svg, body.admin-light [class*="bg-indigo-600"] svg,
-.admin-light [class*="bg-amber-500"] svg, body.admin-light [class*="bg-amber-500"] svg {
+.admin-light [class~="bg-rose-500"],
+.admin-light [class~="bg-rose-500"] *,
+.admin-light [class~="bg-rose-600"],
+.admin-light [class~="bg-rose-600"] *,
+.admin-light [class~="bg-rose-700"],
+.admin-light [class~="bg-rose-700"] *,
+.admin-light [class~="bg-emerald-500"],
+.admin-light [class~="bg-emerald-500"] *,
+.admin-light [class~="bg-emerald-600"],
+.admin-light [class~="bg-emerald-600"] *,
+.admin-light [class~="bg-red-600"],
+.admin-light [class~="bg-red-600"] *,
+.admin-light [class~="bg-purple-600"],
+.admin-light [class~="bg-purple-600"] *,
+.admin-light [class~="bg-blue-600"],
+.admin-light [class~="bg-blue-600"] *,
+.admin-light [class~="bg-indigo-600"],
+.admin-light [class~="bg-indigo-600"] *,
+.admin-light [class~="bg-amber-500"],
+.admin-light [class~="bg-amber-500"] * {
   color: #ffffff !important;
+}
+
+.admin-light [class~="bg-rose-500"] svg,
+.admin-light [class~="bg-rose-600"] svg,
+.admin-light [class~="bg-rose-700"] svg,
+.admin-light [class~="bg-emerald-500"] svg,
+.admin-light [class~="bg-emerald-600"] svg,
+.admin-light [class~="bg-red-600"] svg,
+.admin-light [class~="bg-purple-600"] svg,
+.admin-light [class~="bg-blue-600"] svg,
+.admin-light [class~="bg-indigo-600"] svg,
+.admin-light [class~="bg-amber-500"] svg {
   stroke: currentColor !important;
 }
 
-/* 10. FULLSCREEN MODAL / STUDIO DIALOGS IN ADMIN LIGHT */
-.admin-light .fixed.inset-0[class*="bg-gray-"],
-body.admin-light .fixed.inset-0[class*="bg-gray-"] {
-  background-color: #ffffff !important;
+/* Meaningful text accents remain radish but never become low-contrast white. */
+.admin-light [class*="text-rose-"],
+.admin-light [class*="text-emerald-"] { color: #e11d48 !important; }
+
+/* Disabled actions are visibly inactive but remain readable in white mode. */
+.admin-light button:disabled,
+.admin-light [role="button"][aria-disabled="true"] {
+  background-color: #f1f5f9 !important;
+  background-image: none !important;
+  border-color: #e2e8f0 !important;
+  box-shadow: none !important;
+  color: #94a3b8 !important;
+  cursor: not-allowed !important;
+  opacity: 1 !important;
 }
 
-.admin-light .fixed.inset-0[class*="bg-black\/"],
-body.admin-light .fixed.inset-0[class*="bg-black\/"] {
-  background-color: rgba(15, 23, 42, 0.5) !important;
+.admin-light button:disabled *,
+.admin-light [role="button"][aria-disabled="true"] * {
+  color: #94a3b8 !important;
+  stroke: currentColor !important;
 }
 
-/* Color swatch border on white table rows */
-.admin-light .border-white\/20,
-body.admin-light .border-white\/20 {
-  border-color: #cbd5e1 !important;
-}
-
+.admin-light [class*="hover:bg-gray-"]:hover,
+.admin-light [class*="hover:bg-slate-"]:hover { background-color: #f8fafc !important; }

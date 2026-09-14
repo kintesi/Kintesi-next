@@ -187,7 +187,9 @@ const AdminLayoutInner: React.FC = () => {
                     onClick={() => setIsMobileMenuOpen(false)}
                     className={`flex items-center gap-3 px-3.5 py-2 rounded-xl text-xs font-black transition ${
                       isActive
-                        ? 'bg-rose-600 text-white shadow-lg shadow-rose-600/25'
+                        ? isLight
+                          ? 'bg-white border border-rose-500 shadow-sm'
+                          : 'bg-rose-600 text-white shadow-lg shadow-rose-600/25'
                         : isLight
                         ? 'hover:bg-rose-50 hover:text-rose-700'
                         : 'text-gray-400 hover:text-white hover:bg-gray-800/60'
@@ -196,11 +198,11 @@ const AdminLayoutInner: React.FC = () => {
                   >
                     <Icon
                       className="w-4 h-4 flex-shrink-0"
-                      style={isActive ? { color: '#ffffff' } : isLight ? { color: '#000000' } : { color: '#9ca3af' }}
+                      style={isActive ? { color: isLight ? '#0f172a' : '#ffffff' } : isLight ? { color: '#000000' } : { color: '#9ca3af' }}
                     />
                     <span
                       className="truncate"
-                      style={isActive ? { color: '#ffffff' } : isLight ? { color: '#000000' } : {}}
+                      style={isActive ? { color: isLight ? '#0f172a' : '#ffffff' } : isLight ? { color: '#000000' } : {}}
                     >
                       {item.name}
                     </span>
@@ -352,61 +354,46 @@ const AdminLayoutInner: React.FC = () => {
             <button
               type="button"
               onClick={toggleTheme}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-black transition cursor-pointer ${
+              className={`w-10 h-10 inline-flex items-center justify-center rounded-xl border transition cursor-pointer ${
                 isLight
                   ? 'bg-white hover:bg-slate-100 border-slate-300 shadow-xs'
                   : 'bg-gray-800 hover:bg-gray-700 text-amber-300 border-gray-700'
               }`}
               style={isLight ? { color: '#000000' } : {}}
               title={isLight ? 'Current: White Mood. Click for Dark Mood' : 'Current: Dark Mood. Click for White Mood'}
+              aria-label={isLight ? 'Switch to Dark Mood' : 'Switch to White Mood'}
             >
-              {isLight ? <Sun className="w-3.5 h-3.5 text-amber-500 shrink-0" /> : <Moon className="w-3.5 h-3.5 text-indigo-400 shrink-0" />}
-              <span className="font-black" style={isLight ? { color: '#000000' } : {}}>{isLight ? 'White Mood' : 'Dark Mood'}</span>
+              {isLight ? <Sun className="w-5 h-5 text-amber-500 shrink-0" /> : <Moon className="w-5 h-5 text-indigo-400 shrink-0" />}
             </button>
 
             {/* View Storefront */}
             <Link
               to="/"
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-black transition ${
+              className={`w-10 h-10 inline-flex items-center justify-center rounded-xl border transition ${
                 isLight
                   ? 'bg-white hover:bg-slate-100 border-slate-300 shadow-xs'
                   : 'bg-gray-800 hover:bg-gray-700 text-gray-200 border-gray-700'
               }`}
               style={isLight ? { color: '#000000' } : {}}
               title="View Storefront"
+              aria-label="View storefront"
             >
-              <Store className="w-3.5 h-3.5 shrink-0" style={isLight ? { color: '#000000' } : { color: '#f43f5e' }} />
-              <span className="font-black" style={isLight ? { color: '#000000' } : {}}>Store</span>
+              <Store className="w-5 h-5 shrink-0" style={isLight ? { color: '#000000' } : { color: '#f43f5e' }} />
             </Link>
-
-            <span className="text-xs" style={isLight ? { color: '#94a3b8' } : { color: '#374151' }}>|</span>
-
-            {/* Admin Email badge */}
-            <div
-              className={`hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-bold ${
-                isLight
-                  ? 'bg-white border-slate-300 shadow-xs'
-                  : 'bg-gray-800 text-gray-200 border-gray-700'
-              }`}
-              style={isLight ? { color: '#000000' } : {}}
-            >
-              <span className="w-1.5 h-1.5 rounded-full bg-rose-500 shrink-0" />
-              <span className="font-black truncate max-w-[170px]" style={isLight ? { color: '#000000' } : { color: '#e5e7eb' }}>{user?.email}</span>
-            </div>
 
             {/* Sign Out */}
             <button
               onClick={signOut}
-              className={`flex items-center gap-1 px-3 py-1.5 rounded-xl border text-xs font-black transition cursor-pointer ${
+              className={`w-10 h-10 inline-flex items-center justify-center rounded-xl border transition cursor-pointer ${
                 isLight
                   ? 'bg-white hover:bg-rose-50 border-slate-300 hover:border-rose-300 shadow-xs'
                   : 'bg-gray-800 hover:bg-gray-700 text-rose-400 border-gray-700'
               }`}
               style={isLight ? { color: '#000000' } : {}}
               title="Sign Out"
+              aria-label="Sign out"
             >
-              <LogOut className="w-3.5 h-3.5 shrink-0" style={isLight ? { color: '#000000' } : { color: '#f43f5e' }} />
-              <span className="font-black" style={isLight ? { color: '#000000' } : {}}>Sign Out</span>
+              <LogOut className="w-5 h-5 shrink-0" style={isLight ? { color: '#000000' } : { color: '#f43f5e' }} />
             </button>
           </div>
         </div>
