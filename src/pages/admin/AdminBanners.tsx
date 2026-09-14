@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState, useRef } from 'react';
 import { toast } from 'sonner';
 import {
   Check,
@@ -49,6 +49,8 @@ export const AdminBanners: React.FC = () => {
   const [flashSlideSearch, setFlashSlideSearch] = useState('');
   const [selectedSlideIndex, setSelectedSlideIndex] = useState(0);
   const [isUpdatingProduct, setIsUpdatingProduct] = useState<string | null>(null);
+  const [isSaved, setIsSaved] = useState(false);
+  const hasUserEdited = useRef(false);
 
   useEffect(() => {
     const loadCatalog = async () => {
@@ -64,7 +66,9 @@ export const AdminBanners: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    setForm({ ...settings.banners, topAnnouncementText: cleanAnnouncementText(settings.banners.topAnnouncementText || '') });
+    if (!hasUserEdited.current) {
+      setForm({ ...settings.banners, topAnnouncementText: cleanAnnouncementText(settings.banners.topAnnouncementText || '') });
+    }
   }, [settings.banners]);
 
   const slides: FlashSaleSlide[] = form.flashSaleSlides?.length
@@ -134,10 +138,14 @@ export const AdminBanners: React.FC = () => {
   const featuredProducts = catalogProducts.filter((product) => product.is_featured);
 
   const setValue = <K extends keyof BannerSettings>(key: K, value: BannerSettings[K]) => {
+    hasUserEdited.current = true;
+    setIsSaved(false);
     setForm((previous) => ({ ...previous, [key]: value }));
   };
 
   const selectSpotlightProduct = (product: Product) => {
+    hasUserEdited.current = true;
+    setIsSaved(false);
     const price = Number(product.price) || 0;
     const discountPrice = Number(product.discount_price) || Math.round(price * 0.85);
     setForm((previous) => ({
@@ -173,6 +181,8 @@ export const AdminBanners: React.FC = () => {
   };
 
   const updateSlide = (key: keyof FlashSaleSlide, value: string) => {
+    hasUserEdited.current = true;
+    setIsSaved(false);
     const nextSlides = slides.map((slide, index) => index === selectedSlideIndex ? { ...slide, [key]: value } : slide);
     setForm((previous) => ({
       ...previous,
@@ -188,6 +198,8 @@ export const AdminBanners: React.FC = () => {
   };
 
   const addSlide = () => {
+    hasUserEdited.current = true;
+    setIsSaved(false);
     const nextSlides = [...slides, {
       id: `slide-${Date.now()}`,
       tag: '⚡ FLASH SALE',
@@ -205,18 +217,23 @@ export const AdminBanners: React.FC = () => {
       toast.error('A flash sale needs at least one slide.');
       return;
     }
+    hasUserEdited.current = true;
+    setIsSaved(false);
     const nextSlides = slides.filter((_, index) => index !== selectedSlideIndex);
     setForm((previous) => ({ ...previous, flashSaleSlides: nextSlides }));
     setSelectedSlideIndex(Math.max(0, selectedSlideIndex - 1));
   };
 
   const resetFlashTimer = () => {
+    hasUserEdited.current = true;
+    setIsSaved(false);
     const hours = Math.max(1, Math.min(72, Number(form.flashSaleHours) || 4));
     setForm((previous) => ({ ...previous, showFlashSale: true, flashSaleHours: hours, flashSaleEndsAt: new Date(Date.now() + hours * 60 * 60 * 1000).toISOString() }));
-    toast.info(`Timer reset to ${hours} hours. Save changes to publish it.`);
+    toast.info(`Timer reset to ${hours} hours. Click Save to publish.`);
   };
 
   const saveAll = async () => {
+    hasUserEdited.current = false;
     const hours = Math.max(1, Math.min(72, Number(form.flashSaleHours) || 4));
     const expiresAt = form.showFlashSale && (!form.flashSaleEndsAt || new Date(form.flashSaleEndsAt).getTime() <= Date.now())
       ? new Date(Date.now() + hours * 60 * 60 * 1000).toISOString()
@@ -234,7 +251,9 @@ export const AdminBanners: React.FC = () => {
       flashSaleLink: slides[0]?.link || form.flashSaleLink || '/products',
     };
     setForm(nextForm);
+    setIsSaved(true);
     await updateBanners(nextForm);
+    setTimeout(() => setIsSaved(false), 3000);
   };
 
   const resetAll = () => {
@@ -273,11 +292,36 @@ export const AdminBanners: React.FC = () => {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <button type="button" onClick={resetAll} disabled={isLoading} className="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-xs font-bold hover:bg-slate-50">
+          <button
+            type="button"
+            onClick={resetAll}
+            disabled={isLoading}
+            className={`inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl border text-xs font-bold transition cursor-pointer ${
+              isLight ? 'border-slate-200 bg-white hover:bg-slate-50 text-slate-700' : 'border-gray-700 bg-gray-800 text-gray-200 hover:bg-gray-700'
+            }`}
+          >
             <RotateCcw className="w-4 h-4" /> Reset
           </button>
-          <button type="button" onClick={saveAll} disabled={isLoading} className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-rose-600 text-white text-xs font-black shadow-lg shadow-rose-600/20 hover:bg-rose-700">
-            <Save className="w-4 h-4" /> {isLoading ? 'Saving…' : 'Save changes'}
+          <button
+            type="button"
+            onClick={saveAll}
+            className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-white text-xs font-black shadow-lg transition active:scale-95 cursor-pointer ${
+              isSaved
+                ? 'bg-slate-900 shadow-slate-900/20'
+                : 'bg-rose-600 shadow-rose-600/25 hover:bg-rose-700'
+            }`}
+          >
+            {isSaved ? (
+              <>
+                <Check className="w-4 h-4 text-rose-400" />
+                <span>Saved Changes!</span>
+              </>
+            ) : (
+              <>
+                <Save className="w-4 h-4" />
+                <span>Save Changes</span>
+              </>
+            )}
           </button>
         </div>
       </header>
@@ -526,8 +570,49 @@ export const AdminBanners: React.FC = () => {
             {sections.map((section) => <div key={section.label} className="flex items-center justify-between rounded-xl border border-slate-100 px-3 py-2.5"><span className="text-xs font-bold">{section.label}</span><span className={`inline-flex items-center gap-1.5 text-[11px] font-bold ${section.enabled ? 'text-rose-600' : 'text-slate-400'}`}><span className={`w-1.5 h-1.5 rounded-full ${section.enabled ? 'bg-rose-500' : 'bg-slate-300'}`} />{section.enabled ? 'Visible' : 'Hidden'}</span></div>)}
           </div>
           <div className="mt-5 rounded-xl bg-rose-50 border border-rose-100 p-3.5"><p className="text-xs font-bold text-rose-900">Publish checklist</p><ul className="mt-2 space-y-1.5 text-[11px] text-rose-800"><li className="flex gap-2"><CheckCircle2 className="w-3.5 h-3.5 shrink-0" />Use short, customer-facing messages.</li><li className="flex gap-2"><CheckCircle2 className="w-3.5 h-3.5 shrink-0" />Check product links before saving.</li><li className="flex gap-2"><CheckCircle2 className="w-3.5 h-3.5 shrink-0" />Upload wide images for flash sale slides.</li></ul></div>
-          <button type="button" onClick={saveAll} disabled={isLoading} className="mt-5 w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-rose-600 text-white text-xs font-black shadow-lg shadow-rose-600/20 hover:bg-rose-700"><Save className="w-4 h-4" />{isLoading ? 'Saving…' : 'Save all changes'}</button>
+          <button
+            type="button"
+            onClick={saveAll}
+            disabled={isLoading}
+            className={`mt-5 w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-white text-xs font-black shadow-lg transition active:scale-95 cursor-pointer ${
+              isSaved
+                ? 'bg-slate-900 shadow-slate-900/20'
+                : 'bg-rose-600 shadow-rose-600/25 hover:bg-rose-700'
+            }`}
+          >
+            {isSaved ? <Check className="w-4 h-4 text-rose-400" /> : <Save className="w-4 h-4" />}
+            <span>{isSaved ? 'All Changes Saved!' : 'Save All Changes'}</span>
+          </button>
         </aside>
+      </div>
+
+      {/* Floating Instant Save Bar (always accessible wherever you scroll) */}
+      <div className="fixed bottom-6 right-6 z-40 flex items-center">
+        <div className={`flex items-center gap-3 px-4 py-2.5 rounded-2xl border shadow-2xl backdrop-blur-md transition-all ${
+          isLight
+            ? 'bg-white/95 border-slate-200 text-slate-900 shadow-slate-900/10'
+            : 'bg-gray-900/95 border-gray-700 text-white shadow-black/40'
+        }`}>
+          <div className="flex items-center gap-2 pr-2 border-r border-slate-200 dark:border-gray-700">
+            <span className={`w-2 h-2 rounded-full ${isSaved ? 'bg-rose-600' : (hasUserEdited.current ? 'bg-amber-500 animate-pulse' : 'bg-rose-500')}`} />
+            <span className="text-xs font-bold">
+              {isSaved ? 'Saved to Store' : (hasUserEdited.current ? 'Unsaved Edits' : 'Live Sync')}
+            </span>
+          </div>
+
+          <button
+            type="button"
+            onClick={saveAll}
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black transition active:scale-95 shadow-md cursor-pointer ${
+              isSaved
+                ? 'bg-slate-900 text-rose-400 shadow-slate-900/20'
+                : 'bg-rose-600 hover:bg-rose-700 text-white shadow-rose-600/25'
+            }`}
+          >
+            {isSaved ? <Check className="w-3.5 h-3.5 text-rose-400" /> : <Save className="w-3.5 h-3.5" />}
+            <span>{isSaved ? 'Saved!' : 'Save Changes'}</span>
+          </button>
+        </div>
       </div>
     </div>
   );

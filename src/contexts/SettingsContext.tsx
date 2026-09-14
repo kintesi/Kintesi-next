@@ -179,6 +179,22 @@ export const cleanAnnouncementText = (text?: string | null): string => {
     .trim();
 };
 
+// Timeout wrapper so slow network queries failover gracefully without freezing UI
+function withTimeout<T>(promise: PromiseLike<T>, ms: number = 3500): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error('Operation timed out')), ms);
+    Promise.resolve(promise)
+      .then((res) => {
+        clearTimeout(timer);
+        resolve(res);
+      })
+      .catch((err) => {
+        clearTimeout(timer);
+        reject(err);
+      });
+  });
+}
+
 export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [settings, setSettings] = useState<StoreSettings>(() => {
     try {
@@ -192,7 +208,6 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         if (mergedBanners.heroBadge) {
           mergedBanners.heroBadge = mergedBanners.heroBadge.replace(/•?\s*kintesi\.com/gi, '').trim();
         }
-        // Strict cleanup: eradicate any legacy fake products/images
         if (mergedBanners.spotlightTitle?.includes('Leather Biker Jacket') || mergedBanners.spotlightImage?.includes('unsplash')) {
           mergedBanners.showSpotlight = false;
           mergedBanners.spotlightTitle = '';
@@ -214,15 +229,31 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const [isLoading, setIsLoading] = useState(false);
   const [isSettingsLoaded, setIsSettingsLoaded] = useState(false);
 
-  // Load from Firebase Firestore on mount
+  // Load from Supabase (Primary) with Firebase fallback on mount
   useEffect(() => {
     async function loadRemoteSettings() {
       try {
-        const storeDoc = await getDoc(doc(db, 'store_settings', 'default'));
+        // 1. Try Supabase first
+        const supaRes = await withTimeout<any>(
+          supabase.from('store_settings').select('*').eq('id', 'global_store_settings').maybeSingle(),
+          3000
+        ).catch(() => null);
 
-        if (storeDoc.exists()) {
-          const data = storeDoc.data() as any;
-          const remoteBanners = data.banners;
+        let remoteData = supaRes?.data;
+
+        // 2. If no Supabase data, fallback to Firebase
+        if (!remoteData) {
+          const storeDoc = await withTimeout<any>(
+            getDoc(doc(db, 'store_settings', 'default')),
+            3000
+          ).catch(() => null);
+          if (storeDoc && storeDoc.exists()) {
+            remoteData = storeDoc.data();
+          }
+        }
+
+        if (remoteData) {
+          const remoteBanners = remoteData.banners || (remoteData.settings_payload ? remoteData.settings_payload.banners : null);
           setSettings((prev) => {
             const rawText = remoteBanners?.topAnnouncementText ?? remoteBanners?.announcementText;
             const cleanText = rawText !== undefined ? cleanAnnouncementText(rawText) : undefined;
@@ -240,22 +271,24 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
             };
 
             const merged: StoreSettings = {
-              storeName: data.storeName || prev.storeName,
-              helplinePhone: data.helplinePhone || prev.helplinePhone,
-              supportEmail: data.supportEmail || prev.supportEmail,
-              bkashNumber: data.bkashNumber || prev.bkashNumber,
-              bkashType: (data.bkashType || prev.bkashType) as any,
-              nagadNumber: data.nagadNumber || prev.nagadNumber,
-              nagadType: (data.nagadType || prev.nagadType) as any,
-              rocketNumber: data.rocketNumber || prev.rocketNumber,
-              rocketType: (data.rocketType || prev.rocketType) as any,
-              deliveryFeeInsideDhaka: Number(data.deliveryFeeInsideDhaka ?? prev.deliveryFeeInsideDhaka),
-              deliveryFeeOutsideDhaka: Number(data.deliveryFeeOutsideDhaka ?? prev.deliveryFeeOutsideDhaka),
-              freeShippingThreshold: Number(data.freeShippingThreshold ?? prev.freeShippingThreshold),
-              authorizedAdmins: data.authorizedAdmins || prev.authorizedAdmins || ['manage.kintesi@gmail.com'],
+              storeName: remoteData.store_name || remoteData.storeName || prev.storeName,
+              helplinePhone: remoteData.helpline_phone || remoteData.helplinePhone || prev.helplinePhone,
+              supportEmail: remoteData.support_email || remoteData.supportEmail || prev.supportEmail,
+              bkashNumber: remoteData.bkash_number || remoteData.bkashNumber || prev.bkashNumber,
+              bkashType: (remoteData.bkash_type || remoteData.bkashType || prev.bkashType) as any,
+              nagadNumber: remoteData.nagad_number || remoteData.nagadNumber || prev.nagadNumber,
+              nagadType: (remoteData.nagad_type || remoteData.nagadType || prev.nagadType) as any,
+              rocketNumber: remoteData.rocket_number || remoteData.rocketNumber || prev.rocketNumber,
+              rocketType: (remoteData.rocket_type || remoteData.rocketType || prev.rocketType) as any,
+              deliveryFeeInsideDhaka: Number(remoteData.delivery_fee_inside_dhaka ?? remoteData.deliveryFeeInsideDhaka ?? prev.deliveryFeeInsideDhaka),
+              deliveryFeeOutsideDhaka: Number(remoteData.delivery_fee_outside_dhaka ?? remoteData.deliveryFeeOutsideDhaka ?? prev.deliveryFeeOutsideDhaka),
+              freeShippingThreshold: Number(remoteData.free_shipping_threshold ?? remoteData.freeShippingThreshold ?? prev.freeShippingThreshold),
+              authorizedAdmins: remoteData.authorized_admins || remoteData.authorizedAdmins || prev.authorizedAdmins || ['manage.kintesi@gmail.com'],
               banners: mergedBanners,
             };
-            localStorage.setItem('kintesi_store_settings', JSON.stringify(merged));
+            try {
+              localStorage.setItem('kintesi_store_settings', JSON.stringify(merged));
+            } catch {}
             return merged;
           });
         }
@@ -269,47 +302,117 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   }, []);
 
   useEffect(() => {
-    localStorage.setItem('kintesi_store_settings', JSON.stringify(settings));
+    try {
+      localStorage.setItem('kintesi_store_settings', JSON.stringify(settings));
+    } catch {}
   }, [settings]);
 
+  // Instant Settings update (0ms UI reactivity + non-blocking background cloud sync)
   const updateSettings = async (newSettings: Partial<StoreSettings>) => {
-    setIsLoading(true);
-    const updated = { ...settings, ...newSettings };
+    const updated: StoreSettings = { ...settings, ...newSettings };
+    
+    // 1. Instant local reactivity (0ms)
     setSettings(updated);
-    localStorage.setItem('kintesi_store_settings', JSON.stringify(updated));
-
     try {
-      await setDoc(doc(db, 'store_settings', 'default'), updated, { merge: true });
+      localStorage.setItem('kintesi_store_settings', JSON.stringify(updated));
     } catch (err) {
-      console.warn('Settings firestore sync notice:', err);
-    } finally {
-      setIsLoading(false);
-      toast.success('Settings updated!');
+      console.warn('LocalStorage save error:', err);
     }
+    window.dispatchEvent(new CustomEvent('kintesi_store_settings_updated', { detail: updated }));
+    toast.success('Settings updated!');
+
+    // 2. Non-blocking cloud sync in background (Supabase + Firebase)
+    (async () => {
+      try {
+        await withTimeout(
+          supabase.from('store_settings').upsert(
+            {
+              id: 'global_store_settings',
+              store_name: updated.storeName,
+              helpline_phone: updated.helplinePhone,
+              support_email: updated.supportEmail,
+              bkash_number: updated.bkashNumber,
+              bkash_type: updated.bkashType,
+              nagad_number: updated.nagadNumber,
+              nagad_type: updated.nagadType,
+              rocket_number: updated.rocketNumber,
+              rocket_type: updated.rocketType,
+              delivery_fee_inside_dhaka: updated.deliveryFeeInsideDhaka,
+              delivery_fee_outside_dhaka: updated.deliveryFeeOutsideDhaka,
+              free_shipping_threshold: updated.freeShippingThreshold,
+              authorized_admins: updated.authorizedAdmins,
+              banners: updated.banners,
+              settings_payload: updated,
+              updated_at: new Date().toISOString(),
+            },
+            { onConflict: 'id' }
+          ),
+          4000
+        );
+      } catch (err) {
+        console.warn('Supabase settings sync note:', err);
+      }
+
+      try {
+        await withTimeout(
+          setDoc(doc(db, 'store_settings', 'default'), updated, { merge: true }),
+          3500
+        );
+      } catch (err) {
+        console.warn('Settings firestore sync notice:', err);
+      }
+    })();
   };
 
+  // Instant Banner update (0ms UI reactivity + non-blocking background cloud sync)
   const updateBanners = async (newBanners: Partial<BannerSettings>) => {
-    setIsLoading(true);
     const cleanedBanners = { ...newBanners };
     if (cleanedBanners.topAnnouncementText !== undefined) {
       cleanedBanners.topAnnouncementText = cleanAnnouncementText(cleanedBanners.topAnnouncementText);
     }
-    const updatedBanners = { ...settings.banners, ...cleanedBanners };
-    const updated = { ...settings, banners: updatedBanners };
+    const updatedBanners: BannerSettings = { ...settings.banners, ...cleanedBanners };
+    const updated: StoreSettings = { ...settings, banners: updatedBanners };
+
+    // 1. Instant local reactivity (0ms)
     setSettings(updated);
-    localStorage.setItem('kintesi_store_settings', JSON.stringify(updated));
-
-    // Dispatch event so Navbar immediately updates
-    window.dispatchEvent(new CustomEvent('kintesi_banners_updated', { detail: updatedBanners }));
-
     try {
-      await setDoc(doc(db, 'store_settings', 'default'), { banners: updatedBanners }, { merge: true });
+      localStorage.setItem('kintesi_store_settings', JSON.stringify(updated));
     } catch (err) {
-      console.warn('Banner firestore sync notice:', err);
-    } finally {
-      setIsLoading(false);
-      toast.success('Banners updated!');
+      console.warn('LocalStorage save error:', err);
     }
+
+    // 2. Dispatch event so Navbar, Homepage & Storefront update immediately
+    window.dispatchEvent(new CustomEvent('kintesi_banners_updated', { detail: updatedBanners }));
+    toast.success('Banners & content updated successfully!');
+
+    // 3. Non-blocking cloud sync in background (Supabase primary + Firebase backup)
+    (async () => {
+      try {
+        await withTimeout(
+          supabase.from('store_settings').upsert(
+            {
+              id: 'global_store_settings',
+              banners: updatedBanners,
+              settings_payload: updated,
+              updated_at: new Date().toISOString(),
+            },
+            { onConflict: 'id' }
+          ),
+          4000
+        );
+      } catch (supaErr) {
+        console.warn('Supabase banner sync note:', supaErr);
+      }
+
+      try {
+        await withTimeout(
+          setDoc(doc(db, 'store_settings', 'default'), { banners: updatedBanners, ...updated }, { merge: true }),
+          3500
+        );
+      } catch (fireErr) {
+        console.warn('Firebase banner sync note:', fireErr);
+      }
+    })();
   };
 
   const isAuthorizedAdminEmail = (email?: string | null): boolean => {
