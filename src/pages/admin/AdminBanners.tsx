@@ -21,17 +21,52 @@ import { ImageUploader } from '../../components/common/ImageUploader';
 import { Product } from '../../types';
 import { getProductsFromDB, saveProductToDB } from '../../lib/dbService';
 
-const Toggle: React.FC<{ checked: boolean; onChange: (checked: boolean) => void; label: string }> = ({ checked, onChange, label }) => (
-  <label className="inline-flex items-center gap-2.5 cursor-pointer select-none">
-    <input type="checkbox" checked={checked} onChange={(event) => onChange(event.target.checked)} className="sr-only peer" />
-    <span className="relative h-5 w-9 rounded-full bg-slate-200 transition peer-checked:bg-rose-600 after:absolute after:left-0.5 after:top-0.5 after:h-4 after:w-4 after:rounded-full after:bg-white after:shadow-sm after:transition peer-checked:after:translate-x-4" />
-    <span className="text-xs font-bold text-slate-700">{label}</span>
-  </label>
-);
+const Toggle: React.FC<{ checked: boolean; onChange: (checked: boolean) => void; label: string }> = ({ checked, onChange, label }) => {
+  const { isLight } = useAdminTheme();
+  return (
+    <label className="inline-flex items-center gap-2.5 cursor-pointer select-none group">
+      <input
+        type="checkbox"
+        checked={checked}
+        onChange={(event) => onChange(event.target.checked)}
+        className="sr-only peer"
+      />
+      <span
+        className={`admin-toggle-track relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 transition-colors duration-200 ease-in-out focus:outline-none ${
+          checked
+            ? 'bg-rose-600 border-rose-600 shadow-xs'
+            : isLight
+            ? 'bg-slate-300 border-slate-400'
+            : 'bg-gray-800 border-gray-600'
+        }`}
+        style={
+          checked
+            ? { backgroundColor: '#e11d48', borderColor: '#e11d48' }
+            : isLight
+            ? { backgroundColor: '#cbd5e1', borderColor: '#94a3b8' }
+            : { backgroundColor: '#334155', borderColor: '#475569' }
+        }
+      >
+        <span
+          className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-md transition-transform duration-200 ease-in-out border border-slate-200/60 ${
+            checked ? 'translate-x-5' : 'translate-x-0'
+          }`}
+          style={{ backgroundColor: '#ffffff' }}
+        />
+      </span>
+      <span
+        className="text-xs font-black select-none"
+        style={isLight ? { color: '#0f172a' } : { color: '#f8fafc' }}
+      >
+        {label}
+      </span>
+    </label>
+  );
+};
 
 const Field: React.FC<{ label: string; children: React.ReactNode; hint?: string }> = ({ label, hint, children }) => (
   <label className="block space-y-1.5">
-    <span className="flex items-center justify-between gap-3 text-[11px] font-black uppercase tracking-wide text-slate-600">
+    <span className="flex items-center justify-between gap-3 text-[11px] font-black uppercase tracking-wide text-slate-700 dark:text-slate-300">
       {label}
       {hint && <span className="normal-case tracking-normal font-medium text-slate-400">{hint}</span>}
     </span>

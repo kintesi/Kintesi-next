@@ -118,11 +118,11 @@ html.admin-light {
 }
 
 /* Convert legacy dark admin surfaces into real white-mode panels. */
-.admin-light [class*="bg-gray-"],
-.admin-light [class*="bg-slate-"],
-.admin-light [class*="bg-zinc-"],
-.admin-light [class*="bg-neutral-"],
-.admin-light [class*="bg-black"],
+.admin-light [class*="bg-gray-"]:not(.admin-toggle-track),
+.admin-light [class*="bg-slate-"]:not(.admin-toggle-track),
+.admin-light [class*="bg-zinc-"]:not(.admin-toggle-track),
+.admin-light [class*="bg-neutral-"]:not(.admin-toggle-track),
+.admin-light [class*="bg-black"]:not(.admin-toggle-track),
 .admin-light [class*="bg-rose-950"],
 .admin-light [class*="bg-emerald-950"],
 .admin-light [class*="bg-purple-950"],
@@ -304,12 +304,49 @@ html.admin-light {
 
 .admin-light aside nav a {
   min-height: 36px;
-  border-color: transparent;
 }
 
 .admin-light aside nav a:hover {
   background-color: #fff1f2 !important;
-  color: #be123c !important;
+  color: #e11d48 !important;
+}
+
+/* Active navigation item has solid reddish side border and soft reddish background */
+.admin-light aside nav a[data-active="true"] {
+  background-color: #fff1f2 !important;
+  border: 1px solid #fecdd3 !important;
+  border-left: 4px solid #e11d48 !important;
+  color: #e11d48 !important;
+}
+
+.admin-light aside nav a[data-active="true"] span,
+.admin-light aside nav a[data-active="true"] svg {
+  color: #e11d48 !important;
+  stroke: #e11d48 !important;
+}
+
+/* Polished toggle switch track in light and dark mode */
+.admin-light .admin-toggle-track {
+  background-color: #cbd5e1 !important;
+  border: 2px solid #94a3b8 !important;
+}
+
+.admin-light input:checked ~ .admin-toggle-track,
+.admin-light .peer:checked ~ .admin-toggle-track {
+  background-color: #e11d48 !important;
+  border-color: #e11d48 !important;
+}
+
+.admin-light .admin-toggle-track span {
+  background-color: #ffffff !important;
+}
+
+/* Button click / active radish border effect */
+.admin-light button:active,
+.admin-light a:active,
+.admin-light button:focus-visible,
+.admin-light a:focus-visible {
+  border-color: #e11d48 !important;
 }
 
 /* Inputs and selects share a single polished interaction state. */

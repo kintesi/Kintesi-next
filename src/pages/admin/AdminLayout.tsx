@@ -171,25 +171,26 @@ const AdminLayoutInner: React.FC = () => {
                   <Link
                     key={item.path}
                     to={item.path}
+                    data-active={isActive ? 'true' : undefined}
                     onClick={() => setIsMobileMenuOpen(false)}
                     className={`flex items-center gap-3 px-3.5 py-2 rounded-xl text-xs font-black transition ${
                       isActive
                         ? isLight
-                          ? 'bg-white border border-rose-500 shadow-sm'
-                          : 'bg-rose-600 text-white shadow-lg shadow-rose-600/25'
+                          ? 'bg-rose-50/90 text-rose-600 border border-rose-200 border-l-4 border-l-rose-600 shadow-xs'
+                          : 'bg-rose-600 text-white border-l-4 border-l-white shadow-lg shadow-rose-600/25'
                         : isLight
-                        ? 'hover:bg-rose-50 hover:text-rose-700'
+                        ? 'hover:bg-rose-50 hover:text-rose-700 hover:border-l-4 hover:border-l-rose-300'
                         : 'text-gray-400 hover:text-white hover:bg-gray-800/60'
                     }`}
-                    style={isActive ? { color: isLight ? '#0f172a' : '#ffffff' } : isLight ? { color: '#000000' } : {}}
+                    style={isActive ? { color: isLight ? '#e11d48' : '#ffffff' } : isLight ? { color: '#000000' } : {}}
                   >
                     <Icon
                       className="w-4 h-4 flex-shrink-0"
-                      style={isActive ? { color: isLight ? '#0f172a' : '#ffffff' } : isLight ? { color: '#000000' } : { color: '#9ca3af' }}
+                      style={isActive ? { color: isLight ? '#e11d48' : '#ffffff' } : isLight ? { color: '#000000' } : { color: '#9ca3af' }}
                     />
                     <span
                       className="truncate"
-                      style={isActive ? { color: isLight ? '#0f172a' : '#ffffff' } : isLight ? { color: '#000000' } : {}}
+                      style={isActive ? { color: isLight ? '#e11d48' : '#ffffff' } : isLight ? { color: '#000000' } : {}}
                     >
                       {item.name}
                     </span>
