@@ -402,8 +402,8 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }
 
-  // Free shipping for orders above ৳5000, otherwise standard ৳60 Inside Dhaka / ৳120 Outside
-  const shippingFee = subtotal === 0 ? 0 : subtotal >= 5000 ? 0 : 60;
+  // Standard ৳60 Inside Dhaka delivery fee
+  const shippingFee = subtotal === 0 ? 0 : 60;
   const total = Math.max(0, subtotal - discountAmount + shippingFee);
   const totalItemCount = cart.reduce((sum, item) => sum + (typeof item?.quantity === 'number' ? item.quantity : 0), 0);
 

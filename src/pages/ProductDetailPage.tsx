@@ -175,11 +175,7 @@ export const ProductDetailPage: React.FC = () => {
     ? (settings.deliveryFeeInsideDhaka || 60)
     : (settings.deliveryFeeOutsideDhaka || 120);
 
-  const isFreeDeliveryEligible = product
-    ? (product.discount_price || product.price) * quantity >= (settings.freeShippingThreshold || 1000)
-    : false;
-
-  const effectiveDeliveryFee = isFreeDeliveryEligible ? 0 : standardDeliveryFee;
+  const effectiveDeliveryFee = standardDeliveryFee;
 
   useEffect(() => {
     async function loadProduct() {
@@ -865,7 +861,7 @@ export const ProductDetailPage: React.FC = () => {
                             </div>
                             <div className="text-right shrink-0">
                               <span className="text-xs font-black text-emerald-700 block">
-                                {isFreeDeliveryEligible ? 'FREE' : formatPrice(fee)}
+                                {formatPrice(fee)}
                               </span>
                               <span className="text-[9px] text-gray-400">
                                 {addrIsDhaka ? '24-48h' : '2-3d'}
@@ -937,8 +933,6 @@ export const ProductDetailPage: React.FC = () => {
                     <span>Inside Dhaka: <strong className="text-gray-800">৳{settings.deliveryFeeInsideDhaka || 60}</strong></span>
                     <span>•</span>
                     <span>Outside Dhaka: <strong className="text-gray-800">৳{settings.deliveryFeeOutsideDhaka || 120}</strong></span>
-                    <span>•</span>
-                    <span className="text-emerald-700 font-bold">Free on ৳{settings.freeShippingThreshold || 1000}+</span>
                   </div>
                 </div>
               )}

@@ -294,7 +294,7 @@ export const CheckoutPage: React.FC = () => {
   const dynamicShippingFee =
     checkoutSubtotal === 0
       ? 0
-      : checkoutSubtotal >= (settings.freeShippingThreshold || 5000)
+      : settings.freeShippingThreshold && settings.freeShippingThreshold > 0 && checkoutSubtotal >= settings.freeShippingThreshold
       ? 0
       : isInsideDhaka
       ? Number(settings.deliveryFeeInsideDhaka) || 60

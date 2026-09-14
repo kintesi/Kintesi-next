@@ -139,7 +139,7 @@ export const CartPage: React.FC = () => {
     }
   }
 
-  const selectedShippingFee = selectedSubtotal === 0 ? 0 : selectedSubtotal >= 5000 ? 0 : 60;
+  const selectedShippingFee = selectedSubtotal === 0 ? 0 : 60;
   const selectedTotal = Math.max(0, selectedSubtotal - selectedDiscountAmount + selectedShippingFee);
   const selectedCount = selectedItems.reduce(
     (sum, item) => sum + (typeof item?.quantity === 'number' ? item.quantity : 0),
