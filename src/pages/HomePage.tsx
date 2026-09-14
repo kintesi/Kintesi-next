@@ -336,6 +336,7 @@ export const HomePage: React.FC = () => {
               defaultTitle={banners.flashSaleTitle}
               defaultSubtitle={banners.flashSaleSubtitle}
               defaultBgImage={banners.flashSaleBgImage}
+              defaultLink={banners.flashSaleLink}
               theme={banners.flashSaleTheme}
               timeLeft={timeLeft}
               isMobile={true}
@@ -622,6 +623,7 @@ export const HomePage: React.FC = () => {
               defaultTitle={banners.flashSaleTitle}
               defaultSubtitle={banners.flashSaleSubtitle}
               defaultBgImage={banners.flashSaleBgImage}
+              defaultLink={banners.flashSaleLink}
               theme={banners.flashSaleTheme}
               timeLeft={timeLeft}
               isMobile={false}

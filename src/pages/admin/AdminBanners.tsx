@@ -46,6 +46,7 @@ export const AdminBanners: React.FC = () => {
   const [catalogProducts, setCatalogProducts] = useState<Product[]>([]);
   const [spotlightSearch, setSpotlightSearch] = useState('');
   const [featuredSearch, setFeaturedSearch] = useState('');
+  const [flashSlideSearch, setFlashSlideSearch] = useState('');
   const [selectedSlideIndex, setSelectedSlideIndex] = useState(0);
   const [isUpdatingProduct, setIsUpdatingProduct] = useState<string | null>(null);
 
@@ -88,6 +89,42 @@ export const AdminBanners: React.FC = () => {
     if (!query) return [];
     return catalogProducts.filter((product) => [product.title, product.sku, product.brand].some((value) => value?.toLowerCase().includes(query))).slice(0, 8);
   }, [catalogProducts, featuredSearch]);
+
+  const matchedFlashSlideProducts = useMemo(() => {
+    const query = flashSlideSearch.trim().toLowerCase();
+    if (!query) return [];
+    return catalogProducts
+      .filter((product) =>
+        [product.title, product.sku, product.brand].some((value) =>
+          value?.toLowerCase().includes(query)
+        )
+      )
+      .slice(0, 6);
+  }, [catalogProducts, flashSlideSearch]);
+
+  const selectFlashSlideProduct = (product: Product) => {
+    const nextSlides = slides.map((slide, index) => {
+      if (index !== selectedSlideIndex) return slide;
+      return {
+        ...slide,
+        title: slide.title === 'New Flash Deal' || !slide.title ? product.title : slide.title,
+        bgImage: slide.bgImage ? slide.bgImage : (product.images?.[0] || ''),
+        link: `/product/${product.id}`,
+        productId: product.id,
+      };
+    });
+    setForm((previous) => ({
+      ...previous,
+      flashSaleSlides: nextSlides,
+      ...(selectedSlideIndex === 0 ? {
+        flashSaleTitle: nextSlides[0].title,
+        flashSaleBgImage: nextSlides[0].bgImage,
+        flashSaleLink: nextSlides[0].link,
+      } : {}),
+    }));
+    setFlashSlideSearch('');
+    toast.success(`Slide linked to "${product.title}"`);
+  };
 
   const featuredProducts = catalogProducts.filter((product) => product.is_featured);
 
@@ -140,6 +177,7 @@ export const AdminBanners: React.FC = () => {
         flashSaleTitle: key === 'title' ? value : previous.flashSaleTitle,
         flashSaleSubtitle: key === 'subtitle' ? value : previous.flashSaleSubtitle,
         flashSaleBgImage: key === 'bgImage' ? value : previous.flashSaleBgImage,
+        flashSaleLink: key === 'link' ? value : previous.flashSaleLink,
       } : {}),
     }));
   };
@@ -151,6 +189,7 @@ export const AdminBanners: React.FC = () => {
       title: 'New Flash Deal',
       subtitle: 'Add a short, clear offer description.',
       bgImage: '',
+      link: '/products',
     }];
     setForm((previous) => ({ ...previous, flashSaleSlides: nextSlides }));
     setSelectedSlideIndex(nextSlides.length - 1);
@@ -187,6 +226,7 @@ export const AdminBanners: React.FC = () => {
       flashSaleTitle: slides[0]?.title || form.flashSaleTitle,
       flashSaleSubtitle: slides[0]?.subtitle || form.flashSaleSubtitle,
       flashSaleBgImage: slides[0]?.bgImage || form.flashSaleBgImage,
+      flashSaleLink: slides[0]?.link || form.flashSaleLink || '/products',
     };
     setForm(nextForm);
     await updateBanners(nextForm);
@@ -318,11 +358,120 @@ export const AdminBanners: React.FC = () => {
             </div>
             <div className="mt-5 grid gap-4 sm:grid-cols-[160px_1fr_auto] sm:items-end">
               <Field label="Countdown hours"><input type="number" min="1" max="72" value={form.flashSaleHours || ''} onChange={(event) => setValue('flashSaleHours', Number(event.target.value))} className={`w-full px-3.5 py-2.5 border text-sm ${input}`} /></Field>
-              <Field label="Theme"><select value={form.flashSaleTheme || 'sunset'} onChange={(event) => setValue('flashSaleTheme', event.target.value as BannerSettings['flashSaleTheme'])} className={`w-full px-3.5 py-2.5 border text-sm ${input}`}><option value="sunset">Sunset radish</option><option value="emerald">Emerald</option><option value="cyber">Cyber</option><option value="dark">Dark</option></select></Field>
+              <Field label="Theme">
+                <select
+                  value={form.flashSaleTheme || 'sunset'}
+                  onChange={(event) => setValue('flashSaleTheme', event.target.value as BannerSettings['flashSaleTheme'])}
+                  className={`w-full px-3.5 py-2.5 border text-sm ${input}`}
+                >
+                  <option value="sunset">🌅 Sunset Radish (Signature Rose & Ruby)</option>
+                  <option value="emerald">🌲 Emerald Luxe (Deep Forest & Teal)</option>
+                  <option value="cyber">⚡ Cyber Neon (Electric Violet & Cyan)</option>
+                  <option value="dark">🌑 Midnight Onyx (Obsidian & Silver)</option>
+                  <option value="crimson">💎 Ruby Crimson (Vivid Crimson & Fire Red)</option>
+                  <option value="gold">👑 Royal Gold (Imperial Amber & Gold)</option>
+                  <option value="ocean">🌊 Deep Ocean (Sapphire & Royal Blue)</option>
+                  <option value="aurora">🌌 Aurora Borealis (Mystic Teal & Magenta)</option>
+                  <option value="cherry">🌸 Cherry Blossom (Neon Fuchsia & Pink)</option>
+                  <option value="solar">☀️ Solar Flare (Fiery Orange & Flame)</option>
+                </select>
+              </Field>
               <button type="button" onClick={resetFlashTimer} className="px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-xs font-bold hover:bg-rose-50">Restart timer</button>
             </div>
-            <div className="mt-5 flex flex-wrap items-center gap-2"><span className="text-[11px] font-black uppercase tracking-wide text-slate-500 mr-1">Slides</span>{slides.map((slide, index) => <button key={slide.id} type="button" onClick={() => setSelectedSlideIndex(index)} className={`h-8 min-w-8 rounded-lg px-2.5 text-xs font-bold border ${index === selectedSlideIndex ? 'bg-rose-600 border-rose-600 text-white' : 'bg-white border-slate-200 text-slate-600 hover:border-rose-300'}`}>{index + 1}</button>)}<button type="button" onClick={addSlide} className="h-8 px-2.5 rounded-lg border border-dashed border-rose-300 text-rose-600 text-xs font-bold hover:bg-rose-50"><Plus className="w-3.5 h-3.5 inline mr-1" />Add slide</button>{slides.length > 1 && <button type="button" onClick={removeSlide} className="h-8 px-2.5 rounded-lg text-rose-600 text-xs font-bold hover:bg-rose-50"><Trash2 className="w-3.5 h-3.5 inline mr-1" />Remove</button>}</div>
-            <div className="mt-4 grid gap-4 sm:grid-cols-2"><Field label="Slide tag"><input value={currentSlide.tag || ''} onChange={(event) => updateSlide('tag', event.target.value)} className={`w-full px-3.5 py-2.5 border text-sm ${input}`} /></Field><Field label="Slide title"><input value={currentSlide.title} onChange={(event) => updateSlide('title', event.target.value)} className={`w-full px-3.5 py-2.5 border text-sm ${input}`} /></Field><Field label="Slide description"><textarea rows={2} value={currentSlide.subtitle || ''} onChange={(event) => updateSlide('subtitle', event.target.value)} className={`w-full px-3.5 py-2.5 border text-sm resize-y ${input}`} /></Field><div><ImageUploader label="Slide background image" value={currentSlide.bgImage || ''} onChange={(value) => updateSlide('bgImage', value)} helpText="Optional: a wide promotional image." /></div></div>
+
+            <div className="mt-5 flex flex-wrap items-center gap-2">
+              <span className="text-[11px] font-black uppercase tracking-wide text-slate-500 mr-1">Slides</span>
+              {slides.map((slide, index) => (
+                <button
+                  key={slide.id}
+                  type="button"
+                  onClick={() => setSelectedSlideIndex(index)}
+                  className={`h-8 min-w-8 rounded-lg px-2.5 text-xs font-bold border ${index === selectedSlideIndex ? 'bg-rose-600 border-rose-600 text-white' : 'bg-white border-slate-200 text-slate-600 hover:border-rose-300'}`}
+                >
+                  {index + 1}
+                </button>
+              ))}
+              <button type="button" onClick={addSlide} className="h-8 px-2.5 rounded-lg border border-dashed border-rose-300 text-rose-600 text-xs font-bold hover:bg-rose-50">
+                <Plus className="w-3.5 h-3.5 inline mr-1" />Add slide
+              </button>
+              {slides.length > 1 && (
+                <button type="button" onClick={removeSlide} className="h-8 px-2.5 rounded-lg text-rose-600 text-xs font-bold hover:bg-rose-50">
+                  <Trash2 className="w-3.5 h-3.5 inline mr-1" />Remove
+                </button>
+              )}
+            </div>
+
+            {/* Catalog product search for linking this slide */}
+            <div className="mt-4">
+              <Field label="Link a product to this slide" hint="Search catalog to link slide directly to a product">
+                <div className="relative">
+                  <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                  <input
+                    value={flashSlideSearch}
+                    onChange={(event) => setFlashSlideSearch(event.target.value)}
+                    className={`w-full pl-10 pr-3.5 py-2.5 border text-sm ${input}`}
+                    placeholder="Search product by name, brand, or SKU to link..."
+                  />
+                </div>
+              </Field>
+              {matchedFlashSlideProducts.length > 0 && (
+                <div className="mt-2 rounded-xl border border-slate-200 divide-y divide-slate-100 overflow-hidden bg-white shadow-sm">
+                  {matchedFlashSlideProducts.map((product) => (
+                    <button
+                      key={product.id}
+                      type="button"
+                      onClick={() => selectFlashSlideProduct(product)}
+                      className="w-full px-3.5 py-2.5 text-left flex items-center justify-between gap-4 hover:bg-rose-50 transition"
+                    >
+                      <span className="min-w-0">
+                        <span className="block text-xs font-bold truncate text-slate-800">{product.title}</span>
+                        <span className="text-[11px] text-slate-500">
+                          ৳{product.price} {product.sku ? `• SKU: ${product.sku}` : ''}
+                        </span>
+                      </span>
+                      <span className="text-xs font-bold text-rose-600 shrink-0">Link Product</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="mt-4 grid gap-4 sm:grid-cols-2">
+              <Field label="Slide tag">
+                <input value={currentSlide.tag || ''} onChange={(event) => updateSlide('tag', event.target.value)} className={`w-full px-3.5 py-2.5 border text-sm ${input}`} />
+              </Field>
+              <Field label="Slide title">
+                <input value={currentSlide.title} onChange={(event) => updateSlide('title', event.target.value)} className={`w-full px-3.5 py-2.5 border text-sm ${input}`} />
+              </Field>
+              <Field label="Click destination link" hint="Where clicking this slide takes customers">
+                <input
+                  value={currentSlide.link || ''}
+                  onChange={(event) => updateSlide('link', event.target.value)}
+                  className={`w-full px-3.5 py-2.5 border text-sm ${input}`}
+                  placeholder="e.g. /product/abc-123 or /products"
+                />
+              </Field>
+              <Field label="Slide description">
+                <textarea rows={2} value={currentSlide.subtitle || ''} onChange={(event) => updateSlide('subtitle', event.target.value)} className={`w-full px-3.5 py-2.5 border text-sm resize-y ${input}`} />
+              </Field>
+              {currentSlide.link && (
+                <div className="sm:col-span-2 flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-rose-50 border border-rose-100 text-xs text-rose-900">
+                  <span className="truncate">
+                    <span className="font-bold">🔗 Active Slide Link:</span> {currentSlide.link}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => updateSlide('link', '')}
+                    className="text-rose-600 hover:text-rose-800 font-bold ml-2 shrink-0"
+                  >
+                    Clear Link
+                  </button>
+                </div>
+              )}
+              <div className="sm:col-span-2">
+                <ImageUploader label="Slide background image" value={currentSlide.bgImage || ''} onChange={(value) => updateSlide('bgImage', value)} helpText="Optional: a wide promotional image." />
+              </div>
+            </div>
           </section>
 
           <section className={`rounded-2xl border p-5 sm:p-6 ${card}`}>

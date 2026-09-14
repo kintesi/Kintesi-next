@@ -10,6 +10,8 @@ export interface FlashSaleSlide {
   title: string;
   subtitle?: string;
   bgImage?: string;
+  link?: string;
+  productId?: string;
 }
 
 export interface BannerSettings {
@@ -50,9 +52,20 @@ export interface BannerSettings {
   flashSaleTitle: string;
   flashSaleSubtitle: string;
   flashSaleHours: number;
-  flashSaleTheme: 'sunset' | 'emerald' | 'cyber' | 'dark';
+  flashSaleTheme:
+    | 'sunset'
+    | 'emerald'
+    | 'cyber'
+    | 'dark'
+    | 'crimson'
+    | 'gold'
+    | 'ocean'
+    | 'aurora'
+    | 'cherry'
+    | 'solar';
   flashSaleEndsAt?: string;
   flashSaleBgImage?: string;
+  flashSaleLink?: string;
   flashSaleSlides?: FlashSaleSlide[];
 
   // Featured Products Section
@@ -112,6 +125,7 @@ export const DEFAULT_BANNERS: BannerSettings = {
   flashSaleTheme: 'sunset',
   flashSaleEndsAt: '',
   flashSaleBgImage: '',
+  flashSaleLink: '/products',
   flashSaleSlides: [
     {
       id: '1',
@@ -119,6 +133,7 @@ export const DEFAULT_BANNERS: BannerSettings = {
       title: 'Exclusive 24-Hour Super Deals',
       subtitle: 'Limited stock flash offers with up to 50% discount. Order before time runs out!',
       bgImage: '',
+      link: '/products',
     },
   ],
 

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Flame, Timer, ChevronLeft, ChevronRight } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Flame, Timer, ChevronLeft, ChevronRight, ArrowRight } from 'lucide-react';
 import { FlashSaleSlide } from '../../contexts/SettingsContext';
 
 interface FlashSaleBannerProps {
@@ -8,6 +9,7 @@ interface FlashSaleBannerProps {
   defaultTitle?: string;
   defaultSubtitle?: string;
   defaultBgImage?: string;
+  defaultLink?: string;
   theme?: string;
   timeLeft: { hours: number; minutes: number; seconds: number };
   isMobile?: boolean;
@@ -22,56 +24,131 @@ interface ThemePalette {
   timerSecText: string;
   dotActive: string;
   border: string;
+  ctaBg: string;
 }
 
 const getFlashThemeConfig = (theme?: string): ThemePalette => {
   switch (theme) {
     case 'emerald':
       return {
-        cardBg: 'from-[#05130d] via-[#091f16] to-[#040c08]',
-        glowColor: 'bg-emerald-500/15',
-        badgeBg: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/35',
+        cardBg: 'from-[#04140d] via-[#092218] to-[#030d08]',
+        glowColor: 'bg-emerald-500/20',
+        badgeBg: 'bg-emerald-500/25 text-emerald-300 border-emerald-500/40',
         timerBg: 'bg-black/55 border-emerald-500/25',
-        timerSecBg: 'bg-emerald-500/25 border-emerald-500/40',
+        timerSecBg: 'bg-emerald-500/30 border-emerald-500/50',
         timerSecText: 'text-emerald-300',
         dotActive: 'bg-emerald-400 shadow-emerald-400/50',
-        border: 'border-emerald-500/25',
+        border: 'border-emerald-500/30',
+        ctaBg: 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-emerald-600/30',
       };
     case 'cyber':
       return {
-        cardBg: 'from-[#0c0819] via-[#140f28] to-[#07050e]',
-        glowColor: 'bg-purple-500/15',
-        badgeBg: 'bg-purple-500/20 text-purple-300 border-purple-500/35',
+        cardBg: 'from-[#0b071a] via-[#140c2b] to-[#070412]',
+        glowColor: 'bg-purple-500/20',
+        badgeBg: 'bg-purple-500/25 text-purple-300 border-purple-500/40',
         timerBg: 'bg-black/55 border-purple-500/25',
-        timerSecBg: 'bg-purple-500/25 border-purple-500/40',
+        timerSecBg: 'bg-purple-500/30 border-purple-500/50',
         timerSecText: 'text-purple-300',
         dotActive: 'bg-purple-400 shadow-purple-400/50',
-        border: 'border-purple-500/25',
+        border: 'border-purple-500/30',
+        ctaBg: 'bg-purple-600 hover:bg-purple-500 text-white shadow-purple-600/30',
       };
     case 'dark':
       return {
-        cardBg: 'from-[#09090b] via-[#141418] to-[#0a0a0c]',
-        glowColor: 'bg-white/8',
-        badgeBg: 'bg-white/10 text-white border-white/25',
+        cardBg: 'from-[#09090b] via-[#141418] to-[#070709]',
+        glowColor: 'bg-white/10',
+        badgeBg: 'bg-white/15 text-white border-white/30',
         timerBg: 'bg-black/60 border-white/20',
-        timerSecBg: 'bg-white/20 border-white/30',
+        timerSecBg: 'bg-white/25 border-white/40',
         timerSecText: 'text-white',
         dotActive: 'bg-white shadow-white/50',
-        border: 'border-white/15',
+        border: 'border-white/20',
+        ctaBg: 'bg-white hover:bg-slate-200 text-black shadow-white/20',
+      };
+    case 'crimson':
+      return {
+        cardBg: 'from-[#180407] via-[#24060c] to-[#0f0205]',
+        glowColor: 'bg-red-500/20',
+        badgeBg: 'bg-red-500/25 text-red-300 border-red-500/40',
+        timerBg: 'bg-black/55 border-red-500/25',
+        timerSecBg: 'bg-red-500/30 border-red-500/50',
+        timerSecText: 'text-red-300',
+        dotActive: 'bg-red-500 shadow-red-500/50',
+        border: 'border-red-500/30',
+        ctaBg: 'bg-red-600 hover:bg-red-500 text-white shadow-red-600/30',
+      };
+    case 'gold':
+      return {
+        cardBg: 'from-[#170e03] via-[#241705] to-[#0c0701]',
+        glowColor: 'bg-amber-500/20',
+        badgeBg: 'bg-amber-500/25 text-amber-300 border-amber-500/40',
+        timerBg: 'bg-black/55 border-amber-500/25',
+        timerSecBg: 'bg-amber-500/30 border-amber-500/50',
+        timerSecText: 'text-amber-300',
+        dotActive: 'bg-amber-400 shadow-amber-400/50',
+        border: 'border-amber-500/30',
+        ctaBg: 'bg-amber-500 hover:bg-amber-400 text-black font-black shadow-amber-500/30',
+      };
+    case 'ocean':
+      return {
+        cardBg: 'from-[#050e1c] via-[#09172e] to-[#03070f]',
+        glowColor: 'bg-blue-500/20',
+        badgeBg: 'bg-blue-500/25 text-blue-300 border-blue-500/40',
+        timerBg: 'bg-black/55 border-blue-500/25',
+        timerSecBg: 'bg-blue-500/30 border-blue-500/50',
+        timerSecText: 'text-blue-300',
+        dotActive: 'bg-blue-400 shadow-blue-400/50',
+        border: 'border-blue-500/30',
+        ctaBg: 'bg-blue-600 hover:bg-blue-500 text-white shadow-blue-600/30',
+      };
+    case 'aurora':
+      return {
+        cardBg: 'from-[#041416] via-[#101026] to-[#060414]',
+        glowColor: 'bg-teal-400/20',
+        badgeBg: 'bg-teal-500/25 text-teal-300 border-teal-500/40',
+        timerBg: 'bg-black/55 border-teal-500/25',
+        timerSecBg: 'bg-teal-500/30 border-teal-500/50',
+        timerSecText: 'text-teal-300',
+        dotActive: 'bg-teal-400 shadow-teal-400/50',
+        border: 'border-teal-500/30',
+        ctaBg: 'bg-gradient-to-r from-teal-500 to-indigo-600 hover:from-teal-400 hover:to-indigo-500 text-white shadow-teal-500/30',
+      };
+    case 'cherry':
+      return {
+        cardBg: 'from-[#190514] via-[#270920] to-[#0f020d]',
+        glowColor: 'bg-pink-500/20',
+        badgeBg: 'bg-pink-500/25 text-pink-300 border-pink-500/40',
+        timerBg: 'bg-black/55 border-pink-500/25',
+        timerSecBg: 'bg-pink-500/30 border-pink-500/50',
+        timerSecText: 'text-pink-300',
+        dotActive: 'bg-pink-400 shadow-pink-400/50',
+        border: 'border-pink-500/30',
+        ctaBg: 'bg-pink-600 hover:bg-pink-500 text-white shadow-pink-600/30',
+      };
+    case 'solar':
+      return {
+        cardBg: 'from-[#1a0802] via-[#290f04] to-[#0d0301]',
+        glowColor: 'bg-orange-500/20',
+        badgeBg: 'bg-orange-500/25 text-orange-300 border-orange-500/40',
+        timerBg: 'bg-black/55 border-orange-500/25',
+        timerSecBg: 'bg-orange-500/30 border-orange-500/50',
+        timerSecText: 'text-orange-300',
+        dotActive: 'bg-orange-400 shadow-orange-400/50',
+        border: 'border-orange-500/30',
+        ctaBg: 'bg-orange-600 hover:bg-orange-500 text-white shadow-orange-600/30',
       };
     case 'sunset':
     default:
-      // Kintesi Signature Luxury Brand: Deep Obsidian Ruby & Rose
-      // Modern, high-end, bespoke (NO cheap yellow, NO direct demo copy)
       return {
         cardBg: 'from-[#14080e] via-[#1c0c16] to-[#0b0509]',
-        glowColor: 'bg-rose-500/15',
-        badgeBg: 'bg-rose-500/20 text-rose-300 border-rose-500/35',
+        glowColor: 'bg-rose-500/20',
+        badgeBg: 'bg-rose-500/25 text-rose-300 border-rose-500/40',
         timerBg: 'bg-black/55 border-rose-500/25',
-        timerSecBg: 'bg-rose-500/25 border-rose-500/40',
+        timerSecBg: 'bg-rose-500/30 border-rose-500/50',
         timerSecText: 'text-rose-400',
         dotActive: 'bg-rose-500 shadow-rose-500/50',
-        border: 'border-rose-500/25',
+        border: 'border-rose-500/30',
+        ctaBg: 'bg-rose-600 hover:bg-rose-500 text-white shadow-rose-600/30',
       };
   }
 };
@@ -82,10 +159,13 @@ export const FlashSaleBanner: React.FC<FlashSaleBannerProps> = ({
   defaultTitle,
   defaultSubtitle,
   defaultBgImage,
+  defaultLink,
   theme = 'sunset',
   timeLeft,
   isMobile = false,
 }) => {
+  const navigate = useNavigate();
+
   // Normalize slides
   const activeSlides: FlashSaleSlide[] =
     slides && slides.length > 0
@@ -95,6 +175,8 @@ export const FlashSaleBanner: React.FC<FlashSaleBannerProps> = ({
           title: s.title || defaultTitle || 'EXCLUSIVE SUPER DEALS',
           subtitle: s.subtitle || defaultSubtitle || 'Limited stock flash offers with up to 50% discount. Order before time runs out!',
           bgImage: s.bgImage || defaultBgImage || '',
+          link: s.link || defaultLink || '',
+          productId: s.productId || '',
         }))
       : [
           {
@@ -103,6 +185,7 @@ export const FlashSaleBanner: React.FC<FlashSaleBannerProps> = ({
             title: defaultTitle || 'EXCLUSIVE SUPER DEALS',
             subtitle: defaultSubtitle || 'Limited stock flash offers with up to 50% discount. Order before time runs out!',
             bgImage: defaultBgImage || '',
+            link: defaultLink || '',
           },
         ];
 
@@ -150,13 +233,33 @@ export const FlashSaleBanner: React.FC<FlashSaleBannerProps> = ({
   const currentSlide = activeSlides[safeIndex];
   const themeConfig = getFlashThemeConfig(theme);
 
+  const handleBannerClick = (e: React.MouseEvent) => {
+    const target = e.target as HTMLElement;
+    if (target.closest('button')) return;
+
+    const targetLink =
+      currentSlide.link ||
+      (currentSlide.productId ? `/product/${currentSlide.productId}` : '') ||
+      defaultLink ||
+      '/products';
+
+    if (targetLink) {
+      if (targetLink.startsWith('http://') || targetLink.startsWith('https://')) {
+        window.open(targetLink, '_blank');
+      } else {
+        navigate(targetLink);
+      }
+    }
+  };
+
   // ==========================================
   // MOBILE LUXURY FLASH SALE BANNER
   // ==========================================
   if (isMobile) {
     return (
       <div
-        className={`relative overflow-hidden rounded-[22px] sm:rounded-[24px] shadow-xl flex select-none transition-all bg-gradient-to-r ${themeConfig.cardBg} border ${themeConfig.border} min-h-[145px]`}
+        onClick={handleBannerClick}
+        className={`relative overflow-hidden rounded-[22px] sm:rounded-[24px] shadow-xl flex select-none transition-all cursor-pointer group bg-gradient-to-r ${themeConfig.cardBg} border ${themeConfig.border} min-h-[145px]`}
         onMouseEnter={() => setIsPaused(true)}
         onMouseLeave={() => setIsPaused(false)}
         onTouchStart={handleTouchStart}
@@ -168,12 +271,17 @@ export const FlashSaleBanner: React.FC<FlashSaleBannerProps> = ({
         {/* Left Content Area: Tag, Title, Subtitle & Timer */}
         <div className="relative z-10 flex-1 p-3.5 sm:p-4 flex flex-col justify-between min-w-0 max-w-[62%] sm:max-w-[65%] min-h-[145px]">
           <div className="space-y-1.5">
-            {/* Tag Badge */}
-            <div
-              className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10.5px] font-black uppercase tracking-wider shadow-xs self-start border backdrop-blur-md ${themeConfig.badgeBg}`}
-            >
-              <Flame className="w-3 h-3 fill-current animate-pulse" />
-              <span>{currentSlide.tag || '⚡ FLASH SALE'}</span>
+            {/* Tag Badge & Shop Deal Chip */}
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <div
+                className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider shadow-xs border backdrop-blur-md ${themeConfig.badgeBg}`}
+              >
+                <Flame className="w-3 h-3 fill-current animate-pulse" />
+                <span>{currentSlide.tag || '⚡ FLASH SALE'}</span>
+              </div>
+              <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider shadow-xs transition-transform duration-200 group-hover:scale-105 ${themeConfig.ctaBg}`}>
+                Shop Deal <ArrowRight className="w-2.5 h-2.5 transition-transform group-hover:translate-x-0.5" />
+              </span>
             </div>
 
             {/* Main Heading */}
@@ -205,7 +313,10 @@ export const FlashSaleBanner: React.FC<FlashSaleBannerProps> = ({
                 {activeSlides.map((_, i) => (
                   <button
                     key={i}
-                    onClick={() => setCurrentIndex(i)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setCurrentIndex(i);
+                    }}
                     className={`h-1.5 rounded-full transition-all duration-300 cursor-pointer ${
                       i === safeIndex ? `w-4 ${themeConfig.dotActive}` : 'w-1.5 bg-white/30'
                     }`}
@@ -251,7 +362,8 @@ export const FlashSaleBanner: React.FC<FlashSaleBannerProps> = ({
   // ==========================================
   return (
     <div
-      className={`relative overflow-hidden rounded-[26px] sm:rounded-[30px] shadow-2xl flex mb-6 text-white group select-none transition-all bg-gradient-to-r ${themeConfig.cardBg} border ${themeConfig.border} min-h-[220px] sm:min-h-[250px] lg:min-h-[270px]`}
+      onClick={handleBannerClick}
+      className={`relative overflow-hidden rounded-[26px] sm:rounded-[30px] shadow-2xl flex mb-6 text-white group select-none transition-all cursor-pointer bg-gradient-to-r ${themeConfig.cardBg} border ${themeConfig.border} min-h-[220px] sm:min-h-[250px] lg:min-h-[270px]`}
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
     >
@@ -283,8 +395,8 @@ export const FlashSaleBanner: React.FC<FlashSaleBannerProps> = ({
           )}
         </div>
 
-        {/* Bottom Area: Modern HUD Countdown Timer & Slide Indicators */}
-        <div className="pt-5 flex items-center justify-between gap-4">
+        {/* Bottom Area: Modern HUD Countdown Timer, Slide Indicators & Shop Deal Button */}
+        <div className="pt-5 flex items-center justify-between gap-4 flex-wrap">
           {/* Countdown Timer HUD */}
           <div className={`flex items-center gap-2.5 backdrop-blur-md px-4 py-2.5 rounded-2xl border shadow-lg ${themeConfig.timerBg}`}>
             <Timer className="w-4 h-4 text-white/80 shrink-0" />
@@ -306,22 +418,34 @@ export const FlashSaleBanner: React.FC<FlashSaleBannerProps> = ({
             </div>
           </div>
 
-          {/* Slide Dots */}
-          {activeSlides.length > 1 && (
-            <div className="flex items-center gap-1.5">
-              {activeSlides.map((_, i) => (
-                <button
-                  key={i}
-                  type="button"
-                  onClick={() => setCurrentIndex(i)}
-                  className={`h-2 rounded-full transition-all duration-300 cursor-pointer ${
-                    i === safeIndex ? `w-7 ${themeConfig.dotActive} shadow-xs` : 'w-2 bg-white/30 hover:bg-white/60'
-                  }`}
-                  aria-label={`Go to slide ${i + 1}`}
-                />
-              ))}
-            </div>
-          )}
+          {/* Shop Deal CTA & Slide Dots */}
+          <div className="flex items-center gap-3">
+            <span
+              className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider shadow-lg transition-all duration-200 group-hover:scale-105 active:scale-95 ${themeConfig.ctaBg}`}
+            >
+              Shop Deal <ArrowRight className="w-3.5 h-3.5 transition-transform duration-200 group-hover:translate-x-1" />
+            </span>
+
+            {/* Slide Dots */}
+            {activeSlides.length > 1 && (
+              <div className="flex items-center gap-1.5">
+                {activeSlides.map((_, i) => (
+                  <button
+                    key={i}
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setCurrentIndex(i);
+                    }}
+                    className={`h-2 rounded-full transition-all duration-300 cursor-pointer ${
+                      i === safeIndex ? `w-7 ${themeConfig.dotActive} shadow-xs` : 'w-2 bg-white/30 hover:bg-white/60'
+                    }`}
+                    aria-label={`Go to slide ${i + 1}`}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
