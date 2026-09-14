@@ -165,16 +165,32 @@ export const HomePage: React.FC = () => {
     (Number(banners.spotlightPrice) > 0 || Number(banners.spotlightDiscountPrice) > 0)
   );
 
-  // 1. Featured Products: ONLY products where admin checked is_featured === true (deduplicated by id)
+  // 1. Featured Products:
+  // Starts with products marked is_featured by admin.
+  // If fewer than 12 products are marked, backfills with top catalog products so
+  // PC shows at least 10-12 products (full 4-column grid), and mobile shows at least 4 products.
   const featuredProducts = useMemo(() => {
+    const explicitlyFeatured: Product[] = [];
+    const others: Product[] = [];
     const seen = new Set<string>();
-    return products.filter((p) => {
-      if (Boolean(p.is_featured) && !seen.has(p.id)) {
-        seen.add(p.id);
-        return true;
+
+    for (const p of products) {
+      if (!p || !p.id || seen.has(p.id)) continue;
+      seen.add(p.id);
+      if (Boolean(p.is_featured)) {
+        explicitlyFeatured.push(p);
+      } else {
+        others.push(p);
       }
-      return false;
-    });
+    }
+
+    // Explicitly featured products come first, followed by others up to 12
+    const combined = [...explicitlyFeatured];
+    for (const p of others) {
+      if (combined.length >= 12) break;
+      combined.push(p);
+    }
+    return combined;
   }, [products]);
 
   const isFeaturedActive = Boolean(
@@ -367,7 +383,7 @@ export const HomePage: React.FC = () => {
             </div>
 
             <div className="grid grid-cols-2 gap-2.5">
-              {featuredProducts.slice(0, 6).map((product) => (
+              {featuredProducts.slice(0, 4).map((product) => (
                 <ProductCard key={product.id} product={product} />
               ))}
             </div>
@@ -658,7 +674,7 @@ export const HomePage: React.FC = () => {
             </div>
 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-              {featuredProducts.slice(0, 8).map((product) => (
+              {featuredProducts.slice(0, 12).map((product) => (
                 <ProductCard key={product.id} product={product} />
               ))}
             </div>
