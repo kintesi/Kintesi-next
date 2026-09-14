@@ -180,36 +180,40 @@ body.admin-light [class*="divide-slate-"] > :not([hidden]) ~ :not([hidden]) {
   border-color: #e2e8f0 !important;
 }
 
-/* 3. UNIVERSAL TEXT OVERRIDES:
-   All text-white and text-gray- turn dark slate */
+/* 3. UNIVERSAL TEXT & ICON OVERRIDES:
+   All text and icons in White Mood are pure, crisp black (#000000) for flawless visibility */
+.admin-light,
+.admin-light body,
+body.admin-light,
+html.admin-light {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+}
+
 .admin-light .text-white,
 body.admin-light .text-white {
-  color: #0f172a !important;
+  color: #000000 !important;
 }
 
-.admin-light [class*="text-gray-1"],
-.admin-light [class*="text-gray-2"],
-.admin-light [class*="text-gray-3"],
-body.admin-light [class*="text-gray-1"],
-body.admin-light [class*="text-gray-2"],
-body.admin-light [class*="text-gray-3"] {
-  color: #1e293b !important;
-}
-
-.admin-light [class*="text-gray-4"],
-.admin-light [class*="text-gray-5"],
-body.admin-light [class*="text-gray-4"],
-body.admin-light [class*="text-gray-5"] {
-  color: #64748b !important;
+.admin-light [class*="text-gray-"],
+.admin-light [class*="text-slate-"],
+.admin-light [class*="text-zinc-"],
+.admin-light [class*="text-neutral-"],
+body.admin-light [class*="text-gray-"],
+body.admin-light [class*="text-slate-"],
+body.admin-light [class*="text-zinc-"],
+body.admin-light [class*="text-neutral-"] {
+  color: #000000 !important;
 }
 
 .admin-light label,
 body.admin-light label {
-  color: #1e293b !important;
+  color: #000000 !important;
+  font-weight: 700 !important;
 }
 
 /* 4. FORM INPUTS & TEXTAREAS:
-   Always white background with dark text and clean border */
+   Crisp white background with high-contrast black text and solid border */
 .admin-light input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([type="range"]),
 .admin-light select,
 .admin-light textarea,
@@ -217,8 +221,15 @@ body.admin-light input:not([type="checkbox"]):not([type="radio"]):not([type="col
 body.admin-light select,
 body.admin-light textarea {
   background-color: #ffffff !important;
-  color: #0f172a !important;
+  color: #000000 !important;
+  font-weight: 600 !important;
   border-color: #cbd5e1 !important;
+}
+
+.admin-light select option,
+body.admin-light select option {
+  background-color: #ffffff !important;
+  color: #000000 !important;
 }
 
 .admin-light input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([type="range"]):focus,
@@ -230,16 +241,18 @@ body.admin-light textarea:focus {
   border-color: #e11d48 !important;
   box-shadow: 0 0 0 1px #e11d48 !important;
   background-color: #ffffff !important;
+  color: #000000 !important;
 }
 
 .admin-light input::placeholder,
 .admin-light textarea::placeholder,
 body.admin-light input::placeholder,
 body.admin-light textarea::placeholder {
-  color: #94a3b8 !important;
+  color: #64748b !important;
+  font-weight: 500 !important;
 }
 
-/* 5. TABLES */
+/* 5. TABLES: Crisp Black Text & Clean Borders */
 .admin-light table,
 .admin-light thead,
 .admin-light tbody,
@@ -249,6 +262,7 @@ body.admin-light thead,
 body.admin-light tbody,
 body.admin-light tr {
   background-color: #ffffff !important;
+  color: #000000 !important;
 }
 
 .admin-light thead tr,
@@ -256,7 +270,15 @@ body.admin-light tr {
 body.admin-light thead tr,
 body.admin-light th {
   background-color: #f8fafc !important;
-  color: #475569 !important;
+  color: #000000 !important;
+  font-weight: 800 !important;
+  border-color: #cbd5e1 !important;
+}
+
+.admin-light td,
+body.admin-light td {
+  color: #000000 !important;
+  font-weight: 600 !important;
   border-color: #e2e8f0 !important;
 }
 
@@ -270,7 +292,7 @@ body.admin-light tbody tr:hover {
 .admin-light [class*="hover:bg-slate-"]:hover,
 body.admin-light [class*="hover:bg-gray-"]:hover,
 body.admin-light [class*="hover:bg-slate-"]:hover {
-  background-color: #f8fafc !important;
+  background-color: #f1f5f9 !important;
 }
 
 /* 7. SOFT ACCENT PASTEL BADGES */
@@ -310,61 +332,130 @@ body.admin-light [class*="hover:bg-slate-"]:hover {
   color: #e11d48 !important;
 }
 
-/* 8. BUTTONS: GRAY BUTTONS BECOME CLEAN LIGHT OUTLINE BUTTONS */
-.admin-light button[class*="bg-gray-800"],
-body.admin-light button[class*="bg-gray-800"] {
+/* 8. BUTTONS: SOLID BLACK TEXT & SOLID BLACK ICONS */
+.admin-light button:not([class*="bg-rose"]):not([class*="bg-red"]):not([class*="bg-purple"]):not([class*="bg-blue"]):not([class*="bg-indigo"]):not([class*="bg-amber"]),
+body.admin-light button:not([class*="bg-rose"]):not([class*="bg-red"]):not([class*="bg-purple"]):not([class*="bg-blue"]):not([class*="bg-indigo"]):not([class*="bg-amber"]) {
+  color: #000000 !important;
+  border-color: #cbd5e1 !important;
+}
+
+.admin-light button:not([class*="bg-rose"]):not([class*="bg-red"]):not([class*="bg-purple"]):not([class*="bg-blue"]):not([class*="bg-indigo"]):not([class*="bg-amber"]) *,
+body.admin-light button:not([class*="bg-rose"]):not([class*="bg-red"]):not([class*="bg-purple"]):not([class*="bg-blue"]):not([class*="bg-indigo"]):not([class*="bg-amber"]) * {
+  color: #000000 !important;
+}
+
+.admin-light button:not([class*="bg-rose"]):not([class*="bg-red"]):not([class*="bg-purple"]):not([class*="bg-blue"]):not([class*="bg-indigo"]):not([class*="bg-amber"]) svg,
+body.admin-light button:not([class*="bg-rose"]):not([class*="bg-red"]):not([class*="bg-purple"]):not([class*="bg-blue"]):not([class*="bg-indigo"]):not([class*="bg-amber"]) svg {
+  color: #000000 !important;
+  stroke: currentColor !important;
+}
+
+.admin-light button:not([class*="bg-rose"]):not([class*="bg-red"]):not([class*="bg-purple"]):not([class*="bg-blue"]):not([class*="bg-indigo"]):not([class*="bg-amber"]):hover,
+body.admin-light button:not([class*="bg-rose"]):not([class*="bg-red"]):not([class*="bg-purple"]):not([class*="bg-blue"]):not([class*="bg-indigo"]):not([class*="bg-amber"]):hover {
   background-color: #f1f5f9 !important;
-  color: #334155 !important;
-  border: 1px solid #cbd5e1 !important;
-}
-.admin-light button[class*="bg-gray-800"]:hover,
-body.admin-light button[class*="bg-gray-800"]:hover {
-  background-color: #e2e8f0 !important;
-  color: #0f172a !important;
-}
-.admin-light button[class*="bg-gray-900"],
-body.admin-light button[class*="bg-gray-900"] {
-  background-color: #ffffff !important;
-  color: #475569 !important;
-  border: 1px solid #cbd5e1 !important;
-}
-.admin-light button[class*="bg-gray-900"]:hover,
-body.admin-light button[class*="bg-gray-900"]:hover {
-  background-color: #f8fafc !important;
-  color: #0f172a !important;
+  color: #000000 !important;
   border-color: #94a3b8 !important;
 }
 
-/* 9. SOLID COLORED BUTTONS & BADGES PRESERVE COLOR & WHITE TEXT */
+.admin-light button:not([class*="bg-rose"]):not([class*="bg-red"]):not([class*="bg-purple"]):not([class*="bg-blue"]):not([class*="bg-indigo"]):not([class*="bg-amber"]):hover *,
+body.admin-light button:not([class*="bg-rose"]):not([class*="bg-red"]):not([class*="bg-purple"]):not([class*="bg-blue"]):not([class*="bg-indigo"]):not([class*="bg-amber"]):hover * {
+  color: #000000 !important;
+}
+
+.admin-light button:not([class*="bg-rose"]):not([class*="bg-red"]):not([class*="bg-purple"]):not([class*="bg-blue"]):not([class*="bg-indigo"]):not([class*="bg-amber"]):hover svg,
+body.admin-light button:not([class*="bg-rose"]):not([class*="bg-red"]):not([class*="bg-purple"]):not([class*="bg-blue"]):not([class*="bg-indigo"]):not([class*="bg-amber"]):hover svg {
+  color: #000000 !important;
+  stroke: currentColor !important;
+}
+
+/* Gray background buttons specifically become clean outline cards with black text */
+.admin-light button[class*="bg-gray-800"],
+.admin-light button[class*="bg-gray-900"],
+.admin-light button[class*="bg-slate-800"],
+.admin-light button[class*="bg-slate-900"],
+body.admin-light button[class*="bg-gray-800"],
+body.admin-light button[class*="bg-gray-900"],
+body.admin-light button[class*="bg-slate-800"],
+body.admin-light button[class*="bg-slate-900"] {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+  border: 1px solid #cbd5e1 !important;
+  font-weight: 700 !important;
+}
+
+.admin-light button[class*="bg-gray-800"]:hover,
+.admin-light button[class*="bg-gray-900"]:hover,
+.admin-light button[class*="bg-slate-800"]:hover,
+.admin-light button[class*="bg-slate-900"]:hover,
+body.admin-light button[class*="bg-gray-800"]:hover,
+body.admin-light button[class*="bg-gray-900"]:hover,
+body.admin-light button[class*="bg-slate-800"]:hover,
+body.admin-light button[class*="bg-slate-900"]:hover {
+  background-color: #f1f5f9 !important;
+  color: #000000 !important;
+  border-color: #94a3b8 !important;
+}
+
+/* Interactive links & navigation items */
+.admin-light a:not([class*="bg-rose"]):not([class*="bg-red"]):not([class*="text-rose"]):not([class*="text-red"]):not([class*="bg-purple"]):not([class*="bg-blue"]):not([class*="bg-indigo"]):not([class*="bg-amber"]),
+body.admin-light a:not([class*="bg-rose"]):not([class*="bg-red"]):not([class*="text-rose"]):not([class*="text-red"]):not([class*="bg-purple"]):not([class*="bg-blue"]):not([class*="bg-indigo"]):not([class*="bg-amber"]) {
+  color: #000000 !important;
+}
+
+.admin-light a:not([class*="bg-rose"]):not([class*="bg-red"]):not([class*="text-rose"]):not([class*="text-red"]):not([class*="bg-purple"]):not([class*="bg-blue"]):not([class*="bg-indigo"]):not([class*="bg-amber"]) svg,
+body.admin-light a:not([class*="bg-rose"]):not([class*="bg-red"]):not([class*="text-rose"]):not([class*="text-red"]):not([class*="bg-purple"]):not([class*="bg-blue"]):not([class*="bg-indigo"]):not([class*="bg-amber"]) svg {
+  color: #000000 !important;
+  stroke: currentColor !important;
+}
+
+/* Neutralize hover:text-white across entire White Mood */
+.admin-light [class*="hover:text-white"]:hover:not([class*="bg-rose"]):not([class*="bg-red"]):not([class*="bg-purple"]):not([class*="bg-blue"]):not([class*="bg-indigo"]):not([class*="bg-amber"]),
+body.admin-light [class*="hover:text-white"]:hover:not([class*="bg-rose"]):not([class*="bg-red"]):not([class*="bg-purple"]):not([class*="bg-blue"]):not([class*="bg-indigo"]):not([class*="bg-amber"]) {
+  color: #000000 !important;
+}
+
+.admin-light [class*="hover:text-white"]:hover:not([class*="bg-rose"]):not([class*="bg-red"]):not([class*="bg-purple"]):not([class*="bg-blue"]):not([class*="bg-indigo"]):not([class*="bg-amber"]) svg,
+body.admin-light [class*="hover:text-white"]:hover:not([class*="bg-rose"]):not([class*="bg-red"]):not([class*="bg-purple"]):not([class*="bg-blue"]):not([class*="bg-indigo"]):not([class*="bg-amber"]) svg {
+  color: #000000 !important;
+  stroke: currentColor !important;
+}
+
+/* All SVGs that had text-white, text-gray, text-slate become solid black */
+.admin-light svg.text-white:not([class*="bg-rose"] *):not([class*="bg-red"] *):not([class*="bg-purple"] *):not([class*="bg-blue"] *):not([class*="bg-indigo"] *),
+.admin-light svg[class*="text-gray-"],
+.admin-light svg[class*="text-slate-"],
+.admin-light svg[class*="text-zinc-"],
+.admin-light svg[class*="text-neutral-"],
+body.admin-light svg.text-white:not([class*="bg-rose"] *):not([class*="bg-red"] *):not([class*="bg-purple"] *):not([class*="bg-blue"] *):not([class*="bg-indigo"] *),
+body.admin-light svg[class*="text-gray-"],
+body.admin-light svg[class*="text-slate-"],
+body.admin-light svg[class*="text-zinc-"],
+body.admin-light svg[class*="text-neutral-"] {
+  color: #000000 !important;
+  stroke: currentColor !important;
+}
+
+/* 9. SOLID COLORED BUTTONS & BADGES PRESERVE COLOR & CRISP WHITE TEXT/ICONS */
 .admin-light [class*="bg-rose-600"], body.admin-light [class*="bg-rose-600"],
+.admin-light [class*="bg-rose-700"], body.admin-light [class*="bg-rose-700"],
 .admin-light [class*="bg-rose-500"], body.admin-light [class*="bg-rose-500"],
 .admin-light [class*="bg-emerald-600"], body.admin-light [class*="bg-emerald-600"],
-.admin-light [class*="bg-emerald-500"], body.admin-light [class*="bg-emerald-500"] {
+.admin-light [class*="bg-emerald-500"], body.admin-light [class*="bg-emerald-500"],
+.admin-light [class*="bg-purple-600"], body.admin-light [class*="bg-purple-600"],
+.admin-light [class*="bg-purple-500"], body.admin-light [class*="bg-purple-500"],
+.admin-light [class*="bg-blue-600"], body.admin-light [class*="bg-blue-600"],
+.admin-light [class*="bg-blue-500"], body.admin-light [class*="bg-blue-500"],
+.admin-light [class*="bg-red-600"], body.admin-light [class*="bg-red-600"],
+.admin-light [class*="bg-amber-500"], body.admin-light [class*="bg-amber-500"],
+.admin-light [class*="bg-indigo-600"], body.admin-light [class*="bg-indigo-600"] {
   background-color: #e11d48 !important;
   color: #ffffff !important;
 }
-.admin-light [class*="bg-purple-600"], body.admin-light [class*="bg-purple-600"],
-.admin-light [class*="bg-purple-500"], body.admin-light [class*="bg-purple-500"] {
-  background-color: #9333ea !important;
-  color: #ffffff !important;
-}
-.admin-light [class*="bg-blue-600"], body.admin-light [class*="bg-blue-600"],
-.admin-light [class*="bg-blue-500"], body.admin-light [class*="bg-blue-500"] {
-  background-color: #2563eb !important;
-  color: #ffffff !important;
-}
-.admin-light [class*="bg-red-600"], body.admin-light [class*="bg-red-600"] {
-  background-color: #dc2626 !important;
-  color: #ffffff !important;
-}
-.admin-light [class*="bg-amber-500"], body.admin-light [class*="bg-amber-500"] {
-  background-color: #f59e0b !important;
-  color: #ffffff !important;
-}
-.admin-light [class*="bg-indigo-600"], body.admin-light [class*="bg-indigo-600"] {
-  background-color: #4f46e5 !important;
-  color: #ffffff !important;
-}
+.admin-light [class*="bg-purple-600"], body.admin-light [class*="bg-purple-600"] { background-color: #9333ea !important; }
+.admin-light [class*="bg-blue-600"], body.admin-light [class*="bg-blue-600"] { background-color: #2563eb !important; }
+.admin-light [class*="bg-red-600"], body.admin-light [class*="bg-red-600"] { background-color: #dc2626 !important; }
+.admin-light [class*="bg-amber-500"], body.admin-light [class*="bg-amber-500"] { background-color: #f59e0b !important; }
+.admin-light [class*="bg-indigo-600"], body.admin-light [class*="bg-indigo-600"] { background-color: #4f46e5 !important; }
 
 .admin-light [class*="bg-rose-600"] *, body.admin-light [class*="bg-rose-600"] *,
 .admin-light [class*="bg-rose-700"] *, body.admin-light [class*="bg-rose-700"] *,
@@ -379,6 +470,18 @@ body.admin-light button[class*="bg-gray-900"]:hover {
 .admin-light [class*="bg-amber-500"] *, body.admin-light [class*="bg-amber-500"] *,
 .admin-light [class*="bg-indigo-600"] *, body.admin-light [class*="bg-indigo-600"] * {
   color: #ffffff !important;
+}
+
+.admin-light [class*="bg-rose-600"] svg, body.admin-light [class*="bg-rose-600"] svg,
+.admin-light [class*="bg-rose-700"] svg, body.admin-light [class*="bg-rose-700"] svg,
+.admin-light [class*="bg-rose-500"] svg, body.admin-light [class*="bg-rose-500"] svg,
+.admin-light [class*="bg-red-600"] svg, body.admin-light [class*="bg-red-600"] svg,
+.admin-light [class*="bg-purple-600"] svg, body.admin-light [class*="bg-purple-600"] svg,
+.admin-light [class*="bg-blue-600"] svg, body.admin-light [class*="bg-blue-600"] svg,
+.admin-light [class*="bg-indigo-600"] svg, body.admin-light [class*="bg-indigo-600"] svg,
+.admin-light [class*="bg-amber-500"] svg, body.admin-light [class*="bg-amber-500"] svg {
+  color: #ffffff !important;
+  stroke: currentColor !important;
 }
 
 /* 10. FULLSCREEN MODAL / STUDIO DIALOGS IN ADMIN LIGHT */

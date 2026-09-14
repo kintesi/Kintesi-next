@@ -113,9 +113,9 @@ export const AdminLiveChat: React.FC = () => {
               <span>Live Inquiries</span>
             </h2>
             <div className="flex items-center gap-2">
-              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
+              <span className={`text-[10px] font-black px-2.5 py-0.5 rounded-full border ${
                 isLight
-                  ? 'bg-rose-50 text-rose-600 border-rose-200'
+                  ? 'bg-rose-100 text-rose-800 border-rose-300'
                   : 'bg-rose-500/10 text-rose-400 border-rose-500/20'
               }`}>
                 {conversations.length} Active
@@ -123,25 +123,25 @@ export const AdminLiveChat: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setIsFullScreen((prev) => !prev)}
-                className={`p-1.5 rounded-lg transition ${
+                className={`p-1.5 rounded-xl border transition ${
                   isLight
-                    ? 'text-slate-500 hover:text-slate-900 hover:bg-slate-100'
-                    : 'text-gray-400 hover:text-white hover:bg-gray-800'
+                    ? 'text-black hover:bg-slate-100 bg-white border-slate-300 shadow-2xs'
+                    : 'text-gray-400 hover:text-white hover:bg-gray-800 border-transparent'
                 }`}
                 title={isFullScreen ? 'Exit Full Screen (Esc)' : 'Maximize Full Screen'}
                 aria-label={isFullScreen ? 'Exit Full Screen' : 'Maximize Full Screen'}
               >
                 {isFullScreen ? (
-                  <Minimize2 className="w-3.5 h-3.5 text-rose-500" />
+                  <Minimize2 className={`w-3.5 h-3.5 ${isLight ? 'text-black' : 'text-rose-500'}`} />
                 ) : (
-                  <Maximize2 className="w-3.5 h-3.5 text-rose-500" />
+                  <Maximize2 className={`w-3.5 h-3.5 ${isLight ? 'text-black' : 'text-rose-500'}`} />
                 )}
               </button>
             </div>
           </div>
 
           <div className="relative">
-            <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+            <Search className={`w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 ${isLight ? 'text-black' : 'text-slate-400'}`} />
             <input
               type="text"
               value={searchQuery}
@@ -149,7 +149,7 @@ export const AdminLiveChat: React.FC = () => {
               placeholder="Search conversations..."
               className={`w-full pl-8 pr-3 py-2 rounded-xl text-xs transition focus:outline-none focus:border-rose-500 focus:ring-1 focus:ring-rose-500 ${
                 isLight
-                  ? 'bg-slate-50 border border-slate-200 text-slate-900 placeholder-slate-400 focus:bg-white'
+                  ? 'bg-white border-2 border-slate-300 text-black placeholder:text-slate-600 font-bold focus:border-rose-500'
                   : 'bg-gray-900 border border-gray-800 text-white placeholder-gray-500'
               }`}
             />
@@ -159,7 +159,7 @@ export const AdminLiveChat: React.FC = () => {
         {/* Conversation List */}
         <div className="flex-1 overflow-y-auto p-2 space-y-1">
           {filteredConversations.length === 0 ? (
-            <p className="text-center py-10 text-xs text-slate-400">No chats yet</p>
+            <p className={`text-center py-10 text-xs font-bold ${isLight ? 'text-black' : 'text-slate-400'}`}>No chats yet</p>
           ) : (
             filteredConversations.map((conv) => {
               const isSelected = (selectedConversationId || activeThread?.conversationId) === conv.conversationId;
@@ -172,7 +172,7 @@ export const AdminLiveChat: React.FC = () => {
                     isSelected
                       ? 'bg-rose-600 text-white shadow-md shadow-rose-600/25'
                       : isLight
-                      ? 'hover:bg-slate-100 text-slate-700'
+                      ? 'hover:bg-slate-100 text-black font-semibold'
                       : 'hover:bg-gray-900 text-gray-300'
                   }`}
                 >
@@ -189,30 +189,30 @@ export const AdminLiveChat: React.FC = () => {
 
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center justify-between">
-                      <p className={`font-bold text-xs truncate ${
+                      <p className={`font-black text-xs truncate ${
                         isSelected
                           ? 'text-white'
                           : isLight
-                          ? 'text-slate-900'
+                          ? 'text-black'
                           : 'text-gray-200'
                       }`}>
                         {conv.customerName}
                       </p>
-                      <span className={`text-[9px] ${
+                      <span className={`text-[10px] font-bold ${
                         isSelected
                           ? 'text-rose-100'
                           : isLight
-                          ? 'text-slate-400'
+                          ? 'text-black'
                           : 'text-gray-500'
                       }`}>
                         {new Date(conv.lastTimestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </span>
                     </div>
-                    <p className={`text-[11px] truncate mt-0.5 ${
+                    <p className={`text-[11px] font-semibold truncate mt-0.5 ${
                       isSelected
                         ? 'text-rose-100'
                         : isLight
-                        ? 'text-slate-500'
+                        ? 'text-slate-800'
                         : 'text-gray-400'
                     }`}>
                       {conv.lastMessage}
@@ -231,7 +231,7 @@ export const AdminLiveChat: React.FC = () => {
         {/* Chat Header */}
         {activeThread ? (
           <div className={`p-4 border-b flex items-center justify-between ${
-            isLight ? 'bg-white border-slate-200 shadow-2xs' : 'bg-gray-900/90 border-gray-800'
+            isLight ? 'bg-white border-slate-300 shadow-2xs' : 'bg-gray-900/90 border-gray-800'
           }`}>
             <div className="flex items-center gap-3">
               <UserAvatar
@@ -241,10 +241,10 @@ export const AdminLiveChat: React.FC = () => {
                 className="border-rose-500/30 shadow-sm"
               />
               <div>
-                <h3 className={`font-bold text-sm leading-tight ${isLight ? 'text-slate-900' : 'text-white'}`}>
+                <h3 className={`font-black text-base leading-tight ${isLight ? 'text-black' : 'text-white'}`}>
                   {activeThread.customerName}
                 </h3>
-                <p className={`text-[11px] ${isLight ? 'text-slate-500' : 'text-gray-400'}`}>{activeThread.customerEmail}</p>
+                <p className={`text-xs font-bold ${isLight ? 'text-slate-800' : 'text-gray-400'}`}>{activeThread.customerEmail}</p>
               </div>
             </div>
 
@@ -252,22 +252,22 @@ export const AdminLiveChat: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setIsFullScreen((prev) => !prev)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl transition text-xs font-semibold border shadow-xs cursor-pointer active:scale-95 ${
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl transition text-xs font-black border shadow-xs cursor-pointer active:scale-95 ${
                   isLight
-                    ? 'bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200'
+                    ? 'bg-white hover:bg-slate-100 text-black border-slate-300'
                     : 'bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white border-gray-700/60'
                 }`}
                 title={isFullScreen ? 'Exit Full Screen (Esc)' : 'Maximize to Full Screen'}
               >
                 {isFullScreen ? (
                   <>
-                    <Minimize2 className="w-3.5 h-3.5 text-rose-500" />
-                    <span className="text-[11px] font-bold">Exit Fullscreen</span>
+                    <Minimize2 className={`w-3.5 h-3.5 ${isLight ? 'text-black' : 'text-rose-500'}`} />
+                    <span className="text-[11px] font-black text-black">Exit Fullscreen</span>
                   </>
                 ) : (
                   <>
-                    <Maximize2 className="w-3.5 h-3.5 text-rose-500" />
-                    <span className="text-[11px] font-bold">Full Screen</span>
+                    <Maximize2 className={`w-3.5 h-3.5 ${isLight ? 'text-black' : 'text-rose-500'}`} />
+                    <span className="text-[11px] font-black text-black">Full Screen</span>
                   </>
                 )}
               </button>
@@ -278,14 +278,14 @@ export const AdminLiveChat: React.FC = () => {
                     deleteConversation(activeThread.conversationId);
                   }
                 }}
-                className={`p-2 rounded-xl transition ${
+                className={`p-2 rounded-xl transition border cursor-pointer ${
                   isLight
-                    ? 'text-slate-400 hover:text-rose-600 hover:bg-rose-50'
-                    : 'text-gray-500 hover:text-rose-400 hover:bg-gray-800'
+                    ? 'text-black hover:text-rose-600 hover:bg-rose-50 bg-white border-slate-300 shadow-2xs'
+                    : 'text-gray-500 hover:text-rose-400 hover:bg-gray-800 border-transparent'
                 }`}
                 title="Delete conversation"
               >
-                <Trash2 className="w-4 h-4" />
+                <Trash2 className={`w-4 h-4 ${isLight ? 'text-black' : ''}`} />
               </button>
             </div>
           </div>
@@ -334,7 +334,7 @@ export const AdminLiveChat: React.FC = () => {
                     isSeller
                       ? 'bg-rose-600 text-white rounded-br-none shadow-rose-600/20'
                       : isLight
-                      ? 'bg-white text-slate-800 rounded-bl-none border border-slate-200/90 shadow-2xs'
+                      ? 'bg-white text-black font-semibold rounded-bl-none border-2 border-slate-300 shadow-xs'
                       : 'bg-gray-800 text-gray-100 rounded-bl-none border border-gray-700'
                   }`}
                 >
@@ -344,7 +344,7 @@ export const AdminLiveChat: React.FC = () => {
                       isSeller
                         ? 'bg-black/20 border border-white/10 text-white'
                         : isLight
-                        ? 'bg-slate-50 border border-slate-200 text-slate-800'
+                        ? 'bg-slate-100 border border-slate-300 text-black'
                         : 'bg-black/20 border border-white/10'
                     }`}>
                       {msg.productContext.image && (
@@ -355,9 +355,9 @@ export const AdminLiveChat: React.FC = () => {
                         />
                       )}
                       <div className="truncate">
-                        <p className="font-bold truncate">{msg.productContext.title}</p>
+                        <p className={`font-black truncate ${isLight && !isSeller ? 'text-black' : ''}`}>{msg.productContext.title}</p>
                         {msg.productContext.price && (
-                          <p className={`font-extrabold ${isSeller ? 'text-rose-200' : 'text-rose-600'}`}>
+                          <p className={`font-black ${isSeller ? 'text-rose-200' : 'text-rose-600'}`}>
                             {formatPrice(msg.productContext.price)}
                           </p>
                         )}
@@ -371,22 +371,22 @@ export const AdminLiveChat: React.FC = () => {
                       isSeller
                         ? 'bg-black/20 border border-white/10 text-white'
                         : isLight
-                        ? 'bg-slate-50 border border-slate-200 text-slate-700'
+                        ? 'bg-slate-100 border border-slate-300 text-black font-bold'
                         : 'bg-black/20 border border-white/10'
                     }`}>
                       Order #{msg.orderContext.orderNumber}
                     </div>
                   )}
 
-                  <p className={`whitespace-pre-line text-sm ${isSeller ? 'text-white' : isLight ? 'text-slate-900' : 'text-gray-100'}`}>
+                  <p className={`whitespace-pre-line text-sm ${isSeller ? 'text-white' : isLight ? 'text-black font-bold' : 'text-gray-100'}`}>
                     {msg.text}
                   </p>
                   
-                  <span className={`text-[9px] block text-right font-mono ${
+                  <span className={`text-[10px] font-bold block text-right font-mono ${
                     isSeller
                       ? 'text-rose-100'
                       : isLight
-                      ? 'text-slate-400'
+                      ? 'text-black'
                       : 'text-gray-400'
                   }`}>
                     {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -406,7 +406,7 @@ export const AdminLiveChat: React.FC = () => {
 
         {/* Reply Input Bar */}
         <form onSubmit={handleSendReply} className={`p-3 border-t flex items-center gap-2 ${
-          isLight ? 'bg-white border-slate-200' : 'bg-gray-950 border-gray-800'
+          isLight ? 'bg-white border-slate-300' : 'bg-gray-950 border-gray-800'
         }`}>
           <input
             type="text"
@@ -415,7 +415,7 @@ export const AdminLiveChat: React.FC = () => {
             placeholder={`Message ${activeThread?.customerName || 'customer'}...`}
             className={`flex-1 px-4 py-2.5 rounded-2xl text-xs transition focus:outline-none focus:border-rose-500 focus:ring-1 focus:ring-rose-500 ${
               isLight
-                ? 'bg-slate-50 border border-slate-200 text-slate-900 placeholder-slate-400 focus:bg-white'
+                ? 'bg-white border-2 border-slate-300 text-black font-bold placeholder:text-slate-600 focus:bg-white'
                 : 'bg-gray-900 border border-gray-800 text-white placeholder-gray-500'
             }`}
           />
