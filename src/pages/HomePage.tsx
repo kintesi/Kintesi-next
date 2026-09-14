@@ -350,43 +350,6 @@ export const HomePage: React.FC = () => {
           </div>
         )}
 
-        {/* 2b. Mobile Categories Quick Access */}
-        {categories.length > 0 && (
-          <div className="px-3 space-y-2 pt-1">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-1.5">
-                <ShoppingBag className="w-4 h-4 text-rose-600" />
-                <h3 className="text-xs font-bold text-gray-900 uppercase tracking-wider">Categories</h3>
-              </div>
-              <Link to="/shop" className="text-[11px] text-rose-600 font-bold flex items-center gap-0.5">
-                <span>View All</span>
-                <ChevronRight className="w-3.5 h-3.5" />
-              </Link>
-            </div>
-            <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1 -mx-3 px-3">
-              {categories.map((cat) => {
-                const IconComp = ICON_MAP[cat.icon || ''] || ShoppingBag;
-                return (
-                  <Link
-                    key={cat.slug || cat.id}
-                    to={`/shop?category=${cat.slug}`}
-                    className="shrink-0 flex items-center gap-2 px-3 py-2 bg-white rounded-xl border border-rose-100/90 shadow-2xs hover:border-rose-300 active:scale-95 transition"
-                  >
-                    {cat.image_url ? (
-                      <img src={cat.image_url} alt={cat.name} className="w-5 h-5 rounded-md object-cover" />
-                    ) : (
-                      <div className="w-5 h-5 rounded-md bg-rose-50 text-rose-600 flex items-center justify-center">
-                        <IconComp className="w-3 h-3" />
-                      </div>
-                    )}
-                    <span className="text-xs font-semibold text-gray-800 whitespace-nowrap">{cat.name}</span>
-                  </Link>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
         {/* 3. FEATURED PRODUCTS (SHOWN ONLY IF ADMIN ENABLED & MARKED PRODUCTS) */}
         {isFeaturedActive && (
           <div className="px-3 space-y-2.5 pt-1">
@@ -671,58 +634,6 @@ export const HomePage: React.FC = () => {
               timeLeft={timeLeft}
               isMobile={false}
             />
-          </section>
-        )}
-
-        {/* 2b. DESKTOP CATEGORIES SHOWCASE */}
-        {categories.length > 0 && (
-          <section className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 space-y-4">
-            <div className="flex items-center justify-between border-b border-rose-100 pb-3">
-              <div className="flex items-center gap-2">
-                <ShoppingBag className="w-5 h-5 text-rose-600" />
-                <h2 className="text-xl font-bold text-gray-900 tracking-tight">
-                  Shop by Category
-                </h2>
-              </div>
-              <Link
-                to="/shop"
-                className="text-xs font-bold text-rose-600 hover:text-rose-700 transition flex items-center gap-1"
-              >
-                <span>Browse All ({categories.length})</span>
-                <ChevronRight className="w-4 h-4" />
-              </Link>
-            </div>
-
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-4">
-              {categories.map((cat) => {
-                const IconComp = ICON_MAP[cat.icon || ''] || ShoppingBag;
-                return (
-                  <Link
-                    key={cat.slug || cat.id}
-                    to={`/shop?category=${cat.slug}`}
-                    className="group bg-white rounded-2xl p-3.5 border border-rose-100/90 shadow-2xs hover:border-rose-300 hover:shadow-md transition-all flex items-center gap-3 active:scale-98"
-                  >
-                    {cat.image_url ? (
-                      <img
-                        src={cat.image_url}
-                        alt={cat.name}
-                        className="w-10 h-10 rounded-xl object-cover border border-rose-50 group-hover:scale-105 transition-transform shrink-0"
-                      />
-                    ) : (
-                      <div className="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center shrink-0 group-hover:bg-rose-100 transition">
-                        <IconComp className="w-5 h-5" />
-                      </div>
-                    )}
-                    <div className="min-w-0 flex-1">
-                      <h4 className="text-xs font-bold text-gray-900 group-hover:text-rose-600 transition truncate">
-                        {cat.name}
-                      </h4>
-                      <p className="text-[10px] text-gray-400 font-medium">Explore →</p>
-                    </div>
-                  </Link>
-                );
-              })}
-            </div>
           </section>
         )}
 
