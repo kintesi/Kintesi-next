@@ -87,18 +87,49 @@ export const AdminLayout: React.FC = () => {
 
   const isMasterOwner = user?.email?.toLowerCase().trim() === 'manage.kintesi@gmail.com';
 
-  const navItems = [
-    { name: 'Dashboard', path: '/admin', icon: LayoutDashboard },
-    { name: 'Manage Products', path: '/admin/products', icon: Package },
-    { name: 'Preset Management', path: '/admin/presets', icon: Palette },
-    { name: 'Manage Orders & Invoices', path: '/admin/orders', icon: ShoppingCart },
-    { name: 'Discount Coupons', path: '/admin/coupons', icon: Tag },
-    { name: 'Live Customer Chat', path: '/admin/chat', icon: MessageCircle },
-    { name: 'Categories', path: '/admin/categories', icon: Tags },
-    { name: 'Hero & Flash Banners', path: '/admin/banners', icon: Sliders },
-    ...(isMasterOwner ? [{ name: 'Merchant & Payment Settings', path: '/admin/payment-settings', icon: CreditCard }] : []),
-    ...(isMasterOwner ? [{ name: 'Staff & Team Admins', path: '/admin/team', icon: Users }] : []),
+  const navSections = [
+    {
+      label: null,
+      items: [
+        { name: 'Dashboard', path: '/admin', icon: LayoutDashboard },
+      ],
+    },
+    {
+      label: 'Catalog & Inventory',
+      items: [
+        { name: 'Manage Products', path: '/admin/products', icon: Package },
+        { name: 'Categories', path: '/admin/categories', icon: Tags },
+        { name: 'Preset Management', path: '/admin/presets', icon: Palette },
+      ],
+    },
+    {
+      label: 'Sales & Support',
+      items: [
+        { name: 'Manage Orders & Invoices', path: '/admin/orders', icon: ShoppingCart },
+        { name: 'Live Customer Chat', path: '/admin/chat', icon: MessageCircle },
+      ],
+    },
+    {
+      label: 'Marketing & Promotions',
+      items: [
+        { name: 'Hero & Flash Banners', path: '/admin/banners', icon: Sliders },
+        { name: 'Discount Coupons', path: '/admin/coupons', icon: Tag },
+      ],
+    },
+    ...(isMasterOwner
+      ? [
+          {
+            label: 'Settings & Administration',
+            items: [
+              { name: 'Merchant & Payment Settings', path: '/admin/payment-settings', icon: CreditCard },
+              { name: 'Staff & Team Admins', path: '/admin/team', icon: Users },
+            ],
+          },
+        ]
+      : []),
   ];
+
+  const allNavItems = navSections.flatMap((s) => s.items);
 
   const isChat = location.pathname === '/admin/chat';
 
@@ -129,27 +160,38 @@ export const AdminLayout: React.FC = () => {
         </button>
       </div>
 
-      {/* Nav list */}
-      <nav className="p-3 space-y-1.5 flex-1 overflow-y-auto">
-        {navItems.map((item) => {
-          const isActive = location.pathname === item.path;
-          const Icon = item.icon;
-          return (
-            <Link
-              key={item.path}
-              to={item.path}
-              onClick={() => setIsMobileMenuOpen(false)}
-              className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold transition ${
-                isActive
-                  ? 'bg-rose-600 text-white shadow-lg shadow-rose-600/30'
-                  : 'text-gray-400 hover:text-white hover:bg-gray-800/60'
-              }`}
-            >
-              <Icon className="w-4 h-4 flex-shrink-0" />
-              <span>{item.name}</span>
-            </Link>
-          );
-        })}
+      {/* Grouped Nav List with Clear Category Headings */}
+      <nav className="p-3 space-y-2.5 flex-1 overflow-y-auto">
+        {navSections.map((section, sIdx) => (
+          <div key={sIdx} className={sIdx > 0 ? 'pt-2.5 border-t border-gray-800/80 space-y-1' : 'space-y-1'}>
+            {section.label && (
+              <div className="px-3 pb-1 text-[10px] uppercase font-black tracking-wider text-gray-500 select-none">
+                {section.label}
+              </div>
+            )}
+            <div className="space-y-1">
+              {section.items.map((item) => {
+                const isActive = location.pathname === item.path;
+                const Icon = item.icon;
+                return (
+                  <Link
+                    key={item.path}
+                    to={item.path}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className={`flex items-center gap-3 px-3.5 py-2 rounded-xl text-xs font-bold transition ${
+                      isActive
+                        ? 'bg-rose-600 text-white shadow-lg shadow-rose-600/30'
+                        : 'text-gray-400 hover:text-white hover:bg-gray-800/60'
+                    }`}
+                  >
+                    <Icon className="w-4 h-4 flex-shrink-0" />
+                    <span className="truncate">{item.name}</span>
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        ))}
       </nav>
     </div>
   );
@@ -240,7 +282,7 @@ export const AdminLayout: React.FC = () => {
             </button>
 
             <span className="text-xs text-gray-400 font-medium">
-              {navItems.find((item) => item.path === location.pathname)?.name || 'Admin Console'}
+              {allNavItems.find((item) => item.path === location.pathname)?.name || 'Admin Console'}
             </span>
           </div>
 
