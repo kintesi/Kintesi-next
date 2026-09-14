@@ -149,28 +149,6 @@ export const AdminTeam: React.FC = () => {
     toast.info(`Admin access revoked for ${admin.email}`);
   };
 
-  if (!isMasterOwner) {
-    return (
-      <div className="min-h-[50vh] flex items-center justify-center p-4">
-        <div className="bg-gray-800 border border-gray-700 rounded-3xl p-8 max-w-md w-full text-center space-y-4 shadow-xl">
-          <div className="w-16 h-16 bg-rose-500/10 text-rose-400 rounded-2xl flex items-center justify-center mx-auto">
-            <ShieldAlert className="w-8 h-8" />
-          </div>
-          <h2 className="text-xl font-bold text-white">Owner Authorization Required</h2>
-          <p className="text-xs text-gray-400 leading-relaxed">
-            Only the Store Owner (<b>manage.kintesi@gmail.com</b>) has permission to manage and authorize staff admins.
-          </p>
-          <Link
-            to="/admin"
-            className="inline-block py-2.5 px-6 bg-rose-600 hover:bg-rose-500 text-white font-bold rounded-xl text-xs transition"
-          >
-            Back to Dashboard
-          </Link>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="w-full space-y-8 text-white pb-20">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -184,13 +162,19 @@ export const AdminTeam: React.FC = () => {
           </p>
         </div>
 
-        <button
-          onClick={() => setIsModalOpen(true)}
-          className="flex items-center gap-2 px-5 py-3 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-2xl text-xs transition shadow-lg shadow-rose-600/30"
-        >
-          <UserPlus className="w-4 h-4" />
-          <span>Add New Admin / Staff</span>
-        </button>
+        {isMasterOwner ? (
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="flex items-center gap-2 px-5 py-3 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-2xl text-xs transition shadow-lg shadow-rose-600/30 cursor-pointer"
+          >
+            <UserPlus className="w-4 h-4" />
+            <span>Add New Admin / Staff</span>
+          </button>
+        ) : (
+          <span className="text-[11px] font-bold text-gray-400 bg-gray-800 px-3 py-1.5 rounded-xl border border-gray-700">
+            Read-Only Staff View
+          </span>
+        )}
       </div>
 
       {/* Admins Table */}

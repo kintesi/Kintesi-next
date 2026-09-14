@@ -109,6 +109,8 @@ export function App() {
                           <Route path="banners" element={<AdminBanners />} />
                           <Route path="payment-settings" element={<AdminPaymentSettings />} />
                           <Route path="team" element={<AdminTeam />} />
+                          <Route path="users" element={<AdminTeam />} />
+                          <Route path="staff" element={<AdminTeam />} />
                         </Route>
                       </Routes>
                     </ChatProvider>

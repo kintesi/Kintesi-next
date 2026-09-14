@@ -301,11 +301,15 @@ export const ProductDetailPage: React.FC = () => {
   const customAttrGroups = useMemo(() => {
     const attrs: any[] = product?.custom_attributes || (product?.specifications as any)?.custom_attributes || [];
     const groups: Record<string, any[]> = {};
-    attrs.forEach((a) => {
-      if (!a.attributeName) return;
-      if (!groups[a.attributeName]) groups[a.attributeName] = [];
-      groups[a.attributeName].push(a);
-    });
+    if (Array.isArray(attrs)) {
+      attrs.forEach((a) => {
+        if (!a || !a.attributeName || !String(a.attributeName).trim()) return;
+        if (!a.name || !String(a.name).trim()) return;
+        const attrName = String(a.attributeName).trim();
+        if (!groups[attrName]) groups[attrName] = [];
+        groups[attrName].push(a);
+      });
+    }
     return groups;
   }, [product]);
 
@@ -978,7 +982,26 @@ export const ProductDetailPage: React.FC = () => {
       {/* Section 1: Comprehensive Specifications & Technical Details Card (Strictly Isolated by Category Mode) */}
       {(() => {
         const cat = (product.category_id || '').toLowerCase();
-        const hasHardwareSpecs = Boolean(product.specifications && Object.keys(product.specifications).length > 0);
+        const isKeyValid = (key: string) => {
+          if (!key) return false;
+          const k = key.toLowerCase().trim();
+          return k !== 'custom_attributes' && k !== 'customattributes' && k !== 'custom_attribute';
+        };
+
+        const isValueNonEmpty = (val: any) => {
+          if (val === null || val === undefined) return false;
+          if (typeof val === 'object') {
+            if (Array.isArray(val)) return val.length > 0;
+            return Object.keys(val).length > 0;
+          }
+          const s = String(val).trim();
+          return s !== '' && s !== 'null' && s !== 'undefined' && s !== '[]' && s !== '{}' && s !== '-';
+        };
+
+        const validSpecs = Object.entries(product.specifications || {}).filter(
+          ([key, val]) => isKeyValid(key) && isValueNonEmpty(val)
+        );
+        const hasHardwareSpecs = validSpecs.length > 0;
 
         const isGadget = Boolean(
           hasHardwareSpecs ||
@@ -1010,19 +1033,33 @@ export const ProductDetailPage: React.FC = () => {
             cat.includes('saree') ||
             cat.includes('kurti') ||
             cat.includes('shoes') ||
-            product.fabric ||
-            product.fit_type ||
-            product.gender
+            isValueNonEmpty(product.fabric) ||
+            isValueNonEmpty(product.fit_type) ||
+            isValueNonEmpty(product.gender)
           )
         );
 
-        // Check if there is any specification to show for this specific mode
+        // Check if there is any genuine specification to show for this specific mode
         const shouldShow = isGadget
-          ? Boolean(product.warranty || product.origin || hasHardwareSpecs)
+          ? Boolean(isValueNonEmpty(product.warranty) || isValueNonEmpty(product.origin) || hasHardwareSpecs)
           : isGroceries
-          ? Boolean(product.fabric || product.warranty || product.origin || product.care_instructions || product.fit_type)
+          ? Boolean(
+              isValueNonEmpty(product.fabric) ||
+              isValueNonEmpty(product.warranty) ||
+              isValueNonEmpty(product.origin) ||
+              isValueNonEmpty(product.care_instructions) ||
+              isValueNonEmpty(product.fit_type) ||
+              hasHardwareSpecs
+            )
           : isFashion
-          ? Boolean(product.fabric || product.fit_type || product.gender || product.origin || product.care_instructions)
+          ? Boolean(
+              isValueNonEmpty(product.fabric) ||
+              isValueNonEmpty(product.fit_type) ||
+              isValueNonEmpty(product.gender) ||
+              isValueNonEmpty(product.origin) ||
+              isValueNonEmpty(product.care_instructions) ||
+              hasHardwareSpecs
+            )
           : false;
 
         if (!shouldShow) return null;
@@ -1070,97 +1107,108 @@ export const ProductDetailPage: React.FC = () => {
             {/* 1. GADGET & HARDWARE DETAILS ONLY */}
             {isGadget && (
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-xs">
-                {product.warranty && (
+                {isValueNonEmpty(product.warranty) && (
                   <div className="p-4 bg-cyan-50/40 rounded-2xl space-y-1 border border-cyan-100">
                     <span className="text-cyan-700 font-bold uppercase text-[10px] tracking-wider">Official Warranty</span>
-                    <p className="font-black text-gray-900 text-sm">{product.warranty}</p>
+                    <p className="font-black text-gray-900 text-sm">{String(product.warranty)}</p>
                   </div>
                 )}
-                {product.origin && (
+                {isValueNonEmpty(product.origin) && (
                   <div className="p-4 bg-gray-50 rounded-2xl space-y-1 border border-gray-100">
                     <span className="text-gray-400 font-bold uppercase text-[10px] tracking-wider">Device Origin / Variant</span>
-                    <p className="font-black text-gray-900 text-sm">{product.origin}</p>
+                    <p className="font-black text-gray-900 text-sm">{String(product.origin)}</p>
                   </div>
                 )}
-                {product.specifications &&
-                  Object.entries(product.specifications).map(([key, val]) => (
-                    <div key={key} className="p-4 bg-gray-50 rounded-2xl space-y-1 border border-gray-100">
-                      <span className="text-gray-400 font-bold uppercase text-[10px] tracking-wider">{key}</span>
-                      <p className="font-black text-gray-900 text-sm">{val}</p>
-                    </div>
-                  ))}
+                {validSpecs.map(([key, val]) => (
+                  <div key={key} className="p-4 bg-gray-50 rounded-2xl space-y-1 border border-gray-100">
+                    <span className="text-gray-400 font-bold uppercase text-[10px] tracking-wider">{key.replace(/_/g, ' ')}</span>
+                    <p className="font-black text-gray-900 text-sm">{typeof val === 'object' ? JSON.stringify(val) : String(val)}</p>
+                  </div>
+                ))}
               </div>
             )}
 
             {/* 2. FASHION & APPAREL DETAILS ONLY */}
             {isFashion && (
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-xs">
-                {product.fabric && (
+                {isValueNonEmpty(product.fabric) && (
                   <div className="p-4 bg-gray-50 rounded-2xl space-y-1 border border-gray-100">
                     <span className="text-gray-400 font-bold uppercase text-[10px] tracking-wider">Fabric / Material</span>
-                    <p className="font-black text-gray-900 text-sm">{product.fabric}</p>
+                    <p className="font-black text-gray-900 text-sm">{String(product.fabric)}</p>
                   </div>
                 )}
-                {product.fit_type && (
+                {isValueNonEmpty(product.fit_type) && (
                   <div className="p-4 bg-gray-50 rounded-2xl space-y-1 border border-gray-100">
                     <span className="text-gray-400 font-bold uppercase text-[10px] tracking-wider">Fit Type</span>
-                    <p className="font-black text-gray-900 text-sm">{product.fit_type}</p>
+                    <p className="font-black text-gray-900 text-sm">{String(product.fit_type)}</p>
                   </div>
                 )}
-                {product.gender && (
+                {isValueNonEmpty(product.gender) && (
                   <div className="p-4 bg-gray-50 rounded-2xl space-y-1 border border-gray-100">
                     <span className="text-gray-400 font-bold uppercase text-[10px] tracking-wider">Department</span>
-                    <p className="font-black text-gray-900 text-sm">{product.gender}</p>
+                    <p className="font-black text-gray-900 text-sm">{String(product.gender)}</p>
                   </div>
                 )}
-                {product.origin && (
+                {isValueNonEmpty(product.origin) && (
                   <div className="p-4 bg-gray-50 rounded-2xl space-y-1 border border-gray-100">
                     <span className="text-gray-400 font-bold uppercase text-[10px] tracking-wider">Origin</span>
-                    <p className="font-black text-gray-900 text-sm">{product.origin}</p>
+                    <p className="font-black text-gray-900 text-sm">{String(product.origin)}</p>
                   </div>
                 )}
-                {product.care_instructions && (
+                {isValueNonEmpty(product.care_instructions) && (
                   <div className="p-4 bg-gray-50 rounded-2xl space-y-1 border border-gray-100 sm:col-span-2">
                     <span className="text-gray-400 font-bold uppercase text-[10px] tracking-wider">Care Instructions</span>
-                    <p className="font-bold text-gray-800 text-xs leading-relaxed">{product.care_instructions}</p>
+                    <p className="font-bold text-gray-800 text-xs leading-relaxed">{String(product.care_instructions)}</p>
                   </div>
                 )}
+                {validSpecs.map(([key, val]) => (
+                  <div key={key} className="p-4 bg-gray-50 rounded-2xl space-y-1 border border-gray-100">
+                    <span className="text-gray-400 font-bold uppercase text-[10px] tracking-wider">{key.replace(/_/g, ' ')}</span>
+                    <p className="font-black text-gray-900 text-sm">{typeof val === 'object' ? JSON.stringify(val) : String(val)}</p>
+                  </div>
+                ))}
               </div>
             )}
 
             {/* 3. GROCERIES & FOOD DETAILS ONLY */}
             {isGroceries && (
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-xs">
-                {product.fabric && (
+                {isValueNonEmpty(product.fabric) && (
                   <div className="p-4 bg-emerald-50/40 rounded-2xl space-y-1 border border-emerald-100">
                     <span className="text-emerald-700 font-bold uppercase text-[10px] tracking-wider">Net Weight / Volume</span>
-                    <p className="font-black text-gray-900 text-sm">{product.fabric}</p>
+                    <p className="font-black text-gray-900 text-sm">{String(product.fabric)}</p>
                   </div>
                 )}
-                {product.warranty && (
+                {isValueNonEmpty(product.warranty) && (
                   <div className="p-4 bg-gray-50 rounded-2xl space-y-1 border border-gray-100">
                     <span className="text-gray-400 font-bold uppercase text-[10px] tracking-wider">Shelf Life / Expiry</span>
-                    <p className="font-black text-gray-900 text-sm">{product.warranty}</p>
+                    <p className="font-black text-gray-900 text-sm">{String(product.warranty)}</p>
                   </div>
                 )}
-                {product.origin && (
+                {isValueNonEmpty(product.origin) && (
                   <div className="p-4 bg-gray-50 rounded-2xl space-y-1 border border-gray-100">
                     <span className="text-gray-400 font-bold uppercase text-[10px] tracking-wider">Origin / Sourced From</span>
-                    <p className="font-black text-gray-900 text-sm">{product.origin}</p>
+                    <p className="font-black text-gray-900 text-sm">{String(product.origin)}</p>
                   </div>
                 )}
-                {product.fit_type && (
+                {isValueNonEmpty(product.fit_type) && (
                   <div className="p-4 bg-gray-50 rounded-2xl space-y-1 border border-gray-100">
                     <span className="text-gray-400 font-bold uppercase text-[10px] tracking-wider">Certification / Quality</span>
-                    <p className="font-black text-gray-900 text-sm">{product.fit_type}</p>
+                    <p className="font-black text-gray-900 text-sm">{String(product.fit_type)}</p>
                   </div>
                 )}
-                {product.care_instructions && (
+                {isValueNonEmpty(product.care_instructions) && (
                   <div className="p-4 bg-gray-50 rounded-2xl space-y-1 border border-gray-100 sm:col-span-2">
                     <span className="text-gray-400 font-bold uppercase text-[10px] tracking-wider">Storage Instructions</span>
-                    <p className="font-bold text-gray-800 text-xs leading-relaxed">{product.care_instructions}</p>
+                    <p className="font-bold text-gray-800 text-xs leading-relaxed">{String(product.care_instructions)}</p>
                   </div>
                 )}
+                {validSpecs.map(([key, val]) => (
+                  <div key={key} className="p-4 bg-gray-50 rounded-2xl space-y-1 border border-gray-100">
+                    <span className="text-gray-400 font-bold uppercase text-[10px] tracking-wider">{key.replace(/_/g, ' ')}</span>
+                    <p className="font-black text-gray-900 text-sm">{typeof val === 'object' ? JSON.stringify(val) : String(val)}</p>
+                  </div>
+                ))}
               </div>
             )}
           </section>

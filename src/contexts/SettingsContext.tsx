@@ -92,7 +92,7 @@ export interface StoreSettings {
 }
 
 export const DEFAULT_BANNERS: BannerSettings = {
-  showTopAnnouncement: true,
+  showTopAnnouncement: false,
   topAnnouncementText: '⚡ Welcome to Kintesi! Use coupon KINTESI10 for 10% OFF',
   isCustomAnnouncement: false,
 
@@ -117,7 +117,7 @@ export const DEFAULT_BANNERS: BannerSettings = {
   spotlightBtnLink: '/shop',
   showSpotlight: false,
 
-  showFlashSale: true,
+  showFlashSale: false,
   flashSaleTag: '⚡ FLASH SALE',
   flashSaleTitle: 'Exclusive 24-Hour Super Deals',
   flashSaleSubtitle: 'Limited stock flash offers with up to 50% discount. Order before time runs out!',
@@ -137,7 +137,7 @@ export const DEFAULT_BANNERS: BannerSettings = {
     },
   ],
 
-  showFeaturedProducts: true,
+  showFeaturedProducts: false,
   featuredProductsTitle: 'Featured Products',
   featuredProductsSubtitle: 'Top-rated selections for home, fashion, and tech',
 };
@@ -259,12 +259,20 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
             const cleanText = rawText !== undefined ? cleanAnnouncementText(rawText) : undefined;
             const mergedBanners: BannerSettings = {
               ...DEFAULT_BANNERS,
-              ...prev.banners,
               ...(remoteBanners || {}),
               topAnnouncementText: cleanText !== undefined ? cleanText : cleanAnnouncementText(prev.banners?.topAnnouncementText || '⚡ Welcome to Kintesi! Use coupon KINTESI10 for 10% OFF'),
               showTopAnnouncement: remoteBanners?.showTopAnnouncement !== undefined
-                ? remoteBanners.showTopAnnouncement
-                : (remoteBanners?.showAnnouncementBar !== undefined ? remoteBanners.showAnnouncementBar : prev.banners?.showTopAnnouncement !== false),
+                ? Boolean(remoteBanners.showTopAnnouncement)
+                : (remoteBanners?.showAnnouncementBar !== undefined ? Boolean(remoteBanners.showAnnouncementBar) : Boolean(prev.banners?.showTopAnnouncement)),
+              showFlashSale: remoteBanners?.showFlashSale !== undefined
+                ? Boolean(remoteBanners.showFlashSale)
+                : Boolean(prev.banners?.showFlashSale),
+              showSpotlight: remoteBanners?.showSpotlight !== undefined
+                ? Boolean(remoteBanners.showSpotlight)
+                : Boolean(prev.banners?.showSpotlight),
+              showFeaturedProducts: remoteBanners?.showFeaturedProducts !== undefined
+                ? Boolean(remoteBanners.showFeaturedProducts)
+                : Boolean(prev.banners?.showFeaturedProducts),
               isCustomAnnouncement: remoteBanners?.isCustomAnnouncement !== undefined
                 ? remoteBanners.isCustomAnnouncement
                 : Boolean(cleanText && cleanText !== '⚡ Welcome to Kintesi! Use coupon KINTESI10 for 10% OFF'),

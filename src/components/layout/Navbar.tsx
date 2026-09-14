@@ -44,7 +44,7 @@ export const Navbar: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [showSearchResults, setShowSearchResults] = useState(false);
   const [liveProducts, setLiveProducts] = useState<Product[]>(() => getAllLiveProducts(INITIAL_PRODUCTS));
-  const [showAnnouncement, setShowAnnouncement] = useState(true);
+  const [showAnnouncement, setShowAnnouncement] = useState(() => Boolean(settings?.banners?.showTopAnnouncement === true));
 
   useEffect(() => {
     async function loadNavbarCategories() {
@@ -69,8 +69,8 @@ export const Navbar: React.FC = () => {
     const banners = settings?.banners;
     if (!banners) return;
 
-    // Explicitly hidden by admin
-    if (banners.showTopAnnouncement === false) {
+    // Must be explicitly enabled by admin
+    if (banners.showTopAnnouncement !== true) {
       setShowAnnouncement(false);
       return;
     }

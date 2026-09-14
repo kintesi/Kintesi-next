@@ -127,7 +127,7 @@ export const HomePage: React.FC = () => {
   }, [banners.flashSaleEndsAt, banners.flashSaleHours]);
 
   const isFlashSaleActive = Boolean(
-    banners.showFlashSale !== false &&
+    banners.showFlashSale === true &&
     !timeLeft.isExpired &&
     (!banners.flashSaleEndsAt || new Date(banners.flashSaleEndsAt).getTime() > Date.now())
   );
@@ -194,7 +194,7 @@ export const HomePage: React.FC = () => {
   }, [products]);
 
   const isFeaturedActive = Boolean(
-    banners.showFeaturedProducts !== false &&
+    banners.showFeaturedProducts === true &&
     featuredProducts.length > 0
   );
 
