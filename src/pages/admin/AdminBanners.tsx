@@ -103,12 +103,17 @@ export const AdminBanners: React.FC = () => {
   }, [catalogProducts, flashSlideSearch]);
 
   const selectFlashSlideProduct = (product: Product) => {
+    const defaultProductImage =
+      (product.images && product.images.length > 0 ? product.images[0] : '') ||
+      (product as any).image ||
+      '';
+
     const nextSlides = slides.map((slide, index) => {
       if (index !== selectedSlideIndex) return slide;
       return {
         ...slide,
-        title: slide.title === 'New Flash Deal' || !slide.title ? product.title : slide.title,
-        bgImage: slide.bgImage ? slide.bgImage : (product.images?.[0] || ''),
+        title: product.title,
+        bgImage: defaultProductImage,
         link: `/product/${product.id}`,
         productId: product.id,
       };
@@ -123,7 +128,7 @@ export const AdminBanners: React.FC = () => {
       } : {}),
     }));
     setFlashSlideSearch('');
-    toast.success(`Slide linked to "${product.title}"`);
+    toast.success(`"${product.title}" selected! Product's default image applied automatically.`);
   };
 
   const featuredProducts = catalogProducts.filter((product) => product.is_featured);
@@ -421,15 +426,28 @@ export const AdminBanners: React.FC = () => {
                       key={product.id}
                       type="button"
                       onClick={() => selectFlashSlideProduct(product)}
-                      className="w-full px-3.5 py-2.5 text-left flex items-center justify-between gap-4 hover:bg-rose-50 transition"
+                      className="w-full px-3.5 py-2 text-left flex items-center justify-between gap-3 hover:bg-rose-50 transition"
                     >
-                      <span className="min-w-0">
-                        <span className="block text-xs font-bold truncate text-slate-800">{product.title}</span>
-                        <span className="text-[11px] text-slate-500">
-                          ৳{product.price} {product.sku ? `• SKU: ${product.sku}` : ''}
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        {product.images?.[0] ? (
+                          <img
+                            src={product.images[0]}
+                            alt={product.title}
+                            className="w-10 h-10 rounded-lg object-cover border border-slate-200 shrink-0 bg-white"
+                          />
+                        ) : (
+                          <div className="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center shrink-0 text-[10px] text-slate-400 font-bold">
+                            No img
+                          </div>
+                        )}
+                        <span className="min-w-0">
+                          <span className="block text-xs font-bold truncate text-slate-800">{product.title}</span>
+                          <span className="text-[11px] text-slate-500">
+                            ৳{product.price} {product.sku ? `• SKU: ${product.sku}` : ''}
+                          </span>
                         </span>
-                      </span>
-                      <span className="text-xs font-bold text-rose-600 shrink-0">Link Product</span>
+                      </div>
+                      <span className="text-xs font-bold text-rose-600 shrink-0">Use Product</span>
                     </button>
                   ))}
                 </div>
@@ -455,21 +473,42 @@ export const AdminBanners: React.FC = () => {
                 <textarea rows={2} value={currentSlide.subtitle || ''} onChange={(event) => updateSlide('subtitle', event.target.value)} className={`w-full px-3.5 py-2.5 border text-sm resize-y ${input}`} />
               </Field>
               {currentSlide.link && (
-                <div className="sm:col-span-2 flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-rose-50 border border-rose-100 text-xs text-rose-900">
-                  <span className="truncate">
-                    <span className="font-bold">🔗 Active Slide Link:</span> {currentSlide.link}
-                  </span>
+                <div className="sm:col-span-2 flex items-center justify-between p-3 rounded-xl bg-rose-50 border border-rose-100 text-xs text-rose-900 gap-3">
+                  <div className="flex items-center gap-3 min-w-0">
+                    {currentSlide.bgImage ? (
+                      <img
+                        src={currentSlide.bgImage}
+                        alt="Product Default"
+                        className="w-11 h-11 rounded-lg object-cover border border-rose-200 shrink-0 bg-white shadow-2xs"
+                      />
+                    ) : (
+                      <div className="w-11 h-11 rounded-lg bg-rose-100 flex items-center justify-center shrink-0 text-[10px] font-bold text-rose-500">
+                        IMG
+                      </div>
+                    )}
+                    <div className="min-w-0">
+                      <p className="font-black text-slate-900 truncate">
+                        {currentSlide.title || 'Linked Product'}
+                      </p>
+                      <p className="text-[11px] text-rose-700 truncate font-medium">
+                        ✓ Using product's default image • {currentSlide.link}
+                      </p>
+                    </div>
+                  </div>
                   <button
                     type="button"
-                    onClick={() => updateSlide('link', '')}
-                    className="text-rose-600 hover:text-rose-800 font-bold ml-2 shrink-0"
+                    onClick={() => {
+                      updateSlide('link', '');
+                      updateSlide('bgImage', '');
+                    }}
+                    className="text-xs text-rose-600 hover:text-rose-800 font-bold px-3 py-1.5 rounded-lg border border-rose-200 bg-white hover:bg-rose-50 transition shrink-0"
                   >
-                    Clear Link
+                    Unlink
                   </button>
                 </div>
               )}
               <div className="sm:col-span-2">
-                <ImageUploader label="Slide background image" value={currentSlide.bgImage || ''} onChange={(value) => updateSlide('bgImage', value)} helpText="Optional: a wide promotional image." />
+                <ImageUploader label="Custom banner image override (Optional)" value={currentSlide.bgImage || ''} onChange={(value) => updateSlide('bgImage', value)} helpText="Default product image is automatically used. Upload only if you want a custom wide banner graphic." />
               </div>
             </div>
           </section>
