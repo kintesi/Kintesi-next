@@ -255,3 +255,127 @@ html.admin-light {
 
 .admin-light [class*="hover:bg-gray-"]:hover,
 .admin-light [class*="hover:bg-slate-"]:hover { background-color: #f8fafc !important; }
+
+/* --------------------------------------------------------------------------
+   Professional admin UI system — light mode only
+   -------------------------------------------------------------------------- */
+.admin-light {
+  --admin-ink: #0f172a;
+  --admin-muted: #64748b;
+  --admin-line: #e2e8f0;
+  --admin-canvas: #f7f8fc;
+  --admin-card: #ffffff;
+  --admin-radish: #e11d48;
+}
+
+.admin-light .admin-root {
+  background: var(--admin-canvas) !important;
+}
+
+.admin-light main {
+  background:
+    radial-gradient(circle at 100% 0%, rgba(225, 29, 72, 0.045), transparent 26rem),
+    var(--admin-canvas) !important;
+}
+
+/* Give full-size management panels a consistent, quiet elevation. */
+.admin-light div[class*="shadow-xl"],
+.admin-light div[class*="shadow-2xl"] {
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.06) !important;
+}
+
+.admin-light aside {
+  box-shadow: 10px 0 28px rgba(15, 23, 42, 0.025);
+}
+
+.admin-light aside nav {
+  scrollbar-color: #cbd5e1 transparent;
+}
+
+.admin-light aside nav a {
+  min-height: 36px;
+  border-color: transparent;
+}
+
+.admin-light aside nav a:hover {
+  background-color: #fff1f2 !important;
+  color: #be123c !important;
+}
+
+/* Inputs and selects share a single polished interaction state. */
+.admin-light input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([type="range"]),
+.admin-light select,
+.admin-light textarea {
+  border-radius: 0.75rem !important;
+  transition: border-color 160ms ease, box-shadow 160ms ease, background-color 160ms ease !important;
+}
+
+.admin-light input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([type="range"]):hover,
+.admin-light select:hover,
+.admin-light textarea:hover {
+  border-color: #cbd5e1 !important;
+}
+
+.admin-light input[type="checkbox"],
+.admin-light input[type="radio"] {
+  accent-color: var(--admin-radish);
+}
+
+.admin-light button:not(:disabled),
+.admin-light a {
+  transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease, box-shadow 160ms ease, transform 160ms ease !important;
+}
+
+.admin-light button:focus-visible,
+.admin-light a:focus-visible,
+.admin-light input:focus-visible,
+.admin-light select:focus-visible,
+.admin-light textarea:focus-visible {
+  outline: 3px solid rgba(225, 29, 72, 0.2) !important;
+  outline-offset: 2px;
+}
+
+/* Responsive page rhythm: compact on mobile, generous on a desktop console. */
+@media (max-width: 639px) {
+  .admin-light main {
+    background-image: none !important;
+  }
+
+  .admin-light main > div > div {
+    gap: 1.25rem;
+  }
+}
+
+/* Banner Studio has a dedicated dark palette because its compact editor uses
+   light-mode slate utility classes for hierarchy. Keep it legible in dark mode
+   without changing the shared admin navigation or storefront styles. */
+.admin-dark .banner-studio {
+  color: #f8fafc;
+}
+
+.admin-dark .banner-studio [class*="text-slate-900"],
+.admin-dark .banner-studio [class*="text-slate-800"],
+.admin-dark .banner-studio [class*="text-slate-700"] {
+  color: #f8fafc !important;
+}
+
+.admin-dark .banner-studio [class*="text-slate-600"] {
+  color: #cbd5e1 !important;
+}
+
+.admin-dark .banner-studio [class*="text-slate-500"],
+.admin-dark .banner-studio [class*="text-slate-400"] {
+  color: #94a3b8 !important;
+}
+
+.admin-dark .banner-studio [class*="border-slate-"] {
+  border-color: #334155 !important;
+}
+
+.admin-dark .banner-studio [class~="bg-white"] {
+  background-color: #1e293b !important;
+}
+
+.admin-dark .banner-studio [class*="hover:bg-slate-"]:hover {
+  background-color: #334155 !important;
+}
