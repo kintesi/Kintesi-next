@@ -227,7 +227,7 @@ export async function getCategoriesFromDB(): Promise<Category[]> {
 
 export async function saveCategoryToDB(category: Category): Promise<void> {
   const localSaved: Category[] = JSON.parse(localStorage.getItem('kintesi_custom_categories') || '[]');
-  const updated = [category, ...localSaved.filter((c) => c.id !== category.id)];
+  const updated = [category, ...localSaved.filter((c) => c.id !== category.id && c.slug !== category.slug)];
   localStorage.setItem('kintesi_custom_categories', JSON.stringify(updated));
 
   // 1. Primary: Supabase
@@ -239,10 +239,39 @@ export async function saveCategoryToDB(category: Category): Promise<void> {
 
   // 2. Real-time Backup: Firebase
   try {
-    await setDoc(doc(db, 'categories', category.id), category, { merge: true });
+    await setDoc(doc(db, 'categories', category.id || category.slug), category, { merge: true });
   } catch (err) {
     console.error('Firebase category backup error:', err);
   }
+
+  window.dispatchEvent(new CustomEvent('kintesi_categories_updated'));
+}
+
+export async function deleteCategoryFromDB(idOrSlug: string): Promise<void> {
+  // 1. Local
+  try {
+    const localSaved: Category[] = JSON.parse(localStorage.getItem('kintesi_custom_categories') || '[]');
+    const updated = localSaved.filter((c) => c.id !== idOrSlug && c.slug !== idOrSlug);
+    localStorage.setItem('kintesi_custom_categories', JSON.stringify(updated));
+  } catch (err) {
+    console.warn('Local category delete notice:', err);
+  }
+
+  // 2. Supabase
+  try {
+    await supabase.from('categories').delete().or(`id.eq.${idOrSlug},slug.eq.${idOrSlug}`);
+  } catch (err) {
+    console.warn('Supabase category delete warning:', err);
+  }
+
+  // 3. Firebase
+  try {
+    await deleteDoc(doc(db, 'categories', idOrSlug));
+  } catch (err) {
+    console.warn('Firebase category delete warning:', err);
+  }
+
+  window.dispatchEvent(new CustomEvent('kintesi_categories_updated'));
 }
 
 // ==========================================

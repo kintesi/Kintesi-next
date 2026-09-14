@@ -273,6 +273,8 @@ export const AdminProducts: React.FC = () => {
       window.dispatchEvent(new Event('kintesi_products_updated'));
     }
     loadProducts();
+    window.addEventListener('kintesi_categories_updated', loadProducts);
+    return () => window.removeEventListener('kintesi_categories_updated', loadProducts);
   }, []);
 
   const handleOpenAddModal = () => {

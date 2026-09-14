@@ -24,7 +24,8 @@ import {
 import { INITIAL_PRODUCTS, INITIAL_CATEGORIES } from '../../data/mockData';
 import { formatPrice } from '../../lib/utils';
 import { matchesProductSearch, getAllLiveProducts } from '../../lib/searchUtils';
-import { Product } from '../../types';
+import { Product, Category } from '../../types';
+import { getCategoriesFromDB } from '../../lib/dbService';
 import { useSettings } from '../../contexts/SettingsContext';
 import { trackSearchQuery } from '../../lib/recommendationEngine';
 import { useLanguage } from '../../contexts/LanguageContext';
@@ -36,6 +37,7 @@ export const Navbar: React.FC = () => {
   const { settings } = useSettings();
   const { language, t } = useLanguage();
 
+  const [categories, setCategories] = useState<Category[]>(INITIAL_CATEGORIES);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [isDepartmentMenuOpen, setIsDepartmentMenuOpen] = useState(false);
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
@@ -43,6 +45,18 @@ export const Navbar: React.FC = () => {
   const [showSearchResults, setShowSearchResults] = useState(false);
   const [liveProducts, setLiveProducts] = useState<Product[]>(() => getAllLiveProducts(INITIAL_PRODUCTS));
   const [showAnnouncement, setShowAnnouncement] = useState(true);
+
+  useEffect(() => {
+    async function loadNavbarCategories() {
+      try {
+        const data = await getCategoriesFromDB();
+        if (data && data.length > 0) setCategories(data);
+      } catch {}
+    }
+    loadNavbarCategories();
+    window.addEventListener('kintesi_categories_updated', loadNavbarCategories);
+    return () => window.removeEventListener('kintesi_categories_updated', loadNavbarCategories);
+  }, []);
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -534,43 +548,31 @@ export const Navbar: React.FC = () => {
                 </button>
 
                 {isDepartmentMenuOpen && (
-                  <div className="absolute top-full left-0 mt-1.5 w-64 bg-white rounded-2xl shadow-2xl border border-rose-100 p-1.5 z-50 animate-slide-up space-y-0.5">
-                    {INITIAL_CATEGORIES.map((cat) => (
+                  <div className="absolute top-full left-0 mt-1.5 w-64 bg-white rounded-2xl shadow-2xl border border-rose-100 p-1.5 z-50 animate-slide-up space-y-0.5 max-h-96 overflow-y-auto">
+                    {categories.map((cat) => (
                       <Link
-                        key={cat.slug}
+                        key={cat.slug || cat.id}
                         to={`/shop?category=${cat.slug}`}
                         onClick={() => setIsDepartmentMenuOpen(false)}
                         className="flex items-center justify-between px-3 py-2 rounded-xl text-gray-700 hover:bg-rose-50 hover:text-rose-800 transition"
                       >
-                        <span className="text-xs font-semibold">{cat.name}</span>
-                        <ChevronDown className="w-3 h-3 -rotate-90 text-gray-400" />
+                        <span className="text-xs font-semibold truncate">{cat.name}</span>
+                        <ChevronDown className="w-3 h-3 -rotate-90 text-gray-400 shrink-0" />
                       </Link>
                     ))}
                   </div>
                 )}
               </div>
 
-              <Link to="/shop?category=groceries-daily-essentials" className="hover:text-rose-600 transition font-semibold">
-                {t('home.groceries')}
-              </Link>
-              <Link to="/shop?category=beauty-skincare" className="hover:text-rose-600 transition font-semibold">
-                {language === 'bn' ? 'সৌন্দর্য ও রূপচর্চা' : 'Beauty & Skincare'}
-              </Link>
-              <Link to="/shop?category=home-kitchen" className="hover:text-rose-600 transition font-semibold">
-                {language === 'bn' ? 'গৃহস্থালি ও কিচেন' : 'Home & Kitchen'}
-              </Link>
-              <Link to="/shop?category=mens-fashion" className="hover:text-rose-600 transition font-semibold">
-                {language === 'bn' ? 'পুরুষদের ফ্যাশন' : "Men's Fashion"}
-              </Link>
-              <Link to="/shop?category=womens-fashion" className="hover:text-rose-600 transition font-semibold">
-                {language === 'bn' ? 'নারীদের ফ্যাশন' : "Women's Fashion"}
-              </Link>
-              <Link to="/shop?category=footwear-sneakers" className="hover:text-rose-600 transition font-semibold">
-                {language === 'bn' ? 'জুতো ও স্যান্ডেল' : 'Footwear'}
-              </Link>
-              <Link to="/shop?category=smartphones-tablets" className="hover:text-rose-600 transition font-semibold">
-                {t('home.tech')}
-              </Link>
+              {categories.slice(0, 6).map((cat) => (
+                <Link
+                  key={cat.slug || cat.id}
+                  to={`/shop?category=${cat.slug}`}
+                  className="hover:text-rose-600 transition font-semibold truncate max-w-[140px]"
+                >
+                  {cat.name}
+                </Link>
+              ))}
             </div>
 
             <div className="flex items-center gap-4 text-xs font-semibold">

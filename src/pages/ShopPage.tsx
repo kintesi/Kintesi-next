@@ -41,8 +41,28 @@ export const ShopPage: React.FC = () => {
     }
     loadData();
     window.addEventListener('kintesi_products_updated', loadData);
-    return () => window.removeEventListener('kintesi_products_updated', loadData);
+    window.addEventListener('kintesi_categories_updated', loadData);
+    return () => {
+      window.removeEventListener('kintesi_products_updated', loadData);
+      window.removeEventListener('kintesi_categories_updated', loadData);
+    };
   }, []);
+
+  const isCategoryMatch = (prodCatId?: string, targetCat?: string) => {
+    if (!targetCat || targetCat === 'all') return true;
+    if (!prodCatId) return false;
+    if (prodCatId.toLowerCase() === targetCat.toLowerCase()) return true;
+    const found = categories.find(
+      (c) => c.slug.toLowerCase() === targetCat.toLowerCase() || c.id.toLowerCase() === targetCat.toLowerCase()
+    );
+    if (found) {
+      return (
+        prodCatId.toLowerCase() === found.slug.toLowerCase() ||
+        prodCatId.toLowerCase() === found.id.toLowerCase()
+      );
+    }
+    return false;
+  };
 
   useEffect(() => {
     const cat = searchParams.get('category') || 'all';
@@ -80,8 +100,8 @@ export const ShopPage: React.FC = () => {
         if (isFeatured && !product.is_featured) {
           return false;
         }
-        // Category filter
-        if (selectedCategory !== 'all' && product.category_id !== selectedCategory) {
+        // Category filter (flexible slug or ID match)
+        if (selectedCategory !== 'all' && !isCategoryMatch(product.category_id, selectedCategory)) {
           return false;
         }
         // Search query filter using smart synonyms and multi-attribute matching
@@ -209,7 +229,7 @@ export const ShopPage: React.FC = () => {
                   <span>{products.length}</span>
                 </button>
                 {categories.map((cat) => {
-                  const count = products.filter((p) => p.category_id === cat.slug).length;
+                  const count = products.filter((p) => isCategoryMatch(p.category_id, cat.slug)).length;
                   return (
                     <button
                       key={cat.slug || cat.id}
