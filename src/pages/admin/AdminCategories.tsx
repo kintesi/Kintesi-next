@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import { INITIAL_CATEGORIES } from '../../data/mockData';
 import { Category } from '../../types';
-import { Plus, Trash2, Edit2, Tags, X } from 'lucide-react';
+import { Plus, Trash2, Edit2, Tags, X, Search } from 'lucide-react';
 import { toast } from 'sonner';
 import { ImageUploader } from '../../components/common/ImageUploader';
 
@@ -10,6 +10,7 @@ import { getCategoriesFromDB, saveCategoryToDB } from '../../lib/dbService';
 
 export const AdminCategories: React.FC = () => {
   const [categories, setCategories] = useState<Category[]>(INITIAL_CATEGORIES);
+  const [searchQuery, setSearchQuery] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
 
@@ -91,6 +92,14 @@ export const AdminCategories: React.FC = () => {
     toast.success('Category removed');
   };
 
+  const filteredCategories = categories.filter((category) => {
+    const query = searchQuery.trim().toLowerCase();
+    if (!query) return true;
+    return [category.name, category.slug, category.description]
+      .filter(Boolean)
+      .some((value) => value!.toLowerCase().includes(query));
+  });
+
   return (
     <div className="w-full space-y-8 text-white pb-20">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -107,41 +116,61 @@ export const AdminCategories: React.FC = () => {
         </button>
       </div>
 
+      <div className="relative max-w-md">
+        <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+        <input
+          type="search"
+          value={searchQuery}
+          onChange={(event) => setSearchQuery(event.target.value)}
+          placeholder="Search categories by name, slug, or description..."
+          className="w-full pl-10 pr-4 py-2.5 bg-gray-800 border border-gray-700 rounded-xl text-xs font-medium text-white placeholder:text-gray-500 focus:border-rose-500 focus:outline-none transition"
+          aria-label="Search categories"
+        />
+      </div>
+
       {/* Categories Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5 gap-6 w-full">
-        {categories.map((cat) => (
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 2xl:grid-cols-6 gap-4 w-full">
+        {filteredCategories.map((cat) => (
           <div
             key={cat.slug || cat.id}
-            className="bg-gray-800/80 rounded-3xl border border-gray-700 p-6 space-y-4 relative group"
+            className="bg-gray-800/80 rounded-2xl border border-gray-700 p-4 space-y-3 relative group"
           >
             <div className="flex items-center justify-between">
-              <div className="w-12 h-12 rounded-2xl bg-rose-500/10 text-rose-500 flex items-center justify-center font-bold">
-                <Tags className="w-6 h-6" />
+              <div className="w-10 h-10 rounded-xl bg-rose-500/10 text-rose-500 flex items-center justify-center font-bold">
+                <Tags className="w-5 h-5" />
               </div>
               <div className="flex items-center gap-1">
                 <button
                   onClick={() => handleOpenEdit(cat)}
-                  className="p-2 hover:bg-gray-700 text-gray-400 hover:text-white rounded-lg transition"
+                  className="p-1.5 hover:bg-gray-700 text-gray-400 hover:text-white rounded-lg transition"
                 >
-                  <Edit2 className="w-4 h-4" />
+                  <Edit2 className="w-3.5 h-3.5" />
                 </button>
                 <button
                   onClick={() => handleDelete(cat.slug, cat.name)}
-                  className="p-2 hover:bg-rose-950/60 text-rose-400 hover:text-rose-300 rounded-lg transition"
+                  className="p-1.5 hover:bg-rose-950/60 text-rose-400 hover:text-rose-300 rounded-lg transition"
                 >
-                  <Trash2 className="w-4 h-4" />
+                  <Trash2 className="w-3.5 h-3.5" />
                 </button>
               </div>
             </div>
 
             <div>
-              <h3 className="text-base font-bold text-white">{cat.name}</h3>
+              <h3 className="text-sm font-bold text-white leading-snug">{cat.name}</h3>
               <p className="text-[11px] font-mono text-rose-500 mt-0.5">slug: {cat.slug}</p>
-              <p className="text-xs text-gray-400 mt-2 line-clamp-2">{cat.description || 'No description added'}</p>
+              <p className="text-[11px] text-gray-400 mt-1.5 line-clamp-2">{cat.description || 'No description added'}</p>
             </div>
           </div>
         ))}
       </div>
+
+      {filteredCategories.length === 0 && (
+        <div className="rounded-2xl border border-dashed border-gray-700 bg-gray-800/40 px-6 py-12 text-center">
+          <Tags className="w-7 h-7 mx-auto mb-3 text-rose-500" />
+          <p className="text-sm font-bold text-white">No matching categories</p>
+          <p className="text-xs text-gray-400 mt-1">Try a different category name, slug, or description.</p>
+        </div>
+      )}
 
       {/* Modal */}
       {isModalOpen && (
