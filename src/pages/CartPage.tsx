@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useCart, sanitizeCartItems } from '../contexts/CartContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useSettings } from '../contexts/SettingsContext';
 import { formatPrice } from '../lib/utils';
 import { toast } from 'sonner';
 import {
@@ -19,6 +20,7 @@ import {
 } from 'lucide-react';
 
 export const CartPage: React.FC = () => {
+  const { settings } = useSettings();
   const { user, openAuthModal } = useAuth();
   const {
     cart,
@@ -139,7 +141,12 @@ export const CartPage: React.FC = () => {
     }
   }
 
-  const selectedShippingFee = selectedSubtotal === 0 ? 0 : 60;
+  const isFreeShipping = Boolean(
+    settings.freeShippingThreshold &&
+    settings.freeShippingThreshold > 0 &&
+    selectedSubtotal >= settings.freeShippingThreshold
+  );
+  const selectedShippingFee = selectedSubtotal === 0 ? 0 : isFreeShipping ? 0 : (Number(settings.deliveryFeeInsideDhaka) || 60);
   const selectedTotal = Math.max(0, selectedSubtotal - selectedDiscountAmount + selectedShippingFee);
   const selectedCount = selectedItems.reduce(
     (sum, item) => sum + (typeof item?.quantity === 'number' ? item.quantity : 0),

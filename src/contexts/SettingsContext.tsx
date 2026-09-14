@@ -154,7 +154,7 @@ const DEFAULT_SETTINGS: StoreSettings = {
   rocketType: 'Personal',
   deliveryFeeInsideDhaka: 60,
   deliveryFeeOutsideDhaka: 120,
-  freeShippingThreshold: 0,
+  freeShippingThreshold: 5000,
   authorizedAdmins: ['manage.kintesi@gmail.com'],
   banners: DEFAULT_BANNERS,
 };

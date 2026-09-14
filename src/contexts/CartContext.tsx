@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useState, useRef } from 'r
 import { CartItem, Product, Coupon } from '../types';
 import { useCoupons } from './CouponContext';
 import { useAuth } from './AuthContext';
+import { useSettings } from './SettingsContext';
 import { toast } from 'sonner';
 import { doc, getDoc, setDoc, onSnapshot } from 'firebase/firestore';
 import { db } from '../lib/firebase';
@@ -88,6 +89,7 @@ export const sanitizeCartItems = (rawList: any): CartItem[] => {
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { settings } = useSettings();
   const { user, openAuthModal } = useAuth();
   const { validateCoupon } = useCoupons();
 
@@ -402,8 +404,13 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }
 
-  // Standard ৳60 Inside Dhaka delivery fee
-  const shippingFee = subtotal === 0 ? 0 : 60;
+  // Free delivery threshold if enabled by store owner in admin panel, otherwise standard delivery fee
+  const isFreeShipping = Boolean(
+    settings.freeShippingThreshold &&
+    settings.freeShippingThreshold > 0 &&
+    subtotal >= settings.freeShippingThreshold
+  );
+  const shippingFee = subtotal === 0 ? 0 : isFreeShipping ? 0 : (Number(settings.deliveryFeeInsideDhaka) || 60);
   const total = Math.max(0, subtotal - discountAmount + shippingFee);
   const totalItemCount = cart.reduce((sum, item) => sum + (typeof item?.quantity === 'number' ? item.quantity : 0), 0);
 
