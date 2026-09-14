@@ -328,7 +328,7 @@ export const AdminPaymentSettings: React.FC = () => {
             <button
               type="submit"
               disabled={isLoading}
-              className="flex items-center gap-2 px-8 py-4 bg-emerald-600 hover:bg-emerald-500 text-white font-black rounded-2xl text-sm transition shadow-xl shadow-emerald-600/30 active:scale-95 disabled:opacity-50 cursor-pointer"
+              className="flex items-center gap-2 px-8 py-4 bg-rose-600 hover:bg-rose-700 text-white font-black rounded-2xl text-sm transition shadow-xl shadow-rose-600/30 active:scale-95 disabled:opacity-50 cursor-pointer"
             >
               <Save className="w-5 h-5" />
               <span>{isLoading ? 'Saving Changes...' : 'Save Global Store & Payment Settings'}</span>

@@ -140,7 +140,7 @@ export const AdminOrders: React.FC = () => {
               onClick={() => setStatusFilter(st)}
               className={`px-3.5 py-1.5 rounded-xl text-xs font-bold uppercase tracking-wider transition ${
                 statusFilter === st
-                  ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/30'
+                  ? 'bg-rose-600 text-white shadow-lg shadow-rose-600/30'
                   : 'bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-white'
               }`}
             >
@@ -364,7 +364,7 @@ export const AdminOrders: React.FC = () => {
                       navigator.clipboard.writeText(selectedOrder.transaction_id || '');
                       toast.success(`TrxID ${selectedOrder.transaction_id} copied!`);
                     }}
-                    className="flex items-center gap-1.5 px-3 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition shadow-xs cursor-pointer active:scale-95 shrink-0"
+                    className="flex items-center gap-1.5 px-3 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold transition shadow-xs cursor-pointer active:scale-95 shrink-0"
                   >
                     <Copy className="w-3.5 h-3.5" />
                     <span>Copy TrxID</span>
@@ -396,7 +396,7 @@ export const AdminOrders: React.FC = () => {
                       <p className="text-gray-400">Rocket: <strong className="text-purple-400 font-mono">{selectedOrder.seller_payment_snapshot.rocket_number}</strong> ({selectedOrder.seller_payment_snapshot.rocket_type})</p>
                     )}
                     {selectedOrder.seller_payment_snapshot.bank_name && (
-                      <p className="text-gray-400 col-span-2">Bank: <strong className="text-emerald-400">{selectedOrder.seller_payment_snapshot.bank_name}</strong> - A/C: <span className="font-mono text-white">{selectedOrder.seller_payment_snapshot.bank_account_number}</span></p>
+                      <p className="text-gray-400 col-span-2">Bank: <strong className="text-rose-400">{selectedOrder.seller_payment_snapshot.bank_name}</strong> - A/C: <span className="font-mono text-white">{selectedOrder.seller_payment_snapshot.bank_account_number}</span></p>
                     )}
                   </div>
                 </div>
@@ -420,7 +420,7 @@ export const AdminOrders: React.FC = () => {
                         <p className="text-gray-400">Qty: {item.quantity}</p>
                       </div>
                     </div>
-                    <span className="font-bold text-emerald-400">{formatPrice(item.price * item.quantity)}</span>
+                    <span className="font-bold text-rose-500">{formatPrice(item.price * item.quantity)}</span>
                   </div>
                 ))}
               </div>
@@ -429,7 +429,7 @@ export const AdminOrders: React.FC = () => {
             {/* Total */}
             <div className="border-t border-gray-800 pt-4 flex justify-between items-center text-sm font-black">
               <span>Total Payable</span>
-              <span className="text-emerald-400 text-lg">{formatPrice(selectedOrder.total_amount)}</span>
+              <span className="text-rose-500 text-lg">{formatPrice(selectedOrder.total_amount)}</span>
             </div>
 
             <div className="flex justify-between items-center pt-2 border-t border-gray-800">
@@ -443,7 +443,7 @@ export const AdminOrders: React.FC = () => {
 
               <button
                 onClick={() => setSelectedOrder(null)}
-                className="px-6 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl transition"
+                className="px-6 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-xl transition"
               >
                 Done
               </button>

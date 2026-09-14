@@ -1071,7 +1071,7 @@ export const AdminProducts: React.FC = () => {
           </button>
           <button
             onClick={handleOpenAddModal}
-            className="px-5 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-2xl transition flex items-center gap-2 text-xs shadow-lg shadow-emerald-600/20 active:scale-95"
+            className="px-5 py-3 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-2xl transition flex items-center gap-2 text-xs shadow-lg shadow-rose-600/30 active:scale-95"
           >
             <Plus className="w-4 h-4" />
             <span>Add New Product</span>
@@ -1115,7 +1115,7 @@ export const AdminProducts: React.FC = () => {
                 <tr>
                   <td colSpan={6} className="p-16 text-center">
                     <div className="max-w-sm mx-auto space-y-3">
-                      <div className="w-12 h-12 rounded-2xl bg-gray-800 border border-gray-700 text-emerald-400 flex items-center justify-center mx-auto">
+                      <div className="w-12 h-12 rounded-2xl bg-gray-800 border border-gray-700 text-rose-500 flex items-center justify-center mx-auto">
                         <Package className="w-6 h-6" />
                       </div>
                       <p className="text-sm font-bold text-white">No Products in Store Catalog</p>
@@ -1124,7 +1124,7 @@ export const AdminProducts: React.FC = () => {
                       </p>
                       <button
                         onClick={handleOpenAddModal}
-                        className="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs shadow-lg shadow-emerald-600/30 transition"
+                        className="inline-flex items-center gap-2 px-5 py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl text-xs shadow-lg shadow-rose-600/30 transition"
                       >
                         <Plus className="w-4 h-4" />
                         <span>Add New Product</span>
@@ -1308,7 +1308,7 @@ export const AdminProducts: React.FC = () => {
                 type="button"
                 disabled={isSavingProduct}
                 onClick={() => handleSubmit()}
-                className="px-6 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-black rounded-xl text-xs transition shadow-lg shadow-emerald-600/30 flex items-center gap-2 active:scale-95 cursor-pointer disabled:opacity-50"
+                className="px-6 py-2 bg-rose-600 hover:bg-rose-700 text-white font-black rounded-xl text-xs transition shadow-lg shadow-rose-600/30 flex items-center gap-2 active:scale-95 cursor-pointer disabled:opacity-50"
               >
                 {isSavingProduct ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
@@ -1371,7 +1371,7 @@ export const AdminProducts: React.FC = () => {
                 <div className="space-y-6 animate-fadeIn">
                   {/* Section 1: Basic Identifiers */}
               <div className={`space-y-4 p-5 rounded-2xl border ${isLight ? 'bg-white border-gray-200 shadow-xs' : 'bg-gray-950/60 border-gray-800/80'}`}>
-                <h4 className="text-xs font-black uppercase tracking-wider text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
+                <h4 className="text-xs font-black uppercase tracking-wider text-rose-600 dark:text-rose-400 flex items-center gap-1.5">
                   <Tag className="w-4 h-4" /> Basic Identifiers & Brand
                 </h4>
 
@@ -1462,7 +1462,7 @@ export const AdminProducts: React.FC = () => {
                           onClick={() => setFormData({ ...formData, warranty: item.val })}
                           className={`text-[10px] px-2 py-0.5 rounded-lg border transition cursor-pointer ${
                             formData.warranty === item.val
-                              ? 'bg-emerald-600 text-white border-emerald-500 font-bold shadow-xs'
+                              ? 'bg-rose-600 text-white border-rose-500 font-bold shadow-xs'
                               : isLight
                               ? 'bg-slate-50 hover:bg-slate-100 text-gray-700 border-gray-200'
                               : 'bg-gray-900 hover:bg-gray-800 text-gray-400 border-gray-800'
@@ -1513,7 +1513,7 @@ export const AdminProducts: React.FC = () => {
               <div className={`space-y-4 p-5 rounded-2xl border ${isLight ? 'bg-white border-gray-200 shadow-xs' : 'bg-gray-950/60 border-gray-800/80'}`}>
                 {/* Feature & Trending Toggles */}
                 <div>
-                  <h4 className="text-xs font-black uppercase tracking-wider text-emerald-600 dark:text-emerald-400 mb-3 flex items-center gap-1.5">
+                  <h4 className="text-xs font-black uppercase tracking-wider text-rose-600 dark:text-rose-400 mb-3 flex items-center gap-1.5">
                     <Sparkles className="w-4 h-4" /> Visibility & Promotion Badges
                   </h4>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -1522,7 +1522,7 @@ export const AdminProducts: React.FC = () => {
                         type="checkbox"
                         checked={formData.is_featured}
                         onChange={(e) => setFormData({ ...formData, is_featured: e.target.checked })}
-                        className="w-4 h-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
+                        className="w-4 h-4 rounded border-gray-300 text-rose-600 focus:ring-rose-500"
                       />
                       <span>🌟 Feature on Homepage Spotlight</span>
                     </label>
@@ -1812,7 +1812,7 @@ export const AdminProducts: React.FC = () => {
                         <button
                           type="button"
                           onClick={() => handleAddColorVariant('', '#EC4899')}
-                          className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs transition flex items-center gap-1.5 shadow-md shadow-emerald-600/20 cursor-pointer"
+                          className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl text-xs transition flex items-center gap-1.5 shadow-md shadow-rose-600/20 cursor-pointer"
                         >
                           <Plus className="w-4 h-4" />
                           <span>Add Custom Color</span>
@@ -1914,11 +1914,11 @@ export const AdminProducts: React.FC = () => {
 
                       {/* Active Selected Sizes with Remove (X) */}
                       {formData.selectedSizes.length > 0 && (
-                        <div className="flex flex-wrap gap-1.5 mb-3 p-2.5 bg-gray-900/90 rounded-xl border border-emerald-500/30">
+                        <div className="flex flex-wrap gap-1.5 mb-3 p-2.5 bg-gray-900/90 rounded-xl border border-rose-500/30">
                           {formData.selectedSizes.map((size) => (
                             <span
                               key={size}
-                              className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-600 text-white rounded-lg text-xs font-bold shadow-sm"
+                              className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-rose-600 text-white rounded-lg text-xs font-bold shadow-sm"
                             >
                               <span>{size}</span>
                               <button
@@ -2058,12 +2058,12 @@ export const AdminProducts: React.FC = () => {
                               handleAddCustomSize();
                             }
                           }}
-                          className="flex-1 bg-gray-900 border border-gray-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500"
+                          className="flex-1 bg-gray-900 border border-gray-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-rose-500"
                         />
                         <button
                           type="button"
                           onClick={handleAddCustomSize}
-                          className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition shadow-md flex items-center gap-1 cursor-pointer"
+                          className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold transition shadow-md flex items-center gap-1 cursor-pointer"
                         >
                           <Plus className="w-4 h-4" />
                           <span>Add Size</span>
@@ -2855,7 +2855,7 @@ export const AdminProducts: React.FC = () => {
                         key={m.id}
                         className={`p-3 rounded-xl cursor-pointer transition flex flex-col justify-between bg-white ${
                           isChecked
-                            ? 'border-2 border-emerald-600 shadow-xs text-gray-900'
+                            ? 'border-2 border-rose-600 shadow-xs text-gray-900'
                             : 'border border-gray-200 text-gray-500 hover:border-gray-300 opacity-80'
                         }`}
                       >
@@ -2881,10 +2881,10 @@ export const AdminProducts: React.FC = () => {
                                 });
                               }
                             }}
-                            className="w-4 h-4 accent-emerald-600 rounded cursor-pointer"
+                            className="w-4 h-4 accent-rose-600 rounded cursor-pointer"
                           />
                         </div>
-                        <span className={`text-[10px] mt-1 font-medium ${isChecked ? 'text-emerald-700 font-semibold' : 'text-gray-400'}`}>{m.desc}</span>
+                        <span className={`text-[10px] mt-1 font-medium ${isChecked ? 'text-rose-600 font-semibold' : 'text-gray-400'}`}>{m.desc}</span>
                       </label>
                     );
                   })}
@@ -2990,7 +2990,7 @@ export const AdminProducts: React.FC = () => {
                     type="button"
                     disabled={isSavingProduct}
                     onClick={() => handleSubmit()}
-                    className="px-8 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-black rounded-xl text-xs transition shadow-lg shadow-emerald-600/30 flex items-center gap-2 active:scale-95 cursor-pointer disabled:opacity-50"
+                    className="px-8 py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-black rounded-xl text-xs transition shadow-lg shadow-rose-600/30 flex items-center gap-2 active:scale-95 cursor-pointer disabled:opacity-50"
                   >
                     {isSavingProduct ? (
                       <Loader2 className="w-4 h-4 animate-spin" />

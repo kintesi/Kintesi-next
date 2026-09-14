@@ -70,12 +70,12 @@ export const AdminDashboard: React.FC = () => {
         <div className="bg-gray-800/80 p-6 rounded-3xl border border-gray-700 shadow-sm space-y-3">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold uppercase tracking-wider text-gray-400">Total Revenue</span>
-            <div className="p-2 bg-emerald-500/10 text-emerald-400 rounded-xl">
+            <div className="p-2 bg-rose-500/10 text-rose-500 rounded-xl">
               <DollarSign className="w-5 h-5" />
             </div>
           </div>
           <p className="text-2xl sm:text-3xl font-black text-white">{formatPrice(totalRevenue)}</p>
-          <div className="flex items-center gap-1 text-[11px] text-emerald-400 font-semibold">
+          <div className="flex items-center gap-1 text-[11px] text-rose-500 font-semibold">
             <TrendingUp className="w-3.5 h-3.5" />
             <span>Real-time calculation</span>
           </div>
@@ -109,11 +109,11 @@ export const AdminDashboard: React.FC = () => {
         <div className="bg-gray-800/80 p-6 rounded-3xl border border-gray-700 shadow-sm space-y-3">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold uppercase tracking-wider text-gray-400">Admin Account</span>
-            <div className={`p-2 rounded-xl ${isSuperAdmin ? 'bg-amber-500/10 text-amber-500' : 'bg-emerald-500/10 text-emerald-500'}`}>
+            <div className={`p-2 rounded-xl ${isSuperAdmin ? 'bg-amber-500/10 text-amber-500' : 'bg-rose-500/10 text-rose-500'}`}>
               <ShieldCheck className="w-5 h-5" />
             </div>
           </div>
-          <p className="text-sm font-bold text-emerald-500 truncate">
+          <p className="text-sm font-bold text-rose-500 truncate">
             {user?.email || profile?.full_name || 'Admin'}
           </p>
           <p className="text-[11px] text-gray-400">
@@ -132,7 +132,7 @@ export const AdminDashboard: React.FC = () => {
           </div>
           <Link
             to="/admin/orders"
-            className="text-xs font-bold text-emerald-400 hover:text-emerald-300 flex items-center gap-1"
+            className="text-xs font-bold text-rose-500 hover:text-rose-400 flex items-center gap-1"
           >
             <span>View All Orders</span>
             <ArrowUpRight className="w-4 h-4" />
@@ -165,10 +165,10 @@ export const AdminDashboard: React.FC = () => {
                       <p className="text-[10px] text-gray-400">{ord.customer_phone}</p>
                     </td>
                     <td className="py-3.5 text-gray-300">{ord.items?.length || 0} items</td>
-                    <td className="py-3.5 font-bold text-emerald-400">{formatPrice(ord.total_amount)}</td>
+                    <td className="py-3.5 font-bold text-rose-500">{formatPrice(ord.total_amount)}</td>
                     <td className="py-3.5 uppercase font-bold text-[10px] text-gray-300">{ord.payment_method}</td>
                     <td className="py-3.5">
-                      <span className="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                      <span className="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-rose-500/10 text-rose-500 border border-rose-500/20">
                         {ord.order_status}
                       </span>
                     </td>

@@ -176,7 +176,7 @@ export const AdminTeam: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-black flex items-center gap-3">
-            <Users className="w-8 h-8 text-emerald-400" />
+            <Users className="w-8 h-8 text-rose-500" />
             <span>Admin & Staff Management</span>
           </h1>
           <p className="text-xs text-gray-400 mt-1">
@@ -186,7 +186,7 @@ export const AdminTeam: React.FC = () => {
 
         <button
           onClick={() => setIsModalOpen(true)}
-          className="flex items-center gap-2 px-5 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-2xl text-xs transition shadow-lg shadow-emerald-600/30"
+          className="flex items-center gap-2 px-5 py-3 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-2xl text-xs transition shadow-lg shadow-rose-600/30"
         >
           <UserPlus className="w-4 h-4" />
           <span>Add New Admin / Staff</span>
@@ -223,11 +223,11 @@ export const AdminTeam: React.FC = () => {
                     <td className="p-4">
                       {isMaster ? (
                         <span className="px-3 py-1 bg-amber-500/20 text-amber-300 border border-amber-500/30 rounded-full text-[10px] font-black uppercase flex items-center gap-1 w-max">
-                          <Crown className="w-3 h-3 text-amber-400" /> Master Super Admin
+                          <ShieldCheck className="w-3 h-3 text-amber-400" /> Master Super Admin
                         </span>
                       ) : (
-                        <span className="px-3 py-1 bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 rounded-full text-[10px] font-bold uppercase flex items-center gap-1 w-max">
-                          <ShieldCheck className="w-3 h-3 text-emerald-400" /> Staff Admin
+                        <span className="px-3 py-1 bg-rose-500/15 text-rose-300 border border-rose-500/25 rounded-full text-[10px] font-bold uppercase flex items-center gap-1 w-max">
+                          <ShieldCheck className="w-3 h-3 text-rose-400" /> Staff Admin
                         </span>
                       )}
                     </td>
@@ -277,7 +277,7 @@ export const AdminTeam: React.FC = () => {
                   value={newAdminName}
                   onChange={(e) => setNewAdminName(e.target.value)}
                   placeholder="e.g. Asif Mahmud"
-                  className="w-full px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-xl text-white focus:ring-2 focus:ring-emerald-500"
+                  className="w-full px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-xl text-white focus:ring-2 focus:ring-rose-500"
                 />
               </div>
 
@@ -289,11 +289,11 @@ export const AdminTeam: React.FC = () => {
                   value={newAdminEmail}
                   onChange={(e) => setNewAdminEmail(e.target.value)}
                   placeholder="newadmin@gmail.com"
-                  className="w-full px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-xl text-white focus:ring-2 focus:ring-emerald-500"
+                  className="w-full px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-xl text-white focus:ring-2 focus:ring-rose-500"
                 />
               </div>
 
-              <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-emerald-300 text-[11px] leading-relaxed">
+              <div className="p-3 bg-rose-500/10 border border-rose-500/20 rounded-xl text-rose-300 text-[11px] leading-relaxed">
                 When this user signs in with Google or Email, they will immediately have full access to add products, change merchant payment numbers, and manage orders.
               </div>
 
@@ -308,7 +308,7 @@ export const AdminTeam: React.FC = () => {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl shadow-lg shadow-emerald-600/30 active:scale-95 disabled:opacity-50"
+                  className="px-6 py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl shadow-lg shadow-rose-600/30 active:scale-95 disabled:opacity-50"
                 >
                   {loading ? 'Authorizing...' : 'Grant Admin Access'}
                 </button>

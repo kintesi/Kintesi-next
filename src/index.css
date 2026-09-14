@@ -275,7 +275,9 @@ body.admin-light [class*="hover:bg-slate-"]:hover {
 
 /* 7. SOFT ACCENT PASTEL BADGES */
 .admin-light .text-rose-400, body.admin-light .text-rose-400 { color: #e11d48 !important; }
-.admin-light .text-emerald-400, body.admin-light .text-emerald-400 { color: #047857 !important; }
+.admin-light .text-emerald-400, body.admin-light .text-emerald-400,
+.admin-light .text-emerald-500, body.admin-light .text-emerald-500,
+.admin-light .text-emerald-600, body.admin-light .text-emerald-600 { color: #e11d48 !important; }
 .admin-light .text-blue-400, body.admin-light .text-blue-400 { color: #2563eb !important; }
 .admin-light .text-purple-400, body.admin-light .text-purple-400 { color: #9333ea !important; }
 .admin-light .text-amber-400, body.admin-light .text-amber-400 { color: #b45309 !important; }
@@ -293,13 +295,19 @@ body.admin-light [class*="hover:bg-slate-"]:hover {
   border-color: #c7d2fe !important;
   color: #3730a3 !important;
 }
-.admin-light .bg-rose-500\/10, body.admin-light .bg-rose-500\/10 {
+.admin-light .bg-rose-500\/10, body.admin-light .bg-rose-500\/10,
+.admin-light .bg-rose-500\/15, body.admin-light .bg-rose-500\/15,
+.admin-light .bg-rose-500\/20, body.admin-light .bg-rose-500\/20 {
   background-color: #fff1f2 !important;
   border-color: #fecdd3 !important;
+  color: #e11d48 !important;
 }
-.admin-light .bg-emerald-500\/10, body.admin-light .bg-emerald-500\/10 {
-  background-color: #ecfdf5 !important;
-  border-color: #a7f3d0 !important;
+.admin-light .bg-emerald-500\/10, body.admin-light .bg-emerald-500\/10,
+.admin-light .bg-emerald-500\/15, body.admin-light .bg-emerald-500\/15,
+.admin-light .bg-emerald-500\/20, body.admin-light .bg-emerald-500\/20 {
+  background-color: #fff1f2 !important;
+  border-color: #fecdd3 !important;
+  color: #e11d48 !important;
 }
 
 /* 8. BUTTONS: GRAY BUTTONS BECOME CLEAN LIGHT OUTLINE BUTTONS */
@@ -329,13 +337,10 @@ body.admin-light button[class*="bg-gray-900"]:hover {
 
 /* 9. SOLID COLORED BUTTONS & BADGES PRESERVE COLOR & WHITE TEXT */
 .admin-light [class*="bg-rose-600"], body.admin-light [class*="bg-rose-600"],
-.admin-light [class*="bg-rose-500"], body.admin-light [class*="bg-rose-500"] {
-  background-color: #e11d48 !important;
-  color: #ffffff !important;
-}
+.admin-light [class*="bg-rose-500"], body.admin-light [class*="bg-rose-500"],
 .admin-light [class*="bg-emerald-600"], body.admin-light [class*="bg-emerald-600"],
 .admin-light [class*="bg-emerald-500"], body.admin-light [class*="bg-emerald-500"] {
-  background-color: #059669 !important;
+  background-color: #e11d48 !important;
   color: #ffffff !important;
 }
 .admin-light [class*="bg-purple-600"], body.admin-light [class*="bg-purple-600"],
@@ -362,6 +367,7 @@ body.admin-light button[class*="bg-gray-900"]:hover {
 }
 
 .admin-light [class*="bg-rose-600"] *, body.admin-light [class*="bg-rose-600"] *,
+.admin-light [class*="bg-rose-700"] *, body.admin-light [class*="bg-rose-700"] *,
 .admin-light [class*="bg-rose-500"] *, body.admin-light [class*="bg-rose-500"] *,
 .admin-light [class*="bg-emerald-600"] *, body.admin-light [class*="bg-emerald-600"] *,
 .admin-light [class*="bg-emerald-500"] *, body.admin-light [class*="bg-emerald-500"] *,

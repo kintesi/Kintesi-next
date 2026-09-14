@@ -37,13 +37,13 @@ export const UserAvatar: React.FC<UserAvatarProps> = ({
   }
 
   // High-quality UI initials avatar fallback
-  const fallbackApiUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=059669&color=ffffff&bold=true`;
+  const fallbackApiUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=e11d48&color=ffffff&bold=true`;
 
   return (
     <img
       src={fallbackApiUrl}
       alt={displayName}
-      className={`${sizeClasses[size]} rounded-full object-cover border border-emerald-600/30 bg-emerald-950 shrink-0 shadow-sm ${className}`}
+      className={`${sizeClasses[size]} rounded-full object-cover border border-rose-500/30 bg-rose-950 shrink-0 shadow-sm ${className}`}
     />
   );
 };

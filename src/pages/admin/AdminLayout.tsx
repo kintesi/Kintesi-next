@@ -60,7 +60,7 @@ const AdminLayoutInner: React.FC = () => {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-900 flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+        <div className="w-8 h-8 border-4 border-rose-500 border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -148,7 +148,7 @@ const AdminLayoutInner: React.FC = () => {
           </div>
           <div>
             <h1 className={`font-black text-sm leading-tight ${isLight ? 'text-gray-900' : 'text-white'}`}>Kintesi Admin</h1>
-            <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full ${isLight ? 'bg-rose-50 text-rose-700 border border-rose-200/80' : 'bg-rose-500/20 text-rose-400'}`}>
+            <span className={`text-[10px] font-black px-2.5 py-0.5 rounded-full ${isLight ? 'bg-rose-100 text-rose-800 border border-rose-300' : 'bg-rose-500/20 text-rose-400'}`}>
               {isMasterOwner ? 'Master Admin' : 'Admin'}
             </span>
           </div>
@@ -362,7 +362,7 @@ const AdminLayoutInner: React.FC = () => {
                 ? 'bg-slate-50 text-slate-900 border-slate-300'
                 : 'bg-gray-800 text-gray-200 border-gray-700'
             }`}>
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
+              <span className="w-1.5 h-1.5 rounded-full bg-rose-500 shrink-0" />
               <span className="font-semibold text-slate-900 dark:text-gray-200 truncate max-w-[170px]">{user?.email}</span>
             </div>
 

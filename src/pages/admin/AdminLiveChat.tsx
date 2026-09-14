@@ -14,10 +14,12 @@ import {
   ShieldCheck,
 } from 'lucide-react';
 import { UserAvatar } from '../../components/common/UserAvatar';
+import { useAdminTheme } from '../../contexts/AdminThemeContext';
 
 export const AdminLiveChat: React.FC = () => {
   const { conversations, sendSellerReply, clearChat, deleteConversation } = useChat();
   const { user } = useAuth();
+  const { isLight } = useAdminTheme();
   
   const [selectedConversationId, setSelectedConversationId] = useState<string>('');
   const [replyText, setReplyText] = useState('');
@@ -93,7 +95,7 @@ export const AdminLiveChat: React.FC = () => {
 
   return (
     <div
-      className={`bg-gray-900 w-full flex flex-col md:flex-row overflow-hidden select-none transition-all ${
+      className={`${isLight ? 'bg-slate-50' : 'bg-gray-900'} w-full flex flex-col md:flex-row overflow-hidden select-none transition-all ${
         isFullScreen
           ? 'fixed inset-0 z-[99999] w-screen h-screen'
           : 'h-full flex-1 min-h-0'
@@ -101,43 +103,55 @@ export const AdminLiveChat: React.FC = () => {
     >
       
       {/* LEFT: Customer List Sidebar (Simple & Minimal) */}
-      <div className="w-full md:w-80 lg:w-96 bg-gray-950 border-r border-gray-800/80 flex flex-col shrink-0 h-full min-h-0">
+      <div className={`w-full md:w-80 lg:w-96 ${isLight ? 'bg-white border-r border-slate-200 shadow-2xs' : 'bg-gray-950 border-r border-gray-800/80'} flex flex-col shrink-0 h-full min-h-0`}>
         
         {/* Search Header */}
-        <div className="p-4 border-b border-gray-800/80">
+        <div className={`p-4 border-b ${isLight ? 'border-slate-200 bg-white' : 'border-gray-800/80'}`}>
           <div className="flex items-center justify-between mb-3">
-            <h2 className="text-sm font-black text-white flex items-center gap-2">
-              <MessageCircle className="w-4 h-4 text-emerald-400" />
+            <h2 className={`text-sm font-black flex items-center gap-2 ${isLight ? 'text-slate-900' : 'text-white'}`}>
+              <MessageCircle className="w-4 h-4 text-rose-500" />
               <span>Live Inquiries</span>
             </h2>
             <div className="flex items-center gap-2">
-              <span className="text-[10px] font-bold px-2 py-0.5 bg-emerald-500/10 text-emerald-400 rounded-full border border-emerald-500/20">
+              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
+                isLight
+                  ? 'bg-rose-50 text-rose-600 border-rose-200'
+                  : 'bg-rose-500/10 text-rose-400 border-rose-500/20'
+              }`}>
                 {conversations.length} Active
               </span>
               <button
                 type="button"
                 onClick={() => setIsFullScreen((prev) => !prev)}
-                className="p-1.5 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg transition"
+                className={`p-1.5 rounded-lg transition ${
+                  isLight
+                    ? 'text-slate-500 hover:text-slate-900 hover:bg-slate-100'
+                    : 'text-gray-400 hover:text-white hover:bg-gray-800'
+                }`}
                 title={isFullScreen ? 'Exit Full Screen (Esc)' : 'Maximize Full Screen'}
                 aria-label={isFullScreen ? 'Exit Full Screen' : 'Maximize Full Screen'}
               >
                 {isFullScreen ? (
-                  <Minimize2 className="w-3.5 h-3.5 text-emerald-400" />
+                  <Minimize2 className="w-3.5 h-3.5 text-rose-500" />
                 ) : (
-                  <Maximize2 className="w-3.5 h-3.5 text-emerald-400" />
+                  <Maximize2 className="w-3.5 h-3.5 text-rose-500" />
                 )}
               </button>
             </div>
           </div>
 
           <div className="relative">
-            <Search className="w-3.5 h-3.5 text-gray-500 absolute left-3 top-1/2 -translate-y-1/2" />
+            <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search conversations..."
-              className="w-full pl-8 pr-3 py-2 bg-gray-900 border border-gray-800 rounded-xl text-xs text-white placeholder-gray-500 focus:outline-none focus:border-emerald-500"
+              className={`w-full pl-8 pr-3 py-2 rounded-xl text-xs transition focus:outline-none focus:border-rose-500 focus:ring-1 focus:ring-rose-500 ${
+                isLight
+                  ? 'bg-slate-50 border border-slate-200 text-slate-900 placeholder-slate-400 focus:bg-white'
+                  : 'bg-gray-900 border border-gray-800 text-white placeholder-gray-500'
+              }`}
             />
           </div>
         </div>
@@ -145,7 +159,7 @@ export const AdminLiveChat: React.FC = () => {
         {/* Conversation List */}
         <div className="flex-1 overflow-y-auto p-2 space-y-1">
           {filteredConversations.length === 0 ? (
-            <p className="text-center py-10 text-xs text-gray-500">No chats yet</p>
+            <p className="text-center py-10 text-xs text-slate-400">No chats yet</p>
           ) : (
             filteredConversations.map((conv) => {
               const isSelected = (selectedConversationId || activeThread?.conversationId) === conv.conversationId;
@@ -156,7 +170,9 @@ export const AdminLiveChat: React.FC = () => {
                   onClick={() => setSelectedConversationId(conv.conversationId)}
                   className={`p-3 rounded-2xl cursor-pointer transition flex items-center gap-3 ${
                     isSelected
-                      ? 'bg-emerald-600 text-white shadow-md'
+                      ? 'bg-rose-600 text-white shadow-md shadow-rose-600/25'
+                      : isLight
+                      ? 'hover:bg-slate-100 text-slate-700'
                       : 'hover:bg-gray-900 text-gray-300'
                   }`}
                 >
@@ -166,19 +182,39 @@ export const AdminLiveChat: React.FC = () => {
                       avatarUrl={conv.customerAvatar}
                       size="md"
                     />
-                    <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-400 border-2 border-gray-950 rounded-full" />
+                    <span className={`absolute bottom-0 right-0 w-2.5 h-2.5 bg-rose-500 border-2 rounded-full ${
+                      isLight ? 'border-white' : 'border-gray-950'
+                    }`} />
                   </div>
 
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center justify-between">
-                      <p className={`font-bold text-xs truncate ${isSelected ? 'text-white' : 'text-gray-200'}`}>
+                      <p className={`font-bold text-xs truncate ${
+                        isSelected
+                          ? 'text-white'
+                          : isLight
+                          ? 'text-slate-900'
+                          : 'text-gray-200'
+                      }`}>
                         {conv.customerName}
                       </p>
-                      <span className={`text-[9px] ${isSelected ? 'text-emerald-100' : 'text-gray-500'}`}>
+                      <span className={`text-[9px] ${
+                        isSelected
+                          ? 'text-rose-100'
+                          : isLight
+                          ? 'text-slate-400'
+                          : 'text-gray-500'
+                      }`}>
                         {new Date(conv.lastTimestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </span>
                     </div>
-                    <p className={`text-[11px] truncate mt-0.5 ${isSelected ? 'text-emerald-100' : 'text-gray-400'}`}>
+                    <p className={`text-[11px] truncate mt-0.5 ${
+                      isSelected
+                        ? 'text-rose-100'
+                        : isLight
+                        ? 'text-slate-500'
+                        : 'text-gray-400'
+                    }`}>
                       {conv.lastMessage}
                     </p>
                   </div>
@@ -190,23 +226,25 @@ export const AdminLiveChat: React.FC = () => {
       </div>
 
       {/* RIGHT: Clean Chat Canvas */}
-      <div className="flex-1 flex flex-col bg-gray-900 min-w-0">
+      <div className={`flex-1 flex flex-col min-w-0 ${isLight ? 'bg-white' : 'bg-gray-900'}`}>
         
         {/* Chat Header */}
         {activeThread ? (
-          <div className="p-4 border-b border-gray-800 flex items-center justify-between bg-gray-900/90">
+          <div className={`p-4 border-b flex items-center justify-between ${
+            isLight ? 'bg-white border-slate-200 shadow-2xs' : 'bg-gray-900/90 border-gray-800'
+          }`}>
             <div className="flex items-center gap-3">
               <UserAvatar
                 name={activeThread.customerName}
                 avatarUrl={activeThread.customerAvatar}
                 size="md"
-                className="border-emerald-500/40 shadow-sm"
+                className="border-rose-500/30 shadow-sm"
               />
               <div>
-                <h3 className="font-bold text-white text-sm leading-tight">
+                <h3 className={`font-bold text-sm leading-tight ${isLight ? 'text-slate-900' : 'text-white'}`}>
                   {activeThread.customerName}
                 </h3>
-                <p className="text-[11px] text-gray-400">{activeThread.customerEmail}</p>
+                <p className={`text-[11px] ${isLight ? 'text-slate-500' : 'text-gray-400'}`}>{activeThread.customerEmail}</p>
               </div>
             </div>
 
@@ -214,17 +252,21 @@ export const AdminLiveChat: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setIsFullScreen((prev) => !prev)}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white transition text-xs font-semibold border border-gray-700/60 shadow-xs cursor-pointer active:scale-95"
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl transition text-xs font-semibold border shadow-xs cursor-pointer active:scale-95 ${
+                  isLight
+                    ? 'bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200'
+                    : 'bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white border-gray-700/60'
+                }`}
                 title={isFullScreen ? 'Exit Full Screen (Esc)' : 'Maximize to Full Screen'}
               >
                 {isFullScreen ? (
                   <>
-                    <Minimize2 className="w-3.5 h-3.5 text-emerald-400" />
+                    <Minimize2 className="w-3.5 h-3.5 text-rose-500" />
                     <span className="text-[11px] font-bold">Exit Fullscreen</span>
                   </>
                 ) : (
                   <>
-                    <Maximize2 className="w-3.5 h-3.5 text-emerald-400" />
+                    <Maximize2 className="w-3.5 h-3.5 text-rose-500" />
                     <span className="text-[11px] font-bold">Full Screen</span>
                   </>
                 )}
@@ -236,7 +278,11 @@ export const AdminLiveChat: React.FC = () => {
                     deleteConversation(activeThread.conversationId);
                   }
                 }}
-                className="p-2 text-gray-500 hover:text-rose-400 hover:bg-gray-800 rounded-xl transition"
+                className={`p-2 rounded-xl transition ${
+                  isLight
+                    ? 'text-slate-400 hover:text-rose-600 hover:bg-rose-50'
+                    : 'text-gray-500 hover:text-rose-400 hover:bg-gray-800'
+                }`}
                 title="Delete conversation"
               >
                 <Trash2 className="w-4 h-4" />
@@ -244,21 +290,27 @@ export const AdminLiveChat: React.FC = () => {
             </div>
           </div>
         ) : (
-          <div className="p-4 border-b border-gray-800 flex items-center justify-between bg-gray-900/90 text-xs text-gray-500">
+          <div className={`p-4 border-b flex items-center justify-between text-xs ${
+            isLight ? 'bg-white border-slate-200 text-slate-400' : 'bg-gray-900/90 border-gray-800 text-gray-500'
+          }`}>
             <span>Select a chat to begin</span>
             <button
               type="button"
               onClick={() => setIsFullScreen((prev) => !prev)}
-              className="p-1.5 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg transition"
+              className={`p-1.5 rounded-lg transition ${
+                isLight ? 'text-slate-400 hover:text-slate-900 hover:bg-slate-100' : 'text-gray-400 hover:text-white hover:bg-gray-800'
+              }`}
               title={isFullScreen ? 'Exit Full Screen (Esc)' : 'Maximize Full Screen'}
             >
-              {isFullScreen ? <Minimize2 className="w-4 h-4 text-emerald-400" /> : <Maximize2 className="w-4 h-4 text-emerald-400" />}
+              {isFullScreen ? <Minimize2 className="w-4 h-4 text-rose-500" /> : <Maximize2 className="w-4 h-4 text-rose-500" />}
             </button>
           </div>
         )}
 
         {/* Message Stream */}
-        <div className="flex-1 p-4 sm:p-6 overflow-y-auto space-y-3 bg-gray-950/40">
+        <div className={`flex-1 p-4 sm:p-6 overflow-y-auto space-y-3 ${
+          isLight ? 'bg-slate-100/70' : 'bg-gray-950/40'
+        }`}>
           {activeThreadMessages.map((msg) => {
             const isSeller = msg.sender === 'seller';
 
@@ -280,13 +332,21 @@ export const AdminLiveChat: React.FC = () => {
                 <div
                   className={`max-w-[75%] rounded-2xl px-4 py-2.5 text-xs shadow-sm space-y-1.5 leading-relaxed ${
                     isSeller
-                      ? 'bg-emerald-600 text-white rounded-br-none'
+                      ? 'bg-rose-600 text-white rounded-br-none shadow-rose-600/20'
+                      : isLight
+                      ? 'bg-white text-slate-800 rounded-bl-none border border-slate-200/90 shadow-2xs'
                       : 'bg-gray-800 text-gray-100 rounded-bl-none border border-gray-700'
                   }`}
                 >
                   {/* Minimal Product Reference */}
                   {msg.productContext && (
-                    <div className="p-2 bg-black/20 rounded-xl flex items-center gap-2 text-[11px] border border-white/10 mb-1">
+                    <div className={`p-2 rounded-xl flex items-center gap-2 text-[11px] mb-1 ${
+                      isSeller
+                        ? 'bg-black/20 border border-white/10 text-white'
+                        : isLight
+                        ? 'bg-slate-50 border border-slate-200 text-slate-800'
+                        : 'bg-black/20 border border-white/10'
+                    }`}>
                       {msg.productContext.image && (
                         <img
                           src={msg.productContext.image}
@@ -297,7 +357,9 @@ export const AdminLiveChat: React.FC = () => {
                       <div className="truncate">
                         <p className="font-bold truncate">{msg.productContext.title}</p>
                         {msg.productContext.price && (
-                          <p className="text-emerald-300 font-extrabold">{formatPrice(msg.productContext.price)}</p>
+                          <p className={`font-extrabold ${isSeller ? 'text-rose-200' : 'text-rose-600'}`}>
+                            {formatPrice(msg.productContext.price)}
+                          </p>
                         )}
                       </div>
                     </div>
@@ -305,20 +367,34 @@ export const AdminLiveChat: React.FC = () => {
 
                   {/* Minimal Order Reference */}
                   {msg.orderContext && (
-                    <div className="px-2 py-1 bg-black/20 rounded-lg text-[10px] font-mono border border-white/10 mb-1">
+                    <div className={`px-2 py-1 rounded-lg text-[10px] font-mono mb-1 ${
+                      isSeller
+                        ? 'bg-black/20 border border-white/10 text-white'
+                        : isLight
+                        ? 'bg-slate-50 border border-slate-200 text-slate-700'
+                        : 'bg-black/20 border border-white/10'
+                    }`}>
                       Order #{msg.orderContext.orderNumber}
                     </div>
                   )}
 
-                  <p className="whitespace-pre-line text-sm">{msg.text}</p>
+                  <p className={`whitespace-pre-line text-sm ${isSeller ? 'text-white' : isLight ? 'text-slate-900' : 'text-gray-100'}`}>
+                    {msg.text}
+                  </p>
                   
-                  <span className={`text-[9px] block text-right font-mono ${isSeller ? 'text-emerald-200' : 'text-gray-400'}`}>
+                  <span className={`text-[9px] block text-right font-mono ${
+                    isSeller
+                      ? 'text-rose-100'
+                      : isLight
+                      ? 'text-slate-400'
+                      : 'text-gray-400'
+                  }`}>
                     {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                   </span>
                 </div>
 
                 {isSeller && (
-                  <div className="w-8 h-8 rounded-full shrink-0 overflow-hidden bg-emerald-700 border border-emerald-500/80 text-white flex items-center justify-center font-black text-xs shadow-xs mb-1">
+                  <div className="w-8 h-8 rounded-full shrink-0 overflow-hidden bg-rose-600 border border-rose-400 text-white flex items-center justify-center font-black text-xs shadow-xs mb-1">
                     <ShieldCheck className="w-4 h-4 text-white" />
                   </div>
                 )}
@@ -329,22 +405,28 @@ export const AdminLiveChat: React.FC = () => {
         </div>
 
         {/* Reply Input Bar */}
-        <form onSubmit={handleSendReply} className="p-3 bg-gray-950 border-t border-gray-800 flex items-center gap-2">
+        <form onSubmit={handleSendReply} className={`p-3 border-t flex items-center gap-2 ${
+          isLight ? 'bg-white border-slate-200' : 'bg-gray-950 border-gray-800'
+        }`}>
           <input
             type="text"
             value={replyText}
             onChange={(e) => setReplyText(e.target.value)}
             placeholder={`Message ${activeThread?.customerName || 'customer'}...`}
-            className="flex-1 px-4 py-2.5 bg-gray-900 border border-gray-800 rounded-2xl text-xs text-white placeholder-gray-500 focus:outline-none focus:border-emerald-500"
+            className={`flex-1 px-4 py-2.5 rounded-2xl text-xs transition focus:outline-none focus:border-rose-500 focus:ring-1 focus:ring-rose-500 ${
+              isLight
+                ? 'bg-slate-50 border border-slate-200 text-slate-900 placeholder-slate-400 focus:bg-white'
+                : 'bg-gray-900 border border-gray-800 text-white placeholder-gray-500'
+            }`}
           />
 
           <button
             type="submit"
             disabled={!replyText.trim() || !activeThread}
-            className="p-2.5 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-30 text-white rounded-2xl transition shadow-md cursor-pointer active:scale-95"
+            className="p-2.5 bg-rose-600 hover:bg-rose-700 disabled:opacity-30 text-white rounded-2xl transition shadow-md shadow-rose-600/25 cursor-pointer active:scale-95"
             title="Send"
           >
-            <Send className="w-4 h-4" />
+            <Send className="w-4 h-4 text-white" />
           </button>
         </form>
 

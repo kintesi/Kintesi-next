@@ -100,7 +100,7 @@ export const AdminCategories: React.FC = () => {
         </div>
         <button
           onClick={handleOpenAdd}
-          className="flex items-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs transition shadow-lg shadow-emerald-600/30"
+          className="flex items-center gap-2 px-4 py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl text-xs transition shadow-lg shadow-rose-600/30"
         >
           <Plus className="w-4 h-4" />
           <span>Add New Category</span>
@@ -115,7 +115,7 @@ export const AdminCategories: React.FC = () => {
             className="bg-gray-800/80 rounded-3xl border border-gray-700 p-6 space-y-4 relative group"
           >
             <div className="flex items-center justify-between">
-              <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center font-bold">
+              <div className="w-12 h-12 rounded-2xl bg-rose-500/10 text-rose-500 flex items-center justify-center font-bold">
                 <Tags className="w-6 h-6" />
               </div>
               <div className="flex items-center gap-1">
@@ -136,7 +136,7 @@ export const AdminCategories: React.FC = () => {
 
             <div>
               <h3 className="text-base font-bold text-white">{cat.name}</h3>
-              <p className="text-[11px] font-mono text-emerald-400 mt-0.5">slug: {cat.slug}</p>
+              <p className="text-[11px] font-mono text-rose-500 mt-0.5">slug: {cat.slug}</p>
               <p className="text-xs text-gray-400 mt-2 line-clamp-2">{cat.description || 'No description added'}</p>
             </div>
           </div>
@@ -204,7 +204,7 @@ export const AdminCategories: React.FC = () => {
                 >
                   Cancel
                 </button>
-                <button type="submit" className="px-5 py-2 bg-emerald-600 font-bold rounded-xl">
+                <button type="submit" className="px-5 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl shadow-md shadow-rose-600/20">
                   Save
                 </button>
               </div>

@@ -148,7 +148,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
             d.sender_avatar ||
             (d.user_id ? profileAvatarMap.get(d.user_id) : '') ||
             (d.sender_email ? profileAvatarMap.get(d.sender_email.toLowerCase()) : '') ||
-            `https://ui-avatars.com/api/?name=${encodeURIComponent(d.sender_name || 'Customer')}&background=059669&color=ffffff&bold=true`;
+            `https://ui-avatars.com/api/?name=${encodeURIComponent(d.sender_name || 'Customer')}&background=e11d48&color=ffffff&bold=true`;
 
           return {
             id: d.id,
