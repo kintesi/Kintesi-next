@@ -113,8 +113,37 @@
 body.admin-light,
 html.admin-light {
   background-color: #ffffff !important;
-  color: #0f172a !important;
+  color: #000000 !important;
 }
+
+/* NUCLEAR BLACK TEXT RULE:
+   Every single element inside admin-light gets crisp black text.
+   This is the most reliable approach - no CSS specificity fights. */
+.admin-light * {
+  color: #000000 !important;
+}
+
+/* EXCEPTION: Solid colored buttons/badges keep their white text */
+.admin-light [class*="bg-rose-6"] *,
+.admin-light [class*="bg-rose-7"] *,
+.admin-light [class*="bg-rose-5"] *,
+.admin-light [class*="bg-red-6"] *,
+.admin-light [class*="bg-purple-6"] *,
+.admin-light [class*="bg-blue-6"] *,
+.admin-light [class*="bg-indigo-6"] *,
+.admin-light [class*="bg-amber-5"] * {
+  color: #ffffff !important;
+}
+
+/* EXCEPTION: Preserve colored icon colors (amber sun, indigo moon, rose dot) */
+.admin-light .text-amber-500 { color: #f59e0b !important; }
+.admin-light .text-indigo-400 { color: #818cf8 !important; }
+.admin-light .text-rose-500  { color: #f43f5e !important; }
+.admin-light .text-rose-800  { color: #9f1239 !important; }
+.admin-light .text-rose-400  { color: #fb7185 !important; }
+.admin-light .text-blue-400  { color: #60a5fa !important; }
+.admin-light .text-purple-400 { color: #c084fc !important; }
+
 
 /* 1. UNIVERSAL BACKGROUND OVERRIDE:
    Any container having dark shades (gray, slate, zinc, neutral, black)

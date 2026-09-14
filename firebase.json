@@ -6,11 +6,30 @@
       "**/.*",
       "**/node_modules/**"
     ],
+    "redirects": [
+      {
+        "source": "/**",
+        "destination": "https://kintesi.shop/:splat",
+        "type": 301
+      }
+    ],
     "rewrites": [
       {
         "source": "**",
         "destination": "/index.html"
       }
+    ],
+    "headers": [
+      {
+        "source": "**",
+        "headers": [
+          {
+            "key": "X-Frame-Options",
+            "value": "SAMEORIGIN"
+          }
+        ]
+      }
     ]
   }
 }
+
