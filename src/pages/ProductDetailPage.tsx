@@ -81,10 +81,10 @@ export const ProductDetailPage: React.FC = () => {
   const isRealColorList = Boolean(
     product?.colors &&
     product.colors.length > 0 &&
-    !product.colors.every((c) => !c.name || c.name.toLowerCase() === 'default')
+    !product.colors.every((c) => !c || !c.name || (typeof c.name === 'string' && c.name.toLowerCase() === 'default'))
   );
 
-  const activeColorObj = isRealColorList ? product?.colors?.find((c) => c.name === selectedColor) : null;
+  const activeColorObj = isRealColorList ? product?.colors?.find((c) => c && c.name === selectedColor) : null;
   const colorSpecificImages = (activeColorObj?.images && activeColorObj.images.length > 0)
     ? activeColorObj.images
     : (activeColorObj?.image ? [activeColorObj.image] : null);
@@ -209,11 +209,11 @@ export const ProductDetailPage: React.FC = () => {
           const hasRealColorsLocal = Boolean(
             localProd.colors &&
             localProd.colors.length > 0 &&
-            !localProd.colors.every((c) => !c.name || c.name.toLowerCase() === 'default')
+            !localProd.colors.every((c) => !c || !c.name || (typeof c.name === 'string' && c.name.toLowerCase() === 'default'))
           );
           if (hasRealColorsLocal && localProd.colors && localProd.colors.length > 0) {
-            setSelectedColor(localProd.colors[0].name);
-            if (localProd.colors[0].image) setSelectedImage(localProd.colors[0].image);
+            setSelectedColor(localProd.colors[0]?.name || '');
+            if (localProd.colors[0]?.image) setSelectedImage(localProd.colors[0].image);
           } else {
             setSelectedColor('');
           }
@@ -221,7 +221,7 @@ export const ProductDetailPage: React.FC = () => {
           if (customAttrs.length > 0) {
             const initialAttrs: Record<string, string> = {};
             customAttrs.forEach((a) => {
-              if (a.attributeName && !initialAttrs[a.attributeName]) {
+              if (a?.attributeName && !initialAttrs[a.attributeName]) {
                 initialAttrs[a.attributeName] = a.name;
               }
             });
@@ -242,13 +242,13 @@ export const ProductDetailPage: React.FC = () => {
           const hasRealColorsFound = Boolean(
             found.colors &&
             found.colors.length > 0 &&
-            !found.colors.every((c) => !c.name || c.name.toLowerCase() === 'default')
+            !found.colors.every((c) => !c || !c.name || (typeof c.name === 'string' && c.name.toLowerCase() === 'default'))
           );
           if (hasRealColorsFound && found.colors && found.colors.length > 0) {
-            setSelectedColor(found.colors[0].name);
-            const firstColorImg = (found.colors[0].images && found.colors[0].images.length > 0)
+            setSelectedColor(found.colors[0]?.name || '');
+            const firstColorImg = (found.colors[0]?.images && found.colors[0].images.length > 0)
               ? found.colors[0].images[0]
-              : found.colors[0].image;
+              : found.colors[0]?.image;
             if (firstColorImg) setSelectedImage(firstColorImg);
           } else {
             setSelectedColor('');
@@ -380,12 +380,45 @@ export const ProductDetailPage: React.FC = () => {
 
   if (!product) {
     return (
-      <div className="max-w-[1440px] mx-auto px-4 py-20 text-center">
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">Product Not Found</h2>
-        <p className="text-gray-500 mb-6">The product you are looking for might have been removed or does not exist.</p>
-        <Link to="/shop" className="px-6 py-3 bg-emerald-600 text-white font-bold rounded-xl">
-          Back to Shop
-        </Link>
+      <div className="max-w-7xl mx-auto px-4 py-16 text-center">
+        <div className="w-16 h-16 bg-rose-50 text-rose-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
+          <AlertTriangle className="w-8 h-8" />
+        </div>
+        <h2 className="text-2xl font-black text-gray-900 mb-2">
+          {language === 'bn' ? 'পণ্যটি খুঁজে পাওয়া যায়নি' : 'Product Not Found'}
+        </h2>
+        <p className="text-gray-500 mb-6 max-w-md mx-auto text-sm">
+          {language === 'bn'
+            ? 'আপনি যে পণ্যটি খুঁজছেন তা বর্তমানে উপলব্ধ নেই অথবা লিঙ্কটি মেয়াদোত্তীর্ণ।'
+            : 'The product you are looking for might have been removed, sold out, or the link is outdated.'}
+        </p>
+        <div className="flex justify-center gap-3 mb-12">
+          <Link
+            to="/shop"
+            className="px-6 py-3 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl transition shadow-sm"
+          >
+            {language === 'bn' ? 'সব পণ্য দেখুন' : 'Browse All Products'}
+          </Link>
+          <Link
+            to="/"
+            className="px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold rounded-xl transition"
+          >
+            {language === 'bn' ? 'হোমপেজ' : 'Go to Homepage'}
+          </Link>
+        </div>
+
+        {allProducts && allProducts.length > 0 && (
+          <div className="text-left border-t border-gray-100 pt-10">
+            <h3 className="text-lg font-bold text-gray-900 mb-6">
+              {language === 'bn' ? 'অন্যান্য জনপ্রিয় পণ্যসমূহ' : 'Popular Trending Products'}
+            </h3>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+              {allProducts.slice(0, 4).map((p) => (
+                <ProductCard key={p.id} product={p} />
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     );
   }

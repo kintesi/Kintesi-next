@@ -8,24 +8,42 @@ interface Props {
 interface State {
   hasError: boolean;
   error: Error | null;
+  showDetails: boolean;
 }
 
 export class ErrorBoundary extends Component<Props, State> {
   public state: State = {
     hasError: false,
     error: null,
+    showDetails: false,
   };
 
   public static getDerivedStateFromError(error: Error): State {
-    return { hasError: true, error };
+    return { hasError: true, error, showDetails: false };
   }
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error('Uncaught error caught by ErrorBoundary:', error, errorInfo);
+
+    // Auto-recover from chunk load errors after new deployments
+    const msg = error?.message || '';
+    if (
+      msg.includes('Failed to fetch dynamically imported module') ||
+      msg.includes('error loading dynamically imported module') ||
+      error.name === 'ChunkLoadError'
+    ) {
+      const retryKey = 'kintesi_chunk_auto_reload';
+      const reloaded = sessionStorage.getItem(retryKey);
+      if (!reloaded) {
+        sessionStorage.setItem(retryKey, 'true');
+        window.location.reload();
+      }
+    }
   }
 
   private handleReload = () => {
     try {
+      sessionStorage.removeItem('kintesi_chunk_auto_reload');
       localStorage.removeItem('kintesi_affiliates_cache');
       localStorage.removeItem('kintesi_affiliate_withdrawals_cache');
     } catch {}
@@ -34,6 +52,7 @@ export class ErrorBoundary extends Component<Props, State> {
 
   private handleResetAndHome = () => {
     try {
+      sessionStorage.removeItem('kintesi_chunk_auto_reload');
       localStorage.removeItem('kintesi_cart');
       localStorage.removeItem('kintesi_coupon');
     } catch {}

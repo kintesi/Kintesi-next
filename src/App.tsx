@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route, Outlet } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Outlet, Navigate, useParams } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { SettingsProvider } from './contexts/SettingsContext';
 import { AddressProvider } from './contexts/AddressContext';
@@ -18,36 +18,63 @@ import { MobileBottomNav } from './components/layout/MobileBottomNav';
 import { LiveChatWidget } from './components/chat/LiveChatWidget';
 import { HomePage } from './pages/HomePage';
 
-// Storefront Lazy-loaded Pages (Code-splitting for Lighthouse Performance)
-const ShopPage = React.lazy(() => import('./pages/ShopPage').then((m) => ({ default: m.ShopPage })));
-const ProductDetailPage = React.lazy(() => import('./pages/ProductDetailPage').then((m) => ({ default: m.ProductDetailPage })));
-const ShowcasePage = React.lazy(() => import('./pages/ShowcasePage').then((m) => ({ default: m.ShowcasePage })));
-const WishlistPage = React.lazy(() => import('./pages/WishlistPage').then((m) => ({ default: m.WishlistPage })));
-const CartPage = React.lazy(() => import('./pages/CartPage').then((m) => ({ default: m.CartPage })));
-const CheckoutPage = React.lazy(() => import('./pages/CheckoutPage').then((m) => ({ default: m.CheckoutPage })));
-const OrderSuccessPage = React.lazy(() => import('./pages/OrderSuccessPage').then((m) => ({ default: m.OrderSuccessPage })));
-const MyOrdersPage = React.lazy(() => import('./pages/MyOrdersPage').then((m) => ({ default: m.MyOrdersPage })));
-const ProfilePage = React.lazy(() => import('./pages/ProfilePage').then((m) => ({ default: m.ProfilePage })));
-const HelpCenterPage = React.lazy(() => import('./pages/HelpCenterPage').then((m) => ({ default: m.HelpCenterPage })));
-const ShippingDeliveryPage = React.lazy(() => import('./pages/ShippingDeliveryPage').then((m) => ({ default: m.ShippingDeliveryPage })));
-const ReturnRefundPage = React.lazy(() => import('./pages/ReturnRefundPage').then((m) => ({ default: m.ReturnRefundPage })));
-const TermsOfServicePage = React.lazy(() => import('./pages/TermsOfServicePage').then((m) => ({ default: m.TermsOfServicePage })));
-const PrivacyPolicyPage = React.lazy(() => import('./pages/PrivacyPolicyPage').then((m) => ({ default: m.PrivacyPolicyPage })));
-const AffiliateDashboardPage = React.lazy(() => import('./pages/AffiliateDashboardPage').then((m) => ({ default: m.AffiliateDashboardPage })));
+// Robust Lazy Loader with automatic retry on chunk deployment hash changes
+function lazyRetry<T extends React.ComponentType<any>>(
+  factory: () => Promise<{ default: T }>
+) {
+  return React.lazy(async () => {
+    try {
+      return await factory();
+    } catch (err: any) {
+      const isChunkError =
+        err?.message?.includes('Failed to fetch dynamically imported module') ||
+        err?.message?.includes('error loading dynamically imported module') ||
+        err?.name === 'ChunkLoadError';
+
+      const retryKey = 'kintesi_chunk_retry_' + window.location.pathname;
+      const hasRetried = sessionStorage.getItem(retryKey);
+
+      if (isChunkError && !hasRetried) {
+        sessionStorage.setItem(retryKey, 'true');
+        window.location.reload();
+        return new Promise<{ default: T }>(() => {});
+      }
+
+      throw err;
+    }
+  });
+}
+
+// Storefront Lazy-loaded Pages (Code-splitting with resilient fallback)
+const ShopPage = lazyRetry(() => import('./pages/ShopPage').then((m) => ({ default: m.ShopPage })));
+const ProductDetailPage = lazyRetry(() => import('./pages/ProductDetailPage').then((m) => ({ default: m.ProductDetailPage })));
+const ShowcasePage = lazyRetry(() => import('./pages/ShowcasePage').then((m) => ({ default: m.ShowcasePage })));
+const WishlistPage = lazyRetry(() => import('./pages/WishlistPage').then((m) => ({ default: m.WishlistPage })));
+const CartPage = lazyRetry(() => import('./pages/CartPage').then((m) => ({ default: m.CartPage })));
+const CheckoutPage = lazyRetry(() => import('./pages/CheckoutPage').then((m) => ({ default: m.CheckoutPage })));
+const OrderSuccessPage = lazyRetry(() => import('./pages/OrderSuccessPage').then((m) => ({ default: m.OrderSuccessPage })));
+const MyOrdersPage = lazyRetry(() => import('./pages/MyOrdersPage').then((m) => ({ default: m.MyOrdersPage })));
+const ProfilePage = lazyRetry(() => import('./pages/ProfilePage').then((m) => ({ default: m.ProfilePage })));
+const HelpCenterPage = lazyRetry(() => import('./pages/HelpCenterPage').then((m) => ({ default: m.HelpCenterPage })));
+const ShippingDeliveryPage = lazyRetry(() => import('./pages/ShippingDeliveryPage').then((m) => ({ default: m.ShippingDeliveryPage })));
+const ReturnRefundPage = lazyRetry(() => import('./pages/ReturnRefundPage').then((m) => ({ default: m.ReturnRefundPage })));
+const TermsOfServicePage = lazyRetry(() => import('./pages/TermsOfServicePage').then((m) => ({ default: m.TermsOfServicePage })));
+const PrivacyPolicyPage = lazyRetry(() => import('./pages/PrivacyPolicyPage').then((m) => ({ default: m.PrivacyPolicyPage })));
+const AffiliateDashboardPage = lazyRetry(() => import('./pages/AffiliateDashboardPage').then((m) => ({ default: m.AffiliateDashboardPage })));
 
 // Admin Lazy-loaded Pages (Isolated from shopper bundle)
-const AdminLayout = React.lazy(() => import('./pages/admin/AdminLayout').then((m) => ({ default: m.AdminLayout })));
-const AdminDashboard = React.lazy(() => import('./pages/admin/AdminDashboard').then((m) => ({ default: m.AdminDashboard })));
-const AdminProducts = React.lazy(() => import('./pages/admin/AdminProducts').then((m) => ({ default: m.AdminProducts })));
-const AdminOrders = React.lazy(() => import('./pages/admin/AdminOrders').then((m) => ({ default: m.AdminOrders })));
-const AdminCoupons = React.lazy(() => import('./pages/admin/AdminCoupons').then((m) => ({ default: m.AdminCoupons })));
-const AdminCategories = React.lazy(() => import('./pages/admin/AdminCategories').then((m) => ({ default: m.AdminCategories })));
-const AdminPaymentSettings = React.lazy(() => import('./pages/admin/AdminPaymentSettings').then((m) => ({ default: m.AdminPaymentSettings })));
-const AdminTeam = React.lazy(() => import('./pages/admin/AdminTeam').then((m) => ({ default: m.AdminTeam })));
-const AdminBanners = React.lazy(() => import('./pages/admin/AdminBanners').then((m) => ({ default: m.AdminBanners })));
-const AdminLiveChat = React.lazy(() => import('./pages/admin/AdminLiveChat').then((m) => ({ default: m.AdminLiveChat })));
-const AdminPresets = React.lazy(() => import('./pages/admin/AdminPresets').then((m) => ({ default: m.AdminPresets })));
-const AdminAffiliates = React.lazy(() => import('./pages/admin/AdminAffiliates').then((m) => ({ default: m.AdminAffiliates })));
+const AdminLayout = lazyRetry(() => import('./pages/admin/AdminLayout').then((m) => ({ default: m.AdminLayout })));
+const AdminDashboard = lazyRetry(() => import('./pages/admin/AdminDashboard').then((m) => ({ default: m.AdminDashboard })));
+const AdminProducts = lazyRetry(() => import('./pages/admin/AdminProducts').then((m) => ({ default: m.AdminProducts })));
+const AdminOrders = lazyRetry(() => import('./pages/admin/AdminOrders').then((m) => ({ default: m.AdminOrders })));
+const AdminCoupons = lazyRetry(() => import('./pages/admin/AdminCoupons').then((m) => ({ default: m.AdminCoupons })));
+const AdminCategories = lazyRetry(() => import('./pages/admin/AdminCategories').then((m) => ({ default: m.AdminCategories })));
+const AdminPaymentSettings = lazyRetry(() => import('./pages/admin/AdminPaymentSettings').then((m) => ({ default: m.AdminPaymentSettings })));
+const AdminTeam = lazyRetry(() => import('./pages/admin/AdminTeam').then((m) => ({ default: m.AdminTeam })));
+const AdminBanners = lazyRetry(() => import('./pages/admin/AdminBanners').then((m) => ({ default: m.AdminBanners })));
+const AdminLiveChat = lazyRetry(() => import('./pages/admin/AdminLiveChat').then((m) => ({ default: m.AdminLiveChat })));
+const AdminPresets = lazyRetry(() => import('./pages/admin/AdminPresets').then((m) => ({ default: m.AdminPresets })));
+const AdminAffiliates = lazyRetry(() => import('./pages/admin/AdminAffiliates').then((m) => ({ default: m.AdminAffiliates })));
 
 import { setActiveAffiliateReferral, recordAffiliateClick } from './lib/affiliateService';
 import { useLocation } from 'react-router-dom';
@@ -79,6 +106,11 @@ function AffiliateTracker() {
   }, [location.search]);
 
   return null;
+}
+
+function LegacyCategoryRedirect() {
+  const { category } = useParams<{ category: string }>();
+  return <Navigate to={category ? `/shop?category=${encodeURIComponent(category)}` : '/shop'} replace />;
 }
 
 const StorefrontLayout = () => {
@@ -139,6 +171,27 @@ export function App() {
                             <Route path="/returns" element={<ReturnRefundPage />} />
                             <Route path="/terms" element={<TermsOfServicePage />} />
                             <Route path="/privacy" element={<PrivacyPolicyPage />} />
+
+                            {/* Legacy URLs mapped for SEO / Google indexation compatibility */}
+                            <Route path="/product-category/:category" element={<LegacyCategoryRedirect />} />
+                            <Route path="/product-category" element={<Navigate to="/shop" replace />} />
+                            <Route path="/category/:category" element={<LegacyCategoryRedirect />} />
+                            <Route path="/categories/:category" element={<LegacyCategoryRedirect />} />
+                            <Route path="/collections/:category" element={<LegacyCategoryRedirect />} />
+                            <Route path="/collection/:category" element={<LegacyCategoryRedirect />} />
+                            <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
+                            <Route path="/terms-and-conditions" element={<TermsOfServicePage />} />
+                            <Route path="/terms-conditions" element={<TermsOfServicePage />} />
+                            <Route path="/terms-of-service" element={<TermsOfServicePage />} />
+                            <Route path="/refund-policy" element={<ReturnRefundPage />} />
+                            <Route path="/return-policy" element={<ReturnRefundPage />} />
+                            <Route path="/contact" element={<HelpCenterPage />} />
+                            <Route path="/contact-us" element={<HelpCenterPage />} />
+                            <Route path="/about" element={<HelpCenterPage />} />
+                            <Route path="/about-us" element={<HelpCenterPage />} />
+
+                            {/* Catch-all 404 Route */}
+                            <Route path="*" element={<Navigate to="/" replace />} />
                           </Route>
 
                           {/* Admin Panel Routes */}
