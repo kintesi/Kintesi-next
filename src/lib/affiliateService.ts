@@ -18,6 +18,33 @@ export function generateAffiliateCode(): string {
 
 // 1. Get All Affiliates
 export async function getAffiliatesFromDB(): Promise<AffiliateUser[]> {
+  const map = new Map<string, AffiliateUser>();
+
+  // 1. Check local storage cache
+  try {
+    const cached = localStorage.getItem(AFFILIATES_CACHE_KEY);
+    if (cached) {
+      const parsed: AffiliateUser[] = JSON.parse(cached);
+      parsed.forEach((a) => {
+        if (a && a.id && !a.id.startsWith('aff_demo_')) {
+          map.set(a.id, a);
+        }
+      });
+    }
+  } catch {}
+
+  // 2. Check current browser's active affiliate profile (kintesi_my_affiliate_profile)
+  try {
+    const myProfileRaw = localStorage.getItem('kintesi_my_affiliate_profile');
+    if (myProfileRaw) {
+      const myProfile: AffiliateUser = JSON.parse(myProfileRaw);
+      if (myProfile && myProfile.id && !myProfile.id.startsWith('aff_demo_')) {
+        map.set(myProfile.id, myProfile);
+      }
+    }
+  } catch {}
+
+  // 3. Fetch from Supabase
   try {
     const { data, error } = await supabase
       .from('affiliate_users')
@@ -25,54 +52,39 @@ export async function getAffiliatesFromDB(): Promise<AffiliateUser[]> {
       .order('created_at', { ascending: false });
 
     if (!error && Array.isArray(data)) {
-      const clean = data.filter((a: any) => !a.id?.startsWith('aff_demo_'));
-
-      // Check if there are local affiliates in localStorage that haven't been synced to Supabase yet
-      try {
-        const cached = localStorage.getItem(AFFILIATES_CACHE_KEY);
-        if (cached) {
-          const localList: AffiliateUser[] = JSON.parse(cached);
-          const unsynced = localList.filter(
-            (loc) =>
-              loc.id &&
-              !loc.id.startsWith('aff_demo_') &&
-              !clean.some((db) => db.id === loc.id || db.affiliate_code === loc.affiliate_code)
-          );
-          if (unsynced.length > 0) {
-            for (const item of unsynced) {
-              await supabase.from('affiliate_users').upsert([item]);
-              clean.unshift(item);
-            }
-          }
+      data.forEach((a: AffiliateUser) => {
+        if (a && a.id && !a.id.startsWith('aff_demo_')) {
+          map.set(a.id, a);
         }
-      } catch (syncErr) {
-        console.warn('Affiliate local sync notice:', syncErr);
-      }
+      });
 
-      localStorage.setItem(AFFILIATES_CACHE_KEY, JSON.stringify(clean));
-      return clean as AffiliateUser[];
+      // Background sync any local-only partners into Supabase so all devices see them
+      const allPartners = Array.from(map.values());
+      const localOnly = allPartners.filter(
+        (p) => !data.some((d: any) => d.id === p.id || d.affiliate_code === p.affiliate_code)
+      );
+      if (localOnly.length > 0) {
+        (async () => {
+          try {
+            for (const item of localOnly) {
+              await supabase.from('affiliate_users').upsert([item]);
+            }
+          } catch {}
+        })();
+      }
     } else if (error) {
-      console.warn('Supabase fetch affiliates error:', error.message);
+      console.warn('Supabase fetch affiliates notice:', error.message);
     }
   } catch (err) {
-    console.warn('Supabase fetch affiliates notice, using local cache:', err);
+    console.warn('Supabase fetch affiliates notice:', err);
   }
 
-  // Local storage fallback
-  try {
-    const cached = localStorage.getItem(AFFILIATES_CACHE_KEY);
-    if (cached) {
-      const parsed: AffiliateUser[] = JSON.parse(cached);
-      const clean = parsed.filter((a) => !a.id?.startsWith('aff_demo_'));
-      if (clean.length !== parsed.length) {
-        localStorage.setItem(AFFILIATES_CACHE_KEY, JSON.stringify(clean));
-      }
-      return clean;
-    }
-  } catch {}
+  const result = Array.from(map.values()).sort(
+    (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+  );
 
-  localStorage.setItem(AFFILIATES_CACHE_KEY, JSON.stringify([]));
-  return [];
+  localStorage.setItem(AFFILIATES_CACHE_KEY, JSON.stringify(result));
+  return result;
 }
 
 // 2. Get Single Affiliate by Code
@@ -270,35 +282,60 @@ export async function recordAffiliateSale(
 
 // 7. Withdrawals Management
 export async function getWithdrawalsFromDB(): Promise<AffiliateWithdrawal[]> {
+  const map = new Map<string, AffiliateWithdrawal>();
+
+  // 1. Check local cache
+  try {
+    const cached = localStorage.getItem(WITHDRAWALS_CACHE_KEY);
+    if (cached) {
+      const parsed: AffiliateWithdrawal[] = JSON.parse(cached);
+      parsed.forEach((w) => {
+        if (w && w.id && !w.id.startsWith('with_demo_')) {
+          map.set(w.id, w);
+        }
+      });
+    }
+  } catch {}
+
+  // 2. Fetch from Supabase
   try {
     const { data, error } = await supabase
       .from('affiliate_withdrawals')
       .select('*')
       .order('created_at', { ascending: false });
 
-    if (!error && data && data.length > 0) {
-      const clean = data.filter((w: any) => !w.id?.startsWith('with_demo_'));
-      localStorage.setItem(WITHDRAWALS_CACHE_KEY, JSON.stringify(clean));
-      return clean as AffiliateWithdrawal[];
+    if (!error && Array.isArray(data)) {
+      data.forEach((w: AffiliateWithdrawal) => {
+        if (w && w.id && !w.id.startsWith('with_demo_')) {
+          map.set(w.id, w);
+        }
+      });
+
+      // Background sync any local-only withdrawals to Supabase
+      const allList = Array.from(map.values());
+      const localOnly = allList.filter((w) => !data.some((d: any) => d.id === w.id));
+      if (localOnly.length > 0) {
+        (async () => {
+          try {
+            for (const item of localOnly) {
+              await supabase.from('affiliate_withdrawals').upsert([item]);
+            }
+          } catch {}
+        })();
+      }
+    } else if (error) {
+      console.warn('Supabase fetch withdrawals notice:', error.message);
     }
   } catch (err) {
     console.warn('Supabase fetch withdrawals notice:', err);
   }
 
-  try {
-    const cached = localStorage.getItem(WITHDRAWALS_CACHE_KEY);
-    if (cached) {
-      const parsed: AffiliateWithdrawal[] = JSON.parse(cached);
-      const clean = parsed.filter((w) => !w.id?.startsWith('with_demo_'));
-      if (clean.length !== parsed.length) {
-        localStorage.setItem(WITHDRAWALS_CACHE_KEY, JSON.stringify(clean));
-      }
-      return clean;
-    }
-  } catch {}
+  const result = Array.from(map.values()).sort(
+    (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+  );
 
-  localStorage.setItem(WITHDRAWALS_CACHE_KEY, JSON.stringify([]));
-  return [];
+  localStorage.setItem(WITHDRAWALS_CACHE_KEY, JSON.stringify(result));
+  return result;
 }
 
 // 8. Create Withdrawal Request
