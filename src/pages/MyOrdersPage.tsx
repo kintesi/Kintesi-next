@@ -19,6 +19,7 @@ import {
   Printer,
   FileText,
   MessageCircle,
+  Lock,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -126,7 +127,21 @@ export const MyOrdersPage: React.FC = () => {
   };
 
   const handleCancelOrder = async (order: Order) => {
-    if (!window.confirm(`Are you sure you want to cancel Order #${order.order_number}?`)) {
+    // Strict requirement: users can only cancel while order is in 'pending' status
+    if (order.order_status !== 'pending') {
+      toast.error(
+        language === 'bn'
+          ? 'অর্ডারটি প্রসেসিং বা শিপিং পর্যায়ে চলে যাওয়ায় আর বাতিল করা সম্ভব নয়।'
+          : 'Order cannot be cancelled because it is already in processing or shipped.'
+      );
+      return;
+    }
+
+    if (!window.confirm(
+      language === 'bn'
+        ? `আপনি কি নিশ্চিত যে #${order.order_number} নম্বর অর্ডারটি বাতিল করতে চান?`
+        : `Are you sure you want to cancel Order #${order.order_number}?`
+    )) {
       return;
     }
 
@@ -155,9 +170,17 @@ export const MyOrdersPage: React.FC = () => {
         prev.map((o) => (o.order_number === order.order_number ? { ...o, order_status: 'cancelled' } : o))
       );
 
-      toast.success(`Order #${order.order_number} has been cancelled.`);
+      toast.success(
+        language === 'bn'
+          ? `অর্ডার #${order.order_number} সফলভাবে বাতিল করা হয়েছে।`
+          : `Order #${order.order_number} has been cancelled.`
+      );
     } catch (err) {
-      toast.error('Failed to cancel order. Please contact customer service.');
+      toast.error(
+        language === 'bn'
+          ? 'অর্ডার বাতিল করতে ব্যর্থ হয়েছে। অনুগ্রহ করে সাপোর্ট টিমের সাথে যোগাযোগ করুন।'
+          : 'Failed to cancel order. Please contact customer service.'
+      );
     }
   };
 
@@ -296,7 +319,7 @@ export const MyOrdersPage: React.FC = () => {
                     </button>
 
                     {/* Cancel Order Button (Only while status is pending) */}
-                    {order.order_status === 'pending' && (
+                    {order.order_status === 'pending' ? (
                       <button
                         onClick={() => handleCancelOrder(order)}
                         className="p-2 sm:px-3 sm:py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-xs cursor-pointer active:scale-95"
@@ -305,9 +328,58 @@ export const MyOrdersPage: React.FC = () => {
                         <X className="w-4 h-4 text-rose-600" />
                         <span className="hidden sm:inline">Cancel Order</span>
                       </button>
-                    )}
+                    ) : order.order_status === 'processing' ? (
+                      <div
+                        className="px-2.5 py-1.5 bg-amber-50/80 border border-amber-200 text-amber-800 rounded-xl text-[11px] font-bold flex items-center gap-1.5 select-none cursor-default"
+                        title={language === 'bn' ? 'অর্ডারটি প্রসেসিং হচ্ছে, তাই বাতিল করা লক করা হয়েছে' : 'Order is currently processing. Direct cancellation locked.'}
+                      >
+                        <Lock className="w-3.5 h-3.5 text-amber-600" />
+                        <span className="hidden sm:inline">{language === 'bn' ? 'বাতিল বন্ধ (Processing)' : 'Cancellation Locked'}</span>
+                      </div>
+                    ) : null}
                   </div>
                 </div>
+
+                {/* Status Context Banner */}
+                {order.order_status === 'pending' && (
+                  <div className="flex items-center justify-between gap-2 px-4 py-2.5 bg-amber-50/70 border border-amber-200/80 rounded-2xl text-xs text-amber-900">
+                    <div className="flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse flex-shrink-0" />
+                      <span className="font-medium">
+                        {language === 'bn'
+                          ? 'অর্ডারটি বর্তমানে Pending রয়েছে। এটি প্রসেসিং শুরু হওয়ার আগ পর্যন্ত আপনি বাতিল করতে পারবেন।'
+                          : 'Order is currently Pending. You may cancel it until fulfillment processing begins.'}
+                      </span>
+                    </div>
+                    <span className="text-[10px] font-bold text-amber-700 uppercase tracking-wider hidden md:inline">
+                      {language === 'bn' ? 'প্রসেসিং এ গেলে বাতিল বন্ধ' : 'Locks at Processing'}
+                    </span>
+                  </div>
+                )}
+
+                {order.order_status === 'processing' && (
+                  <div className="flex items-center justify-between gap-2 px-4 py-2.5 bg-blue-50/70 border border-blue-200/80 rounded-2xl text-xs text-blue-900">
+                    <div className="flex items-center gap-2">
+                      <Lock className="w-3.5 h-3.5 text-blue-600 flex-shrink-0" />
+                      <span className="font-medium">
+                        {language === 'bn'
+                          ? 'অর্ডারটি প্রসেসিং হচ্ছে। পার্সেল প্রস্তুতকরণ চলার কারণে এখন আর বাতিল করা সম্ভব নয়।'
+                          : 'Order is actively processing. Direct cancellation is locked while items are prepared.'}
+                      </span>
+                    </div>
+                  </div>
+                )}
+
+                {order.order_status === 'cancelled' && (
+                  <div className="flex items-center gap-2 px-4 py-2.5 bg-rose-50/80 border border-rose-200 rounded-2xl text-xs text-rose-800 font-medium">
+                    <X className="w-3.5 h-3.5 text-rose-600 flex-shrink-0" />
+                    <span>
+                      {language === 'bn'
+                        ? 'এই অর্ডারটি বাতিল করা হয়েছে।'
+                        : 'This order has been cancelled.'}
+                    </span>
+                  </div>
+                )}
 
                 {/* Tracking Stepper */}
                 {order.order_status !== 'cancelled' && (
