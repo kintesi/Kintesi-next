@@ -25,6 +25,7 @@ export const ShopPage: React.FC = () => {
   const [appliedMaxPrice, setAppliedMaxPrice] = useState<number | null>(null);
   const [onlyInStock, setOnlyInStock] = useState<boolean>(false);
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState<boolean>(false);
+  const [isDesktopFilterOpen, setIsDesktopFilterOpen] = useState<boolean>(true);
 
   useEffect(() => {
     async function loadData() {
@@ -64,6 +65,7 @@ export const ShopPage: React.FC = () => {
     return false;
   };
 
+  // Sync state with URL params
   useEffect(() => {
     const cat = searchParams.get('category') || 'all';
     const q = searchParams.get('search') || '';
@@ -152,26 +154,36 @@ export const ShopPage: React.FC = () => {
   };
 
   return (
-    <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+    <div className="w-full max-w-[1800px] mx-auto px-2.5 sm:px-6 lg:px-8 py-4 sm:py-8">
       
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-8 border-b border-gray-200">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 sm:gap-4 pb-4 sm:pb-6 border-b border-gray-200">
         <div>
-          <h1 className="text-3xl font-extrabold text-gray-900">Explore Catalog</h1>
-          <p className="text-sm text-gray-500 mt-1">
-            Showing {filteredProducts.length} premium tech items
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight">Explore Catalog</h1>
+          <p className="text-xs sm:text-sm text-gray-500 mt-0.5">
+            Showing {filteredProducts.length} premium items
             {searchQuery && <span> for "<b>{searchQuery}</b>"</span>}
           </p>
         </div>
 
-        {/* Sort & Mobile filter trigger */}
-        <div className="flex items-center gap-3">
+        {/* Sort & Filter triggers */}
+        <div className="flex items-center gap-2.5 sm:gap-3">
+          {/* Mobile Filter Button */}
           <button
             onClick={() => setIsMobileFilterOpen(true)}
-            className="md:hidden flex items-center gap-2 px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-xl text-xs font-bold"
+            className="md:hidden flex items-center gap-2 px-3.5 py-2 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-xl text-xs font-bold transition active:scale-95"
           >
-            <SlidersHorizontal className="w-4 h-4" />
+            <SlidersHorizontal className="w-3.5 h-3.5" />
             <span>Filters</span>
+          </button>
+
+          {/* Desktop Filter Toggle Button */}
+          <button
+            onClick={() => setIsDesktopFilterOpen(!isDesktopFilterOpen)}
+            className="hidden md:flex items-center gap-2 px-3.5 py-2 bg-white hover:bg-gray-50 border border-gray-200 text-gray-700 rounded-xl text-xs font-bold shadow-2xs transition"
+          >
+            <SlidersHorizontal className="w-3.5 h-3.5 text-rose-600" />
+            <span>{isDesktopFilterOpen ? 'Hide Filters' : 'Show Filters'}</span>
           </button>
 
           <div className="flex items-center gap-2 bg-white border border-gray-200 rounded-xl px-3 py-2 text-xs font-semibold text-gray-700 shadow-sm">
@@ -191,121 +203,123 @@ export const ShopPage: React.FC = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-8 pt-8">
+      <div className="flex flex-col md:flex-row gap-6 lg:gap-8 pt-5 sm:pt-6">
         
         {/* Desktop Sidebar Filters */}
-        <div className="hidden md:block space-y-6">
-          <div className="bg-white p-6 rounded-3xl border border-rose-100 shadow-[0_2px_12px_rgba(225,29,72,0.03)] space-y-6">
-            
-            {/* Filter Header */}
-            <div className="flex items-center justify-between">
-              <h3 className="font-extrabold text-gray-900 text-base flex items-center gap-2">
-                <Filter className="w-4 h-4 text-rose-600" />
-                <span>Filters</span>
-              </h3>
-              {(selectedCategory !== 'all' || searchQuery || appliedMaxPrice !== null || onlyInStock) && (
-                <button
-                  onClick={resetFilters}
-                  className="text-xs text-rose-600 font-bold hover:underline"
-                >
-                  Reset All
-                </button>
-              )}
-            </div>
-
-            {/* Categories */}
-            <div>
-              <h4 className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-3">Categories</h4>
-              <div className="space-y-1">
-                <button
-                  onClick={() => handleCategorySelect('all')}
-                  className={`w-full text-left px-3 py-2 rounded-xl text-xs font-bold transition flex items-center justify-between ${
-                    selectedCategory === 'all'
-                      ? 'bg-rose-50 text-rose-700'
-                      : 'text-gray-600 hover:bg-rose-50/40'
-                  }`}
-                >
-                  <span>All Categories</span>
-                  <span>{products.length}</span>
-                </button>
-                {categories.map((cat) => {
-                  const count = products.filter((p) => isCategoryMatch(p.category_id, cat.slug)).length;
-                  return (
-                    <button
-                      key={cat.slug || cat.id}
-                      onClick={() => handleCategorySelect(cat.slug)}
-                      className={`w-full text-left px-3 py-2 rounded-xl text-xs font-bold transition flex items-center justify-between ${
-                        selectedCategory === cat.slug
-                          ? 'bg-rose-50 text-rose-700'
-                          : 'text-gray-600 hover:bg-rose-50/40'
-                      }`}
-                    >
-                      <span>{cat.name}</span>
-                      <span className="text-gray-400 font-normal">{count}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Max Price Custom Input (0 to Any Amount, No Upper Bound Specified) */}
-            <div className="pt-4 border-t border-rose-100">
-              <div className="flex items-center justify-between mb-2">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-gray-500">Max Price (৳)</h4>
-                {appliedMaxPrice !== null && (
+        {isDesktopFilterOpen && (
+          <aside className="hidden md:block w-60 lg:w-64 shrink-0 space-y-6">
+            <div className="bg-white p-5 rounded-2xl border border-rose-100 shadow-[0_2px_12px_rgba(225,29,72,0.03)] space-y-5 sticky top-24">
+              
+              {/* Filter Header */}
+              <div className="flex items-center justify-between">
+                <h3 className="font-extrabold text-gray-900 text-sm flex items-center gap-2">
+                  <Filter className="w-4 h-4 text-rose-600" />
+                  <span>Filters</span>
+                </h3>
+                {(selectedCategory !== 'all' || searchQuery || appliedMaxPrice !== null || onlyInStock) && (
                   <button
-                    type="button"
-                    onClick={handleClearMaxPrice}
-                    className="text-[11px] text-rose-600 hover:text-rose-700 font-bold underline cursor-pointer"
+                    onClick={resetFilters}
+                    className="text-xs text-rose-600 font-bold hover:underline"
                   >
-                    Clear
+                    Reset All
                   </button>
                 )}
               </div>
-              <form onSubmit={handleApplyMaxPrice} className="space-y-2">
-                <div className="relative flex items-center">
-                  <span className="absolute left-3 text-xs font-bold text-gray-400 select-none">৳</span>
-                  <input
-                    type="number"
-                    min="0"
-                    placeholder="0 থেকে যেকোনো টাকা..."
-                    value={maxPriceInput}
-                    onChange={(e) => setMaxPriceInput(e.target.value)}
-                    className="w-full pl-7 pr-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs font-bold text-gray-900 focus:outline-none focus:border-rose-500 focus:bg-white transition"
-                  />
+
+              {/* Categories */}
+              <div>
+                <h4 className="text-[11px] font-bold uppercase tracking-wider text-gray-400 mb-2.5">Categories</h4>
+                <div className="space-y-1 max-h-[300px] overflow-y-auto pr-1">
+                  <button
+                    onClick={() => handleCategorySelect('all')}
+                    className={`w-full text-left px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center justify-between ${
+                      selectedCategory === 'all'
+                        ? 'bg-rose-50 text-rose-700'
+                        : 'text-gray-600 hover:bg-rose-50/40'
+                    }`}
+                  >
+                    <span>All Categories</span>
+                    <span>{products.length}</span>
+                  </button>
+                  {categories.map((cat) => {
+                    const count = products.filter((p) => isCategoryMatch(p.category_id, cat.slug)).length;
+                    return (
+                      <button
+                        key={cat.slug || cat.id}
+                        onClick={() => handleCategorySelect(cat.slug)}
+                        className={`w-full text-left px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center justify-between ${
+                          selectedCategory === cat.slug
+                            ? 'bg-rose-50 text-rose-700'
+                            : 'text-gray-600 hover:bg-rose-50/40'
+                        }`}
+                      >
+                        <span className="truncate pr-2">{cat.name}</span>
+                        <span className="text-gray-400 font-normal shrink-0">{count}</span>
+                      </button>
+                    );
+                  })}
                 </div>
-                <button
-                  type="submit"
-                  className="w-full py-2 bg-rose-600 hover:bg-rose-500 text-white font-bold rounded-xl text-xs transition shadow-xs flex items-center justify-center gap-1.5 cursor-pointer active:scale-95"
-                >
-                  <span>Apply Price Filter</span>
-                </button>
-              </form>
-              {appliedMaxPrice !== null && (
-                <p className="text-[11px] text-emerald-600 font-bold mt-2">
-                  ✓ Up to {formatPrice(appliedMaxPrice)}
-                </p>
-              )}
+              </div>
+
+              {/* Max Price Custom Input (0 to Any Amount, No Upper Bound Specified) */}
+              <div className="pt-3.5 border-t border-rose-100">
+                <div className="flex items-center justify-between mb-2">
+                  <h4 className="text-[11px] font-bold uppercase tracking-wider text-gray-500">Max Price (৳)</h4>
+                  {appliedMaxPrice !== null && (
+                    <button
+                      type="button"
+                      onClick={handleClearMaxPrice}
+                      className="text-[11px] text-rose-600 hover:text-rose-700 font-bold underline cursor-pointer"
+                    >
+                      Clear
+                    </button>
+                  )}
+                </div>
+                <form onSubmit={handleApplyMaxPrice} className="space-y-2">
+                  <div className="relative flex items-center">
+                    <span className="absolute left-3 text-xs font-bold text-gray-400 select-none">৳</span>
+                    <input
+                      type="number"
+                      min="0"
+                      placeholder="0 থেকে যেকোনো টাকা..."
+                      value={maxPriceInput}
+                      onChange={(e) => setMaxPriceInput(e.target.value)}
+                      className="w-full pl-7 pr-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs font-bold text-gray-900 focus:outline-none focus:border-rose-500 focus:bg-white transition"
+                    />
+                  </div>
+                  <button
+                    type="submit"
+                    className="w-full py-2 bg-rose-600 hover:bg-rose-500 text-white font-bold rounded-xl text-xs transition shadow-xs flex items-center justify-center gap-1.5 cursor-pointer active:scale-95"
+                  >
+                    <span>Apply Price Filter</span>
+                  </button>
+                </form>
+                {appliedMaxPrice !== null && (
+                  <p className="text-[11px] text-emerald-600 font-bold mt-1.5">
+                    ✓ Up to {formatPrice(appliedMaxPrice)}
+                  </p>
+                )}
+              </div>
+
+              {/* In Stock only toggle */}
+              <div className="pt-3.5 border-t border-rose-100">
+                <label className="flex items-center gap-2.5 cursor-pointer text-xs font-bold text-gray-700">
+                  <input
+                    type="checkbox"
+                    checked={onlyInStock}
+                    onChange={(e) => setOnlyInStock(e.target.checked)}
+                    className="w-4 h-4 accent-rose-600 rounded"
+                  />
+                  <span>In Stock Items Only</span>
+                </label>
+              </div>
+
             </div>
+          </aside>
+        )}
 
-            {/* In Stock only toggle */}
-            <div className="pt-4 border-t border-rose-100">
-              <label className="flex items-center gap-2.5 cursor-pointer text-xs font-bold text-gray-700">
-                <input
-                  type="checkbox"
-                  checked={onlyInStock}
-                  onChange={(e) => setOnlyInStock(e.target.checked)}
-                  className="w-4 h-4 accent-rose-600 rounded"
-                />
-                <span>In Stock Items Only</span>
-              </label>
-            </div>
-
-          </div>
-        </div>
-
-        {/* Product Grid */}
-        <div className="md:col-span-3">
+        {/* Product Grid (Mobile: 2 per row showing 6 at once, PC: up to 6 per row) */}
+        <main className="flex-1 min-w-0">
           {filteredProducts.length === 0 ? (
             <div className="text-center py-20 bg-white rounded-3xl border border-rose-100 p-8 shadow-xs">
               <p className="text-gray-400 text-lg font-medium mb-2">No matching products found</p>
@@ -318,13 +332,17 @@ export const ShopPage: React.FC = () => {
               </button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className={`grid gap-2.5 sm:gap-3.5 lg:gap-4 ${
+              isDesktopFilterOpen
+                ? 'grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6'
+                : 'grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6'
+            }`}>
               {filteredProducts.map((product) => (
                 <ProductCard key={product.id} product={product} />
               ))}
             </div>
           )}
-        </div>
+        </main>
 
       </div>
 
