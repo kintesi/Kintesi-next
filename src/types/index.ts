@@ -229,3 +229,17 @@ export interface AffiliateClick {
   created_at: string;
 }
 
+export interface GeneratedAffiliateProduct {
+  id: string; // product id
+  title: string;
+  sku: string;
+  slug?: string;
+  price: number;
+  discount_price?: number | null;
+  image?: string;
+  commission_rate: number;
+  commission_amount: number;
+  affiliate_link: string;
+  created_at: string;
+}
+

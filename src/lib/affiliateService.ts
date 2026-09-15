@@ -1,5 +1,5 @@
 import { supabase } from './supabase';
-import { AffiliateUser, AffiliateWithdrawal, Product } from '../types';
+import { AffiliateUser, AffiliateWithdrawal, Product, GeneratedAffiliateProduct } from '../types';
 
 const AFFILIATES_CACHE_KEY = 'kintesi_affiliates_cache';
 const WITHDRAWALS_CACHE_KEY = 'kintesi_affiliate_withdrawals_cache';
@@ -501,4 +501,42 @@ export function getProductAffiliateInfo(product: Product): {
     price,
     commissionAmount,
   };
+}
+
+// 12. Partner Generated Affiliate Products
+export function getPartnerGeneratedProducts(affiliateCode: string): GeneratedAffiliateProduct[] {
+  if (!affiliateCode) return [];
+  try {
+    const raw = localStorage.getItem(`kintesi_affiliate_prods_${affiliateCode}`);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
+export function savePartnerGeneratedProduct(affiliateCode: string, item: GeneratedAffiliateProduct): GeneratedAffiliateProduct[] {
+  if (!affiliateCode) return [];
+  try {
+    const current = getPartnerGeneratedProducts(affiliateCode);
+    const filtered = current.filter((p) => p.id !== item.id);
+    const updated = [item, ...filtered];
+    localStorage.setItem(`kintesi_affiliate_prods_${affiliateCode}`, JSON.stringify(updated));
+    window.dispatchEvent(new Event('kintesi_partner_products_updated'));
+    return updated;
+  } catch {
+    return [];
+  }
+}
+
+export function removePartnerGeneratedProduct(affiliateCode: string, productId: string): GeneratedAffiliateProduct[] {
+  if (!affiliateCode) return [];
+  try {
+    const current = getPartnerGeneratedProducts(affiliateCode);
+    const updated = current.filter((p) => p.id !== productId);
+    localStorage.setItem(`kintesi_affiliate_prods_${affiliateCode}`, JSON.stringify(updated));
+    window.dispatchEvent(new Event('kintesi_partner_products_updated'));
+    return updated;
+  } catch {
+    return [];
+  }
 }

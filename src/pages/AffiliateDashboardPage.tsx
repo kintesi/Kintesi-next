@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { Product, AffiliateUser, AffiliateWithdrawal } from '../types';
+import { Product, AffiliateUser, AffiliateWithdrawal, GeneratedAffiliateProduct } from '../types';
 import { getProductsFromDB } from '../lib/dbService';
 import {
   getAffiliatesFromDB,
@@ -8,6 +8,9 @@ import {
   getWithdrawalsFromDB,
   createWithdrawalRequest,
   getProductAffiliateInfo,
+  getPartnerGeneratedProducts,
+  savePartnerGeneratedProduct,
+  removePartnerGeneratedProduct,
 } from '../lib/affiliateService';
 import { formatPrice } from '../lib/utils';
 import {
@@ -30,6 +33,7 @@ import {
   ChevronRight,
   Sparkles,
   HelpCircle,
+  Trash2,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
@@ -40,6 +44,8 @@ export const AffiliateDashboardPage: React.FC = () => {
   const [affiliates, setAffiliates] = useState<AffiliateUser[]>([]);
   const [currentAffiliate, setCurrentAffiliate] = useState<AffiliateUser | null>(null);
   const [withdrawals, setWithdrawals] = useState<AffiliateWithdrawal[]>([]);
+  const [generatedProducts, setGeneratedProducts] = useState<GeneratedAffiliateProduct[]>([]);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
 
   // Registration Form state
   const [regName, setRegName] = useState(profile?.full_name || user?.displayName || user?.user_metadata?.full_name || '');
@@ -107,6 +113,9 @@ export const AffiliateDashboardPage: React.FC = () => {
         if (!regAccount && matched.account_number) {
           setWithdrawAccount(matched.account_number);
         }
+        if (matched.affiliate_code) {
+          setGeneratedProducts(getPartnerGeneratedProducts(matched.affiliate_code));
+        }
       }
     } catch (err) {
       console.warn('Affiliate page load notice:', err);
@@ -115,13 +124,20 @@ export const AffiliateDashboardPage: React.FC = () => {
 
   useEffect(() => {
     loadData();
+    const handleProductsUpdated = () => {
+      if (currentAffiliate?.affiliate_code) {
+        setGeneratedProducts(getPartnerGeneratedProducts(currentAffiliate.affiliate_code));
+      }
+    };
     window.addEventListener('kintesi_affiliates_updated', loadData);
     window.addEventListener('kintesi_withdrawals_updated', loadData);
+    window.addEventListener('kintesi_partner_products_updated', handleProductsUpdated);
     return () => {
       window.removeEventListener('kintesi_affiliates_updated', loadData);
       window.removeEventListener('kintesi_withdrawals_updated', loadData);
+      window.removeEventListener('kintesi_partner_products_updated', handleProductsUpdated);
     };
-  }, [user, profile]);
+  }, [user, profile, currentAffiliate?.affiliate_code]);
 
   // Handle Affiliate Registration
   const handleRegister = async (e: React.FormEvent) => {
@@ -179,6 +195,42 @@ export const AffiliateDashboardPage: React.FC = () => {
         (p.title && p.title.toLowerCase().includes(q))
     );
     setSearchedProduct(found || null);
+  };
+
+  // Handle Generate Affiliate Product Link
+  const handleGenerateAffiliateLink = (prod: Product) => {
+    if (!currentAffiliate) return;
+    const price = prod.discount_price || prod.price || 0;
+    const rate = prod.affiliate_commission_rate || 10;
+    const commissionAmount = Math.round((price * rate) / 100);
+    const prodLink = `${originUrl}/product/${prod.slug || prod.id}?aff=${currentAffiliate.affiliate_code}`;
+
+    const newItem: GeneratedAffiliateProduct = {
+      id: prod.id,
+      title: prod.title,
+      sku: prod.sku || 'N/A',
+      slug: prod.slug,
+      price: price,
+      discount_price: prod.discount_price,
+      image: prod.images?.[0] || '/logo.webp',
+      commission_rate: rate,
+      commission_amount: commissionAmount,
+      affiliate_link: prodLink,
+      created_at: new Date().toISOString(),
+    };
+
+    const updated = savePartnerGeneratedProduct(currentAffiliate.affiliate_code, newItem);
+    setGeneratedProducts(updated);
+    toast.success(`Affiliate link generated for "${prod.title}" and added to your dashboard!`);
+  };
+
+  // Handle Remove Saved Generated Product
+  const handleRemoveGeneratedProduct = (prodId: string, title: string) => {
+    if (!currentAffiliate) return;
+    if (!window.confirm(`Remove "${title}" from your affiliate products list?`)) return;
+    const updated = removePartnerGeneratedProduct(currentAffiliate.affiliate_code, prodId);
+    setGeneratedProducts(updated);
+    toast.info('Product removed from your dashboard list');
   };
 
   // Handle Withdrawal Request Submission
@@ -580,8 +632,8 @@ export const AffiliateDashboardPage: React.FC = () => {
                     : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'
                 }`}
               >
-                <Search className="w-3.5 h-3.5" />
-                <span>SKU Link Generator</span>
+                <ShoppingBag className="w-3.5 h-3.5" />
+                <span>My Products & Links ({generatedProducts.length})</span>
               </button>
 
               <button
@@ -597,168 +649,314 @@ export const AffiliateDashboardPage: React.FC = () => {
               </button>
             </div>
 
-            {/* TAB CONTENT 1: SKU PRODUCT LINK GENERATOR */}
+            {/* TAB CONTENT 1: SKU PRODUCT LINK GENERATOR & SAVED AFFILIATE PRODUCTS */}
             {activeTab === 'overview' && (
-              <div className="bg-white rounded-3xl border border-rose-100 p-6 sm:p-8 shadow-sm space-y-6">
-                <div>
-                  <h3 className="text-base font-extrabold text-gray-900 flex items-center gap-2">
-                    <Search className="w-4 h-4 text-rose-600" />
-                    <span>Generate Affiliate Link by Product SKU</span>
-                  </h3>
-                  <p className="text-xs text-gray-500 mt-0.5">
-                    Search any product by SKU or name. If affiliate commission is enabled for the product, you can copy your custom referral link.
-                  </p>
-                </div>
-
-                {/* SKU Search Box */}
-                <form onSubmit={handleSearchSku} className="flex flex-col sm:flex-row gap-3">
-                  <div className="relative flex-1">
-                    <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
-                    <input
-                      type="text"
-                      placeholder="Enter Product SKU (e.g. KB885L, BOR-01) or Product Name..."
-                      value={skuQuery}
-                      onChange={(e) => setSkuQuery(e.target.value)}
-                      className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-bold text-gray-900 focus:bg-white focus:outline-none focus:border-rose-500 transition"
-                    />
+              <div className="space-y-6">
+                
+                {/* 1. SEARCH BY SKU BOX */}
+                <div className="bg-white rounded-3xl border border-rose-100 p-6 sm:p-8 shadow-sm space-y-6">
+                  <div>
+                    <h3 className="text-base font-extrabold text-gray-900 flex items-center gap-2">
+                      <Search className="w-4 h-4 text-rose-600" />
+                      <span>Search Product by SKU & Generate Affiliate Link</span>
+                    </h3>
+                    <p className="text-xs text-gray-500 mt-0.5">
+                      Enter a product SKU or name to check commission eligibility and generate your unique partner link.
+                    </p>
                   </div>
-                  <button
-                    type="submit"
-                    className="px-6 py-2.5 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-xl transition shadow-xs flex items-center justify-center gap-1.5 shrink-0 cursor-pointer active:scale-95"
-                  >
-                    <Search className="w-3.5 h-3.5" />
-                    <span>Search Product</span>
-                  </button>
-                </form>
 
-                {/* SEARCH RESULTS DISPLAY */}
-                {searchAttempted && (
-                  <div className="pt-4 border-t border-gray-100">
-                    {!searchedProduct ? (
-                      <div className="p-6 rounded-2xl bg-gray-50 text-center space-y-2">
-                        <AlertCircle className="w-8 h-8 text-amber-500 mx-auto" />
-                        <h4 className="text-sm font-bold text-gray-800">No Product Found</h4>
-                        <p className="text-xs text-gray-500">
-                          No product found matching "{skuQuery}". Please check the SKU or product name.
-                        </p>
-                      </div>
-                    ) : (
-                      /* PRODUCT FOUND */
-                      <div className="rounded-2xl border border-gray-200 p-5 bg-white space-y-5">
-                        
-                        {/* Product Header */}
-                        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-                          <img
-                            src={searchedProduct.images?.[0] || '/logo.webp'}
-                            alt={searchedProduct.title}
-                            className="w-18 h-18 sm:w-20 sm:h-20 object-contain rounded-xl border border-gray-100 bg-gray-50 shrink-0 p-1"
-                          />
-                          <div className="space-y-1 flex-1 min-w-0">
-                            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
-                              SKU: <span className="font-mono text-gray-700">{searchedProduct.sku || 'N/A'}</span>
-                            </span>
-                            <h4 className="text-sm font-bold text-gray-900 truncate">
-                              {searchedProduct.title}
-                            </h4>
-                            <div className="flex items-center gap-3 text-xs">
-                              <span className="font-black text-rose-600">
-                                {formatPrice(searchedProduct.discount_price || searchedProduct.price)}
-                              </span>
-                              <span className="text-gray-400">
-                                Stock: <b className="text-gray-700">{searchedProduct.stock} pcs</b>
-                              </span>
-                            </div>
-                          </div>
+                  {/* SKU Search Box */}
+                  <form onSubmit={handleSearchSku} className="flex flex-col sm:flex-row gap-3">
+                    <div className="relative flex-1">
+                      <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                      <input
+                        type="text"
+                        placeholder="Enter Product SKU (e.g. KB885L, BOR-01) or Product Name..."
+                        value={skuQuery}
+                        onChange={(e) => setSkuQuery(e.target.value)}
+                        className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-bold text-gray-900 focus:bg-white focus:outline-none focus:border-rose-500 transition"
+                      />
+                    </div>
+                    <button
+                      type="submit"
+                      className="px-6 py-2.5 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-xl transition shadow-xs flex items-center justify-center gap-1.5 shrink-0 cursor-pointer active:scale-95"
+                    >
+                      <Search className="w-3.5 h-3.5" />
+                      <span>Search Product</span>
+                    </button>
+                  </form>
+
+                  {/* SEARCH RESULTS DISPLAY */}
+                  {searchAttempted && (
+                    <div className="pt-4 border-t border-gray-100">
+                      {!searchedProduct ? (
+                        <div className="p-6 rounded-2xl bg-gray-50 text-center space-y-2">
+                          <AlertCircle className="w-8 h-8 text-amber-500 mx-auto" />
+                          <h4 className="text-sm font-bold text-gray-800">No Product Found</h4>
+                          <p className="text-xs text-gray-500">
+                            No product found matching "{skuQuery}". Please check the SKU or product name.
+                          </p>
                         </div>
-
-                        {/* CASE A: ADMIN HAS DISABLED AFFILIATE FOR THIS PRODUCT */}
-                        {!searchedProduct.is_affiliate_enabled ? (
-                          <div className="p-4 rounded-xl bg-rose-50/80 border border-rose-200 text-rose-900 space-y-2">
-                            <div className="flex items-center gap-2 font-bold text-xs text-rose-700">
-                              <AlertCircle className="w-4 h-4 text-rose-600" />
-                              <span>Non-Affiliate Product</span>
+                      ) : (
+                        /* PRODUCT FOUND */
+                        <div className="rounded-2xl border border-gray-200 p-5 bg-white space-y-5">
+                          
+                          {/* Product Header */}
+                          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                            <img
+                              src={searchedProduct.images?.[0] || '/logo.webp'}
+                              alt={searchedProduct.title}
+                              className="w-18 h-18 sm:w-20 sm:h-20 object-contain rounded-xl border border-gray-100 bg-gray-50 shrink-0 p-1"
+                            />
+                            <div className="space-y-1 flex-1 min-w-0">
+                              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                                SKU: <span className="font-mono text-gray-700">{searchedProduct.sku || 'N/A'}</span>
+                              </span>
+                              <h4 className="text-sm font-bold text-gray-900 truncate">
+                                {searchedProduct.title}
+                              </h4>
+                              <div className="flex items-center gap-3 text-xs">
+                                <span className="font-black text-rose-600">
+                                  {formatPrice(searchedProduct.discount_price || searchedProduct.price)}
+                                </span>
+                                <span className="text-gray-400">
+                                  Stock: <b className="text-gray-700">{searchedProduct.stock} pcs</b>
+                                </span>
+                              </div>
                             </div>
-                            <p className="text-xs text-rose-800 leading-relaxed">
-                              Affiliate commission is currently disabled by admin for this specific product. Sales commission is not applicable for this item. Please search for an eligible product.
-                            </p>
                           </div>
-                        ) : (
-                          /* CASE B: AFFILIATE IS ENABLED FOR THIS PRODUCT! */
-                          <div className="space-y-4 pt-2">
-                            <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                              <div className="space-y-1">
-                                <div className="flex items-center gap-2 font-bold text-xs text-emerald-800">
-                                  <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                                  <span>Affiliate Eligible</span>
-                                </div>
-                                <p className="text-xs text-emerald-700">
-                                  Commission Rate: <b className="text-emerald-900 font-extrabold">{searchedProduct.affiliate_commission_rate || 10}%</b>
-                                </p>
-                              </div>
-                              <div className="text-left sm:text-right bg-white px-4 py-2 rounded-xl border border-emerald-200 shadow-2xs">
-                                <p className="text-[10px] text-gray-500 uppercase font-bold">Your Earnings Per Sale:</p>
-                                <p className="text-base font-black text-emerald-700">
-                                  {formatPrice(
-                                    Math.round(
-                                      ((searchedProduct.discount_price || searchedProduct.price) *
-                                        (searchedProduct.affiliate_commission_rate || 10)) /
-                                        100
-                                    )
-                                  )}
-                                </p>
-                              </div>
-                            </div>
 
-                            {/* Product Affiliate Link */}
-                            <div className="space-y-1.5">
-                              <label className="block text-xs font-bold text-gray-700">
-                                Special Referral Link for this Product:
-                              </label>
+                          {/* CASE A: ADMIN HAS DISABLED AFFILIATE FOR THIS PRODUCT */}
+                          {!searchedProduct.is_affiliate_enabled ? (
+                            <div className="p-4 rounded-xl bg-rose-50/80 border border-rose-200 text-rose-900 space-y-2">
+                              <div className="flex items-center gap-2 font-bold text-xs text-rose-700">
+                                <AlertCircle className="w-4 h-4 text-rose-600" />
+                                <span>Non-Affiliate Product</span>
+                              </div>
+                              <p className="text-xs text-rose-800 leading-relaxed">
+                                Affiliate commission is currently disabled by admin for this specific product. Sales commission is not applicable for this item. Please search for an eligible product.
+                              </p>
+                            </div>
+                          ) : (
+                            /* CASE B: AFFILIATE IS ENABLED FOR THIS PRODUCT! */
+                            <div className="space-y-4 pt-2">
+                              <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                                <div className="space-y-1">
+                                  <div className="flex items-center gap-2 font-bold text-xs text-emerald-800">
+                                    <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                                    <span>Affiliate Eligible</span>
+                                  </div>
+                                  <p className="text-xs text-emerald-700">
+                                    Commission Rate: <b className="text-emerald-900 font-extrabold">{searchedProduct.affiliate_commission_rate || 10}%</b>
+                                  </p>
+                                </div>
+                                <div className="text-left sm:text-right bg-white px-4 py-2 rounded-xl border border-emerald-200 shadow-2xs">
+                                  <p className="text-[10px] text-gray-500 uppercase font-bold">Your Earnings Per Sale:</p>
+                                  <p className="text-base font-black text-emerald-700">
+                                    {formatPrice(
+                                      Math.round(
+                                        ((searchedProduct.discount_price || searchedProduct.price) *
+                                          (searchedProduct.affiliate_commission_rate || 10)) /
+                                          100
+                                      )
+                                    )}
+                                  </p>
+                                </div>
+                              </div>
+
+                              {/* GENERATE BUTTON OR GENERATED LINK DISPLAY */}
                               {(() => {
+                                const isAlreadyGenerated = generatedProducts.some((p) => p.id === searchedProduct.id);
                                 const prodLink = `${originUrl}/product/${searchedProduct.slug || searchedProduct.id}?aff=${currentAffiliate.affiliate_code}`;
+
                                 return (
-                                  <div className="flex flex-col sm:flex-row gap-2">
-                                    <div className="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs font-mono text-gray-700 truncate select-all">
-                                      {prodLink}
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                      <button
-                                        type="button"
-                                        onClick={() => {
-                                          navigator.clipboard.writeText(prodLink);
-                                          setCopiedProductLink(true);
-                                          toast.success('Product affiliate link copied to clipboard!');
-                                          setTimeout(() => setCopiedProductLink(false), 2500);
-                                        }}
-                                        className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-2xs active:scale-95 cursor-pointer"
-                                      >
-                                        {copiedProductLink ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-                                        <span>{copiedProductLink ? 'Copied' : 'Copy Link'}</span>
-                                      </button>
-                                      
-                                      <a
-                                        href={`https://api.whatsapp.com/send?text=${encodeURIComponent(
-                                          `Check this out on Kintesi: ${searchedProduct.title}\n${prodLink}`
-                                        )}`}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-1"
-                                        title="Share on WhatsApp"
-                                      >
-                                        WhatsApp
-                                      </a>
-                                    </div>
+                                  <div className="space-y-3 pt-2">
+                                    {!isAlreadyGenerated ? (
+                                      <div className="p-4 rounded-2xl bg-gray-50 border border-gray-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                                        <div className="space-y-0.5">
+                                          <p className="text-xs font-bold text-gray-800">Ready to promote this product?</p>
+                                          <p className="text-[11px] text-gray-500">
+                                            Click below to generate your referral link and add this product to your partner dashboard.
+                                          </p>
+                                        </div>
+                                        <button
+                                          type="button"
+                                          onClick={() => handleGenerateAffiliateLink(searchedProduct)}
+                                          className="px-5 py-2.5 bg-rose-600 hover:bg-rose-700 text-white text-xs font-black rounded-xl transition shadow-md flex items-center justify-center gap-2 cursor-pointer active:scale-95 shrink-0"
+                                        >
+                                          <Sparkles className="w-4 h-4 text-amber-300" />
+                                          <span>Generate Affiliate Link</span>
+                                        </button>
+                                      </div>
+                                    ) : (
+                                      <div className="space-y-2">
+                                        <div className="flex items-center justify-between flex-wrap gap-2">
+                                          <label className="text-xs font-bold text-emerald-800 flex items-center gap-1.5">
+                                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                                            <span>Affiliate Link Generated & Active:</span>
+                                          </label>
+                                          <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+                                            Saved to Your Dashboard
+                                          </span>
+                                        </div>
+
+                                        <div className="flex flex-col sm:flex-row gap-2">
+                                          <div className="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs font-mono text-gray-700 truncate select-all">
+                                            {prodLink}
+                                          </div>
+                                          <div className="flex items-center gap-2">
+                                            <button
+                                              type="button"
+                                              onClick={() => {
+                                                navigator.clipboard.writeText(prodLink);
+                                                setCopiedProductLink(true);
+                                                toast.success('Product affiliate link copied to clipboard!');
+                                                setTimeout(() => setCopiedProductLink(false), 2500);
+                                              }}
+                                              className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-2xs active:scale-95 cursor-pointer"
+                                            >
+                                              {copiedProductLink ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                                              <span>{copiedProductLink ? 'Copied' : 'Copy Link'}</span>
+                                            </button>
+                                            
+                                            <a
+                                              href={`https://api.whatsapp.com/send?text=${encodeURIComponent(
+                                                `Check this out on Kintesi: ${searchedProduct.title}\n${prodLink}`
+                                              )}`}
+                                              target="_blank"
+                                              rel="noopener noreferrer"
+                                              className="px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-1"
+                                              title="Share on WhatsApp"
+                                            >
+                                              WhatsApp
+                                            </a>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    )}
                                   </div>
                                 );
                               })()}
                             </div>
-                          </div>
-                        )}
+                          )}
 
-                      </div>
-                    )}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                </div>
+
+                {/* 2. DEDICATED SECTION: MY GENERATED AFFILIATE PRODUCTS */}
+                <div className="bg-white rounded-3xl border border-rose-100 p-6 sm:p-8 shadow-sm space-y-5">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-gray-100">
+                    <div>
+                      <h3 className="text-base font-extrabold text-gray-900 flex items-center gap-2">
+                        <ShoppingBag className="w-4 h-4 text-rose-600" />
+                        <span>My Affiliate Products</span>
+                      </h3>
+                      <p className="text-xs text-gray-500 mt-0.5">
+                        All products you have generated referral links for. Copy links anytime to promote and earn commission.
+                      </p>
+                    </div>
+                    <span className="text-xs font-bold px-3 py-1 bg-rose-50 text-rose-700 rounded-full border border-rose-200 w-fit">
+                      {generatedProducts.length} {generatedProducts.length === 1 ? 'Product' : 'Products'}
+                    </span>
                   </div>
-                )}
+
+                  {generatedProducts.length === 0 ? (
+                    <div className="text-center py-12 px-4 bg-gray-50 rounded-2xl space-y-2">
+                      <ShoppingBag className="w-9 h-9 text-gray-300 mx-auto" />
+                      <h4 className="text-xs font-bold text-gray-700">No Affiliate Products Generated Yet</h4>
+                      <p className="text-[11px] text-gray-400 max-w-sm mx-auto">
+                        Search any product by SKU above and click <b>"Generate Affiliate Link"</b>. The product will be saved right here with your custom tracking link!
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {generatedProducts.map((p) => (
+                        <div key={p.id} className="border border-gray-200/90 hover:border-rose-200 rounded-2xl p-4 bg-white hover:shadow-xs transition space-y-3 relative group">
+                          <div className="flex items-start gap-3">
+                            <img
+                              src={p.image || '/logo.webp'}
+                              alt={p.title}
+                              className="w-16 h-16 object-contain rounded-xl border border-gray-100 bg-gray-50 shrink-0 p-1"
+                            />
+                            <div className="flex-1 min-w-0 space-y-1">
+                              <div className="flex items-center justify-between gap-2">
+                                <span className="text-[10px] font-mono font-bold text-gray-500 bg-gray-100 px-2 py-0.5 rounded-md">
+                                  SKU: {p.sku}
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={() => handleRemoveGeneratedProduct(p.id, p.title)}
+                                  className="text-gray-300 hover:text-rose-600 p-1 transition cursor-pointer"
+                                  title="Remove from dashboard"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                              <h4 className="text-xs font-bold text-gray-900 truncate" title={p.title}>
+                                {p.title}
+                              </h4>
+                              <div className="flex items-center gap-2 text-xs flex-wrap">
+                                <span className="font-bold text-gray-900">{formatPrice(p.price)}</span>
+                                <span className="text-gray-300">•</span>
+                                <span className="font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md text-[10px] border border-emerald-200">
+                                  Earn {formatPrice(p.commission_amount)} ({p.commission_rate}%) / sale
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Referral Link Bar */}
+                          <div className="flex items-center gap-2 pt-2 border-t border-gray-100">
+                            <input
+                              type="text"
+                              readOnly
+                              value={p.affiliate_link}
+                              className="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-gray-700 select-all focus:outline-none"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => {
+                                navigator.clipboard.writeText(p.affiliate_link);
+                                setCopiedId(p.id);
+                                toast.success('Referral link copied to clipboard!');
+                                setTimeout(() => setCopiedId(null), 2000);
+                              }}
+                              className="px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-1 shadow-2xs cursor-pointer active:scale-95 shrink-0"
+                            >
+                              {copiedId === p.id ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+                              <span>{copiedId === p.id ? 'Copied' : 'Copy'}</span>
+                            </button>
+
+                            <a
+                              href={`https://api.whatsapp.com/send?text=${encodeURIComponent(
+                                `Check this out on Kintesi: ${p.title}\n${p.affiliate_link}`
+                              )}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="p-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition flex items-center justify-center shadow-2xs shrink-0"
+                              title="Share on WhatsApp"
+                            >
+                              <Share2 className="w-3.5 h-3.5" />
+                            </a>
+
+                            <Link
+                              to={p.slug ? `/product/${p.slug}` : `/product/${p.id}`}
+                              target="_blank"
+                              className="p-2 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-xl text-xs font-bold transition flex items-center justify-center shrink-0"
+                              title="View Product Page"
+                            >
+                              <ExternalLink className="w-3.5 h-3.5" />
+                            </Link>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
 
               </div>
             )}
