@@ -1376,7 +1376,7 @@ export const ProductDetailPage: React.FC = () => {
       {product && showStickyBar && (
         <aside 
           aria-label="Dynamic Bottom Island for Quick Purchase"
-          className="fixed bottom-3 left-3 right-3 max-w-md mx-auto z-40 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 shadow-[0_12px_40px_rgba(0,0,0,0.18)] rounded-full p-2 px-3 flex items-center justify-between gap-2.5 md:hidden animate-in slide-in-from-bottom duration-300 ring-1 ring-black/[0.04]"
+          className="fixed bottom-3 left-3 right-3 max-w-md mx-auto z-40 bg-white border border-gray-200/90 text-gray-900 shadow-[0_12px_35px_rgba(0,0,0,0.14)] rounded-full p-2 px-3 flex items-center justify-between gap-2.5 md:hidden animate-in slide-in-from-bottom duration-300 ring-1 ring-black/[0.04]"
         >
           {/* Mini product thumbnail & price */}
           <div className="flex items-center gap-2 min-w-0 flex-1">
