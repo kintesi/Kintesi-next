@@ -12,6 +12,9 @@ export interface FlashSaleSlide {
   bgImage?: string;
   link?: string;
   productId?: string;
+  bannerType?: 'normal' | 'clickable'; // 'normal' = full image display only, 'clickable' = clicking navigates to link/product
+  layoutStyle?: 'full' | 'split'; // 'full' = full-bleed edge-to-edge image, 'split' = text on left, image on right
+  showTimer?: boolean; // toggle countdown timer on this slide
 }
 
 export interface BannerSettings {
@@ -25,6 +28,7 @@ export interface BannerSettings {
 
   // Hero Section
   showHeroSection: boolean;
+  heroShowOnMobile?: boolean; // Controls whether Hero Section appears on mobile screens
   heroBadge: string;
   heroTitle: string;
   heroHighlightText: string;
@@ -45,9 +49,13 @@ export interface BannerSettings {
   spotlightSavingsText: string;
   spotlightBtnLink: string;
   showSpotlight: boolean;
+  spotlightShowOnMobile?: boolean; // Controls whether Spotlight card appears on mobile screens
 
-  // Flash Sale Banner
+  // Promotional Banner / Flash Sale Slider
   showFlashSale: boolean;
+  flashSaleBannerType?: 'normal' | 'clickable';
+  flashSaleLayoutStyle?: 'full' | 'split';
+  flashSaleShowTimer?: boolean;
   flashSaleTag: string;
   flashSaleTitle: string;
   flashSaleSubtitle: string;
@@ -146,6 +154,7 @@ export const DEFAULT_BANNERS: BannerSettings = {
   isCustomAnnouncement: false,
 
   showHeroSection: true,
+  heroShowOnMobile: true,
   heroBadge: 'PREMIER LIFESTYLE & SHOPPING MARKETPLACE',
   heroTitle: 'Everything You Need for',
   heroHighlightText: 'Life, Fashion & Tech',
@@ -165,8 +174,12 @@ export const DEFAULT_BANNERS: BannerSettings = {
   spotlightSavingsText: '',
   spotlightBtnLink: '/shop',
   showSpotlight: false,
+  spotlightShowOnMobile: true,
 
   showFlashSale: false,
+  flashSaleBannerType: 'clickable',
+  flashSaleLayoutStyle: 'full',
+  flashSaleShowTimer: true,
   flashSaleTag: '⚡ FLASH SALE',
   flashSaleTitle: 'Exclusive 24-Hour Super Deals',
   flashSaleSubtitle: 'Limited stock flash offers with up to 50% discount. Order before time runs out!',
@@ -183,6 +196,9 @@ export const DEFAULT_BANNERS: BannerSettings = {
       subtitle: 'Limited stock flash offers with up to 50% discount. Order before time runs out!',
       bgImage: '',
       link: '/products',
+      bannerType: 'clickable',
+      layoutStyle: 'full',
+      showTimer: true,
     },
   ],
 
@@ -324,6 +340,12 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
               showFeaturedProducts: remoteBanners?.showFeaturedProducts !== undefined
                 ? Boolean(remoteBanners.showFeaturedProducts)
                 : Boolean(prev.banners?.showFeaturedProducts),
+              heroShowOnMobile: remoteBanners?.heroShowOnMobile !== undefined
+                ? Boolean(remoteBanners.heroShowOnMobile)
+                : (prev.banners?.heroShowOnMobile !== undefined ? Boolean(prev.banners.heroShowOnMobile) : true),
+              spotlightShowOnMobile: remoteBanners?.spotlightShowOnMobile !== undefined
+                ? Boolean(remoteBanners.spotlightShowOnMobile)
+                : (prev.banners?.spotlightShowOnMobile !== undefined ? Boolean(prev.banners.spotlightShowOnMobile) : true),
               isCustomAnnouncement: remoteBanners?.isCustomAnnouncement !== undefined
                 ? remoteBanners.isCustomAnnouncement
                 : Boolean(cleanText && cleanText !== '⚡ Welcome to Kintesi! Use coupon KINTESI10 for 10% OFF'),

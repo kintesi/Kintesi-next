@@ -278,8 +278,8 @@ export const HomePage: React.FC = () => {
          ======================================================== */}
       <div className="block md:hidden bg-white min-h-screen space-y-5 pb-28 pt-2.5">
         
-        {/* 1. Mobile Hero Banner */}
-        {banners.showHeroSection !== false && (
+        {/* 1. Mobile Hero Banner (Controlled by showHeroSection & heroShowOnMobile) */}
+        {banners.showHeroSection !== false && banners.heroShowOnMobile !== false && (
           <div className="px-3">
             <div className="relative rounded-2xl bg-gradient-to-br from-rose-50/70 via-white to-rose-50/40 border border-rose-100/90 p-4 shadow-[0_2px_12px_rgba(225,29,72,0.03)] space-y-2.5">
               <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white border border-rose-200/80 text-rose-700 text-[10px] font-bold">
@@ -312,8 +312,8 @@ export const HomePage: React.FC = () => {
           </div>
         )}
 
-        {/* 1b. Mobile Spotlight Promo Card (ONLY when configured by Admin) */}
-        {hasValidSpotlight && (
+        {/* 1b. Mobile Spotlight Promo Card (Controlled by showSpotlight & spotlightShowOnMobile) */}
+        {hasValidSpotlight && banners.spotlightShowOnMobile !== false && (
           <div className="px-3">
             <div className="bg-white rounded-2xl p-3 border border-rose-100/90 shadow-2xs flex items-center gap-3">
               <div className="w-20 h-20 rounded-xl bg-gray-50 border border-gray-100 overflow-hidden flex-shrink-0 relative flex items-center justify-center">
