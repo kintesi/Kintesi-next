@@ -77,7 +77,7 @@ export function App() {
                 <CartProvider>
                   <WishlistProvider>
                     <ChatProvider>
-                      <Toaster position="top-right" richColors />
+                      <Toaster position="bottom-right" richColors closeButton />
                       <Routes>
                         {/* Customer Storefront Routes */}
                         <Route element={<StorefrontLayout />}>
