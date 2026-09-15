@@ -36,7 +36,9 @@ import {
   Ban,
   ShieldCheck,
   RefreshCw,
+  RotateCcw,
 } from 'lucide-react';
+import { supabase } from '../../lib/supabase';
 import { toast } from 'sonner';
 
 export const AdminAffiliates: React.FC = () => {
@@ -179,6 +181,40 @@ export const AdminAffiliates: React.FC = () => {
     }
   };
 
+  // Reset All Partner Commissions and Stats to 0
+  const handleResetAllAffiliateMetrics = async () => {
+    if (!window.confirm('Are you sure you want to reset ALL affiliate commissions, sales, orders, and balances to 0?')) {
+      return;
+    }
+    setIsRefreshing(true);
+    try {
+      await supabase.from('affiliate_users').update({
+        total_clicks: 0,
+        total_orders: 0,
+        total_sales_amount: 0,
+        total_commission_earned: 0,
+        available_balance: 0,
+        total_withdrawn: 0,
+      }).neq('id', 'none');
+
+      await supabase.from('affiliate_withdrawals').delete().neq('id', 'none');
+      await supabase.from('affiliate_clicks').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+
+      try {
+        localStorage.removeItem('kintesi_affiliates_cache');
+        localStorage.removeItem('kintesi_affiliate_withdrawals_cache');
+        localStorage.removeItem('kintesi_my_affiliate_profile');
+      } catch {}
+
+      toast.success('All affiliate partner commissions & metrics reset to 0');
+      await loadData();
+    } catch (err) {
+      toast.error('Failed to reset affiliate metrics');
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
   // Delete Partner
   const handleDeletePartner = async (partner: AffiliateUser) => {
     if (!window.confirm(`Are you sure you want to completely remove partner "${partner.name}" (${partner.affiliate_code})? This action cannot be undone.`)) {
@@ -214,6 +250,16 @@ export const AdminAffiliates: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={handleResetAllAffiliateMetrics}
+            disabled={isRefreshing}
+            className="px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 shadow-2xs active:scale-95"
+            title="Reset all affiliate commissions, sales and metrics to 0"
+          >
+            <RotateCcw className="w-3.5 h-3.5 text-rose-600" />
+            <span>Reset Commissions (0)</span>
+          </button>
           <button
             type="button"
             onClick={handleRefresh}

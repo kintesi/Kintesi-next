@@ -63,6 +63,7 @@ interface ChatContextType {
   sendSellerReply: (conversationId: string, text: string) => Promise<void>;
   clearChat: (conversationId?: string) => void;
   deleteConversation: (conversationId: string) => void;
+  deleteAllChatMessages: () => Promise<void>;
 }
 
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
@@ -98,20 +99,12 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [allMessages, setAllMessages] = useState<ChatMessage[]>(() => {
     try {
       const saved = localStorage.getItem(CHAT_STORAGE_KEY);
-      if (saved) return JSON.parse(saved);
+      if (saved) {
+        const parsed: ChatMessage[] = JSON.parse(saved);
+        return parsed.filter((m) => m && m.id !== 'msg-welcome');
+      }
     } catch {}
-    return [
-      {
-        id: 'msg-welcome',
-        conversationId: activeConversationId,
-        sender: 'seller',
-        senderName: 'Kintesi Support Agent',
-        senderEmail: ADMIN_EMAIL,
-        text: '👋 Assalamu Alaikum! Welcome to Kintesi. How can we help you today? Feel free to ask about any product, fitting, delivery or your order!',
-        timestamp: new Date().toISOString(),
-        read: true,
-      },
-    ];
+    return [];
   });
 
   const [isOpen, setIsOpen] = useState(false);
@@ -127,22 +120,29 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .select('*')
         .order('created_at', { ascending: true });
 
-      // Fetch user profile avatars for enrichment
-      const { data: profilesData } = await supabase
-        .from('profiles')
-        .select('id, email, avatar_url, full_name');
+      // If database is clean and has 0 messages, clear local state & storage completely
+      if (!error && Array.isArray(data)) {
+        if (data.length === 0) {
+          setAllMessages([]);
+          localStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify([]));
+          return;
+        }
 
-      const profileAvatarMap = new Map<string, string>();
-      if (profilesData) {
-        profilesData.forEach((p: any) => {
-          if (p.avatar_url) {
-            if (p.id) profileAvatarMap.set(p.id, p.avatar_url);
-            if (p.email) profileAvatarMap.set(p.email.toLowerCase(), p.avatar_url);
-          }
-        });
-      }
+        // Fetch user profile avatars for enrichment
+        const { data: profilesData } = await supabase
+          .from('profiles')
+          .select('id, email, avatar_url, full_name');
 
-      if (!error && data && data.length > 0) {
+        const profileAvatarMap = new Map<string, string>();
+        if (profilesData) {
+          profilesData.forEach((p: any) => {
+            if (p.avatar_url) {
+              if (p.id) profileAvatarMap.set(p.id, p.avatar_url);
+              if (p.email) profileAvatarMap.set(p.email.toLowerCase(), p.avatar_url);
+            }
+          });
+        }
+
         const cloudMessages: ChatMessage[] = data.map((d: any) => {
           const matchedAvatar =
             d.sender_avatar ||
@@ -166,18 +166,11 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
           };
         });
 
-        setAllMessages((prev) => {
-          const combined = [...prev, ...cloudMessages];
-          const map = new Map<string, ChatMessage>();
-          combined.forEach((m) => {
-            map.set(m.id, m);
-          });
-          const merged = Array.from(map.values()).sort(
-            (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
-          );
-          localStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(merged));
-          return merged;
-        });
+        const merged = cloudMessages.sort(
+          (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+        );
+        setAllMessages(merged);
+        localStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(merged));
       }
     } catch (err) {
       console.warn('Chat cloud sync note:', err);
@@ -624,6 +617,17 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
     toast.success('Conversation thread deleted');
   };
 
+  const deleteAllChatMessages = async () => {
+    setAllMessages([]);
+    try {
+      localStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify([]));
+      await supabase.from('chat_messages').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+    } catch (err) {
+      console.warn('Supabase delete all messages notice:', err);
+    }
+    toast.success('All chat messages deleted');
+  };
+
   return (
     <ChatContext.Provider
       value={{
@@ -642,6 +646,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
         sendSellerReply,
         clearChat,
         deleteConversation,
+        deleteAllChatMessages,
       }}
     >
       {children}

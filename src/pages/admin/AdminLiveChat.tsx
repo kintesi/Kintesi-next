@@ -17,7 +17,7 @@ import { UserAvatar } from '../../components/common/UserAvatar';
 import { useAdminTheme } from '../../contexts/AdminThemeContext';
 
 export const AdminLiveChat: React.FC = () => {
-  const { conversations, sendSellerReply, clearChat, deleteConversation } = useChat();
+  const { conversations, sendSellerReply, clearChat, deleteConversation, deleteAllChatMessages } = useChat();
   const { user } = useAuth();
   const { isLight } = useAdminTheme();
   
@@ -52,13 +52,26 @@ export const AdminLiveChat: React.FC = () => {
     const loadMaster = () => {
       try {
         const saved = localStorage.getItem('kintesi_live_chat_master_threads');
-        if (saved) setAllMasterMessages(JSON.parse(saved));
+        if (saved) {
+          const parsed: ChatMessage[] = JSON.parse(saved);
+          setAllMasterMessages(parsed.filter((m) => m && m.id !== 'msg-welcome'));
+        } else {
+          setAllMasterMessages([]);
+        }
       } catch {}
     };
     loadMaster();
     const interval = setInterval(loadMaster, 1200);
     return () => clearInterval(interval);
   }, []);
+
+  const handleClearAllMessages = async () => {
+    if (window.confirm('Are you sure you want to delete ALL live chat messages and inquiries?')) {
+      await deleteAllChatMessages();
+      setSelectedConversationId('');
+      setAllMasterMessages([]);
+    }
+  };
 
   const activeThread = conversations.find((c) => c.conversationId === selectedConversationId) || conversations[0];
   
@@ -120,6 +133,17 @@ export const AdminLiveChat: React.FC = () => {
               }`}>
                 {conversations.length} Active
               </span>
+              {conversations.length > 0 && (
+                <button
+                  type="button"
+                  onClick={handleClearAllMessages}
+                  className="p-1.5 rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-600 transition shadow-2xs cursor-pointer"
+                  title="Delete All Messages & Inquiries"
+                  aria-label="Delete All Messages & Inquiries"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                </button>
+              )}
               <button
                 type="button"
                 onClick={() => setIsFullScreen((prev) => !prev)}
