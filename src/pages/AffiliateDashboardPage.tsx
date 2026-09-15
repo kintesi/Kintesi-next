@@ -275,12 +275,12 @@ export const AffiliateDashboardPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50/60 pb-20">
-      {/* Top Breadcrumb & Page Banner */}
+      {/* Top Breadcrumb & Page Banner with Integrated Partner Profile */}
       <div className="bg-white border-b border-gray-100 shadow-2xs">
-        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-5">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
             <div>
-              <div className="flex items-center gap-2 text-xs text-gray-500 mb-1">
+              <div className="flex items-center gap-2 text-xs text-gray-500 mb-0.5">
                 <Link to="/" className="hover:text-rose-600 transition">Home</Link>
                 <ChevronRight className="w-3.5 h-3.5 text-gray-300" />
                 <span className="font-bold text-gray-900">Affiliate Program</span>
@@ -292,21 +292,36 @@ export const AffiliateDashboardPage: React.FC = () => {
             </div>
 
             {currentAffiliate && (
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-full flex items-center gap-1.5 shadow-2xs">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                  Active Partner
-                </span>
-                <span className="text-xs font-mono font-black text-gray-900 bg-gray-100 border border-gray-200 px-3 py-1 rounded-full">
-                  {currentAffiliate.affiliate_code}
-                </span>
+              <div className="flex items-center gap-3 bg-gray-50 border border-gray-200/90 px-3.5 py-2 rounded-2xl shadow-2xs">
+                <div className="w-9 h-9 rounded-xl bg-rose-50 text-rose-600 font-black text-sm flex items-center justify-center border border-rose-200 shrink-0">
+                  {currentAffiliate.name.charAt(0)}
+                </div>
+                <div className="text-left leading-tight">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="font-bold text-gray-900 text-xs sm:text-sm">{currentAffiliate.name}</span>
+                    <span className="px-2 py-0.5 bg-rose-100 text-rose-700 text-[10px] font-mono font-black rounded-md">
+                      {currentAffiliate.affiliate_code}
+                    </span>
+                    <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                      Active Partner
+                    </span>
+                  </div>
+                  <div className="text-[11px] text-gray-500 flex items-center gap-2 mt-1">
+                    <span>{currentAffiliate.phone}</span>
+                    <span>•</span>
+                    <span className="text-gray-700 font-medium">
+                      Payout: <strong className="uppercase">{currentAffiliate.payment_method}</strong> ({currentAffiliate.account_number || currentAffiliate.phone})
+                    </span>
+                  </div>
+                </div>
               </div>
             )}
           </div>
         </div>
       </div>
 
-      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8 space-y-6">
+      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 pt-5 sm:pt-6 space-y-5">
         
         {/* CASE 1: UNREGISTERED USER -> BALANCED 2-COLUMN REGISTRATION VIEW */}
         {!currentAffiliate ? (
@@ -461,42 +476,7 @@ export const AffiliateDashboardPage: React.FC = () => {
           </div>
         ) : (
           /* CASE 2: REGISTERED AFFILIATE DASHBOARD */
-          <div className="space-y-6">
-
-            {/* Partner Info Header Bar */}
-            <div className="bg-white rounded-3xl border border-rose-100 p-5 sm:p-6 shadow-sm">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div className="flex items-center gap-3.5">
-                  <div className="w-12 h-12 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center font-black text-xl border border-rose-200 shadow-xs">
-                    {currentAffiliate.name.charAt(0)}
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <h2 className="font-bold text-gray-900 text-base">{currentAffiliate.name}</h2>
-                      <span className="px-2 py-0.5 bg-emerald-50 text-emerald-700 text-[10px] font-black rounded-md border border-emerald-200">
-                        {currentAffiliate.affiliate_code}
-                      </span>
-                    </div>
-                    <p className="text-xs text-gray-500 mt-0.5">
-                      {currentAffiliate.phone} • {currentAffiliate.address}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-3">
-                  <div className="text-left sm:text-right">
-                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Payout Account</p>
-                    <p className="text-xs font-mono font-bold text-gray-800">
-                      <span className="uppercase">{currentAffiliate.payment_method}</span>: {currentAffiliate.account_number || currentAffiliate.phone}
-                    </p>
-                  </div>
-                  <span className="text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-xl flex items-center gap-1.5 shadow-2xs shrink-0">
-                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                    Active Partner
-                  </span>
-                </div>
-              </div>
-            </div>
+          <div className="space-y-5">
 
             {/* 4 Core Metric Cards */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
