@@ -40,8 +40,6 @@ export const AffiliateDashboardPage: React.FC = () => {
   const [affiliates, setAffiliates] = useState<AffiliateUser[]>([]);
   const [currentAffiliate, setCurrentAffiliate] = useState<AffiliateUser | null>(null);
   const [withdrawals, setWithdrawals] = useState<AffiliateWithdrawal[]>([]);
-  const [copiedLink, setCopiedLink] = useState(false);
-  const [copiedCode, setCopiedCode] = useState(false);
 
   // Registration Form state
   const [regName, setRegName] = useState(profile?.full_name || user?.displayName || user?.user_metadata?.full_name || '');
@@ -230,9 +228,6 @@ export const AffiliateDashboardPage: React.FC = () => {
   };
 
   const originUrl = typeof window !== 'undefined' ? window.location.origin : 'https://kintesi.com';
-  const globalReferralUrl = currentAffiliate
-    ? `${originUrl}/?aff=${currentAffiliate.affiliate_code}`
-    : '';
 
   const myWithdrawals = withdrawals.filter(
     (w) => currentAffiliate && (w.affiliate_id === currentAffiliate.id || w.affiliate_code === currentAffiliate.affiliate_code)
@@ -468,9 +463,9 @@ export const AffiliateDashboardPage: React.FC = () => {
           /* CASE 2: REGISTERED AFFILIATE DASHBOARD */
           <div className="space-y-6">
 
-            {/* Partner Info & Global Referral Link Bar */}
+            {/* Partner Info Header Bar */}
             <div className="bg-white rounded-3xl border border-rose-100 p-5 sm:p-6 shadow-sm">
-              <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="flex items-center gap-3.5">
                   <div className="w-12 h-12 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center font-black text-xl border border-rose-200 shadow-xs">
                     {currentAffiliate.name.charAt(0)}
@@ -488,32 +483,17 @@ export const AffiliateDashboardPage: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Global Referral URL Box */}
-                <div className="flex-1 max-w-xl">
-                  <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1">
-                    Your Global Referral Link (Works for all store products):
-                  </label>
-                  <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-xl p-1.5 pl-3">
-                    <input
-                      type="text"
-                      readOnly
-                      value={globalReferralUrl}
-                      className="w-full bg-transparent text-xs font-mono text-gray-700 select-all focus:outline-none"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => {
-                        navigator.clipboard.writeText(globalReferralUrl);
-                        setCopiedLink(true);
-                        toast.success('Referral link copied to clipboard!');
-                        setTimeout(() => setCopiedLink(false), 2500);
-                      }}
-                      className="px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-xs font-bold transition flex items-center gap-1 shrink-0 active:scale-95 cursor-pointer"
-                    >
-                      {copiedLink ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-                      <span>{copiedLink ? 'Copied' : 'Copy'}</span>
-                    </button>
+                <div className="flex items-center gap-3">
+                  <div className="text-left sm:text-right">
+                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Payout Account</p>
+                    <p className="text-xs font-mono font-bold text-gray-800">
+                      <span className="uppercase">{currentAffiliate.payment_method}</span>: {currentAffiliate.account_number || currentAffiliate.phone}
+                    </p>
                   </div>
+                  <span className="text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-xl flex items-center gap-1.5 shadow-2xs shrink-0">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                    Active Partner
+                  </span>
                 </div>
               </div>
             </div>
@@ -651,25 +631,6 @@ export const AffiliateDashboardPage: React.FC = () => {
                     <span>Search Product</span>
                   </button>
                 </form>
-
-                {/* Popular SKUs quick picker */}
-                <div className="flex flex-wrap items-center gap-1.5 text-xs text-gray-500">
-                  <span className="font-bold text-gray-400 text-[11px]">Quick SKUs:</span>
-                  {products.slice(0, 5).map((p) => (
-                    <button
-                      key={p.id}
-                      type="button"
-                      onClick={() => {
-                        setSkuQuery(p.sku || p.title);
-                        setSearchedProduct(p);
-                        setSearchAttempted(true);
-                      }}
-                      className="px-2.5 py-1 bg-gray-100 hover:bg-rose-50 hover:text-rose-600 rounded-lg text-[11px] font-mono transition cursor-pointer"
-                    >
-                      {p.sku || p.title.slice(0, 15)}
-                    </button>
-                  ))}
-                </div>
 
                 {/* SEARCH RESULTS DISPLAY */}
                 {searchAttempted && (
