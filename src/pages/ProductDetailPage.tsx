@@ -590,17 +590,22 @@ export const ProductDetailPage: React.FC = () => {
               {/* Badges & Rating Bar */}
               <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-gray-100 text-xs">
                 <div className="flex flex-wrap items-center gap-2">
-                  <div className="flex items-center gap-1">
-                    <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
-                    <span className="font-bold text-gray-900">
-                      {reviews.length > 0
-                        ? (reviews.reduce((acc, r) => acc + (r.rating || 5), 0) / reviews.length).toFixed(1)
-                        : '5.0'}
-                    </span>
-                    <span className="text-gray-400 text-[11px]">
-                      ({reviews.length})
-                    </span>
-                  </div>
+                  {reviews.length > 0 ? (
+                    <div className="flex items-center gap-1">
+                      <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                      <span className="font-bold text-gray-900">
+                        {(reviews.reduce((acc, r) => acc + (r.rating || 5), 0) / reviews.length).toFixed(1)}
+                      </span>
+                      <span className="text-gray-400 text-[11px]">
+                        ({reviews.length})
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-1 text-gray-400 text-[11px]">
+                      <Star className="w-3.5 h-3.5 text-gray-300" />
+                      <span>{language === 'bn' ? 'এখনো কোনো রিভিউ নেই' : 'No reviews yet'}</span>
+                    </div>
+                  )}
 
                   <span className="text-gray-200">•</span>
 
@@ -1321,26 +1326,41 @@ export const ProductDetailPage: React.FC = () => {
             <p className="text-xs text-gray-500 mt-0.5">Verified purchaser feedback</p>
           </div>
           <div className="flex items-center gap-3">
-            <span className="text-3xl font-black text-emerald-700">
-              {reviews.length > 0
-                ? (reviews.reduce((acc, r) => acc + (r.rating || 5), 0) / reviews.length).toFixed(1)
-                : '5.0'}
-            </span>
-            <div className="text-xs text-gray-400">
-              <div className="flex items-center gap-0.5 text-amber-400">
-                {[...Array(5)].map((_, i) => (
-                  <Star
-                    key={i}
-                    className={`w-3.5 h-3.5 ${
-                      reviews.length > 0
-                        ? 'fill-amber-400 text-amber-400'
-                        : 'fill-amber-400/30 text-amber-400/40'
-                    }`}
-                  />
-                ))}
-              </div>
-              <p>{reviews.length > 0 ? `Based on ${reviews.length} review${reviews.length > 1 ? 's' : ''}` : 'No reviews yet'}</p>
-            </div>
+            {reviews.length > 0 ? (
+              <>
+                <span className="text-3xl font-black text-emerald-700">
+                  {(reviews.reduce((acc, r) => acc + (r.rating || 5), 0) / reviews.length).toFixed(1)}
+                </span>
+                <div className="text-xs text-gray-400">
+                  <div className="flex items-center gap-0.5 text-amber-400">
+                    {[...Array(5)].map((_, i) => (
+                      <Star
+                        key={i}
+                        className="w-3.5 h-3.5 fill-amber-400 text-amber-400"
+                      />
+                    ))}
+                  </div>
+                  <p>{`Based on ${reviews.length} review${reviews.length > 1 ? 's' : ''}`}</p>
+                </div>
+              </>
+            ) : (
+              <>
+                <span className="text-3xl font-bold text-gray-300">
+                  0.0
+                </span>
+                <div className="text-xs text-gray-400">
+                  <div className="flex items-center gap-0.5 text-gray-300">
+                    {[...Array(5)].map((_, i) => (
+                      <Star
+                        key={i}
+                        className="w-3.5 h-3.5 text-gray-300"
+                      />
+                    ))}
+                  </div>
+                  <p>{language === 'bn' ? 'এখনো কোনো রিভিউ নেই' : 'No reviews yet'}</p>
+                </div>
+              </>
+            )}
           </div>
         </div>
 

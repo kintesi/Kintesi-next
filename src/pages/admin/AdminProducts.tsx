@@ -963,7 +963,7 @@ export const AdminProducts: React.FC = () => {
         is_trending: !!formData.is_trending,
         is_affiliate_enabled: !!formData.is_affiliate_enabled,
         affiliate_commission_rate: formData.is_affiliate_enabled ? Number(formData.affiliate_commission_rate) || 10 : 0,
-        rating: editingProduct?.rating || 5.0,
+        rating: editingProduct?.rating || 0,
         review_count: editingProduct?.review_count || 0,
       };
 
