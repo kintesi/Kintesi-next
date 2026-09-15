@@ -95,7 +95,7 @@ export const HomePage: React.FC = () => {
 
   // Progressive batch loading / Infinite scroll states
   const [mobileVisibleCount, setMobileVisibleCount] = useState(12);
-  const [desktopVisibleCount, setDesktopVisibleCount] = useState(16);
+  const [desktopVisibleCount, setDesktopVisibleCount] = useState(18);
   const mobileSentinelRef = useRef<HTMLDivElement | null>(null);
   const desktopSentinelRef = useRef<HTMLDivElement | null>(null);
 
@@ -189,15 +189,15 @@ export const HomePage: React.FC = () => {
         if (showcaseProds.length === 0) {
           if (s.type === 'trending') {
             showcaseProds = products.filter((p) => p.is_trending);
-            if (showcaseProds.length === 0) showcaseProds = products.slice(0, 8);
+            if (showcaseProds.length === 0) showcaseProds = products.slice(0, 16);
           } else if (s.type === 'featured') {
             showcaseProds = products.filter((p) => p.is_featured);
-            if (showcaseProds.length === 0) showcaseProds = products.slice(0, 8);
+            if (showcaseProds.length === 0) showcaseProds = products.slice(0, 16);
           } else if (s.type === 'new_arrival') {
-            showcaseProds = [...products].reverse();
+            showcaseProds = [...products].reverse().slice(0, 16);
           } else if (s.type === 'flash_sale') {
             showcaseProds = products.filter((p) => p.discount_price && p.discount_price < p.price);
-            if (showcaseProds.length === 0) showcaseProds = products.slice(0, 8);
+            if (showcaseProds.length === 0) showcaseProds = products.slice(0, 16);
           }
         }
 
@@ -257,7 +257,7 @@ export const HomePage: React.FC = () => {
         if (entries[0].isIntersecting) {
           setDesktopVisibleCount((prev) => {
             if (prev < personalizedProducts.length) {
-              return prev + 12;
+              return prev + 18;
             }
             return prev;
           });
@@ -670,8 +670,8 @@ export const HomePage: React.FC = () => {
         <section className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 space-y-5">
           {personalizedProducts.length === 0 ? (
             isLoadingData ? (
-              <div className="grid grid-cols-4 gap-6">
-                {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => (
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-4 lg:gap-4.5">
+                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18].map((n) => (
                   <ProductSkeleton key={n} />
                 ))}
               </div>
@@ -695,8 +695,8 @@ export const HomePage: React.FC = () => {
             )
           ) : (
             <>
-              {/* Product Grid Loaded in Progressive Batches */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+              {/* Product Grid Loaded in Progressive Batches (6 items per row on PC) */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-4 lg:gap-4.5">
                 {personalizedProducts.slice(0, desktopVisibleCount).map((product) => (
                   <ProductCard key={product.id} product={product} />
                 ))}

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { Product } from '../../types';
 import { ShowcaseSection } from '../../contexts/SettingsContext';
@@ -12,45 +12,82 @@ interface ShowcaseStripProps {
 export const ShowcaseStrip: React.FC<ShowcaseStripProps> = ({ showcase, products }) => {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [isPaused, setIsPaused] = useState(false);
+  const [isDesktop, setIsDesktop] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return window.innerWidth >= 768;
+    }
+    return false;
+  });
+
+  useEffect(() => {
+    const checkDesktop = () => {
+      setIsDesktop(window.innerWidth >= 768);
+    };
+    checkDesktop();
+    window.addEventListener('resize', checkDesktop);
+    return () => window.removeEventListener('resize', checkDesktop);
+  }, []);
 
   // If there are 0 products, do not render
   if (!products || products.length === 0) return null;
 
-  const hasMoreThan4 = products.length > 4;
+  // On PC view (Desktop >= 768px): 8 products per serial/row
+  // On Mobile view: 4 products per serial/row
+  const threshold = isDesktop ? 8 : 4;
+  const hasMoreThanThreshold = products.length > threshold;
 
-  // Duplicate list if > 4 to enable infinite continuous wrap-around feel
-  const displayItems = hasMoreThan4
-    ? [...products, ...products, ...products]
-    : products;
+  // Duplicate list if > threshold to enable infinite continuous wrap-around feel
+  const displayItems = useMemo(() => {
+    if (!hasMoreThanThreshold) return products;
+    return [...products, ...products, ...products];
+  }, [products, hasMoreThanThreshold]);
 
-  // Slide step calculation (exactly 1 product width plus gap)
-  const getStepWidth = () => {
+  // Seamless infinite reset on scroll
+  const handleScroll = () => {
     const el = containerRef.current;
-    if (!el) return 100;
-    return el.clientWidth / 4;
+    if (!el || !hasMoreThanThreshold) return;
+    const oneThird = el.scrollWidth / 3;
+    if (el.scrollLeft >= oneThird * 2) {
+      el.scrollLeft -= oneThird;
+    } else if (el.scrollLeft <= 0) {
+      el.scrollLeft += oneThird;
+    }
   };
+
+  // Set initial scroll to middle set so backward scroll/swipe is also infinite
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el || !hasMoreThanThreshold) return;
+    const frame = requestAnimationFrame(() => {
+      if (el && el.scrollWidth > 0) {
+        el.scrollLeft = el.scrollWidth / 3;
+      }
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [hasMoreThanThreshold, displayItems.length]);
 
   const scrollNext = useCallback(() => {
     const el = containerRef.current;
     if (!el) return;
-    const step = getStepWidth();
-    // Seamless infinite reset: if scrolled past 2/3, reset silently to 1/3
-    if (el.scrollLeft >= (el.scrollWidth * 2) / 3) {
-      el.scrollLeft = el.scrollWidth / 3;
-    }
-    el.scrollBy({ left: step, behavior: 'smooth' });
-  }, []);
+    const firstCard = el.children[0] as HTMLElement | undefined;
+    const secondCard = el.children[1] as HTMLElement | undefined;
+    const step = (firstCard && secondCard)
+      ? (secondCard.offsetLeft - firstCard.offsetLeft)
+      : (el.clientWidth / (isDesktop ? 8 : 4));
 
-  // Auto-advance infinitely every 3.5 seconds if more than 4 products and not paused
+    el.scrollBy({ left: step, behavior: 'smooth' });
+  }, [isDesktop]);
+
+  // Auto-advance infinitely every 3.5 seconds if more than threshold and not paused
   useEffect(() => {
-    if (!hasMoreThan4 || isPaused) return;
+    if (!hasMoreThanThreshold || isPaused) return;
 
     const timer = setInterval(() => {
       scrollNext();
     }, 3500);
 
     return () => clearInterval(timer);
-  }, [hasMoreThan4, isPaused, scrollNext]);
+  }, [hasMoreThanThreshold, isPaused, scrollNext]);
 
   // Icon mapping
   const getIcon = () => {
@@ -95,26 +132,29 @@ export const ShowcaseStrip: React.FC<ShowcaseStripProps> = ({ showcase, products
         </Link>
       </div>
 
-      {/* 4-Item Row (Seamless infinite auto-advance if > 4, completely static if <= 4) */}
-      {!hasMoreThan4 ? (
-        /* Static 4-column grid when <= 4 products */
-        <div className="grid grid-cols-4 gap-2 sm:gap-3.5">
-          {products.slice(0, 4).map((product, idx) => (
+      {/* Row: 4 items on mobile, 8 items on PC view
+          - Completely static if <= threshold (<=4 on mobile, <=8 on PC)
+          - Seamless infinite auto-advance if > threshold */}
+      {!hasMoreThanThreshold ? (
+        /* Static grid: 4 columns on mobile, 8 columns on PC */
+        <div className="grid grid-cols-4 md:grid-cols-8 gap-2 md:gap-3">
+          {products.slice(0, threshold).map((product, idx) => (
             <ShowcaseItem key={`${product.id}-${idx}`} product={product} />
           ))}
         </div>
       ) : (
-        /* Seamless Infinite Overflow-Hidden Auto-Slide when > 4 products */
+        /* Seamless Infinite Overflow-Hidden Auto-Slide when products > threshold */
         <div
           ref={containerRef}
           onMouseEnter={() => setIsPaused(true)}
           onMouseLeave={() => setIsPaused(false)}
-          className="flex gap-2 sm:gap-3.5 overflow-hidden scroll-smooth select-none py-0.5"
+          onScroll={handleScroll}
+          className="flex gap-2 md:gap-3 overflow-hidden scroll-smooth select-none py-0.5"
         >
           {displayItems.map((product, idx) => (
             <div
               key={`${product.id}-${idx}`}
-              className="flex-shrink-0 w-[calc((100%-24px)/4)] sm:w-[calc((100%-36px)/4)]"
+              className="flex-shrink-0 w-[calc((100%-24px)/4)] md:w-[calc((100%-84px)/8)]"
             >
               <ShowcaseItem product={product} />
             </div>
