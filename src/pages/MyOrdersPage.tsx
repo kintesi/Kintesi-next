@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
-import { getOrdersFromDB } from '../lib/dbService';
+import { getOrdersFromDB, updateOrderInDB } from '../lib/dbService';
+import { revokeAffiliateCommissionOnCancellation } from '../lib/affiliateService';
 import { Order } from '../types';
 import { formatPrice } from '../lib/utils';
 import { useSettings } from '../contexts/SettingsContext';
@@ -122,6 +123,42 @@ export const MyOrdersPage: React.FC = () => {
 
     toast.success('Thank you! Your verified purchaser review has been published.');
     setIsReviewModalOpen(false);
+  };
+
+  const handleCancelOrder = async (order: Order) => {
+    if (!window.confirm(`Are you sure you want to cancel Order #${order.order_number}?`)) {
+      return;
+    }
+
+    try {
+      await updateOrderInDB(order.order_number, { order_status: 'cancelled' });
+
+      // Strict rule: if this was an affiliate order, revoke any commission immediately
+      if (order.affiliate_code) {
+        try {
+          await revokeAffiliateCommissionOnCancellation(order);
+        } catch (affErr) {
+          console.warn('Affiliate revoke error:', affErr);
+        }
+      }
+
+      // Update local storage guest orders
+      try {
+        const local = JSON.parse(localStorage.getItem('kintesi_guest_orders') || '[]');
+        const updatedLocal = local.map((o: any) =>
+          o.order_number === order.order_number ? { ...o, order_status: 'cancelled' } : o
+        );
+        localStorage.setItem('kintesi_guest_orders', JSON.stringify(updatedLocal));
+      } catch {}
+
+      setOrders((prev) =>
+        prev.map((o) => (o.order_number === order.order_number ? { ...o, order_status: 'cancelled' } : o))
+      );
+
+      toast.success(`Order #${order.order_number} has been cancelled.`);
+    } catch (err) {
+      toast.error('Failed to cancel order. Please contact customer service.');
+    }
   };
 
   const getStatusColor = (status: string) => {
@@ -257,6 +294,18 @@ export const MyOrdersPage: React.FC = () => {
                       <Printer className="w-4 h-4 text-gray-700" />
                       <span className="hidden sm:inline">Invoice</span>
                     </button>
+
+                    {/* Cancel Order Button (Only while status is pending) */}
+                    {order.order_status === 'pending' && (
+                      <button
+                        onClick={() => handleCancelOrder(order)}
+                        className="p-2 sm:px-3 sm:py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-xs cursor-pointer active:scale-95"
+                        title="Cancel this order"
+                      >
+                        <X className="w-4 h-4 text-rose-600" />
+                        <span className="hidden sm:inline">Cancel Order</span>
+                      </button>
+                    )}
                   </div>
                 </div>
 

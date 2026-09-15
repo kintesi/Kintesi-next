@@ -444,6 +444,105 @@ export async function confirmAffiliateCommissionOnDelivery(
   return true;
 }
 
+// 8. Revoke / Deduct Commission When Order is Cancelled or Returned ("kono product jodi cancle kora customar sei khetre affilaite partner kono taka pabe na")
+export async function revokeAffiliateCommissionOnCancellation(
+  order: {
+    order_number: string;
+    total_amount?: number | null;
+    affiliate_code?: string | null;
+    affiliate_commission?: number | null;
+    affiliate_commission_amount?: number | null;
+  }
+): Promise<boolean> {
+  const code = order.affiliate_code?.trim().toUpperCase();
+  if (!code) return false;
+
+  const commission = Number(order.affiliate_commission || order.affiliate_commission_amount) || 0;
+  const orderTotal = Number(order.total_amount) || 0;
+
+  // Track revoked orders to prevent multiple revocations
+  const revokedOrdersKey = 'kintesi_affiliate_revoked_orders';
+  let revokedList: string[] = [];
+  try {
+    revokedList = JSON.parse(localStorage.getItem(revokedOrdersKey) || '[]');
+  } catch {}
+
+  if (revokedList.includes(order.order_number)) {
+    console.log(`Order #${order.order_number} commission was already revoked.`);
+    return false;
+  }
+
+  // Check if commission was ever credited (delivered)
+  const creditedOrdersKey = 'kintesi_affiliate_credited_orders';
+  let creditedList: string[] = [];
+  try {
+    creditedList = JSON.parse(localStorage.getItem(creditedOrdersKey) || '[]');
+  } catch {}
+
+  const wasCredited = creditedList.includes(order.order_number);
+
+  try {
+    // 1. Fetch partner in Supabase
+    const { data: dbUser } = await supabase
+      .from('affiliate_users')
+      .select('*')
+      .eq('affiliate_code', code)
+      .maybeSingle();
+
+    if (dbUser) {
+      const nextOrders = Math.max(0, (Number(dbUser.total_orders) || 0) - 1);
+      const nextSales = Math.max(0, (Number(dbUser.total_sales_amount) || 0) - orderTotal);
+      const nextEarned = wasCredited
+        ? Math.max(0, (Number(dbUser.total_commission_earned) || 0) - commission)
+        : (Number(dbUser.total_commission_earned) || 0);
+      const nextBalance = wasCredited
+        ? Math.max(0, (Number(dbUser.available_balance) || 0) - commission)
+        : (Number(dbUser.available_balance) || 0);
+
+      await supabase
+        .from('affiliate_users')
+        .update({
+          total_orders: nextOrders,
+          total_sales_amount: nextSales,
+          total_commission_earned: nextEarned,
+          available_balance: nextBalance,
+        })
+        .eq('id', dbUser.id);
+    }
+
+    // 2. Remove from credited list if it was credited
+    if (wasCredited) {
+      creditedList = creditedList.filter((num) => num !== order.order_number);
+      localStorage.setItem(creditedOrdersKey, JSON.stringify(creditedList));
+    }
+
+    // 3. Mark in revoked list
+    revokedList.push(order.order_number);
+    localStorage.setItem(revokedOrdersKey, JSON.stringify(revokedList));
+
+    // 4. Update local profile cache
+    const current = localStorage.getItem('kintesi_my_affiliate_profile');
+    if (current) {
+      const parsed = JSON.parse(current);
+      if (parsed.affiliate_code?.toUpperCase() === code) {
+        parsed.total_orders = Math.max(0, (Number(parsed.total_orders) || 0) - 1);
+        parsed.total_sales_amount = Math.max(0, (Number(parsed.total_sales_amount) || 0) - orderTotal);
+        if (wasCredited) {
+          parsed.total_commission_earned = Math.max(0, (Number(parsed.total_commission_earned) || 0) - commission);
+          parsed.available_balance = Math.max(0, (Number(parsed.available_balance) || 0) - commission);
+        }
+        localStorage.setItem('kintesi_my_affiliate_profile', JSON.stringify(parsed));
+      }
+    }
+  } catch (err) {
+    console.warn('Error revoking cancelled affiliate commission:', err);
+    return false;
+  }
+
+  window.dispatchEvent(new Event('kintesi_affiliates_updated'));
+  return true;
+}
+
 // 7. Withdrawals Management
 export async function getWithdrawalsFromDB(): Promise<AffiliateWithdrawal[]> {
   const map = new Map<string, AffiliateWithdrawal>();
@@ -608,29 +707,89 @@ export async function processWithdrawalInDB(
   return true;
 }
 
-// 10. Active Referral Cookie / LocalStorage Helpers
-export function setActiveAffiliateReferral(code: string): void {
-  if (!code) return;
-  const payload = {
-    code: code.trim().toUpperCase(),
-    timestamp: Date.now(),
-  };
+// 10. Active Referral Cookie / LocalStorage Helpers (Strict tracking)
+export function clearActiveAffiliateReferral(): void {
   try {
-    localStorage.setItem(ACTIVE_REFERRAL_KEY, JSON.stringify(payload));
+    localStorage.removeItem(ACTIVE_REFERRAL_KEY);
+    sessionStorage.removeItem(ACTIVE_REFERRAL_KEY);
   } catch {}
 }
 
-export function getActiveAffiliateReferral(): string | null {
+export async function setActiveAffiliateReferral(code: string): Promise<boolean> {
+  if (!code || !code.trim()) return false;
+  const clean = code.trim().toUpperCase();
+
+  // Strict Rule 1: Validate that the affiliate partner actually exists and is active (not suspended)
   try {
-    const raw = localStorage.getItem(ACTIVE_REFERRAL_KEY);
+    const { data: dbUser } = await supabase
+      .from('affiliate_users')
+      .select('id, status, affiliate_code')
+      .eq('affiliate_code', clean)
+      .maybeSingle();
+
+    if (!dbUser || dbUser.status === 'suspended') {
+      console.warn(`Referral code ${clean} is invalid or suspended. Tracking ignored.`);
+      clearActiveAffiliateReferral();
+      return false;
+    }
+  } catch {}
+
+  const payload = {
+    code: clean,
+    timestamp: Date.now(),
+  };
+
+  try {
+    sessionStorage.setItem(ACTIVE_REFERRAL_KEY, JSON.stringify(payload));
+    localStorage.setItem(ACTIVE_REFERRAL_KEY, JSON.stringify(payload));
+  } catch {}
+
+  return true;
+}
+
+export function getActiveAffiliateReferral(options?: {
+  buyerPhone?: string;
+  buyerUserId?: string;
+  buyerEmail?: string;
+}): string | null {
+  try {
+    // Check session first, then fallback to local
+    let raw = sessionStorage.getItem(ACTIVE_REFERRAL_KEY);
+    if (!raw) {
+      raw = localStorage.getItem(ACTIVE_REFERRAL_KEY);
+    }
     if (!raw) return null;
+
     const parsed = JSON.parse(raw);
-    const maxAgeMs = REFERRAL_EXPIRY_DAYS * 24 * 60 * 60 * 1000;
-    if (Date.now() - parsed.timestamp > maxAgeMs) {
-      localStorage.removeItem(ACTIVE_REFERRAL_KEY);
+    if (!parsed || !parsed.code) return null;
+
+    // Strict Rule 2: Expiration window check (24 hours max for explicit click attribution)
+    const maxAgeMs = 24 * 60 * 60 * 1000;
+    if (Date.now() - Number(parsed.timestamp) > maxAgeMs) {
+      clearActiveAffiliateReferral();
       return null;
     }
-    return parsed.code || null;
+
+    const code = String(parsed.code).trim().toUpperCase();
+
+    // Strict Rule 3: Self-purchase prevention
+    // If the buyer is the affiliate partner themselves, never credit commission!
+    try {
+      const myProfileRaw = localStorage.getItem('kintesi_my_affiliate_profile');
+      if (myProfileRaw) {
+        const myProfile = JSON.parse(myProfileRaw);
+        if (myProfile?.affiliate_code && myProfile.affiliate_code.toUpperCase() === code) {
+          console.warn('Self-referral detected. Disallowing affiliate attribution.');
+          return null;
+        }
+        if (options?.buyerPhone && myProfile?.phone && options.buyerPhone === myProfile.phone) {
+          console.warn('Self-referral detected via phone number. Disallowing affiliate attribution.');
+          return null;
+        }
+      }
+    } catch {}
+
+    return code;
   } catch {
     return null;
   }

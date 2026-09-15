@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import { getOrdersFromDB, updateOrderInDB } from '../../lib/dbService';
-import { confirmAffiliateCommissionOnDelivery } from '../../lib/affiliateService';
+import { confirmAffiliateCommissionOnDelivery, revokeAffiliateCommissionOnCancellation } from '../../lib/affiliateService';
 import { Order } from '../../types';
 import { formatPrice } from '../../lib/utils';
 import { Package, Truck, CheckCircle2, Clock, XCircle, Search, Eye, Printer, Trash2, Copy, Check, CreditCard, Landmark, Share2 } from 'lucide-react';
@@ -99,6 +99,16 @@ export const AdminOrders: React.FC = () => {
       localStorage.setItem('kintesi_guest_orders', JSON.stringify(updatedLocal));
     } catch {}
 
+    // If order was affiliate-referred, revoke any affiliate earnings
+    const targetOrder = orders.find((o) => o.order_number === orderNumber);
+    if (targetOrder?.affiliate_code) {
+      try {
+        await revokeAffiliateCommissionOnCancellation(targetOrder);
+      } catch (affErr) {
+        console.warn('Affiliate delete revocation notice:', affErr);
+      }
+    }
+
     setOrders((prev) => prev.filter((o) => o.order_number !== orderNumber));
     if (selectedOrder && selectedOrder.order_number === orderNumber) {
       setSelectedOrder(null);
@@ -129,7 +139,7 @@ export const AdminOrders: React.FC = () => {
       setSelectedOrder({ ...selectedOrder, order_status: newStatus as any });
     }
 
-    // Automatically credit affiliate commission when delivery is confirmed
+    // 1. Automatically credit affiliate commission when delivery is confirmed
     if (newStatus === 'delivered') {
       const targetOrder = orders.find((o) => o.order_number === orderNumber);
       if (targetOrder?.affiliate_code) {
@@ -140,6 +150,21 @@ export const AdminOrders: React.FC = () => {
           }
         } catch (affErr) {
           console.warn('Affiliate delivery credit error:', affErr);
+        }
+      }
+    }
+
+    // 2. Strict Rule: If order is cancelled or returned, affiliate partner gets ZERO commission ("affilaite partner kono taka pabe na")
+    if (newStatus === 'cancelled' || newStatus === 'returned') {
+      const targetOrder = orders.find((o) => o.order_number === orderNumber);
+      if (targetOrder?.affiliate_code) {
+        try {
+          const revoked = await revokeAffiliateCommissionOnCancellation(targetOrder);
+          if (revoked) {
+            toast.info(`Affiliate commission revoked/cancelled for partner (${targetOrder.affiliate_code})`);
+          }
+        } catch (affErr) {
+          console.warn('Affiliate cancel revocation error:', affErr);
         }
       }
     }

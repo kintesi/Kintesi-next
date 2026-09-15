@@ -8,7 +8,12 @@ import { useCoupons } from '../contexts/CouponContext';
 import { supabase } from '../lib/supabase';
 import { saveOrderToDB, sanitizeOrderForSupabase } from '../lib/dbService';
 import { formatPrice, generateOrderNumber } from '../lib/utils';
-import { getActiveAffiliateReferral, recordAffiliateSale, recordAffiliateOrderPlaced } from '../lib/affiliateService';
+import {
+  getActiveAffiliateReferral,
+  clearActiveAffiliateReferral,
+  recordAffiliateSale,
+  recordAffiliateOrderPlaced,
+} from '../lib/affiliateService';
 import {
   ShieldCheck,
   Truck,
@@ -371,17 +376,32 @@ export const CheckoutPage: React.FC = () => {
       selectedSize: item.selectedSize,
     }));
 
-    // Calculate Affiliate Commission if active referral exists
-    const activeAffCode = getActiveAffiliateReferral();
+    // Calculate Affiliate Commission with STRICT rules
+    // Rule 1: Must have clicked an active, approved affiliate link (not expired, within 24h)
+    // Rule 2: Buyer cannot be the affiliate partner themselves (no self-referral)
+    const rawAffCode = getActiveAffiliateReferral({
+      buyerPhone: phone,
+      buyerUserId: user?.id,
+      buyerEmail: email,
+    });
+
     let computedCommission = 0;
-    if (activeAffCode) {
+    let finalAffiliateCode: string | null = null;
+
+    if (rawAffCode) {
       checkoutItems.forEach((ci) => {
+        // Rule 3: Only products explicitly marked as affiliate-enabled generate commission
         if (ci.product?.is_affiliate_enabled) {
           const rate = ci.product.affiliate_commission_rate || 10;
           const itemTotal = (ci.customPrice || ci.product.discount_price || ci.product.price) * ci.quantity;
           computedCommission += Math.round((itemTotal * rate) / 100);
         }
       });
+
+      // Rule 4: If no affiliate product was purchased or commission is 0, do NOT attribute to affiliate!
+      if (computedCommission > 0) {
+        finalAffiliateCode = rawAffCode;
+      }
     }
 
     const cleanSupabaseOrder = sanitizeOrderForSupabase({
@@ -404,8 +424,8 @@ export const CheckoutPage: React.FC = () => {
       transaction_id: trxId.trim() || null,
       customer_note: customerNote + (trxId ? ` | TrxID: ${trxId}` : ''),
       coupon_code: appliedCoupon?.code || null,
-      affiliate_code: activeAffCode || null,
-      affiliate_commission: computedCommission > 0 ? computedCommission : 0,
+      affiliate_code: finalAffiliateCode || null,
+      affiliate_commission: finalAffiliateCode && computedCommission > 0 ? computedCommission : 0,
     });
 
     try {
@@ -449,13 +469,17 @@ export const CheckoutPage: React.FC = () => {
       } catch {}
 
       // 4. Record Affiliate Referral Sale (Held under Pending Delivery)
-      if (activeAffCode) {
+      if (finalAffiliateCode && computedCommission > 0) {
         try {
-          await recordAffiliateOrderPlaced(activeAffCode, orderNumber, dynamicTotal, computedCommission);
+          await recordAffiliateOrderPlaced(finalAffiliateCode, orderNumber, dynamicTotal, computedCommission);
         } catch (affErr) {
           console.warn('Affiliate record sale notice:', affErr);
         }
       }
+
+      // 5. Strict Rule: Clear active affiliate referral immediately after order placement
+      // so any subsequent normal organic orders by this customer will NEVER be attributed to this affiliate!
+      clearActiveAffiliateReferral();
 
       // Automatically reduce product stock count on sale for purchased items
       for (const cartItem of checkoutItems) {

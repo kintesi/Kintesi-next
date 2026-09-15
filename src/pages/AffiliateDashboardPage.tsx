@@ -1182,7 +1182,7 @@ export const AffiliateDashboardPage: React.FC = () => {
                                 {/* Commission Amount */}
                                 <td className="py-3.5 pr-3">
                                   <div className={`font-black text-sm ${isDelivered ? 'text-emerald-600' : isCancelled ? 'text-gray-400 line-through' : 'text-amber-600'}`}>
-                                    {formatPrice(comm)}
+                                    {isCancelled ? '৳0' : formatPrice(comm)}
                                   </div>
                                 </td>
 
@@ -1200,12 +1200,12 @@ export const AffiliateDashboardPage: React.FC = () => {
                                     </div>
                                   ) : isCancelled ? (
                                     <div className="inline-flex flex-col items-end gap-0.5">
-                                      <span className="px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-gray-100 text-gray-600 border border-gray-200 inline-flex items-center gap-1">
-                                        <AlertCircle className="w-3 h-3 text-gray-400" />
+                                      <span className="px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-rose-50 text-rose-700 border border-rose-200 inline-flex items-center gap-1">
+                                        <AlertCircle className="w-3 h-3 text-rose-500" />
                                         <span>Cancelled</span>
                                       </span>
-                                      <span className="text-[10px] text-gray-400">
-                                        No Commission
+                                      <span className="text-[10px] text-rose-600 font-bold">
+                                        ৳0 Commission
                                       </span>
                                     </div>
                                   ) : (
