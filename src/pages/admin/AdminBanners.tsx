@@ -413,7 +413,7 @@ export const AdminBanners: React.FC = () => {
     { label: 'Announcement', enabled: form.showTopAnnouncement !== false },
     { label: 'Hero', enabled: form.showHeroSection !== false },
     { label: 'Spotlight', enabled: Boolean(form.showSpotlight) },
-    { label: 'Flash sale', enabled: Boolean(form.showFlashSale) },
+    { label: 'Banner', enabled: Boolean(form.showFlashSale) },
     ...showcases.map((s) => ({
       label: `Showcase: ${s.title}`,
       enabled: s.enabled === true,
@@ -570,7 +570,7 @@ export const AdminBanners: React.FC = () => {
             </div>
           </section>
 
-          {/* Flash sale */}
+          {/* Banner */}
           <section className={`rounded-2xl border p-5 sm:p-6 ${card} space-y-5`}>
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-b border-slate-100 dark:border-gray-800 pb-4">
               <div className="flex items-center gap-3">
@@ -579,7 +579,7 @@ export const AdminBanners: React.FC = () => {
                 </div>
                 <div>
                   <h2 className="font-black text-sm sm:text-base text-gray-900 dark:text-white">
-                    Flash sale
+                    Banner
                   </h2>
                   <p className="text-xs text-slate-500">
                     Countdown banner and promotional slides.
@@ -858,7 +858,7 @@ export const AdminBanners: React.FC = () => {
                       <span className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
                         <span>🖥️</span> Desktop Banner Image
                       </span>
-                      <span className="text-[10px] px-2 py-0.5 rounded bg-blue-100 dark:bg-blue-950/60 text-blue-800 dark:text-blue-300 font-bold">
+                      <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-white dark:bg-gray-800 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-700 font-bold shadow-2xs">
                         1920×600 px
                       </span>
                     </div>
@@ -879,7 +879,7 @@ export const AdminBanners: React.FC = () => {
                       <span className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
                         <span>📱</span> Mobile Banner Image
                       </span>
-                      <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 font-bold">
+                      <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-white dark:bg-gray-800 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-700 font-bold shadow-2xs">
                         800×400 px
                       </span>
                     </div>
