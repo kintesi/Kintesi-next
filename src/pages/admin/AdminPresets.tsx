@@ -234,7 +234,7 @@ export const AdminPresets: React.FC = () => {
   });
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto pb-12 animate-fadeIn">
+    <div className="space-y-6 w-full pb-12 animate-fadeIn">
       {/* Top Header */}
       <div className={`p-6 rounded-3xl border transition flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${
         isLight
@@ -541,7 +541,7 @@ export const AdminPresets: React.FC = () => {
               </span>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3.5">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-3.5">
               {filteredColors.map((preset) => {
                 const isCopied = copiedHex === preset.hex;
                 return (
