@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import { getOrdersFromDB, updateOrderInDB } from '../../lib/dbService';
+import { confirmAffiliateCommissionOnDelivery } from '../../lib/affiliateService';
 import { Order } from '../../types';
 import { formatPrice } from '../../lib/utils';
 import { Package, Truck, CheckCircle2, Clock, XCircle, Search, Eye, Printer, Trash2, Copy, Check, CreditCard, Landmark, Share2 } from 'lucide-react';
@@ -80,6 +81,21 @@ export const AdminOrders: React.FC = () => {
     );
     if (selectedOrder && selectedOrder.order_number === orderNumber) {
       setSelectedOrder({ ...selectedOrder, order_status: newStatus as any });
+    }
+
+    // Automatically credit affiliate commission when delivery is confirmed
+    if (newStatus === 'delivered') {
+      const targetOrder = orders.find((o) => o.order_number === orderNumber);
+      if (targetOrder?.affiliate_code) {
+        try {
+          const credited = await confirmAffiliateCommissionOnDelivery(targetOrder);
+          if (credited) {
+            toast.success(`Affiliate commission credited to partner (${targetOrder.affiliate_code})`);
+          }
+        } catch (affErr) {
+          console.warn('Affiliate delivery credit error:', affErr);
+        }
+      }
     }
   };
 

@@ -18,33 +18,9 @@ export function generateAffiliateCode(): string {
 
 // 1. Get All Affiliates
 export async function getAffiliatesFromDB(): Promise<AffiliateUser[]> {
-  const map = new Map<string, AffiliateUser>();
+  const codeMap = new Map<string, AffiliateUser>();
 
-  // 1. Check local storage cache
-  try {
-    const cached = localStorage.getItem(AFFILIATES_CACHE_KEY);
-    if (cached) {
-      const parsed: AffiliateUser[] = JSON.parse(cached);
-      parsed.forEach((a) => {
-        if (a && a.id && !a.id.startsWith('aff_demo_')) {
-          map.set(a.id, a);
-        }
-      });
-    }
-  } catch {}
-
-  // 2. Check current browser's active affiliate profile (kintesi_my_affiliate_profile)
-  try {
-    const myProfileRaw = localStorage.getItem('kintesi_my_affiliate_profile');
-    if (myProfileRaw) {
-      const myProfile: AffiliateUser = JSON.parse(myProfileRaw);
-      if (myProfile && myProfile.id && !myProfile.id.startsWith('aff_demo_')) {
-        map.set(myProfile.id, myProfile);
-      }
-    }
-  } catch {}
-
-  // 3. Fetch from Supabase
+  // 1. Fetch from Supabase FIRST (Authoritative source of truth)
   try {
     const { data, error } = await supabase
       .from('affiliate_users')
@@ -53,31 +29,52 @@ export async function getAffiliatesFromDB(): Promise<AffiliateUser[]> {
 
     if (!error && Array.isArray(data)) {
       data.forEach((a: AffiliateUser) => {
-        if (a && a.id && !a.id.startsWith('aff_demo_')) {
-          map.set(a.id, a);
+        if (a && a.affiliate_code && !a.id?.startsWith('aff_demo_')) {
+          codeMap.set(a.affiliate_code.toUpperCase(), a);
         }
       });
-
-      // Background sync any local-only partners into Supabase so all devices see them
-      const allPartners = Array.from(map.values());
-      const localOnly = allPartners.filter(
-        (p) => !data.some((d: any) => d.id === p.id || d.affiliate_code === p.affiliate_code)
-      );
-      if (localOnly.length > 0) {
-        (async () => {
-          try {
-            for (const item of localOnly) {
-              await supabase.from('affiliate_users').upsert([item]);
-            }
-          } catch {}
-        })();
-      }
     } else if (error) {
       console.warn('Supabase fetch affiliates notice:', error.message);
     }
   } catch (err) {
     console.warn('Supabase fetch affiliates notice:', err);
   }
+
+  // 2. Check current browser's active affiliate profile (kintesi_my_affiliate_profile)
+  try {
+    const myProfileRaw = localStorage.getItem('kintesi_my_affiliate_profile');
+    if (myProfileRaw) {
+      const myProfile: AffiliateUser = JSON.parse(myProfileRaw);
+      if (myProfile && myProfile.affiliate_code && !myProfile.id?.startsWith('aff_demo_')) {
+        const code = myProfile.affiliate_code.toUpperCase();
+        if (codeMap.has(code)) {
+          // Supabase has authoritative stats; update local cache with fresh DB data!
+          const freshFromDB = codeMap.get(code)!;
+          localStorage.setItem('kintesi_my_affiliate_profile', JSON.stringify(freshFromDB));
+        } else {
+          codeMap.set(code, myProfile);
+          // Sync to Supabase in background
+          supabase.from('affiliate_users').upsert([myProfile]).then();
+        }
+      }
+    }
+  } catch {}
+
+  // 3. Fallback to local storage cache if not already in codeMap
+  try {
+    const cached = localStorage.getItem(AFFILIATES_CACHE_KEY);
+    if (cached) {
+      const parsed: AffiliateUser[] = JSON.parse(cached);
+      parsed.forEach((a) => {
+        if (a && a.affiliate_code && !a.id?.startsWith('aff_demo_')) {
+          const code = a.affiliate_code.toUpperCase();
+          if (!codeMap.has(code)) {
+            codeMap.set(code, a);
+          }
+        }
+      });
+    }
+  } catch {}
 
   const getTime = (d?: string) => {
     if (!d) return 0;
@@ -89,7 +86,7 @@ export async function getAffiliatesFromDB(): Promise<AffiliateUser[]> {
     }
   };
 
-  const result = Array.from(map.values()).sort(
+  const result = Array.from(codeMap.values()).sort(
     (a, b) => getTime(b?.created_at) - getTime(a?.created_at)
   );
 
@@ -97,12 +94,25 @@ export async function getAffiliatesFromDB(): Promise<AffiliateUser[]> {
   return result;
 }
 
-// 2. Get Single Affiliate by Code
+// 2. Get Single Affiliate by Code (Direct Supabase query for real-time accuracy)
 export async function getAffiliateByCode(code: string): Promise<AffiliateUser | null> {
   if (!code) return null;
   const cleanCode = code.trim().toUpperCase();
+
+  try {
+    const { data, error } = await supabase
+      .from('affiliate_users')
+      .select('*')
+      .eq('affiliate_code', cleanCode)
+      .maybeSingle();
+
+    if (!error && data) {
+      return data as AffiliateUser;
+    }
+  } catch {}
+
   const all = await getAffiliatesFromDB();
-  return all.find((a) => a.affiliate_code.toUpperCase() === cleanCode) || null;
+  return all.find((a) => a.affiliate_code?.toUpperCase() === cleanCode) || null;
 }
 
 // 3. Register or Find Affiliate
@@ -240,15 +250,24 @@ export async function toggleBanAffiliateInDB(id: string, currentStatus: string):
 export async function recordAffiliateClick(affiliateCode: string, productId?: string): Promise<void> {
   if (!affiliateCode) return;
   const clean = affiliateCode.trim().toUpperCase();
-  const partner = await getAffiliateByCode(clean);
-  if (!partner) return;
 
-  // Update stats
-  const nextClicks = (partner.total_clicks || 0) + 1;
-  await updateAffiliateInDB(partner.id, { total_clicks: nextClicks });
-
-  // Try saving click log
+  // 1. Direct fetch and increment in Supabase
   try {
+    const { data: dbUser } = await supabase
+      .from('affiliate_users')
+      .select('*')
+      .eq('affiliate_code', clean)
+      .maybeSingle();
+
+    if (dbUser) {
+      const nextClicks = (Number(dbUser.total_clicks) || 0) + 1;
+      await supabase
+        .from('affiliate_users')
+        .update({ total_clicks: nextClicks })
+        .eq('id', dbUser.id);
+    }
+
+    // 2. Insert click log
     await supabase.from('affiliate_clicks').insert([
       {
         affiliate_code: clean,
@@ -256,37 +275,172 @@ export async function recordAffiliateClick(affiliateCode: string, productId?: st
         created_at: new Date().toISOString(),
       },
     ]);
+  } catch (err) {
+    console.warn('Supabase record click notice:', err);
+  }
+
+  // 3. Update local caches immediately
+  try {
+    const current = localStorage.getItem('kintesi_my_affiliate_profile');
+    if (current) {
+      const parsed = JSON.parse(current);
+      if (parsed.affiliate_code?.toUpperCase() === clean) {
+        parsed.total_clicks = (Number(parsed.total_clicks) || 0) + 1;
+        localStorage.setItem('kintesi_my_affiliate_profile', JSON.stringify(parsed));
+      }
+    }
   } catch {}
+
+  window.dispatchEvent(new Event('kintesi_affiliates_updated'));
 }
 
-// 6. Record Referral Sale & Credit Commission
+// 6. Record Referral Order Placement (Increments total_orders and total_sales_amount)
+export async function recordAffiliateOrderPlaced(
+  affiliateCode: string,
+  orderNumber: string,
+  orderTotal: number,
+  commissionAmount: number = 0
+): Promise<boolean> {
+  if (!affiliateCode) return false;
+  const clean = affiliateCode.trim().toUpperCase();
+
+  try {
+    const { data: dbUser } = await supabase
+      .from('affiliate_users')
+      .select('*')
+      .eq('affiliate_code', clean)
+      .maybeSingle();
+
+    if (dbUser) {
+      if (dbUser.status === 'suspended') {
+        console.warn(`Partner ${clean} is suspended (banned). Referral order not recorded.`);
+        return false;
+      }
+
+      const nextOrders = (Number(dbUser.total_orders) || 0) + 1;
+      const nextSales = (Number(dbUser.total_sales_amount) || 0) + (Number(orderTotal) || 0);
+
+      await supabase
+        .from('affiliate_users')
+        .update({
+          total_orders: nextOrders,
+          total_sales_amount: nextSales,
+        })
+        .eq('id', dbUser.id);
+    }
+  } catch (err) {
+    console.warn('Supabase record order notice:', err);
+  }
+
+  // Update local caches
+  try {
+    const current = localStorage.getItem('kintesi_my_affiliate_profile');
+    if (current) {
+      const parsed = JSON.parse(current);
+      if (parsed.affiliate_code?.toUpperCase() === clean) {
+        parsed.total_orders = (Number(parsed.total_orders) || 0) + 1;
+        parsed.total_sales_amount = (Number(parsed.total_sales_amount) || 0) + (Number(orderTotal) || 0);
+        localStorage.setItem('kintesi_my_affiliate_profile', JSON.stringify(parsed));
+      }
+    }
+  } catch {}
+
+  window.dispatchEvent(new Event('kintesi_affiliates_updated'));
+  return true;
+}
+
+// Alias for backward compatibility
 export async function recordAffiliateSale(
   affiliateCode: string,
   orderNumber: string,
   orderTotal: number,
   commissionAmount: number
 ): Promise<boolean> {
-  if (!affiliateCode || commissionAmount <= 0) return false;
-  const clean = affiliateCode.trim().toUpperCase();
-  const partner = await getAffiliateByCode(clean);
-  if (!partner) return false;
-  if (partner.status === 'suspended') {
-    console.warn(`Partner ${clean} is suspended (banned). Commission not credited.`);
+  return recordAffiliateOrderPlaced(affiliateCode, orderNumber, orderTotal, commissionAmount);
+}
+
+// 7. Confirm & Credit Commission When Order is Delivered ("ar delevery sonfirm holew na")
+export async function confirmAffiliateCommissionOnDelivery(
+  order: {
+    order_number: string;
+    affiliate_code?: string | null;
+    affiliate_commission?: number | null;
+    affiliate_commission_amount?: number | null;
+    affiliate_commission_credited?: boolean | null;
+  }
+): Promise<boolean> {
+  const code = order.affiliate_code?.trim().toUpperCase();
+  if (!code) return false;
+
+  // Prevent double crediting for the same order
+  const creditedOrdersKey = 'kintesi_affiliate_credited_orders';
+  let creditedList: string[] = [];
+  try {
+    creditedList = JSON.parse(localStorage.getItem(creditedOrdersKey) || '[]');
+  } catch {}
+
+  if (creditedList.includes(order.order_number) || order.affiliate_commission_credited) {
+    console.log(`Commission for order #${order.order_number} was already credited.`);
     return false;
   }
 
-  const nextOrders = (partner.total_orders || 0) + 1;
-  const nextSales = (partner.total_sales_amount || 0) + orderTotal;
-  const nextEarned = (partner.total_commission_earned || 0) + commissionAmount;
-  const nextBalance = (partner.available_balance || 0) + commissionAmount;
+  const commission = Number(order.affiliate_commission || order.affiliate_commission_amount) || 0;
+  if (commission <= 0) return false;
 
-  await updateAffiliateInDB(partner.id, {
-    total_orders: nextOrders,
-    total_sales_amount: nextSales,
-    total_commission_earned: nextEarned,
-    available_balance: nextBalance,
-  });
+  try {
+    // 1. Fetch partner in Supabase
+    const { data: dbUser } = await supabase
+      .from('affiliate_users')
+      .select('*')
+      .eq('affiliate_code', code)
+      .maybeSingle();
 
+    if (dbUser) {
+      if (dbUser.status === 'suspended') {
+        console.warn(`Partner ${code} is suspended. Commission not credited.`);
+        return false;
+      }
+
+      const nextEarned = (Number(dbUser.total_commission_earned) || 0) + commission;
+      const nextBalance = (Number(dbUser.available_balance) || 0) + commission;
+
+      await supabase
+        .from('affiliate_users')
+        .update({
+          total_commission_earned: nextEarned,
+          available_balance: nextBalance,
+        })
+        .eq('id', dbUser.id);
+    }
+
+    // 2. Mark order as credited in Supabase
+    try {
+      await supabase
+        .from('orders')
+        .update({ affiliate_commission_credited: true })
+        .eq('order_number', order.order_number);
+    } catch {}
+
+    // 3. Mark in local credited list
+    creditedList.push(order.order_number);
+    localStorage.setItem(creditedOrdersKey, JSON.stringify(creditedList));
+
+    // 4. Update local cache
+    const current = localStorage.getItem('kintesi_my_affiliate_profile');
+    if (current) {
+      const parsed = JSON.parse(current);
+      if (parsed.affiliate_code?.toUpperCase() === code) {
+        parsed.total_commission_earned = (Number(parsed.total_commission_earned) || 0) + commission;
+        parsed.available_balance = (Number(parsed.available_balance) || 0) + commission;
+        localStorage.setItem('kintesi_my_affiliate_profile', JSON.stringify(parsed));
+      }
+    }
+  } catch (err) {
+    console.warn('Error crediting delivery commission:', err);
+    return false;
+  }
+
+  window.dispatchEvent(new Event('kintesi_affiliates_updated'));
   return true;
 }
 

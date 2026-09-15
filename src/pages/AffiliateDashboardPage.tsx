@@ -104,12 +104,18 @@ export const AffiliateDashboardPage: React.FC = () => {
         const cached = localStorage.getItem('kintesi_my_affiliate_profile');
         if (cached) {
           const parsed = JSON.parse(cached);
-          matched = affs.find((a) => a.id === parsed.id) || parsed;
+          matched = affs.find(
+            (a) =>
+              a.id === parsed.id ||
+              (a.affiliate_code && parsed.affiliate_code && a.affiliate_code.toUpperCase() === parsed.affiliate_code.toUpperCase()) ||
+              (a.phone && parsed.phone && a.phone === parsed.phone)
+          ) || parsed;
         }
       }
 
       if (matched) {
         setCurrentAffiliate(matched);
+        localStorage.setItem('kintesi_my_affiliate_profile', JSON.stringify(matched));
         if (!regAccount && matched.account_number) {
           setWithdrawAccount(matched.account_number);
         }

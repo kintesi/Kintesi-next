@@ -8,7 +8,7 @@ import { useCoupons } from '../contexts/CouponContext';
 import { supabase } from '../lib/supabase';
 import { saveOrderToDB } from '../lib/dbService';
 import { formatPrice, generateOrderNumber } from '../lib/utils';
-import { getActiveAffiliateReferral, recordAffiliateSale } from '../lib/affiliateService';
+import { getActiveAffiliateReferral, recordAffiliateSale, recordAffiliateOrderPlaced } from '../lib/affiliateService';
 import {
   ShieldCheck,
   Truck,
@@ -405,7 +405,8 @@ export const CheckoutPage: React.FC = () => {
       seller_payment_snapshot: {},
       customer_note: customerNote + (trxId ? ` | TrxID: ${trxId}` : ''),
       affiliate_code: activeAffCode || null,
-      affiliate_commission_amount: computedCommission > 0 ? computedCommission : null,
+      affiliate_commission: computedCommission > 0 ? computedCommission : 0,
+      affiliate_commission_amount: computedCommission > 0 ? computedCommission : 0,
     };
 
     try {
@@ -432,6 +433,8 @@ export const CheckoutPage: React.FC = () => {
           payment_status: paymentMethod === 'cod' ? 'pending' : 'paid',
           order_status: 'pending',
           customer_note: orderData.customer_note,
+          affiliate_code: activeAffCode || null,
+          affiliate_commission: computedCommission > 0 ? computedCommission : 0,
         };
         const { error: retryErr } = await supabase.from('orders').insert([coreOrder]);
         if (retryErr) {
@@ -458,9 +461,9 @@ export const CheckoutPage: React.FC = () => {
       }
 
       // Record Affiliate Referral Sale
-      if (activeAffCode && computedCommission > 0) {
+      if (activeAffCode) {
         try {
-          await recordAffiliateSale(activeAffCode, orderNumber, dynamicTotal, computedCommission);
+          await recordAffiliateOrderPlaced(activeAffCode, orderNumber, dynamicTotal, computedCommission);
         } catch (affErr) {
           console.warn('Affiliate record sale notice:', affErr);
         }
