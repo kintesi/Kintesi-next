@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useRef, useState, useCallback } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { Product } from '../../types';
 import { ShowcaseSection } from '../../contexts/SettingsContext';
@@ -166,8 +166,12 @@ export const ShowcaseStrip: React.FC<ShowcaseStripProps> = ({ showcase, products
           onTouchEnd={() => {
             setTimeout(() => setIsPaused(false), 2000);
           }}
-          className="flex gap-2 sm:gap-3.5 overflow-x-auto no-scrollbar scroll-smooth select-none py-0.5"
-          style={{ scrollSnapType: 'x mandatory' }}
+          className="flex gap-2 sm:gap-3.5 overflow-x-auto no-scrollbar scroll-smooth select-none py-0.5 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+          style={{
+            scrollSnapType: 'x mandatory',
+            scrollbarWidth: 'none',
+            msOverflowStyle: 'none',
+          }}
         >
           {displayItems.map((product, idx) => (
             <div
