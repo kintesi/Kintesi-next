@@ -35,7 +35,7 @@ import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
 
 export const AffiliateDashboardPage: React.FC = () => {
-  const { user, profile } = useAuth();
+  const { user, profile, isLoading, openAuthModal } = useAuth();
   const [products, setProducts] = useState<Product[]>([]);
   const [affiliates, setAffiliates] = useState<AffiliateUser[]>([]);
   const [currentAffiliate, setCurrentAffiliate] = useState<AffiliateUser | null>(null);
@@ -44,12 +44,21 @@ export const AffiliateDashboardPage: React.FC = () => {
   const [copiedCode, setCopiedCode] = useState(false);
 
   // Registration Form state
-  const [regName, setRegName] = useState(profile?.full_name || '');
+  const [regName, setRegName] = useState(profile?.full_name || user?.displayName || user?.user_metadata?.full_name || '');
   const [regPhone, setRegPhone] = useState(profile?.phone || '');
   const [regAddress, setRegAddress] = useState(profile?.address || '');
   const [regMethod, setRegMethod] = useState<'bkash' | 'nagad' | 'rocket' | 'bank'>('bkash');
   const [regAccount, setRegAccount] = useState('');
   const [isSubmittingReg, setIsSubmittingReg] = useState(false);
+
+  // Auto-sync profile info into registration fields if available
+  useEffect(() => {
+    if (profile || user) {
+      if (!regName) setRegName(profile?.full_name || user?.displayName || user?.user_metadata?.full_name || '');
+      if (!regPhone && profile?.phone) setRegPhone(profile.phone);
+      if (!regAddress && profile?.address) setRegAddress(profile.address);
+    }
+  }, [profile, user]);
 
   // SKU Link Generator State
   const [skuQuery, setSkuQuery] = useState('');
@@ -229,6 +238,46 @@ export const AffiliateDashboardPage: React.FC = () => {
     (w) => currentAffiliate && (w.affiliate_id === currentAffiliate.id || w.affiliate_code === currentAffiliate.affiliate_code)
   );
 
+  if (isLoading) {
+    return (
+      <div className="min-h-[60vh] flex items-center justify-center">
+        <div className="w-8 h-8 border-4 border-rose-500 border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="min-h-[70vh] flex items-center justify-center px-4 py-16">
+        <div className="max-w-md w-full text-center space-y-6 bg-white p-8 sm:p-10 rounded-3xl border border-gray-100 shadow-xl">
+          <div className="w-16 h-16 rounded-3xl bg-rose-50 border border-rose-100 text-rose-600 flex items-center justify-center mx-auto shadow-xs">
+            <Share2 className="w-8 h-8" />
+          </div>
+          <div className="space-y-2">
+            <h2 className="text-xl font-bold text-gray-900 tracking-tight">সাইন ইন প্রয়োজন</h2>
+            <p className="text-xs text-gray-500 max-w-sm mx-auto leading-relaxed">
+              কিনতেসি অ্যাফিলিয়েট প্রোগ্রামে যুক্ত হতে বা আপনার ড্যাশবোর্ডে প্রবেশ করতে অনুগ্রহ করে প্রথমে আপনার অ্যাকাউন্টে সাইন ইন করুন।
+            </p>
+          </div>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+            <button
+              onClick={() => openAuthModal('login')}
+              className="w-full sm:w-auto px-6 py-3 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl text-xs transition shadow-sm active:scale-95 cursor-pointer"
+            >
+              লগইন / সাইন আপ করুন
+            </button>
+            <Link
+              to="/shop"
+              className="w-full sm:w-auto px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-xl text-xs transition"
+            >
+              কেনাকাটায় ফিরে যান
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50/60 pb-20">
       {/* Top Breadcrumb & Page Banner */}
@@ -269,30 +318,39 @@ export const AffiliateDashboardPage: React.FC = () => {
           <div className="max-w-3xl mx-auto space-y-6">
             
             {/* Promo Card */}
-            <div className="bg-linear-to-r from-rose-600 via-rose-500 to-rose-700 rounded-3xl p-6 sm:p-8 text-white shadow-xl relative overflow-hidden">
+            <div 
+              className="rounded-3xl p-6 sm:p-8 text-white shadow-xl relative overflow-hidden bg-rose-600"
+              style={{
+                background: 'linear-gradient(135deg, #9f1239 0%, #e11d48 50%, #be123c 100%)',
+              }}
+            >
+              {/* Decorative background glow */}
+              <div className="absolute -top-16 -right-16 w-56 h-56 bg-white/10 rounded-full blur-2xl pointer-events-none" />
+              <div className="absolute -bottom-16 -left-16 w-56 h-56 bg-black/15 rounded-full blur-2xl pointer-events-none" />
+
               <div className="relative z-10 space-y-3">
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-xs font-bold uppercase tracking-wider">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-xs font-bold uppercase tracking-wider text-amber-200 border border-white/25">
                   <Sparkles className="w-3.5 h-3.5 text-amber-300" />
                   Earn Up to 15% Commission
                 </span>
-                <h2 className="text-2xl sm:text-3xl font-black tracking-tight leading-snug">
+                <h2 className="text-2xl sm:text-3xl font-black tracking-tight leading-snug text-white drop-shadow-xs">
                   কিনতেসি প্রোডাক্ট শেয়ার করে প্রতিদিন টাকা ইনকাম করুন!
                 </h2>
-                <p className="text-xs sm:text-sm text-rose-100 leading-relaxed max-w-xl">
+                <p className="text-xs sm:text-sm text-rose-100/90 leading-relaxed max-w-xl font-medium">
                   আমাদের প্রোডাক্টের অ্যাফিলিয়েট লিংক ফেসবুক, হোয়াটসঅ্যাপ বা ইউটিউবে শেয়ার করুন। আপনার লিংকের মাধ্যমে কেউ অর্ডার করলেই সাথে সাথে পেয়ে যাবেন আকর্ষণীয় ক্যাশ কমিশন!
                 </p>
                 <div className="grid grid-cols-3 gap-3 pt-2">
-                  <div className="bg-white/10 backdrop-blur-xs p-3 rounded-2xl border border-white/15 text-center">
-                    <p className="text-lg sm:text-xl font-black">০ টাকা</p>
-                    <p className="text-[11px] text-rose-100">জয়েনিং ফি সম্পূর্ণ ফ্রি</p>
+                  <div className="bg-white/15 backdrop-blur-md p-3.5 rounded-2xl border border-white/25 text-center text-white shadow-xs">
+                    <p className="text-lg sm:text-xl font-black text-white">০ টাকা</p>
+                    <p className="text-[11px] text-rose-100 font-medium">জয়েনিং ফি সম্পূর্ণ ফ্রি</p>
                   </div>
-                  <div className="bg-white/10 backdrop-blur-xs p-3 rounded-2xl border border-white/15 text-center">
-                    <p className="text-lg sm:text-xl font-black">লাইভ ট্র্যাকিং</p>
-                    <p className="text-[11px] text-rose-100">রিয়েল-টাইম সেল হিসাব</p>
+                  <div className="bg-white/15 backdrop-blur-md p-3.5 rounded-2xl border border-white/25 text-center text-white shadow-xs">
+                    <p className="text-lg sm:text-xl font-black text-white">লাইভ ট্র্যাকিং</p>
+                    <p className="text-[11px] text-rose-100 font-medium">রিয়েল-টাইম সেল হিসাব</p>
                   </div>
-                  <div className="bg-white/10 backdrop-blur-xs p-3 rounded-2xl border border-white/15 text-center">
-                    <p className="text-lg sm:text-xl font-black">সহজ পেমেন্ট</p>
-                    <p className="text-[11px] text-rose-100">বিকাশ / নগদ পেআউট</p>
+                  <div className="bg-white/15 backdrop-blur-md p-3.5 rounded-2xl border border-white/25 text-center text-white shadow-xs">
+                    <p className="text-lg sm:text-xl font-black text-white">সহজ পেমেন্ট</p>
+                    <p className="text-[11px] text-rose-100 font-medium">বিকাশ / নগদ পেআউট</p>
                   </div>
                 </div>
               </div>

@@ -234,13 +234,13 @@ export const ProfilePage: React.FC = () => {
           >
             {t('cart.continue')}
           </Link>
-          <Link
-            to="/affiliate"
-            className="w-full sm:w-auto px-6 py-3 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200/80 font-bold rounded-xl text-xs transition flex items-center justify-center gap-1.5"
+          <button
+            onClick={() => setIsAuthModalOpen(true)}
+            className="w-full sm:w-auto px-6 py-3 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200/80 font-bold rounded-xl text-xs transition flex items-center justify-center gap-1.5 cursor-pointer active:scale-95"
           >
             <Share2 className="w-3.5 h-3.5" />
             <span>অ্যাফিলিয়েট প্রোগ্রাম</span>
-          </Link>
+          </button>
         </div>
         <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
       </div>

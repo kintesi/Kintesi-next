@@ -3,10 +3,19 @@ import { Link } from 'react-router-dom';
 import { Phone, MapPin, Shield, Truck, RotateCcw, Headphones, Heart } from 'lucide-react';
 import { BkashLogo, NagadLogo, RocketLogo, VisaLogo, MastercardLogo } from '../common/PaymentLogos';
 import { useSettings } from '../../contexts/SettingsContext';
+import { useAuth } from '../../contexts/AuthContext';
 
 export const Footer: React.FC = () => {
   const { settings } = useSettings();
+  const { user, openAuthModal } = useAuth();
   const phone = settings?.helplinePhone?.trim();
+
+  const handleAffiliateClick = (e: React.MouseEvent) => {
+    if (!user) {
+      e.preventDefault();
+      openAuthModal('login');
+    }
+  };
   return (
     <footer className="hidden md:block bg-white text-gray-600 pt-16 pb-12 border-t border-rose-100/80 shadow-[0_-2px_15px_rgba(225,29,72,0.02)]">
       {/* Trust Badges */}
@@ -94,7 +103,11 @@ export const Footer: React.FC = () => {
               <li><Link to="/shop?category=audio-headphones" className="text-gray-500 hover:text-rose-600 transition">Audio & Sound</Link></li>
               <li><Link to="/orders" className="text-gray-500 hover:text-rose-600 transition">Track Order</Link></li>
               <li>
-                <Link to="/affiliate" className="text-rose-600 hover:text-rose-700 font-semibold transition flex items-center gap-1.5">
+                <Link 
+                  to="/affiliate" 
+                  onClick={handleAffiliateClick}
+                  className="text-rose-600 hover:text-rose-700 font-semibold transition flex items-center gap-1.5"
+                >
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
                   Affiliate Program (ইনকাম পার্টনার)
                 </Link>
@@ -147,7 +160,11 @@ export const Footer: React.FC = () => {
         <div className="flex flex-wrap items-center gap-3">
           <p>© {new Date().getFullYear()} Kintesi. All rights reserved.</p>
           <span className="text-gray-300">|</span>
-          <Link to="/affiliate" className="font-semibold text-rose-600 hover:text-rose-700 transition flex items-center gap-1.5 hover:underline">
+          <Link 
+            to="/affiliate" 
+            onClick={handleAffiliateClick}
+            className="font-semibold text-rose-600 hover:text-rose-700 transition flex items-center gap-1.5 hover:underline"
+          >
             <span className="w-2 h-2 rounded-full bg-rose-500"></span>
             <span>অ্যাফিলিয়েট প্রোগ্রাম (Affiliate Partner)</span>
           </Link>
