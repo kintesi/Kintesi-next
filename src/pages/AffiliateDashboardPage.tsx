@@ -302,10 +302,17 @@ export const AffiliateDashboardPage: React.FC = () => {
                     <span className="px-2 py-0.5 bg-rose-100 text-rose-700 text-[10px] font-mono font-black rounded-md">
                       {currentAffiliate.affiliate_code}
                     </span>
-                    <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full flex items-center gap-1">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                      Active Partner
-                    </span>
+                    {currentAffiliate.status === 'suspended' ? (
+                      <span className="text-[10px] font-bold text-rose-700 bg-rose-50 border border-rose-200 px-2 py-0.5 rounded-full flex items-center gap-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
+                        Account Suspended
+                      </span>
+                    ) : (
+                      <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full flex items-center gap-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                        Active Partner
+                      </span>
+                    )}
                   </div>
                   <div className="text-[11px] text-gray-500 flex items-center gap-2 mt-1">
                     <span>{currentAffiliate.phone}</span>
@@ -477,6 +484,18 @@ export const AffiliateDashboardPage: React.FC = () => {
         ) : (
           /* CASE 2: REGISTERED AFFILIATE DASHBOARD */
           <div className="space-y-5">
+
+            {currentAffiliate.status === 'suspended' && (
+              <div className="p-4 sm:p-5 rounded-2xl bg-rose-50 border border-rose-200 text-rose-900 flex items-start gap-3 shadow-xs">
+                <AlertCircle className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
+                <div className="space-y-1">
+                  <h4 className="font-bold text-xs sm:text-sm text-rose-950">Partner Account Suspended</h4>
+                  <p className="text-xs text-rose-700 leading-relaxed font-medium">
+                    Your affiliate partner account has been temporarily suspended by administration. Product referral link tracking and sales commissions are currently paused. Please contact customer support for further details.
+                  </p>
+                </div>
+              </div>
+            )}
 
             {/* 4 Core Metric Cards */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">

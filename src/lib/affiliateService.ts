@@ -24,10 +24,35 @@ export async function getAffiliatesFromDB(): Promise<AffiliateUser[]> {
       .select('*')
       .order('created_at', { ascending: false });
 
-    if (!error && data && data.length > 0) {
+    if (!error && Array.isArray(data)) {
       const clean = data.filter((a: any) => !a.id?.startsWith('aff_demo_'));
+
+      // Check if there are local affiliates in localStorage that haven't been synced to Supabase yet
+      try {
+        const cached = localStorage.getItem(AFFILIATES_CACHE_KEY);
+        if (cached) {
+          const localList: AffiliateUser[] = JSON.parse(cached);
+          const unsynced = localList.filter(
+            (loc) =>
+              loc.id &&
+              !loc.id.startsWith('aff_demo_') &&
+              !clean.some((db) => db.id === loc.id || db.affiliate_code === loc.affiliate_code)
+          );
+          if (unsynced.length > 0) {
+            for (const item of unsynced) {
+              await supabase.from('affiliate_users').upsert([item]);
+              clean.unshift(item);
+            }
+          }
+        }
+      } catch (syncErr) {
+        console.warn('Affiliate local sync notice:', syncErr);
+      }
+
       localStorage.setItem(AFFILIATES_CACHE_KEY, JSON.stringify(clean));
       return clean as AffiliateUser[];
+    } else if (error) {
+      console.warn('Supabase fetch affiliates error:', error.message);
     }
   } catch (err) {
     console.warn('Supabase fetch affiliates notice, using local cache:', err);
@@ -83,7 +108,7 @@ export async function registerAffiliate(payload: {
 
   const newAffiliate: AffiliateUser = {
     id: `aff_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
-    user_id: payload.user_id || null,
+    user_id: payload.user_id ? String(payload.user_id) : null,
     affiliate_code: generateAffiliateCode(),
     name: payload.name.trim(),
     phone: payload.phone.trim(),
@@ -103,7 +128,10 @@ export async function registerAffiliate(payload: {
 
   // 1. Try Supabase
   try {
-    await supabase.from('affiliate_users').insert([newAffiliate]);
+    const { error } = await supabase.from('affiliate_users').upsert([newAffiliate]);
+    if (error) {
+      console.error('Supabase upsert affiliate notice:', error.message);
+    }
   } catch (err) {
     console.warn('Supabase insert affiliate notice:', err);
   }
@@ -138,13 +166,52 @@ export async function updateAffiliateInDB(
   } catch {}
 
   try {
-    await supabase.from('affiliate_users').update(updates).eq('id', id);
+    const { error } = await supabase.from('affiliate_users').update(updates).eq('id', id);
+    if (error) {
+      console.error('Supabase update affiliate error:', error.message);
+    }
   } catch (err) {
     console.warn('Supabase update affiliate notice:', err);
   }
 
   window.dispatchEvent(new Event('kintesi_affiliates_updated'));
   return true;
+}
+
+// 5. Delete / Remove Affiliate
+export async function deleteAffiliateInDB(id: string): Promise<boolean> {
+  const all = await getAffiliatesFromDB();
+  const updatedList = all.filter((a) => a.id !== id);
+  localStorage.setItem(AFFILIATES_CACHE_KEY, JSON.stringify(updatedList));
+
+  // Clear if it was active user in current browser
+  try {
+    const current = localStorage.getItem('kintesi_my_affiliate_profile');
+    if (current) {
+      const parsed = JSON.parse(current);
+      if (parsed.id === id) {
+        localStorage.removeItem('kintesi_my_affiliate_profile');
+      }
+    }
+  } catch {}
+
+  try {
+    const { error } = await supabase.from('affiliate_users').delete().eq('id', id);
+    if (error) {
+      console.error('Supabase delete affiliate error:', error.message);
+    }
+  } catch (err) {
+    console.warn('Supabase delete affiliate notice:', err);
+  }
+
+  window.dispatchEvent(new Event('kintesi_affiliates_updated'));
+  return true;
+}
+
+// 6. Toggle Ban / Suspend Status
+export async function toggleBanAffiliateInDB(id: string, currentStatus: string): Promise<boolean> {
+  const newStatus = currentStatus === 'suspended' ? 'approved' : 'suspended';
+  return updateAffiliateInDB(id, { status: newStatus as any });
 }
 
 // 5. Track Referral Click
@@ -181,6 +248,10 @@ export async function recordAffiliateSale(
   const clean = affiliateCode.trim().toUpperCase();
   const partner = await getAffiliateByCode(clean);
   if (!partner) return false;
+  if (partner.status === 'suspended') {
+    console.warn(`Partner ${clean} is suspended (banned). Commission not credited.`);
+    return false;
+  }
 
   const nextOrders = (partner.total_orders || 0) + 1;
   const nextSales = (partner.total_sales_amount || 0) + orderTotal;

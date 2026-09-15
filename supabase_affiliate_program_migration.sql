@@ -1,4 +1,4 @@
-﻿-- ==============================================================================
+-- ==============================================================================
 -- 🚀 KINTESI E-COMMERCE - AFFILIATE PROGRAM DATABASE MIGRATION
 -- ==============================================================================
 -- Run this script in your Supabase SQL Editor:
@@ -31,7 +31,7 @@ ADD COLUMN IF NOT EXISTS affiliate_commission NUMERIC DEFAULT 0;
 -- 3. CREATE AFFILIATE USERS TABLE
 CREATE TABLE IF NOT EXISTS public.affiliate_users (
   id TEXT PRIMARY KEY,
-  user_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,
+  user_id TEXT,
   affiliate_code TEXT UNIQUE NOT NULL,
   name TEXT NOT NULL,
   phone TEXT NOT NULL,

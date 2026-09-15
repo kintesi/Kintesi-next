@@ -6,6 +6,8 @@ import {
   getWithdrawalsFromDB,
   processWithdrawalInDB,
   updateAffiliateInDB,
+  deleteAffiliateInDB,
+  toggleBanAffiliateInDB,
 } from '../../lib/affiliateService';
 import { getOrdersFromDB } from '../../lib/dbService';
 import { formatPrice } from '../../lib/utils';
@@ -30,6 +32,10 @@ import {
   AlertCircle,
   Send,
   CreditCard,
+  Trash2,
+  Ban,
+  ShieldCheck,
+  RefreshCw,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -39,6 +45,7 @@ export const AdminAffiliates: React.FC = () => {
   const [withdrawals, setWithdrawals] = useState<AffiliateWithdrawal[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [activeTab, setActiveTab] = useState<'partners' | 'withdrawals' | 'orders'>('partners');
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Search & Filters
   const [partnerSearch, setPartnerSearch] = useState('');
@@ -143,6 +150,44 @@ export const AdminAffiliates: React.FC = () => {
     }
   };
 
+  // Manual Refresh Handler
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    await loadData();
+    setTimeout(() => setIsRefreshing(false), 500);
+    toast.success('Affiliate data synced and updated.');
+  };
+
+  // Toggle Ban / Unban Partner
+  const handleToggleBan = async (partner: AffiliateUser) => {
+    const isBanning = partner.status !== 'suspended';
+    const actionText = isBanning ? 'ban (suspend)' : 'unban (activate)';
+    if (!window.confirm(`Are you sure you want to ${actionText} affiliate partner "${partner.name}" (${partner.affiliate_code})?`)) {
+      return;
+    }
+    try {
+      await toggleBanAffiliateInDB(partner.id, partner.status);
+      toast.success(`Partner "${partner.name}" is now ${isBanning ? 'banned/suspended' : 'active'}!`);
+      loadData();
+    } catch (err) {
+      toast.error('Failed to update partner status');
+    }
+  };
+
+  // Delete Partner
+  const handleDeletePartner = async (partner: AffiliateUser) => {
+    if (!window.confirm(`Are you sure you want to completely remove partner "${partner.name}" (${partner.affiliate_code})? This action cannot be undone.`)) {
+      return;
+    }
+    try {
+      await deleteAffiliateInDB(partner.id);
+      toast.success(`Partner "${partner.name}" removed successfully.`);
+      loadData();
+    } catch (err) {
+      toast.error('Failed to delete partner');
+    }
+  };
+
   return (
     <div className={`p-4 sm:p-8 space-y-6 ${isLight ? 'bg-slate-50 text-slate-900' : 'bg-gray-950 text-gray-100'}`}>
       
@@ -161,6 +206,22 @@ export const AdminAffiliates: React.FC = () => {
           <p className="text-xs text-gray-500 mt-1">
             Track partner earnings, referral sales, product commissions, and review payout requests.
           </p>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+            className={`px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer disabled:opacity-50 ${
+              isLight
+                ? 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 shadow-2xs'
+                : 'bg-gray-900 hover:bg-gray-800 text-gray-200 border border-gray-800 shadow-2xs'
+            }`}
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin text-rose-500' : ''}`} />
+            <span>{isRefreshing ? 'Syncing...' : 'Sync & Refresh'}</span>
+          </button>
         </div>
       </div>
 
@@ -289,13 +350,14 @@ export const AdminAffiliates: React.FC = () => {
                   <th className="p-4 font-bold">Commission (৳)</th>
                   <th className="p-4 font-bold">Balance (৳)</th>
                   <th className="p-4 font-bold">Withdrawn</th>
-                  <th className="p-4 font-bold text-right">Status</th>
+                  <th className="p-4 font-bold text-center">Status</th>
+                  <th className="p-4 font-bold text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className={`divide-y ${isLight ? 'divide-slate-100' : 'divide-gray-800'}`}>
                 {filteredAffiliates.length === 0 ? (
                   <tr>
-                    <td colSpan={9} className="p-8 text-center text-gray-500">
+                    <td colSpan={10} className="p-8 text-center text-gray-500">
                       No affiliate partners found.
                     </td>
                   </tr>
@@ -345,10 +407,54 @@ export const AdminAffiliates: React.FC = () => {
                       <td className="p-4 font-bold text-gray-500">
                         {formatPrice(partner.total_withdrawn || 0)}
                       </td>
+                      <td className="p-4 text-center">
+                        {partner.status === 'suspended' ? (
+                          <span className="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase bg-rose-500/15 text-rose-500 border border-rose-500/30 inline-flex items-center gap-1">
+                            <Ban className="w-3 h-3" /> Banned
+                          </span>
+                        ) : partner.status === 'approved' ? (
+                          <span className="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase bg-emerald-500/15 text-emerald-500 border border-emerald-500/30 inline-flex items-center gap-1">
+                            <CheckCircle2 className="w-3 h-3" /> Active
+                          </span>
+                        ) : (
+                          <span className="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase bg-amber-500/15 text-amber-500 border border-amber-500/30 inline-flex items-center gap-1">
+                            <Clock className="w-3 h-3" /> {partner.status}
+                          </span>
+                        )}
+                      </td>
                       <td className="p-4 text-right">
-                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
-                          {partner.status}
-                        </span>
+                        <div className="flex items-center justify-end gap-1.5">
+                          {partner.status === 'suspended' ? (
+                            <button
+                              type="button"
+                              onClick={() => handleToggleBan(partner)}
+                              className="px-2.5 py-1 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-500 border border-emerald-500/30 rounded-lg text-[11px] font-bold transition flex items-center gap-1 cursor-pointer"
+                              title="Unban partner"
+                            >
+                              <ShieldCheck className="w-3 h-3" />
+                              <span>Unban</span>
+                            </button>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => handleToggleBan(partner)}
+                              className="px-2.5 py-1 bg-amber-500/10 hover:bg-amber-500/20 text-amber-500 border border-amber-500/30 rounded-lg text-[11px] font-bold transition flex items-center gap-1 cursor-pointer"
+                              title="Ban / Suspend partner"
+                            >
+                              <Ban className="w-3 h-3" />
+                              <span>Ban</span>
+                            </button>
+                          )}
+
+                          <button
+                            type="button"
+                            onClick={() => handleDeletePartner(partner)}
+                            className="p-1.5 bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 border border-rose-500/30 rounded-lg transition cursor-pointer"
+                            title="Remove / Delete partner"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))
