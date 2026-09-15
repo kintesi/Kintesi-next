@@ -19,6 +19,7 @@ import { LiveChatWidget } from './components/chat/LiveChatWidget';
 import { HomePage } from './pages/HomePage';
 import { ShopPage } from './pages/ShopPage';
 import { ProductDetailPage } from './pages/ProductDetailPage';
+import { ShowcasePage } from './pages/ShowcasePage';
 import { WishlistPage } from './pages/WishlistPage';
 import { CartPage } from './pages/CartPage';
 import { CheckoutPage } from './pages/CheckoutPage';
@@ -82,6 +83,11 @@ export function App() {
                         <Route element={<StorefrontLayout />}>
                           <Route path="/" element={<HomePage />} />
                           <Route path="/shop" element={<ShopPage />} />
+                          <Route path="/showcase/:type" element={<ShowcasePage />} />
+                          <Route path="/flash-sale" element={<ShowcasePage showcaseType="flash_sale" />} />
+                          <Route path="/trending" element={<ShowcasePage showcaseType="trending" />} />
+                          <Route path="/featured" element={<ShowcasePage showcaseType="featured" />} />
+                          <Route path="/new-arrivals" element={<ShowcasePage showcaseType="new_arrival" />} />
                           <Route path="/product/:slug" element={<ProductDetailPage />} />
                           <Route path="/profile" element={<ProfilePage />} />
                           <Route path="/cart" element={<CartPage />} />

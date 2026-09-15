@@ -105,7 +105,7 @@ export const ShowcaseStrip: React.FC<ShowcaseStripProps> = ({ showcase, products
     }
   };
 
-  const linkTarget = `/shop?filter=${showcase.type}`;
+  const linkTarget = `/showcase/${showcase.id || showcase.type}`;
 
   return (
     <div className="space-y-2.5">
