@@ -794,7 +794,22 @@ export const AdminProducts: React.FC = () => {
       }
 
       const rawSlug = formData.slug?.trim() || cleanTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-');
-      const slug = rawSlug.replace(/^-+|-+$/g, '') || ('product-' + Date.now());
+      let slug = rawSlug.replace(/^-+|-+$/g, '') || ('product-' + Date.now());
+
+      // If creating a NEW product (not editing an existing one), ensure slug is unique so it never overwrites another product
+      if (!editingProduct) {
+        const baseSlug = slug;
+        let counter = 2;
+        const allExistingSlugs = new Set([
+          ...products.map((p) => p.slug),
+          ...(JSON.parse(localStorage.getItem('kintesi_custom_products') || '[]') as Product[]).map((p) => p.slug),
+        ]);
+
+        while (allExistingSlugs.has(slug)) {
+          slug = `${baseSlug}-${counter}`;
+          counter++;
+        }
+      }
 
       // Collect image URLs and compiled colors
       const allImages: string[] = [];
@@ -967,7 +982,7 @@ export const AdminProducts: React.FC = () => {
         review_count: editingProduct?.review_count || 0,
       };
 
-      const targetId = editingProduct?.id || ('local-' + Date.now());
+      const targetId = editingProduct?.id || (typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : ('00000000-0000-4000-8000-' + Date.now().toString(16).padStart(12, '0')));
       const completeProduct: Product = {
         id: targetId,
         ...productPayload,
@@ -976,9 +991,9 @@ export const AdminProducts: React.FC = () => {
       // 1. INSTANT LOCAL REACTIVITY (0ms - Closes modal immediately so user is never stuck!)
       try {
         const savedCustom: Product[] = JSON.parse(localStorage.getItem('kintesi_custom_products') || '[]');
-        const existingIdx = savedCustom.findIndex(
-          (p) => (editingProduct && p.id === editingProduct.id) || p.slug === slug
-        );
+        const existingIdx = editingProduct
+          ? savedCustom.findIndex((p) => p.id === editingProduct.id)
+          : -1;
 
         let updatedCustom: Product[];
         if (existingIdx >= 0) {
@@ -995,11 +1010,13 @@ export const AdminProducts: React.FC = () => {
       }
 
       setProducts((prev) => {
-        const idx = prev.findIndex((p) => (editingProduct && p.id === editingProduct.id) || p.slug === slug);
-        if (idx >= 0) {
-          const next = [...prev];
-          next[idx] = completeProduct;
-          return next;
+        if (editingProduct) {
+          const idx = prev.findIndex((p) => p.id === editingProduct.id);
+          if (idx >= 0) {
+            const next = [...prev];
+            next[idx] = completeProduct;
+            return next;
+          }
         }
         return [completeProduct, ...prev];
       });

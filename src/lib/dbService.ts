@@ -85,18 +85,25 @@ export async function getProductsFromDB(): Promise<Product[]> {
 }
 
 export async function saveProductToDB(product: Product): Promise<void> {
-  // 1. Instant local reactivity (0ms)
+  const isUUID = (str?: string) =>
+    str ? /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str) : false;
+
+  // Ensure product has a valid RFC4122 UUID
+  if (!isUUID(product.id)) {
+    product.id = (typeof crypto !== 'undefined' && crypto.randomUUID)
+      ? crypto.randomUUID()
+      : '00000000-0000-4000-8000-' + Date.now().toString(16).padStart(12, '0');
+  }
+
+  // 1. Instant local reactivity (0ms) - Only replace if exact same ID matches!
   try {
     const localSaved: Product[] = JSON.parse(localStorage.getItem('kintesi_custom_products') || '[]');
-    const updated = [product, ...localSaved.filter((p) => p.id !== product.id && p.slug !== product.slug)];
+    const updated = [product, ...localSaved.filter((p) => p.id !== product.id)];
     localStorage.setItem('kintesi_custom_products', JSON.stringify(updated));
     window.dispatchEvent(new Event('kintesi_products_updated'));
   } catch (storageErr) {
     console.warn('Local storage cache update warning in saveProductToDB:', storageErr);
   }
-
-  const isUUID = (str?: string) =>
-    str ? /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str) : false;
 
   // 2. Primary: Save to Supabase (PostgreSQL)
   try {
@@ -104,15 +111,24 @@ export async function saveProductToDB(product: Product): Promise<void> {
     Object.entries(product).forEach(([key, val]) => {
       if (val !== undefined) cleanPayload[key] = val;
     });
+    cleanPayload.id = product.id;
 
-    // If ID is not a valid UUID, strip it so Supabase generates a UUID on upsert
-    if (!isUUID(cleanPayload.id)) {
-      delete cleanPayload.id;
+    // Check if another product already uses this exact slug
+    const { data: existingSlugRow } = await supabase
+      .from('products')
+      .select('id')
+      .eq('slug', cleanPayload.slug)
+      .neq('id', cleanPayload.id)
+      .maybeSingle();
+
+    if (existingSlugRow) {
+      cleanPayload.slug = `${cleanPayload.slug}-${Date.now().toString(36).slice(-4)}`;
+      product.slug = cleanPayload.slug;
     }
 
     const { data: supaData, error } = await supabase
       .from('products')
-      .upsert(cleanPayload, { onConflict: 'slug' })
+      .upsert(cleanPayload, { onConflict: 'id' })
       .select()
       .single();
 
@@ -120,6 +136,7 @@ export async function saveProductToDB(product: Product): Promise<void> {
       console.warn('Supabase product upsert warning:', error.message);
       // Fallback with standard core columns if new columns not yet migrated
       const coreFields: any = {
+        id: cleanPayload.id,
         title: product.title,
         slug: product.slug,
         description: product.description,
@@ -132,7 +149,7 @@ export async function saveProductToDB(product: Product): Promise<void> {
         sku: product.sku,
         is_featured: product.is_featured,
       };
-      await supabase.from('products').upsert(coreFields, { onConflict: 'slug' });
+      await supabase.from('products').upsert(coreFields, { onConflict: 'id' });
     } else if (supaData?.id && supaData.id !== product.id) {
       product.id = supaData.id;
     }
