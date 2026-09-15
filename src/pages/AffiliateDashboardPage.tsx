@@ -129,15 +129,15 @@ export const AffiliateDashboardPage: React.FC = () => {
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!regName.trim()) {
-      toast.error('আপনার পূর্ণ নাম লিখুন');
+      toast.error('Please enter your full name');
       return;
     }
     if (!regPhone.trim()) {
-      toast.error('সঠিক মোবাইল নম্বর লিখুন');
+      toast.error('Please enter a valid phone number');
       return;
     }
     if (!regAddress.trim()) {
-      toast.error('আপনার ঠিকানা লিখুন');
+      toast.error('Please enter your contact / delivery address');
       return;
     }
 
@@ -154,9 +154,9 @@ export const AffiliateDashboardPage: React.FC = () => {
       });
       setCurrentAffiliate(newPartner);
       setWithdrawAccount(newPartner.account_number || newPartner.phone);
-      toast.success('অভিনন্দন! আপনার অ্যাফিলিয়েট অ্যাকাউন্ট সফলভাবে তৈরি হয়েছে।');
+      toast.success('Congratulations! Your affiliate account has been registered successfully.');
     } catch (err: any) {
-      toast.error('অ্যাকাউন্ট তৈরি করতে সমস্যা হয়েছে, অনুগ্রহ করে আবার চেষ্টা করুন।');
+      toast.error('Failed to create affiliate account. Please try again.');
     } finally {
       setIsSubmittingReg(false);
     }
@@ -190,19 +190,19 @@ export const AffiliateDashboardPage: React.FC = () => {
 
     const amount = Number(withdrawAmount);
     if (isNaN(amount) || amount <= 0) {
-      toast.error('সঠিক উইথড্রয়াল অ্যামাউন্ট লিখুন');
+      toast.error('Please enter a valid withdrawal amount');
       return;
     }
     if (amount < 50) {
-      toast.error('সর্বনিম্ন উইথড্রয়াল পরিমাণ ৳ ৫০');
+      toast.error('Minimum withdrawal amount is ৳ 50');
       return;
     }
     if (amount > (currentAffiliate.available_balance || 0)) {
-      toast.error('আপনার বর্তমান ব্যালেন্সের চেয়ে বেশি উইথড্র করা সম্ভব নয়');
+      toast.error('Withdrawal amount cannot exceed your available balance');
       return;
     }
     if (!withdrawAccount.trim()) {
-      toast.error('পেমেন্ট গ্রহণ করার অ্যাকাউন্ট নম্বর লিখুন');
+      toast.error('Please enter your payout account number');
       return;
     }
 
@@ -220,10 +220,10 @@ export const AffiliateDashboardPage: React.FC = () => {
       });
       setWithdrawAmount('');
       setWithdrawNotes('');
-      toast.success('আপনার উইথড্রয়াল রিকোয়েস্ট জমা দেওয়া হয়েছে। এডমিন ভেরিফাই করে টাকা পাঠিয়ে দেবেন।');
+      toast.success('Your payout request has been submitted. Admin will process and disburse funds.');
       loadData();
     } catch (err) {
-      toast.error('উইথড্রয়াল রিকোয়েস্ট ব্যর্থ হয়েছে, পুনরায় চেষ্টা করুন।');
+      toast.error('Failed to submit payout request, please try again.');
     } finally {
       setIsSubmittingWithdraw(false);
     }
@@ -254,9 +254,9 @@ export const AffiliateDashboardPage: React.FC = () => {
             <Share2 className="w-8 h-8" />
           </div>
           <div className="space-y-2">
-            <h2 className="text-xl font-bold text-gray-900 tracking-tight">সাইন ইন প্রয়োজন</h2>
+            <h2 className="text-xl font-bold text-gray-900 tracking-tight">Sign In Required</h2>
             <p className="text-xs text-gray-500 max-w-sm mx-auto leading-relaxed">
-              কিনতেসি অ্যাফিলিয়েট প্রোগ্রামে যুক্ত হতে বা আপনার ড্যাশবোর্ডে প্রবেশ করতে অনুগ্রহ করে প্রথমে আপনার অ্যাকাউন্টে সাইন ইন করুন।
+              Please sign in to your Kintesi account to join the Affiliate Program and access your partner dashboard.
             </p>
           </div>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
@@ -264,13 +264,13 @@ export const AffiliateDashboardPage: React.FC = () => {
               onClick={() => openAuthModal('login')}
               className="w-full sm:w-auto px-6 py-3 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl text-xs transition shadow-sm active:scale-95 cursor-pointer"
             >
-              লগইন / সাইন আপ করুন
+              Sign In / Register
             </button>
             <Link
               to="/shop"
               className="w-full sm:w-auto px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-xl text-xs transition"
             >
-              কেনাকাটায় ফিরে যান
+              Continue Shopping
             </Link>
           </div>
         </div>
@@ -292,7 +292,7 @@ export const AffiliateDashboardPage: React.FC = () => {
               </div>
               <h1 className="text-xl sm:text-2xl font-black text-gray-950 flex items-center gap-2">
                 <Share2 className="w-6 h-6 text-rose-600" />
-                <span>কিনতেসি অ্যাফিলিয়েট প্রোগ্রাম (Kintesi Affiliate)</span>
+                <span>Kintesi Affiliate Program</span>
               </h1>
             </div>
 
@@ -313,151 +313,156 @@ export const AffiliateDashboardPage: React.FC = () => {
 
       <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8 space-y-6">
         
-        {/* CASE 1: UNREGISTERED USER -> REGISTRATION FORM */}
+        {/* CASE 1: UNREGISTERED USER -> BALANCED 2-COLUMN REGISTRATION VIEW */}
         {!currentAffiliate ? (
-          <div className="max-w-3xl mx-auto space-y-6">
-            
-            {/* Promo Card */}
-            <div 
-              className="rounded-3xl p-6 sm:p-8 text-white shadow-xl relative overflow-hidden bg-rose-600"
-              style={{
-                background: 'linear-gradient(135deg, #9f1239 0%, #e11d48 50%, #be123c 100%)',
-              }}
-            >
-              {/* Decorative background glow */}
-              <div className="absolute -top-16 -right-16 w-56 h-56 bg-white/10 rounded-full blur-2xl pointer-events-none" />
-              <div className="absolute -bottom-16 -left-16 w-56 h-56 bg-black/15 rounded-full blur-2xl pointer-events-none" />
+          <div className="max-w-6xl mx-auto">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
+              
+              {/* Left Column: Promo & Key Benefits Card */}
+              <div className="lg:col-span-5 flex flex-col justify-between">
+                <div 
+                  className="h-full flex flex-col justify-between rounded-3xl p-6 sm:p-8 text-white shadow-xl relative overflow-hidden bg-rose-600"
+                  style={{
+                    background: 'linear-gradient(135deg, #9f1239 0%, #e11d48 50%, #be123c 100%)',
+                  }}
+                >
+                  {/* Decorative background glow */}
+                  <div className="absolute -top-16 -right-16 w-56 h-56 bg-white/10 rounded-full blur-2xl pointer-events-none" />
+                  <div className="absolute -bottom-16 -left-16 w-56 h-56 bg-black/15 rounded-full blur-2xl pointer-events-none" />
 
-              <div className="relative z-10 space-y-3">
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-xs font-bold uppercase tracking-wider text-amber-200 border border-white/25">
-                  <Sparkles className="w-3.5 h-3.5 text-amber-300" />
-                  Earn Up to 15% Commission
-                </span>
-                <h2 className="text-2xl sm:text-3xl font-black tracking-tight leading-snug text-white drop-shadow-xs">
-                  কিনতেসি প্রোডাক্ট শেয়ার করে প্রতিদিন টাকা ইনকাম করুন!
-                </h2>
-                <p className="text-xs sm:text-sm text-rose-100/90 leading-relaxed max-w-xl font-medium">
-                  আমাদের প্রোডাক্টের অ্যাফিলিয়েট লিংক ফেসবুক, হোয়াটসঅ্যাপ বা ইউটিউবে শেয়ার করুন। আপনার লিংকের মাধ্যমে কেউ অর্ডার করলেই সাথে সাথে পেয়ে যাবেন আকর্ষণীয় ক্যাশ কমিশন!
-                </p>
-                <div className="grid grid-cols-3 gap-3 pt-2">
-                  <div className="bg-white/15 backdrop-blur-md p-3.5 rounded-2xl border border-white/25 text-center text-white shadow-xs">
-                    <p className="text-lg sm:text-xl font-black text-white">০ টাকা</p>
-                    <p className="text-[11px] text-rose-100 font-medium">জয়েনিং ফি সম্পূর্ণ ফ্রি</p>
+                  <div className="relative z-10 space-y-4">
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-xs font-bold uppercase tracking-wider text-amber-200 border border-white/25">
+                      <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+                      Earn Up to 15% Commission
+                    </span>
+                    <h2 className="text-2xl sm:text-3xl font-black tracking-tight leading-snug text-white drop-shadow-xs">
+                      Share Products & Earn Daily Cash Commission!
+                    </h2>
+                    <p className="text-xs sm:text-sm text-rose-100/90 leading-relaxed font-medium">
+                      Share product affiliate links on Facebook, WhatsApp, YouTube, or your blog. Whenever someone places an order using your referral link, receive instant cash commission directly into your account!
+                    </p>
                   </div>
-                  <div className="bg-white/15 backdrop-blur-md p-3.5 rounded-2xl border border-white/25 text-center text-white shadow-xs">
-                    <p className="text-lg sm:text-xl font-black text-white">লাইভ ট্র্যাকিং</p>
-                    <p className="text-[11px] text-rose-100 font-medium">রিয়েল-টাইম সেল হিসাব</p>
-                  </div>
-                  <div className="bg-white/15 backdrop-blur-md p-3.5 rounded-2xl border border-white/25 text-center text-white shadow-xs">
-                    <p className="text-lg sm:text-xl font-black text-white">সহজ পেমেন্ট</p>
-                    <p className="text-[11px] text-rose-100 font-medium">বিকাশ / নগদ পেআউট</p>
+
+                  <div className="relative z-10 grid grid-cols-3 gap-3 pt-6 mt-6 border-t border-white/15">
+                    <div className="bg-white/15 backdrop-blur-md p-3.5 rounded-2xl border border-white/25 text-center text-white shadow-xs">
+                      <p className="text-base sm:text-lg font-black text-white">0 BDT</p>
+                      <p className="text-[11px] text-rose-100 font-medium mt-0.5">Free Registration</p>
+                    </div>
+                    <div className="bg-white/15 backdrop-blur-md p-3.5 rounded-2xl border border-white/25 text-center text-white shadow-xs">
+                      <p className="text-base sm:text-lg font-black text-white">Live Tracking</p>
+                      <p className="text-[11px] text-rose-100 font-medium mt-0.5">Real-time Sales</p>
+                    </div>
+                    <div className="bg-white/15 backdrop-blur-md p-3.5 rounded-2xl border border-white/25 text-center text-white shadow-xs">
+                      <p className="text-base sm:text-lg font-black text-white">Fast Payouts</p>
+                      <p className="text-[11px] text-rose-100 font-medium mt-0.5">bKash / Nagad</p>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
 
-            {/* Registration Card */}
-            <div className="bg-white rounded-3xl border border-rose-100 p-6 sm:p-8 shadow-sm space-y-6">
-              <div>
-                <h3 className="text-lg font-bold text-gray-900">
-                  অ্যাফিলিয়েট হিসেবে জয়েন করার ফরম
-                </h3>
-                <p className="text-xs text-gray-500 mt-1">
-                  নিচের তথ্যগুলো পূরণ করে সাবমিট করলেই তাৎক্ষণিক আপনার ইউনিক অ্যাফিলিয়েট কোড তৈরি হয়ে যাবে।
-                </p>
-              </div>
-
-              <form onSubmit={handleRegister} className="space-y-4">
+              {/* Right Column: Registration Card */}
+              <div className="lg:col-span-7 bg-white rounded-3xl border border-rose-100 p-6 sm:p-8 shadow-sm flex flex-col justify-between space-y-6">
                 <div>
-                  <label className="block text-xs font-bold text-gray-700 mb-1.5">
-                    আপনার পূর্ণ নাম (Full Name) <span className="text-rose-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. মোহাম্মদ তানভীর"
-                    value={regName}
-                    onChange={(e) => setRegName(e.target.value)}
-                    className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-medium focus:bg-white focus:outline-none focus:border-rose-500 transition"
-                  />
+                  <h3 className="text-lg font-bold text-gray-900">
+                    Affiliate Partner Application
+                  </h3>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Fill in your details below to instantly activate your partner account and generate your referral code.
+                  </p>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <form onSubmit={handleRegister} className="space-y-4">
                   <div>
                     <label className="block text-xs font-bold text-gray-700 mb-1.5">
-                      মোবাইল নম্বর (Phone Number) <span className="text-rose-500">*</span>
+                      Full Name <span className="text-rose-500">*</span>
                     </label>
                     <input
-                      type="tel"
+                      type="text"
                       required
-                      placeholder="e.g. 017XXXXXXXX"
-                      value={regPhone}
-                      onChange={(e) => setRegPhone(e.target.value)}
+                      placeholder="e.g. Mohammad Tanvir"
+                      value={regName}
+                      onChange={(e) => setRegName(e.target.value)}
+                      className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-medium focus:bg-white focus:outline-none focus:border-rose-500 transition"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-bold text-gray-700 mb-1.5">
+                        Phone Number <span className="text-rose-500">*</span>
+                      </label>
+                      <input
+                        type="tel"
+                        required
+                        placeholder="e.g. 017XXXXXXXX"
+                        value={regPhone}
+                        onChange={(e) => setRegPhone(e.target.value)}
+                        className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-medium focus:bg-white focus:outline-none focus:border-rose-500 transition"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-gray-700 mb-1.5">
+                        Preferred Payout Method
+                      </label>
+                      <select
+                        value={regMethod}
+                        onChange={(e) => setRegMethod(e.target.value as any)}
+                        className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-bold focus:bg-white focus:outline-none focus:border-rose-500 transition cursor-pointer"
+                      >
+                        <option value="bkash">bKash Personal</option>
+                        <option value="nagad">Nagad Personal</option>
+                        <option value="rocket">Rocket Personal</option>
+                        <option value="bank">Bank Transfer</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-gray-700 mb-1.5">
+                      Full Address <span className="text-rose-500">*</span>
+                    </label>
+                    <textarea
+                      rows={2}
+                      required
+                      placeholder="Road number, Area, City, District..."
+                      value={regAddress}
+                      onChange={(e) => setRegAddress(e.target.value)}
                       className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-medium focus:bg-white focus:outline-none focus:border-rose-500 transition"
                     />
                   </div>
 
                   <div>
                     <label className="block text-xs font-bold text-gray-700 mb-1.5">
-                      পেমেন্ট মেথড (টাকা গ্রহণের মাধ্যম)
+                      Payout Account Number (bKash / Nagad No)
                     </label>
-                    <select
-                      value={regMethod}
-                      onChange={(e) => setRegMethod(e.target.value as any)}
-                      className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-bold focus:bg-white focus:outline-none focus:border-rose-500 transition cursor-pointer"
-                    >
-                      <option value="bkash">বিকাশ (bKash)</option>
-                      <option value="nagad">নগদ (Nagad)</option>
-                      <option value="rocket">রকেট (Rocket)</option>
-                      <option value="bank">ব্যাংক একাউন্ট (Bank)</option>
-                    </select>
+                    <input
+                      type="text"
+                      placeholder="Number to receive withdrawal funds"
+                      value={regAccount}
+                      onChange={(e) => setRegAccount(e.target.value)}
+                      className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-medium focus:bg-white focus:outline-none focus:border-rose-500 transition"
+                    />
                   </div>
-                </div>
 
-                <div>
-                  <label className="block text-xs font-bold text-gray-700 mb-1.5">
-                    আপনার পূর্ণাঙ্গ ঠিকানা (Address) <span className="text-rose-500">*</span>
-                  </label>
-                  <textarea
-                    rows={2}
-                    required
-                    placeholder="রোড নম্বর, এলাকা, থানা, জেলা..."
-                    value={regAddress}
-                    onChange={(e) => setRegAddress(e.target.value)}
-                    className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-medium focus:bg-white focus:outline-none focus:border-rose-500 transition"
-                  />
-                </div>
+                  <button
+                    type="submit"
+                    disabled={isSubmittingReg}
+                    className="w-full py-3.5 bg-rose-600 hover:bg-rose-700 text-white font-black text-sm rounded-xl transition shadow-md active:scale-98 flex items-center justify-center gap-2 cursor-pointer"
+                  >
+                    {isSubmittingReg ? (
+                      <span>Creating Account...</span>
+                    ) : (
+                      <>
+                        <span>Join Now & Start Earning</span>
+                        <ArrowRight className="w-4 h-4" />
+                      </>
+                    )}
+                  </button>
+                </form>
+              </div>
 
-                <div>
-                  <label className="block text-xs font-bold text-gray-700 mb-1.5">
-                    উইথড্রয়াল অ্যাকাউন্ট নম্বর (bKash/Nagad No)
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="যে নম্বরে উইথড্রয়াল টাকা নিতে চান (ঐচ্ছিক)"
-                    value={regAccount}
-                    onChange={(e) => setRegAccount(e.target.value)}
-                    className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-medium focus:bg-white focus:outline-none focus:border-rose-500 transition"
-                  />
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={isSubmittingReg}
-                  className="w-full py-3.5 bg-rose-600 hover:bg-rose-700 text-white font-black text-sm rounded-xl transition shadow-md active:scale-98 flex items-center justify-center gap-2 cursor-pointer"
-                >
-                  {isSubmittingReg ? (
-                    <span>অ্যাকাউন্ট তৈরি হচ্ছে...</span>
-                  ) : (
-                    <>
-                      <span>জয়েন করুন ও ইনকাম শুরু করুন</span>
-                      <ArrowRight className="w-4 h-4" />
-                    </>
-                  )}
-                </button>
-              </form>
             </div>
-
           </div>
         ) : (
           /* CASE 2: REGISTERED AFFILIATE DASHBOARD */
@@ -486,7 +491,7 @@ export const AffiliateDashboardPage: React.FC = () => {
                 {/* Global Referral URL Box */}
                 <div className="flex-1 max-w-xl">
                   <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1">
-                    আপনার গ্লোবাল রেফারেল লিংক (যেকোনো প্রোডাক্টের জন্য):
+                    Your Global Referral Link (Works for all store products):
                   </label>
                   <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-xl p-1.5 pl-3">
                     <input
@@ -500,7 +505,7 @@ export const AffiliateDashboardPage: React.FC = () => {
                       onClick={() => {
                         navigator.clipboard.writeText(globalReferralUrl);
                         setCopiedLink(true);
-                        toast.success('রেফারেল লিংক কপি করা হয়েছে!');
+                        toast.success('Referral link copied to clipboard!');
                         setTimeout(() => setCopiedLink(false), 2500);
                       }}
                       className="px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-xs font-bold transition flex items-center gap-1 shrink-0 active:scale-95 cursor-pointer"
@@ -519,7 +524,7 @@ export const AffiliateDashboardPage: React.FC = () => {
               {/* 1. Available Balance */}
               <div className="bg-white p-5 rounded-2xl border border-rose-100 shadow-xs space-y-2 relative overflow-hidden">
                 <div className="flex items-center justify-between text-xs font-bold text-gray-500">
-                  <span>উত্তোলনযোগ্য ব্যালেন্স</span>
+                  <span>Available Balance</span>
                   <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
                     <Wallet className="w-4 h-4" />
                   </div>
@@ -531,7 +536,7 @@ export const AffiliateDashboardPage: React.FC = () => {
                   onClick={() => setActiveTab('withdraw')}
                   className="text-xs font-bold text-rose-600 hover:text-rose-700 flex items-center gap-1 cursor-pointer pt-1"
                 >
-                  <span>টাকা তুলুন (Withdraw)</span>
+                  <span>Withdraw Funds</span>
                   <ArrowRight className="w-3 h-3" />
                 </button>
               </div>
@@ -539,7 +544,7 @@ export const AffiliateDashboardPage: React.FC = () => {
               {/* 2. Total Commission Earned */}
               <div className="bg-white p-5 rounded-2xl border border-rose-100 shadow-xs space-y-2">
                 <div className="flex items-center justify-between text-xs font-bold text-gray-500">
-                  <span>মোট উপার্জিত কমিশন</span>
+                  <span>Total Commission</span>
                   <div className="w-8 h-8 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center">
                     <DollarSign className="w-4 h-4" />
                   </div>
@@ -548,39 +553,39 @@ export const AffiliateDashboardPage: React.FC = () => {
                   {formatPrice(currentAffiliate.total_commission_earned || 0)}
                 </div>
                 <p className="text-[11px] text-gray-400">
-                  উইথড্র করেছেন: {formatPrice(currentAffiliate.total_withdrawn || 0)}
+                  Total Withdrawn: {formatPrice(currentAffiliate.total_withdrawn || 0)}
                 </p>
               </div>
 
-              {/* 3. Total Sales Value */}
+              {/* 3. Total Referral Orders */}
               <div className="bg-white p-5 rounded-2xl border border-rose-100 shadow-xs space-y-2">
                 <div className="flex items-center justify-between text-xs font-bold text-gray-500">
-                  <span>মোট বিক্রয়কৃত অর্ডার</span>
+                  <span>Referral Orders</span>
                   <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
                     <ShoppingBag className="w-4 h-4" />
                   </div>
                 </div>
                 <div className="text-xl sm:text-2xl font-black text-gray-900">
-                  {currentAffiliate.total_orders || 0} টি
+                  {currentAffiliate.total_orders || 0} Orders
                 </div>
                 <p className="text-[11px] text-gray-400">
-                  মোট সেল: {formatPrice(currentAffiliate.total_sales_amount || 0)}
+                  Sales Volume: {formatPrice(currentAffiliate.total_sales_amount || 0)}
                 </p>
               </div>
 
               {/* 4. Total Clicks */}
               <div className="bg-white p-5 rounded-2xl border border-rose-100 shadow-xs space-y-2">
                 <div className="flex items-center justify-between text-xs font-bold text-gray-500">
-                  <span>মোট লিংক ভিজিট</span>
+                  <span>Total Link Clicks</span>
                   <div className="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
                     <TrendingUp className="w-4 h-4" />
                   </div>
                 </div>
                 <div className="text-xl sm:text-2xl font-black text-gray-900">
-                  {currentAffiliate.total_clicks || 0} বার
+                  {currentAffiliate.total_clicks || 0} Clicks
                 </div>
                 <p className="text-[11px] text-emerald-600 font-bold">
-                  সক্রিয় ট্র্যাকিং চালু রয়েছে
+                  Active Link Tracking
                 </p>
               </div>
 
@@ -597,7 +602,7 @@ export const AffiliateDashboardPage: React.FC = () => {
                 }`}
               >
                 <Search className="w-3.5 h-3.5" />
-                <span>SKU লিংক জেনারেটর (Product Link Generator)</span>
+                <span>SKU Link Generator</span>
               </button>
 
               <button
@@ -609,7 +614,7 @@ export const AffiliateDashboardPage: React.FC = () => {
                 }`}
               >
                 <Wallet className="w-3.5 h-3.5" />
-                <span>টাকা উত্তোলন ও ইতিহাস (Withdrawals)</span>
+                <span>Payouts & Withdrawals</span>
               </button>
             </div>
 
@@ -619,10 +624,10 @@ export const AffiliateDashboardPage: React.FC = () => {
                 <div>
                   <h3 className="text-base font-extrabold text-gray-900 flex items-center gap-2">
                     <Search className="w-4 h-4 text-rose-600" />
-                    <span>প্রোডাক্টের SKU দিয়ে অ্যাফিলিয়েট লিংক তৈরি করুন</span>
+                    <span>Generate Affiliate Link by Product SKU</span>
                   </h3>
                   <p className="text-xs text-gray-500 mt-0.5">
-                    যেকোনো প্রোডাক্টের SKU বা নাম লিখে সার্চ দিন। এডমিন যদি প্রোডাক্টটিতে অ্যাফিলিয়েট চালু রাখেন তবেই কমিশন ও রেফারেল লিংক দেখতে পাবেন।
+                    Search any product by SKU or name. If affiliate commission is enabled for the product, you can copy your custom referral link.
                   </p>
                 </div>
 
@@ -672,9 +677,9 @@ export const AffiliateDashboardPage: React.FC = () => {
                     {!searchedProduct ? (
                       <div className="p-6 rounded-2xl bg-gray-50 text-center space-y-2">
                         <AlertCircle className="w-8 h-8 text-amber-500 mx-auto" />
-                        <h4 className="text-sm font-bold text-gray-800">কোনো প্রোডাক্ট পাওয়া যায়নি</h4>
+                        <h4 className="text-sm font-bold text-gray-800">No Product Found</h4>
                         <p className="text-xs text-gray-500">
-                          "{skuQuery}" এই SKU অথবা নামের কোনো প্রোডাক্ট স্টোরে নেই। সঠিক SKU দিন।
+                          No product found matching "{skuQuery}". Please check the SKU or product name.
                         </p>
                       </div>
                     ) : (
@@ -700,7 +705,7 @@ export const AffiliateDashboardPage: React.FC = () => {
                                 {formatPrice(searchedProduct.discount_price || searchedProduct.price)}
                               </span>
                               <span className="text-gray-400">
-                                স্টক: <b className="text-gray-700">{searchedProduct.stock} pcs</b>
+                                Stock: <b className="text-gray-700">{searchedProduct.stock} pcs</b>
                               </span>
                             </div>
                           </div>
@@ -711,10 +716,10 @@ export const AffiliateDashboardPage: React.FC = () => {
                           <div className="p-4 rounded-xl bg-rose-50/80 border border-rose-200 text-rose-900 space-y-2">
                             <div className="flex items-center gap-2 font-bold text-xs text-rose-700">
                               <AlertCircle className="w-4 h-4 text-rose-600" />
-                              <span>নন-অ্যাফিলিয়েট প্রোডাক্ট (Non-Affiliate Product)</span>
+                              <span>Non-Affiliate Product</span>
                             </div>
                             <p className="text-xs text-rose-800 leading-relaxed">
-                              এডমিন প্যানেল থেকে এই নির্দিষ্ট প্রোডাক্টটির জন্য অ্যাফিলিয়েট প্রোগ্রাম বর্তমানে বন্ধ রাখা হয়েছে। এই প্রোডাক্টে কোনো সেল কমিশন প্রযোজ্য নয়। অনুগ্রহ করে অন্য প্রোডাক্ট খুঁজুন।
+                              Affiliate commission is currently disabled by admin for this specific product. Sales commission is not applicable for this item. Please search for an eligible product.
                             </p>
                           </div>
                         ) : (
@@ -724,14 +729,14 @@ export const AffiliateDashboardPage: React.FC = () => {
                               <div className="space-y-1">
                                 <div className="flex items-center gap-2 font-bold text-xs text-emerald-800">
                                   <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                                  <span>অ্যাফিলিয়েট প্রযোজ্য (Affiliate Eligible)</span>
+                                  <span>Affiliate Eligible</span>
                                 </div>
                                 <p className="text-xs text-emerald-700">
-                                  কমিশন রেট: <b className="text-emerald-900 font-extrabold">{searchedProduct.affiliate_commission_rate || 10}%</b>
+                                  Commission Rate: <b className="text-emerald-900 font-extrabold">{searchedProduct.affiliate_commission_rate || 10}%</b>
                                 </p>
                               </div>
                               <div className="text-left sm:text-right bg-white px-4 py-2 rounded-xl border border-emerald-200 shadow-2xs">
-                                <p className="text-[10px] text-gray-500 uppercase font-bold">প্রতি সেলে আপনার আয়:</p>
+                                <p className="text-[10px] text-gray-500 uppercase font-bold">Your Earnings Per Sale:</p>
                                 <p className="text-base font-black text-emerald-700">
                                   {formatPrice(
                                     Math.round(
@@ -747,7 +752,7 @@ export const AffiliateDashboardPage: React.FC = () => {
                             {/* Product Affiliate Link */}
                             <div className="space-y-1.5">
                               <label className="block text-xs font-bold text-gray-700">
-                                এই প্রোডাক্টের স্পেশাল অ্যাফিলিয়েট লিংক:
+                                Special Referral Link for this Product:
                               </label>
                               {(() => {
                                 const prodLink = `${originUrl}/product/${searchedProduct.slug || searchedProduct.id}?aff=${currentAffiliate.affiliate_code}`;
@@ -762,13 +767,13 @@ export const AffiliateDashboardPage: React.FC = () => {
                                         onClick={() => {
                                           navigator.clipboard.writeText(prodLink);
                                           setCopiedProductLink(true);
-                                          toast.success('প্রোডাক্ট অ্যাফিলিয়েট লিংক কপি হয়েছে!');
+                                          toast.success('Product affiliate link copied to clipboard!');
                                           setTimeout(() => setCopiedProductLink(false), 2500);
                                         }}
                                         className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-2xs active:scale-95 cursor-pointer"
                                       >
                                         {copiedProductLink ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-                                        <span>{copiedProductLink ? 'কপি হয়েছে' : 'লিংক কপি করুন'}</span>
+                                        <span>{copiedProductLink ? 'Copied' : 'Copy Link'}</span>
                                       </button>
                                       
                                       <a
@@ -778,7 +783,7 @@ export const AffiliateDashboardPage: React.FC = () => {
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         className="px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-1"
-                                        title="WhatsApp এ শেয়ার করুন"
+                                        title="Share on WhatsApp"
                                       >
                                         WhatsApp
                                       </a>
@@ -807,17 +812,17 @@ export const AffiliateDashboardPage: React.FC = () => {
                   <div>
                     <h3 className="text-base font-extrabold text-gray-900 flex items-center gap-2">
                       <Wallet className="w-4 h-4 text-emerald-600" />
-                      <span>টাকা উত্তোলন (Withdraw)</span>
+                      <span>Withdraw Funds</span>
                     </h3>
                     <p className="text-xs text-gray-500 mt-1">
-                      বর্তমান ব্যালেন্স: <b className="text-emerald-600">{formatPrice(currentAffiliate.available_balance || 0)}</b>
+                      Available Balance: <b className="text-emerald-600">{formatPrice(currentAffiliate.available_balance || 0)}</b>
                     </p>
                   </div>
 
                   <form onSubmit={handleWithdrawalSubmit} className="space-y-4">
                     <div>
                       <label className="block text-xs font-bold text-gray-700 mb-1">
-                        উইথড্রয়াল অ্যামাউন্ট (৳) <span className="text-rose-500">*</span>
+                        Withdrawal Amount (৳) <span className="text-rose-500">*</span>
                       </label>
                       <input
                         type="number"
@@ -829,28 +834,28 @@ export const AffiliateDashboardPage: React.FC = () => {
                         onChange={(e) => setWithdrawAmount(e.target.value)}
                         className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-bold text-gray-900 focus:bg-white focus:outline-none focus:border-rose-500 transition"
                       />
-                      <span className="text-[10px] text-gray-400 mt-1 block">সর্বনিম্ন ৫০ টাকা</span>
+                      <span className="text-[10px] text-gray-400 mt-1 block">Minimum withdrawal: ৳ 50</span>
                     </div>
 
                     <div>
                       <label className="block text-xs font-bold text-gray-700 mb-1">
-                        পেমেন্ট মেথড <span className="text-rose-500">*</span>
+                        Payout Method <span className="text-rose-500">*</span>
                       </label>
                       <select
                         value={withdrawMethod}
                         onChange={(e) => setWithdrawMethod(e.target.value as any)}
                         className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-bold focus:bg-white focus:outline-none focus:border-rose-500 transition cursor-pointer"
                       >
-                        <option value="bkash">বিকাশ (bKash Personal)</option>
-                        <option value="nagad">নগদ (Nagad Personal)</option>
-                        <option value="rocket">রকেট (Rocket)</option>
-                        <option value="bank">ব্যাংক একাউন্ট (Bank Transfer)</option>
+                        <option value="bkash">bKash Personal</option>
+                        <option value="nagad">Nagad Personal</option>
+                        <option value="rocket">Rocket Personal</option>
+                        <option value="bank">Bank Transfer</option>
                       </select>
                     </div>
 
                     <div>
                       <label className="block text-xs font-bold text-gray-700 mb-1">
-                        অ্যাকাউন্ট নম্বর <span className="text-rose-500">*</span>
+                        Account / Wallet Number <span className="text-rose-500">*</span>
                       </label>
                       <input
                         type="text"
@@ -864,11 +869,11 @@ export const AffiliateDashboardPage: React.FC = () => {
 
                     <div>
                       <label className="block text-xs font-bold text-gray-700 mb-1">
-                        নোট / রেফারেন্স (ঐচ্ছিক)
+                        Notes / Reference (Optional)
                       </label>
                       <input
                         type="text"
-                        placeholder="যেমন: ব্যাংক শাখা নাম বা বিশেষ অনুরোধ..."
+                        placeholder="e.g. Bank branch name, account title or notes..."
                         value={withdrawNotes}
                         onChange={(e) => setWithdrawNotes(e.target.value)}
                         className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-medium focus:bg-white focus:outline-none focus:border-rose-500 transition"
@@ -880,7 +885,7 @@ export const AffiliateDashboardPage: React.FC = () => {
                       disabled={isSubmittingWithdraw || (currentAffiliate.available_balance || 0) < 50}
                       className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-bold text-xs rounded-xl transition shadow-xs cursor-pointer active:scale-95"
                     >
-                      {isSubmittingWithdraw ? 'রিকোয়েস্ট পাঠানো হচ্ছে...' : 'উইথড্রয়াল আবেদন জমা দিন'}
+                      {isSubmittingWithdraw ? 'Submitting Request...' : 'Submit Payout Request'}
                     </button>
                   </form>
                 </div>
@@ -890,34 +895,34 @@ export const AffiliateDashboardPage: React.FC = () => {
                   <div className="flex items-center justify-between">
                     <h3 className="text-base font-extrabold text-gray-900 flex items-center gap-2">
                       <Clock className="w-4 h-4 text-rose-600" />
-                      <span>উইথড্রয়াল হিস্টোরি (Payout Requests)</span>
+                      <span>Payout History & Requests</span>
                     </h3>
-                    <span className="text-xs text-gray-400 font-bold">{myWithdrawals.length} টি রেকর্ড</span>
+                    <span className="text-xs text-gray-400 font-bold">{myWithdrawals.length} Records</span>
                   </div>
 
                   {myWithdrawals.length === 0 ? (
                     <div className="text-center py-12 bg-gray-50 rounded-2xl p-6">
                       <Wallet className="w-8 h-8 text-gray-300 mx-auto mb-2" />
-                      <p className="text-xs text-gray-500 font-bold">এখনো কোনো উইথড্রয়াল আবেদন করা হয়নি</p>
-                      <p className="text-[11px] text-gray-400 mt-0.5">ব্যালেন্স ৫০ টাকার বেশি হলে উইথড্র করতে পারবেন।</p>
+                      <p className="text-xs text-gray-500 font-bold">No payout requests submitted yet</p>
+                      <p className="text-[11px] text-gray-400 mt-0.5">You can submit a withdrawal request once your balance reaches ৳ 50.</p>
                     </div>
                   ) : (
                     <div className="overflow-x-auto">
                       <table className="w-full text-left text-xs">
                         <thead>
                           <tr className="border-b border-gray-100 text-gray-400 uppercase tracking-wider text-[10px]">
-                            <th className="pb-3 font-bold">তারিখ</th>
-                            <th className="pb-3 font-bold">পরিমাণ</th>
-                            <th className="pb-3 font-bold">মেথড ও নম্বর</th>
-                            <th className="pb-3 font-bold">স্ট্যাটাস</th>
-                            <th className="pb-3 font-bold text-right">নোট / TrxID</th>
+                            <th className="pb-3 font-bold">Date</th>
+                            <th className="pb-3 font-bold">Amount</th>
+                            <th className="pb-3 font-bold">Method & Account</th>
+                            <th className="pb-3 font-bold">Status</th>
+                            <th className="pb-3 font-bold text-right">TrxID / Note</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-50">
                           {myWithdrawals.map((w) => (
                             <tr key={w.id} className="hover:bg-gray-50/50">
                               <td className="py-3 text-gray-600 font-medium">
-                                {new Date(w.created_at).toLocaleDateString('bn-BD', {
+                                {new Date(w.created_at).toLocaleDateString('en-US', {
                                   day: 'numeric',
                                   month: 'short',
                                   year: 'numeric',
