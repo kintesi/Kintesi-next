@@ -421,7 +421,7 @@ export const AdminBanners: React.FC = () => {
   ];
 
   return (
-    <div className="banner-studio w-full max-w-[1500px] mx-auto space-y-6 pb-20 text-slate-900">
+    <div className="banner-studio w-full space-y-6 pb-20 text-slate-900">
       <header className={`rounded-3xl border p-5 sm:p-7 ${card} flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between`}>
         <div className="flex items-start gap-4">
           <div className="w-12 h-12 shrink-0 rounded-2xl bg-rose-50 border border-rose-100 text-rose-600 flex items-center justify-center">
