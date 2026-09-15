@@ -9,10 +9,13 @@ interface FlashSaleBannerProps {
   defaultTitle?: string;
   defaultSubtitle?: string;
   defaultBgImage?: string;
+  defaultDesktopImage?: string;
+  defaultMobileImage?: string;
   defaultLink?: string;
   theme?: string;
   timeLeft: { hours: number; minutes: number; seconds: number };
   isMobile?: boolean;
+  bannerType?: 'normal' | 'clickable';
 }
 
 interface ThemePalette {
@@ -159,10 +162,13 @@ export const FlashSaleBanner: React.FC<FlashSaleBannerProps> = ({
   defaultTitle,
   defaultSubtitle,
   defaultBgImage,
+  defaultDesktopImage,
+  defaultMobileImage,
   defaultLink,
   theme = 'sunset',
   timeLeft,
   isMobile = false,
+  bannerType,
 }) => {
   const navigate = useNavigate();
 
@@ -175,8 +181,13 @@ export const FlashSaleBanner: React.FC<FlashSaleBannerProps> = ({
           title: s.title || defaultTitle || 'EXCLUSIVE SUPER DEALS',
           subtitle: s.subtitle || defaultSubtitle || 'Limited stock flash offers with up to 50% discount. Order before time runs out!',
           bgImage: s.bgImage || defaultBgImage || '',
+          desktopImage: s.desktopImage || defaultDesktopImage || s.bgImage || defaultBgImage || '',
+          mobileImage: s.mobileImage || defaultMobileImage || s.bgImage || defaultBgImage || '',
           link: s.link || defaultLink || '',
           productId: s.productId || '',
+          bannerType: s.bannerType,
+          layoutStyle: s.layoutStyle,
+          showTimer: s.showTimer,
         }))
       : [
           {
@@ -185,6 +196,8 @@ export const FlashSaleBanner: React.FC<FlashSaleBannerProps> = ({
             title: defaultTitle || 'EXCLUSIVE SUPER DEALS',
             subtitle: defaultSubtitle || 'Limited stock flash offers with up to 50% discount. Order before time runs out!',
             bgImage: defaultBgImage || '',
+            desktopImage: defaultDesktopImage || defaultBgImage || '',
+            mobileImage: defaultMobileImage || defaultBgImage || '',
             link: defaultLink || '',
           },
         ];
@@ -233,12 +246,24 @@ export const FlashSaleBanner: React.FC<FlashSaleBannerProps> = ({
   const currentSlide = activeSlides[safeIndex];
   const themeConfig = getFlashThemeConfig(theme);
 
+  const getSlideImage = (slide: FlashSaleSlide) => {
+    if (isMobile) {
+      return slide.mobileImage || slide.bgImage || defaultMobileImage || defaultBgImage || '';
+    }
+    return slide.desktopImage || slide.bgImage || defaultDesktopImage || defaultBgImage || '';
+  };
+
+  const currentImage = getSlideImage(currentSlide);
+
   const hasTag = Boolean(currentSlide.tag?.trim());
   const hasTitle = Boolean(currentSlide.title?.trim());
   const hasSubtitle = Boolean(currentSlide.subtitle?.trim());
   const hasText = hasTag || hasTitle || hasSubtitle;
   const hasTimer = Boolean(currentSlide.showTimer !== false && timeLeft && (timeLeft.hours > 0 || timeLeft.minutes > 0 || timeLeft.seconds > 0));
-  const isClickable = currentSlide.bannerType !== 'normal';
+  const isClickable =
+    bannerType !== undefined
+      ? bannerType === 'clickable'
+      : currentSlide.bannerType !== 'normal';
   const isFullLayout = currentSlide.layoutStyle !== 'split';
 
   const handleBannerClick = (e: React.MouseEvent) => {
@@ -278,12 +303,12 @@ export const FlashSaleBanner: React.FC<FlashSaleBannerProps> = ({
           onTouchEnd={handleTouchEnd}
         >
           {/* Full-bleed Background Image */}
-          {currentSlide.bgImage ? (
+          {currentImage ? (
             <div className="absolute inset-0 w-full h-full overflow-hidden">
               {activeSlides.map((slide, idx) => (
                 <img
                   key={slide.id}
-                  src={slide.bgImage}
+                  src={getSlideImage(slide)}
                   alt={slide.title || 'Banner'}
                   className={`absolute inset-0 w-full h-full object-cover object-center transition-opacity duration-700 ease-in-out ${
                     idx === safeIndex ? 'opacity-100 z-0' : 'opacity-0 -z-10'
@@ -472,7 +497,7 @@ export const FlashSaleBanner: React.FC<FlashSaleBannerProps> = ({
         </div>
 
         {/* Right Showcase Image */}
-        {currentSlide.bgImage ? (
+        {currentImage ? (
           <div
             className="absolute inset-y-0 right-0 w-[46%] sm:w-[48%] pointer-events-none overflow-hidden"
             style={{
@@ -483,7 +508,7 @@ export const FlashSaleBanner: React.FC<FlashSaleBannerProps> = ({
             {activeSlides.map((slide, idx) => (
               <img
                 key={slide.id}
-                src={slide.bgImage}
+                src={getSlideImage(slide)}
                 alt={slide.title}
                 className={`absolute inset-0 w-full h-full object-cover object-center transition-opacity duration-700 ease-in-out ${
                   idx === safeIndex ? 'opacity-100 z-0' : 'opacity-0 -z-10'
@@ -514,12 +539,12 @@ export const FlashSaleBanner: React.FC<FlashSaleBannerProps> = ({
         onMouseLeave={() => setIsPaused(false)}
       >
         {/* Full-width Background Graphic */}
-        {currentSlide.bgImage ? (
+        {currentImage ? (
           <div className="absolute inset-0 w-full h-full overflow-hidden">
             {activeSlides.map((slide, idx) => (
               <img
                 key={slide.id}
-                src={slide.bgImage}
+                src={getSlideImage(slide)}
                 alt={slide.title || 'Banner'}
                 className={`absolute inset-0 w-full h-full object-cover object-center transition-opacity duration-700 ease-in-out ${
                   idx === safeIndex ? 'opacity-100 z-0' : 'opacity-0 -z-10'
@@ -758,7 +783,7 @@ export const FlashSaleBanner: React.FC<FlashSaleBannerProps> = ({
       </div>
 
       {/* Right Showcase Image Layer */}
-      {currentSlide.bgImage ? (
+      {currentImage ? (
         <div
           className="absolute inset-y-0 right-0 w-[50%] sm:w-[54%] lg:w-[58%] pointer-events-none overflow-hidden"
           style={{
@@ -769,7 +794,7 @@ export const FlashSaleBanner: React.FC<FlashSaleBannerProps> = ({
           {activeSlides.map((slide, idx) => (
             <img
               key={slide.id}
-              src={slide.bgImage}
+              src={getSlideImage(slide)}
               alt={slide.title}
               className={`absolute inset-0 w-full h-full object-cover object-center transition-opacity duration-700 ease-in-out ${
                 idx === safeIndex ? 'opacity-100 z-0' : 'opacity-0 -z-10'

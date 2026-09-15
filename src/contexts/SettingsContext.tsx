@@ -10,6 +10,8 @@ export interface FlashSaleSlide {
   title: string;
   subtitle?: string;
   bgImage?: string;
+  desktopImage?: string; // Specific image for PC/Desktop view
+  mobileImage?: string; // Specific image for Mobile view
   link?: string;
   productId?: string;
   bannerType?: 'normal' | 'clickable'; // 'normal' = full image display only, 'clickable' = clicking navigates to link/product
@@ -73,6 +75,8 @@ export interface BannerSettings {
     | 'solar';
   flashSaleEndsAt?: string;
   flashSaleBgImage?: string;
+  flashSaleDesktopImage?: string;
+  flashSaleMobileImage?: string;
   flashSaleLink?: string;
   flashSaleSlides?: FlashSaleSlide[];
 

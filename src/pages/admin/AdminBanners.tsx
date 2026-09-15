@@ -285,6 +285,25 @@ export const AdminBanners: React.FC = () => {
     }
   };
 
+  const setGlobalBannerType = (type: 'normal' | 'clickable') => {
+    hasUserEdited.current = true;
+    setIsSaved(false);
+    const nextSlides = slides.map((slide) => ({
+      ...slide,
+      bannerType: type,
+    }));
+    setForm((previous) => ({
+      ...previous,
+      flashSaleBannerType: type,
+      flashSaleSlides: nextSlides,
+    }));
+    toast.success(
+      type === 'clickable'
+        ? 'সবগুলো স্লাইডারে ক্লিক অন করা হয়েছে।'
+        : 'সবগুলো স্লাইডারে ক্লিক অফ করা হয়েছে (Normal Banner)।'
+    );
+  };
+
   const updateSlide = (key: keyof FlashSaleSlide, value: any) => {
     hasUserEdited.current = true;
     setIsSaved(false);
@@ -297,6 +316,8 @@ export const AdminBanners: React.FC = () => {
         flashSaleTitle: key === 'title' ? value : previous.flashSaleTitle,
         flashSaleSubtitle: key === 'subtitle' ? value : previous.flashSaleSubtitle,
         flashSaleBgImage: key === 'bgImage' ? value : previous.flashSaleBgImage,
+        flashSaleDesktopImage: key === 'desktopImage' ? value : previous.flashSaleDesktopImage,
+        flashSaleMobileImage: key === 'mobileImage' ? value : previous.flashSaleMobileImage,
         flashSaleLink: key === 'link' ? value : previous.flashSaleLink,
         flashSaleBannerType: key === 'bannerType' ? value : previous.flashSaleBannerType,
         flashSaleLayoutStyle: key === 'layoutStyle' ? value : previous.flashSaleLayoutStyle,
@@ -308,15 +329,18 @@ export const AdminBanners: React.FC = () => {
   const addSlide = () => {
     hasUserEdited.current = true;
     setIsSaved(false);
+    const currentBannerType = form.flashSaleBannerType || 'clickable';
     const nextSlides = [...slides, {
       id: `slide-${Date.now()}`,
       tag: '⚡ FLASH SALE',
       title: 'New Promotional Banner',
       subtitle: '',
       bgImage: '',
+      desktopImage: '',
+      mobileImage: '',
       link: '/products',
-      bannerType: 'normal' as const,
-      layoutStyle: 'full' as const,
+      bannerType: currentBannerType,
+      layoutStyle: (form.flashSaleLayoutStyle || 'full') as any,
       showTimer: false,
     }];
     setForm((previous) => ({ ...previous, flashSaleSlides: nextSlides }));
@@ -569,54 +593,22 @@ export const AdminBanners: React.FC = () => {
               />
             </div>
 
-            {/* Slides selector tabs */}
-            <div className="flex flex-wrap items-center gap-2 pt-1">
-              <span className="text-[11px] font-black uppercase tracking-wide text-slate-500 mr-1">Slides:</span>
-              {slides.map((slide, index) => (
-                <button
-                  key={slide.id}
-                  type="button"
-                  onClick={() => setSelectedSlideIndex(index)}
-                  className={`h-8 min-w-8 rounded-lg px-2.5 text-xs font-bold border cursor-pointer ${
-                    index === selectedSlideIndex
-                      ? 'bg-rose-600 border-rose-600 text-white shadow-xs'
-                      : isLight
-                      ? 'bg-white border-slate-200 text-slate-600 hover:border-rose-300'
-                      : 'bg-gray-900 border-gray-800 text-gray-300'
-                  }`}
-                >
-                  Slide {index + 1}
-                </button>
-              ))}
-              <button
-                type="button"
-                onClick={addSlide}
-                className="h-8 px-2.5 rounded-lg border border-dashed border-rose-300 text-rose-600 text-xs font-bold hover:bg-rose-50 cursor-pointer"
-              >
-                <Plus className="w-3.5 h-3.5 inline mr-1" />Add slide
-              </button>
-              {slides.length > 1 && (
-                <button
-                  type="button"
-                  onClick={removeSlide}
-                  className="h-8 px-2.5 rounded-lg text-rose-600 text-xs font-bold hover:bg-rose-50 cursor-pointer"
-                >
-                  <Trash2 className="w-3.5 h-3.5 inline mr-1" />Remove
-                </button>
-              )}
-            </div>
-
             {/* 1. Banner Action Mode: Normal Banner vs Clickable Banner */}
             <div className="space-y-2">
-              <label className="block text-[11px] font-black uppercase tracking-wide text-slate-700 dark:text-slate-300">
-                ১. ব্যানার টাইপ বেছে নিন (Banner Mode):
-              </label>
+              <div className="flex items-center justify-between">
+                <label className="block text-[11px] font-black uppercase tracking-wide text-slate-700 dark:text-slate-300">
+                  ১. ব্যানার টাইপ বেছে নিন (Banner Mode):
+                </label>
+                <span className="text-[11px] text-slate-500 font-medium">
+                  {(form.flashSaleBannerType || 'clickable') === 'clickable' ? '🔗 সব স্লাইডার Clickable' : '🖼️ সব স্লাইডার Normal (Non-clickable)'}
+                </span>
+              </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <button
                   type="button"
-                  onClick={() => updateSlide('bannerType', 'normal')}
+                  onClick={() => setGlobalBannerType('normal')}
                   className={`p-3.5 rounded-xl border text-left transition flex items-start gap-3 cursor-pointer ${
-                    currentSlide.bannerType === 'normal'
+                    (form.flashSaleBannerType || 'clickable') === 'normal'
                       ? 'border-rose-500 bg-rose-50/70 dark:bg-rose-950/40 text-rose-800 dark:text-rose-200 ring-2 ring-rose-500/20'
                       : isLight ? 'border-slate-200 bg-white hover:border-slate-300 text-slate-700' : 'border-gray-800 bg-gray-950 text-gray-300'
                   }`}
@@ -627,21 +619,21 @@ export const AdminBanners: React.FC = () => {
                   <div>
                     <div className="font-bold text-xs sm:text-sm flex items-center gap-1.5">
                       <span>Normal Banner (সাধারণ ব্যানার)</span>
-                      {currentSlide.bannerType === 'normal' && (
+                      {(form.flashSaleBannerType || 'clickable') === 'normal' && (
                         <span className="text-[10px] bg-rose-600 text-white px-2 py-0.5 rounded-full font-black">Active</span>
                       )}
                     </div>
                     <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
-                      পুরো ব্যানার জুড়ে শুধুই ইমেজ শো করবে। ক্লিক করলে কোথাও রিডাইরেক্ট হবে না (ছবিতে টেক্সট লিখে দিলে তা পরিষ্কার দেখাবে)।
+                      সবগুলো স্লাইডারে ক্লিক অফ থাকবে (কোথাও রিডাইরেক্ট হবে না)। ছবিতে লেখা থাকলে তা ফ্রেম জুড়ে স্পষ্ট শো করবে।
                     </p>
                   </div>
                 </button>
 
                 <button
                   type="button"
-                  onClick={() => updateSlide('bannerType', 'clickable')}
+                  onClick={() => setGlobalBannerType('clickable')}
                   className={`p-3.5 rounded-xl border text-left transition flex items-start gap-3 cursor-pointer ${
-                    (currentSlide.bannerType || 'clickable') === 'clickable'
+                    (form.flashSaleBannerType || 'clickable') === 'clickable'
                       ? 'border-rose-500 bg-rose-50/70 dark:bg-rose-950/40 text-rose-800 dark:text-rose-200 ring-2 ring-rose-500/20'
                       : isLight ? 'border-slate-200 bg-white hover:border-slate-300 text-slate-700' : 'border-gray-800 bg-gray-950 text-gray-300'
                   }`}
@@ -652,15 +644,64 @@ export const AdminBanners: React.FC = () => {
                   <div>
                     <div className="font-bold text-xs sm:text-sm flex items-center gap-1.5">
                       <span>Clickable Banner (ক্লিকেবল ব্যানার)</span>
-                      {(currentSlide.bannerType || 'clickable') === 'clickable' && (
+                      {(form.flashSaleBannerType || 'clickable') === 'clickable' && (
                         <span className="text-[10px] bg-rose-600 text-white px-2 py-0.5 rounded-full font-black">Active</span>
                       )}
                     </div>
                     <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
-                      ব্যানারে ক্লিক করলে নির্দিষ্ট প্রোডাক্ট পেজ বা কাঙ্ক্ষিত গন্তব্য লিংকে কাস্টমার প্রবেশ করবে।
+                      সবগুলো স্লাইডারে ক্লিক অন থাকবে। ক্লিক করলে কাঙ্ক্ষিত প্রোডাক্ট বা লিংকে কাস্টমার প্রবেশ করবে।
                     </p>
                   </div>
                 </button>
+              </div>
+            </div>
+
+            {/* 2. Slides Selector Tabs (ব্যানার টাইপ select করার পর) */}
+            <div className="space-y-2 pt-2 border-t border-slate-100 dark:border-gray-800">
+              <div className="flex items-center justify-between">
+                <label className="block text-[11px] font-black uppercase tracking-wide text-slate-700 dark:text-slate-300">
+                  ২. স্লাইডার নির্বাচন করুন (Select Slide to Configure):
+                </label>
+                <span className="text-[10px] text-slate-400 font-medium">
+                  {slides.length} টি স্লাইড যুক্ত রয়েছে
+                </span>
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                {slides.map((slide, index) => (
+                  <button
+                    key={slide.id}
+                    type="button"
+                    onClick={() => setSelectedSlideIndex(index)}
+                    className={`h-8 min-w-8 rounded-lg px-2.5 text-xs font-bold border cursor-pointer flex items-center gap-1.5 ${
+                      index === selectedSlideIndex
+                        ? 'bg-rose-600 border-rose-600 text-white shadow-xs'
+                        : isLight
+                        ? 'bg-white border-slate-200 text-slate-600 hover:border-rose-300'
+                        : 'bg-gray-900 border-gray-800 text-gray-300'
+                    }`}
+                  >
+                    <span>Slide {index + 1}</span>
+                    {index === selectedSlideIndex && (
+                      <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+                    )}
+                  </button>
+                ))}
+                <button
+                  type="button"
+                  onClick={addSlide}
+                  className="h-8 px-2.5 rounded-lg border border-dashed border-rose-300 text-rose-600 text-xs font-bold hover:bg-rose-50 cursor-pointer"
+                >
+                  <Plus className="w-3.5 h-3.5 inline mr-1" />Add slide
+                </button>
+                {slides.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={removeSlide}
+                    className="h-8 px-2.5 rounded-lg text-rose-600 text-xs font-bold hover:bg-rose-50 cursor-pointer"
+                  >
+                    <Trash2 className="w-3.5 h-3.5 inline mr-1" />Remove
+                  </button>
+                )}
               </div>
             </div>
 
@@ -912,14 +953,57 @@ export const AdminBanners: React.FC = () => {
                 </div>
               )}
 
-              {/* 7. Banner Image Uploader */}
-              <div className="sm:col-span-2">
-                <ImageUploader
-                  label="Banner Graphic Image (ব্যানার ইমেজ আপলোড)"
-                  value={currentSlide.bgImage || ''}
-                  onChange={(value) => updateSlide('bgImage', value)}
-                  helpText="নরমাল ব্যানারের ক্ষেত্রে এই ছবিটিই ফ্রেম জুড়ে সুন্দরভাবে শো করবে। ডেক্সটপে ১৯২০×৬০০ এবং মোবাইলে ৮০০×৪০০ পিক্সেল সাইজ সবচেয়ে পারফেক্ট।"
-                />
+              {/* 7. Separate Image Uploaders for PC and Mobile */}
+              <div className="sm:col-span-2 space-y-4 pt-3 border-t border-slate-100 dark:border-gray-800">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-black uppercase tracking-wide text-slate-700 dark:text-slate-300">
+                    ব্যানার ইমেজ আপলোড (PC ও মোবাইলের জন্য আলাদা ছবি):
+                  </span>
+                  <span className="text-[10px] text-slate-400 font-medium">
+                    Slide {selectedSlideIndex + 1} Images
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                  {/* 🖥️ PC / Desktop Banner Image */}
+                  <div className="rounded-2xl border border-slate-200 dark:border-gray-800 p-4 bg-slate-50/50 dark:bg-gray-900/40 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                        <span>🖥️</span> Desktop / PC Banner Image (পিসির জন্য ছবি)
+                      </span>
+                      <span className="text-[10px] px-2 py-0.5 rounded bg-blue-100 dark:bg-blue-950/60 text-blue-800 dark:text-blue-300 font-bold">
+                        1920×600 px
+                      </span>
+                    </div>
+                    <ImageUploader
+                      label=""
+                      value={currentSlide.desktopImage || currentSlide.bgImage || ''}
+                      onChange={(value) => {
+                        updateSlide('desktopImage', value);
+                        updateSlide('bgImage', value);
+                      }}
+                      helpText="পিসি ও ল্যাপটপ স্ক্রিনের জন্য ব্যানার। রেকমেন্ডেড সাইজ: ১৯২০×৬০০ অথবা ১২০০×৪০০ পিক্সেল (অনুপাত ৩:১ বা ১৬:৫)।"
+                    />
+                  </div>
+
+                  {/* 📱 Mobile Banner Image */}
+                  <div className="rounded-2xl border border-slate-200 dark:border-gray-800 p-4 bg-slate-50/50 dark:bg-gray-900/40 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                        <span>📱</span> Mobile Banner Image (মোবাইলের জন্য ছবি)
+                      </span>
+                      <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 font-bold">
+                        800×400 px
+                      </span>
+                    </div>
+                    <ImageUploader
+                      label=""
+                      value={currentSlide.mobileImage || ''}
+                      onChange={(value) => updateSlide('mobileImage', value)}
+                      helpText="স্মার্টফোন ও ছোট স্ক্রিনের জন্য আলাদা ব্যানার। রেকমেন্ডেড সাইজ: ৮০০×৪০০ অথবা ৬০০×৩০০ পিক্সেল (অনুপাত ২:১)। খালি রাখলে পিসির ছবিই শো করবে।"
+                    />
+                  </div>
+                </div>
               </div>
             </div>
           </section>
