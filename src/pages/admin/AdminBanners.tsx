@@ -444,38 +444,8 @@ export const AdminBanners: React.FC = () => {
           >
             <RotateCcw className="w-4 h-4" /> Reset
           </button>
-          <button
-            type="button"
-            onClick={saveAll}
-            className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-white text-xs font-black shadow-lg transition active:scale-95 cursor-pointer ${
-              isSaved
-                ? 'bg-slate-900 shadow-slate-900/20'
-                : 'bg-rose-600 shadow-rose-600/25 hover:bg-rose-700'
-            }`}
-          >
-            {isSaved ? (
-              <>
-                <Check className="w-4 h-4 text-rose-400" />
-                <span>Saved Changes!</span>
-              </>
-            ) : (
-              <>
-                <Save className="w-4 h-4" />
-                <span>Save Changes</span>
-              </>
-            )}
-          </button>
         </div>
       </header>
-
-      <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
-        {sections.map((section) => (
-          <div key={section.label} className={`rounded-xl border px-3 py-2.5 ${card} flex items-center gap-2`}>
-            <span className={`w-2 h-2 rounded-full ${section.enabled ? 'bg-rose-500' : 'bg-slate-300'}`} />
-            <span className="text-[11px] font-bold truncate">{section.label}</span>
-          </div>
-        ))}
-      </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_340px] gap-6 items-start">
         <div className="space-y-5">
@@ -1123,19 +1093,6 @@ export const AdminBanners: React.FC = () => {
             {sections.map((section) => <div key={section.label} className="flex items-center justify-between rounded-xl border border-slate-100 px-3 py-2.5"><span className="text-xs font-bold">{section.label}</span><span className={`inline-flex items-center gap-1.5 text-[11px] font-bold ${section.enabled ? 'text-rose-600' : 'text-slate-400'}`}><span className={`w-1.5 h-1.5 rounded-full ${section.enabled ? 'bg-rose-500' : 'bg-slate-300'}`} />{section.enabled ? 'Visible' : 'Hidden'}</span></div>)}
           </div>
           <div className="mt-5 rounded-xl bg-rose-50 border border-rose-100 p-3.5"><p className="text-xs font-bold text-rose-900">Publish checklist</p><ul className="mt-2 space-y-1.5 text-[11px] text-rose-800"><li className="flex gap-2"><CheckCircle2 className="w-3.5 h-3.5 shrink-0" />Use short, customer-facing messages.</li><li className="flex gap-2"><CheckCircle2 className="w-3.5 h-3.5 shrink-0" />Check product links before saving.</li><li className="flex gap-2"><CheckCircle2 className="w-3.5 h-3.5 shrink-0" />Upload wide images for flash sale slides.</li></ul></div>
-          <button
-            type="button"
-            onClick={saveAll}
-            disabled={isLoading}
-            className={`mt-5 w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-white text-xs font-black shadow-lg transition active:scale-95 cursor-pointer ${
-              isSaved
-                ? 'bg-slate-900 shadow-slate-900/20'
-                : 'bg-rose-600 shadow-rose-600/25 hover:bg-rose-700'
-            }`}
-          >
-            {isSaved ? <Check className="w-4 h-4 text-rose-400" /> : <Save className="w-4 h-4" />}
-            <span>{isSaved ? 'All Changes Saved!' : 'Save All Changes'}</span>
-          </button>
         </aside>
       </div>
 
