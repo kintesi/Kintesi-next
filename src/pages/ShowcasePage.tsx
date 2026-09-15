@@ -5,16 +5,11 @@ import { getProductsFromDB } from '../lib/dbService';
 import { useSettings, DEFAULT_SHOWCASES, ShowcaseType } from '../contexts/SettingsContext';
 import { ProductCard } from '../components/common/ProductCard';
 import {
-  Flame,
-  Star,
-  Sparkles,
-  Zap,
   ArrowLeft,
   ChevronRight,
   ShoppingBag,
   SlidersHorizontal,
   Home,
-  CheckCircle2,
 } from 'lucide-react';
 
 const ProductSkeleton: React.FC = () => (
@@ -163,41 +158,6 @@ export const ShowcasePage: React.FC<ShowcasePageProps> = ({ showcaseType }) => {
     return list;
   }, [rawShowcaseProducts, sortBy]);
 
-  // Styling & Theme per showcase type
-  const themeConfig = useMemo(() => {
-    switch (currentShowcase.type) {
-      case 'flash_sale':
-        return {
-          icon: <Zap className="w-5 h-5 fill-rose-600 text-rose-600" />,
-          badgeBg: 'bg-rose-50 text-rose-700 border-rose-200',
-          gradientBg: 'from-rose-50/70 via-white to-orange-50/40 border-rose-100',
-          pillColor: 'bg-rose-600',
-        };
-      case 'featured':
-        return {
-          icon: <Star className="w-5 h-5 fill-amber-500 text-amber-500" />,
-          badgeBg: 'bg-amber-50 text-amber-800 border-amber-200',
-          gradientBg: 'from-amber-50/60 via-white to-yellow-50/30 border-amber-100',
-          pillColor: 'bg-amber-500',
-        };
-      case 'new_arrival':
-        return {
-          icon: <Sparkles className="w-5 h-5 text-blue-600" />,
-          badgeBg: 'bg-blue-50 text-blue-700 border-blue-200',
-          gradientBg: 'from-blue-50/60 via-white to-sky-50/30 border-blue-100',
-          pillColor: 'bg-blue-600',
-        };
-      case 'trending':
-      default:
-        return {
-          icon: <Flame className="w-5 h-5 fill-rose-600 text-rose-600" />,
-          badgeBg: 'bg-rose-50 text-rose-700 border-rose-200',
-          gradientBg: 'from-rose-50/70 via-white to-red-50/40 border-rose-100',
-          pillColor: 'bg-rose-600',
-        };
-    }
-  }, [currentShowcase.type]);
-
   return (
     <div className="min-h-screen bg-gray-50/50 pb-20">
       {/* Top Breadcrumb Header */}
@@ -224,68 +184,30 @@ export const ShowcasePage: React.FC<ShowcasePageProps> = ({ showcaseType }) => {
         </div>
       </div>
 
-      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 pt-5 sm:pt-6 space-y-6">
-        {/* Showcase Hero Banner */}
-        <div
-          className={`relative rounded-3xl bg-gradient-to-br ${themeConfig.gradientBg} border shadow-[0_4px_20px_rgba(0,0,0,0.03)] p-6 sm:p-8 lg:p-10 overflow-hidden`}
-        >
-          <div className="relative z-10 max-w-2xl space-y-3">
-            <div
-              className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-[11px] font-bold border shadow-2xs ${themeConfig.badgeBg}`}
-            >
-              {themeConfig.icon}
-              <span className="uppercase tracking-wider">Official Curated Collection</span>
-            </div>
-
-            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black text-gray-950 tracking-tight leading-tight">
+      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 pt-5 sm:pt-6 space-y-5">
+        {/* Simple & Clean Header: Just the Title & Sort */}
+        <div className="flex items-center justify-between gap-3 pb-3 border-b border-gray-200/80">
+          <div className="flex items-center gap-2.5">
+            <h1 className="text-xl sm:text-2xl font-black text-gray-950 tracking-tight">
               {currentShowcase.title}
             </h1>
-
-            {currentShowcase.subtitle && (
-              <p className="text-xs sm:text-sm text-gray-600 leading-relaxed max-w-xl font-normal">
-                {currentShowcase.subtitle}
-              </p>
-            )}
-
-            <div className="flex items-center gap-4 pt-2 text-xs font-semibold text-gray-700">
-              <div className="flex items-center gap-1.5">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                <span>100% Genuine Products</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-rose-600" />
-                <span>
-                  {isLoading ? 'Loading items...' : `${finalProducts.length} Items in this Showcase`}
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Action Bar (Product Count & Sort Option) */}
-        <div className="bg-white rounded-2xl border border-gray-100 p-4 sm:px-6 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-700">
-            <span className="font-extrabold text-gray-950">
-              {isLoading ? 'Loading catalog...' : `${finalProducts.length} Products`}
+            <span className="text-xs font-bold text-gray-500 bg-white border border-gray-200/80 px-2.5 py-0.5 rounded-full shadow-2xs">
+              {isLoading ? '...' : `${finalProducts.length} items`}
             </span>
-            <span className="text-gray-400">•</span>
-            <span className="text-gray-500 text-xs">Exclusively in this showcase</span>
           </div>
 
-          <div className="flex items-center gap-3 self-end sm:self-auto">
-            <div className="flex items-center gap-2">
-              <SlidersHorizontal className="w-3.5 h-3.5 text-gray-400" />
-              <span className="text-xs text-gray-500 font-medium">Sort by:</span>
-            </div>
+          <div className="flex items-center gap-2">
+            <SlidersHorizontal className="w-3.5 h-3.5 text-gray-400 hidden sm:inline" />
+            <span className="text-xs text-gray-500 font-medium hidden sm:inline">Sort:</span>
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as any)}
-              className="text-xs font-bold text-gray-800 bg-gray-50 border border-gray-200 rounded-xl px-3 py-1.5 focus:outline-none focus:border-rose-500 transition cursor-pointer"
+              className="text-xs font-bold text-gray-800 bg-white border border-gray-200 rounded-xl px-3 py-1.5 focus:outline-none focus:border-rose-500 transition cursor-pointer shadow-2xs"
             >
-              <option value="default">Assigned Order (Default)</option>
+              <option value="default">Default</option>
               <option value="price_asc">Price: Low to High</option>
               <option value="price_desc">Price: High to Low</option>
-              <option value="name">Product Name (A-Z)</option>
+              <option value="name">Name (A-Z)</option>
             </select>
           </div>
         </div>
