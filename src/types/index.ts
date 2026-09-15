@@ -64,6 +64,8 @@ export interface Product {
   review_count: number;
   is_featured: boolean;
   is_trending?: boolean;
+  is_affiliate_enabled?: boolean;
+  affiliate_commission_rate?: number; // percentage (e.g. 10 for 10%)
   brand?: string;
   sku?: string;
   warranty?: string;
@@ -148,6 +150,9 @@ export interface Order {
   bank_receipt_note?: string;
   seller_payment_snapshot?: SellerPaymentConfig;
   customer_note?: string;
+  affiliate_code?: string;
+  affiliate_user_id?: string;
+  affiliate_commission_amount?: number;
   created_at: string;
 }
 
@@ -178,3 +183,49 @@ export interface CouponUsage {
   discount_amount: number;
   created_at: string;
 }
+
+export interface AffiliateUser {
+  id: string;
+  user_id?: string | null;
+  affiliate_code: string; // e.g. "KAF-78291"
+  name: string;
+  phone: string;
+  address: string;
+  email?: string;
+  status: 'pending' | 'approved' | 'rejected' | 'suspended';
+  total_clicks: number;
+  total_orders: number;
+  total_sales_amount: number;
+  total_commission_earned: number;
+  available_balance: number;
+  total_withdrawn: number;
+  payment_method?: 'bkash' | 'nagad' | 'rocket' | 'bank';
+  account_number?: string;
+  account_details?: string;
+  created_at: string;
+}
+
+export interface AffiliateWithdrawal {
+  id: string;
+  affiliate_id: string;
+  affiliate_code: string;
+  affiliate_name: string;
+  affiliate_phone: string;
+  amount: number;
+  payment_method: 'bkash' | 'nagad' | 'rocket' | 'bank';
+  account_number: string;
+  notes?: string;
+  status: 'pending' | 'approved' | 'rejected';
+  admin_trx_id?: string;
+  admin_note?: string;
+  created_at: string;
+  processed_at?: string;
+}
+
+export interface AffiliateClick {
+  id: string;
+  affiliate_code: string;
+  product_id?: string;
+  created_at: string;
+}
+

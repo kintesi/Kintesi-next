@@ -20,6 +20,7 @@ import {
   Palette,
   Sun,
   Moon,
+  Share2,
 } from 'lucide-react';
 import { AdminThemeProvider, useAdminTheme } from '../../contexts/AdminThemeContext';
 
@@ -116,6 +117,7 @@ const AdminLayoutInner: React.FC = () => {
       items: [
         { name: 'Hero & Flash Banners', path: '/admin/banners', icon: Sliders },
         { name: 'Discount Coupons', path: '/admin/coupons', icon: Tag },
+        { name: 'Affiliate Program', path: '/admin/affiliates', icon: Share2 },
       ],
     },
     {

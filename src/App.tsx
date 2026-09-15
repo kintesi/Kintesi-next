@@ -44,9 +44,33 @@ import { AdminTeam } from './pages/admin/AdminTeam';
 import { AdminBanners } from './pages/admin/AdminBanners';
 import { AdminLiveChat } from './pages/admin/AdminLiveChat';
 import { AdminPresets } from './pages/admin/AdminPresets';
+import { AdminAffiliates } from './pages/admin/AdminAffiliates';
+import { AffiliateDashboardPage } from './pages/AffiliateDashboardPage';
+import { setActiveAffiliateReferral, recordAffiliateClick } from './lib/affiliateService';
+import { useLocation } from 'react-router-dom';
 
 import { useAuth } from './contexts/AuthContext';
 import { AuthModal } from './components/auth/AuthModal';
+
+function AffiliateTracker() {
+  const location = useLocation();
+
+  React.useEffect(() => {
+    try {
+      const params = new URLSearchParams(location.search);
+      const affCode = params.get('aff') || params.get('ref');
+      if (affCode && affCode.trim()) {
+        const cleanCode = affCode.trim().toUpperCase();
+        setActiveAffiliateReferral(cleanCode);
+        recordAffiliateClick(cleanCode);
+      }
+    } catch {
+      // safe fallback
+    }
+  }, [location.search]);
+
+  return null;
+}
 
 const StorefrontLayout = () => {
   const { isAuthModalOpen, closeAuthModal, authModalMode } = useAuth();
@@ -69,6 +93,7 @@ const StorefrontLayout = () => {
 export function App() {
   return (
     <BrowserRouter>
+      <AffiliateTracker />
       <LanguageProvider>
         <AuthProvider>
           <SettingsProvider>
@@ -90,6 +115,7 @@ export function App() {
                           <Route path="/new-arrivals" element={<ShowcasePage showcaseType="new_arrival" />} />
                           <Route path="/product/:slug" element={<ProductDetailPage />} />
                           <Route path="/profile" element={<ProfilePage />} />
+                          <Route path="/affiliate" element={<AffiliateDashboardPage />} />
                           <Route path="/cart" element={<CartPage />} />
                           <Route path="/wishlist" element={<WishlistPage />} />
                           <Route path="/checkout" element={<CheckoutPage />} />
@@ -109,6 +135,7 @@ export function App() {
                           <Route path="products" element={<AdminProducts />} />
                           <Route path="presets" element={<AdminPresets />} />
                           <Route path="orders" element={<AdminOrders />} />
+                          <Route path="affiliates" element={<AdminAffiliates />} />
                           <Route path="coupons" element={<AdminCoupons />} />
                           <Route path="categories" element={<AdminCategories />} />
                           <Route path="chat" element={<AdminLiveChat />} />

@@ -3,7 +3,7 @@ import { supabase } from '../../lib/supabase';
 import { getOrdersFromDB, updateOrderInDB } from '../../lib/dbService';
 import { Order } from '../../types';
 import { formatPrice } from '../../lib/utils';
-import { Package, Truck, CheckCircle2, Clock, XCircle, Search, Eye, Printer, Trash2, Copy, Check, CreditCard, Landmark } from 'lucide-react';
+import { Package, Truck, CheckCircle2, Clock, XCircle, Search, Eye, Printer, Trash2, Copy, Check, CreditCard, Landmark, Share2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { InvoiceModal } from '../../components/invoice/InvoiceModal';
 
@@ -108,13 +108,18 @@ export const AdminOrders: React.FC = () => {
   };
 
   const filteredOrders = orders.filter((ord) => {
-    if (statusFilter !== 'all' && ord.order_status !== statusFilter) return false;
+    if (statusFilter === 'affiliate') {
+      if (!ord.affiliate_code) return false;
+    } else if (statusFilter !== 'all' && ord.order_status !== statusFilter) {
+      return false;
+    }
     if (searchQuery.trim() !== '') {
       const q = searchQuery.toLowerCase();
       return (
         ord.order_number.toLowerCase().includes(q) ||
         ord.customer_name.toLowerCase().includes(q) ||
-        ord.customer_phone.toLowerCase().includes(q)
+        ord.customer_phone.toLowerCase().includes(q) ||
+        (ord.affiliate_code && ord.affiliate_code.toLowerCase().includes(q))
       );
     }
     return true;
@@ -134,7 +139,7 @@ export const AdminOrders: React.FC = () => {
       {/* Filter Tabs & Search */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex flex-wrap gap-2">
-          {['all', 'pending', 'processing', 'shipped', 'delivered', 'cancelled'].map((st) => (
+          {['all', 'pending', 'processing', 'shipped', 'delivered', 'cancelled', 'affiliate'].map((st) => (
             <button
               key={st}
               onClick={() => setStatusFilter(st)}
@@ -144,7 +149,7 @@ export const AdminOrders: React.FC = () => {
                   : 'bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-white'
               }`}
             >
-              {st}
+              {st === 'affiliate' ? '🔗 Affiliate Orders' : st}
             </button>
           ))}
         </div>
@@ -186,7 +191,20 @@ export const AdminOrders: React.FC = () => {
               ) : (
                 filteredOrders.map((ord) => (
                   <tr key={ord.id || ord.order_number} className="hover:bg-gray-700/40 transition">
-                    <td className="p-4 font-mono font-bold text-white">#{ord.order_number}</td>
+                    <td className="p-4">
+                      <div className="space-y-1">
+                        <span className="font-mono font-bold text-white block">#{ord.order_number}</span>
+                        {ord.affiliate_code && (
+                          <div className="flex items-center gap-1 bg-rose-950/70 border border-rose-500/40 text-rose-300 px-1.5 py-0.5 rounded text-[10px] font-bold w-fit">
+                            <Share2 className="w-2.5 h-2.5 text-rose-400" />
+                            <span>Aff: {ord.affiliate_code}</span>
+                            {ord.affiliate_commission_amount ? (
+                              <span className="text-emerald-400 font-mono">({formatPrice(ord.affiliate_commission_amount)})</span>
+                            ) : null}
+                          </div>
+                        )}
+                      </div>
+                    </td>
                     <td className="p-4 text-gray-400">
                       {new Date(ord.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                     </td>
@@ -402,6 +420,27 @@ export const AdminOrders: React.FC = () => {
                 </div>
               )}
             </div>
+
+            {/* Affiliate Partner Attribution */}
+            {selectedOrder.affiliate_code && (
+              <div className="bg-rose-950/40 p-4 rounded-2xl border border-rose-500/30 text-xs space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-rose-300 font-bold uppercase text-[10px] flex items-center gap-1.5">
+                    <Share2 className="w-3.5 h-3.5 text-rose-400" />
+                    <span>Affiliate Partner Attribution (অ্যাফিলিয়েট রেফারেল)</span>
+                  </span>
+                  <span className="font-mono text-xs font-black text-rose-300 bg-rose-950 px-2.5 py-0.5 rounded-full border border-rose-600">
+                    {selectedOrder.affiliate_code}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between pt-1">
+                  <span className="text-gray-300">পার্টনার প্রাপ্য কমিশন:</span>
+                  <span className="font-mono text-sm font-black text-emerald-400">
+                    {formatPrice(selectedOrder.affiliate_commission_amount || 0)}
+                  </span>
+                </div>
+              </div>
+            )}
 
             {/* Items */}
             <div className="space-y-3">

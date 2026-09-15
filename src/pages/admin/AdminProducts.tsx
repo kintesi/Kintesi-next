@@ -38,6 +38,7 @@ import {
   UploadCloud,
   Loader2,
   Sliders,
+  Share2,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -138,6 +139,8 @@ export const AdminProducts: React.FC = () => {
     seller_custom_payment_note: '',
     is_featured: false,
     is_trending: false,
+    is_affiliate_enabled: false,
+    affiliate_commission_rate: '10',
     hasColorVariants: false,
     // Multiple Images & Color Photos
     imageUrl1: '',
@@ -315,6 +318,8 @@ export const AdminProducts: React.FC = () => {
       seller_custom_payment_note: '',
       is_featured: false,
       is_trending: false,
+      is_affiliate_enabled: false,
+      affiliate_commission_rate: '10',
       hasColorVariants: false,
       imageUrl1: '',
       imageUrl2: '',
@@ -474,6 +479,8 @@ export const AdminProducts: React.FC = () => {
       seller_custom_payment_note: prod.seller_payment?.custom_payment_note || '',
       is_featured: !!prod.is_featured,
       is_trending: !!prod.is_trending,
+      is_affiliate_enabled: !!prod.is_affiliate_enabled,
+      affiliate_commission_rate: prod.affiliate_commission_rate ? String(prod.affiliate_commission_rate) : '10',
       hasColorVariants: hasRealColors,
       imageUrl1: prod.images?.[0] || mappedVariants[0]?.imageUrl1 || '',
       imageUrl2: prod.images?.[1] || mappedVariants[0]?.imageUrl2 || '',
@@ -954,6 +961,8 @@ export const AdminProducts: React.FC = () => {
         custom_attributes: formData.customAttributes || [],
         is_featured: !!formData.is_featured,
         is_trending: !!formData.is_trending,
+        is_affiliate_enabled: !!formData.is_affiliate_enabled,
+        affiliate_commission_rate: formData.is_affiliate_enabled ? Number(formData.affiliate_commission_rate) || 10 : 0,
         rating: editingProduct?.rating || 5.0,
         review_count: editingProduct?.review_count || 0,
       };
@@ -1568,6 +1577,58 @@ export const AdminProducts: React.FC = () => {
                       />
                       <span>🔥 Mark as Trending Best-Seller</span>
                     </label>
+                  </div>
+                </div>
+
+                {/* Affiliate Program Configuration */}
+                <div className={`space-y-4 p-5 rounded-2xl border ${isLight ? 'bg-white border-emerald-200 shadow-xs' : 'bg-gray-950/60 border-emerald-500/20'}`}>
+                  <div className="flex items-center justify-between pb-2 border-b border-gray-800">
+                    <h4 className="text-xs font-black uppercase tracking-wider text-emerald-500 flex items-center gap-1.5">
+                      <Share2 className="w-4 h-4" /> Affiliate Program (অ্যাফিলিয়েট প্রোগ্রাম কমিশন)
+                    </h4>
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md border ${formData.is_affiliate_enabled ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/30' : 'bg-gray-800 text-gray-400 border-gray-700'}`}>
+                      {formData.is_affiliate_enabled ? '✓ Enabled for this product' : 'Disabled'}
+                    </span>
+                  </div>
+
+                  <div className="space-y-3">
+                    <label className={`flex items-center gap-3 cursor-pointer text-xs font-bold p-3 rounded-xl border transition ${isLight ? 'bg-emerald-50/50 border-emerald-200 text-gray-800 hover:border-emerald-300' : 'bg-emerald-950/20 border-emerald-500/30 text-emerald-200'}`}>
+                      <input
+                        type="checkbox"
+                        checked={formData.is_affiliate_enabled}
+                        onChange={(e) => setFormData({ ...formData, is_affiliate_enabled: e.target.checked })}
+                        className="w-4 h-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
+                      />
+                      <div>
+                        <span>এই প্রোডাক্টের জন্য অ্যাফিলিয়েট প্রোগ্রাম চালু করুন (Enable Affiliate Program)</span>
+                        <p className="text-[11px] font-normal text-gray-400 mt-0.5">
+                          অন থাকলে পার্টনাররা এই প্রোডাক্টের SKU দিয়ে লিংক তৈরি করতে পারবে এবং সেল হলে কমিশন পাবে। অফ থাকলে Non-Affiliate দেখাবে।
+                        </p>
+                      </div>
+                    </label>
+
+                    {formData.is_affiliate_enabled && (
+                      <div className={`p-4 rounded-xl border space-y-2 ${isLight ? 'bg-slate-50 border-emerald-200' : 'bg-gray-900 border-emerald-500/20'}`}>
+                        <label className={`block text-xs font-bold ${isLight ? 'text-gray-700' : 'text-gray-300'}`}>
+                          অ্যাফিলিয়েট কমিশন শতকরা হার (%) *
+                        </label>
+                        <div className="relative max-w-xs">
+                          <input
+                            type="number"
+                            min="1"
+                            max="100"
+                            placeholder="e.g. 10"
+                            value={formData.affiliate_commission_rate}
+                            onChange={(e) => setFormData({ ...formData, affiliate_commission_rate: e.target.value })}
+                            className={`w-full rounded-xl px-3.5 py-2 text-xs font-bold text-emerald-500 focus:outline-none focus:border-emerald-500 pr-8 ${isLight ? 'bg-white border border-gray-300' : 'bg-gray-950 border border-gray-700'}`}
+                          />
+                          <span className="absolute right-3 top-2 text-xs font-bold text-gray-400">%</span>
+                        </div>
+                        <p className="text-[11px] text-gray-500">
+                          টিপস: প্রোডাক্টের সেল মূল্যের এই শতাংশ পরিমাণ টাকা পার্টনারের ওয়ালেটে যোগ হবে।
+                        </p>
+                      </div>
+                    )}
                   </div>
                 </div>
 

@@ -8,6 +8,7 @@ import { useCoupons } from '../contexts/CouponContext';
 import { supabase } from '../lib/supabase';
 import { saveOrderToDB } from '../lib/dbService';
 import { formatPrice, generateOrderNumber } from '../lib/utils';
+import { getActiveAffiliateReferral, recordAffiliateSale } from '../lib/affiliateService';
 import {
   ShieldCheck,
   Truck,
@@ -370,6 +371,19 @@ export const CheckoutPage: React.FC = () => {
       selectedSize: item.selectedSize,
     }));
 
+    // Calculate Affiliate Commission if active referral exists
+    const activeAffCode = getActiveAffiliateReferral();
+    let computedCommission = 0;
+    if (activeAffCode) {
+      checkoutItems.forEach((ci) => {
+        if (ci.product?.is_affiliate_enabled) {
+          const rate = ci.product.affiliate_commission_rate || 10;
+          const itemTotal = (ci.customPrice || ci.product.discount_price || ci.product.price) * ci.quantity;
+          computedCommission += Math.round((itemTotal * rate) / 100);
+        }
+      });
+    }
+
     const orderData: any = {
       order_number: orderNumber,
       user_id: user?.id || null,
@@ -390,6 +404,8 @@ export const CheckoutPage: React.FC = () => {
       transaction_id: trxId.trim() || null,
       seller_payment_snapshot: {},
       customer_note: customerNote + (trxId ? ` | TrxID: ${trxId}` : ''),
+      affiliate_code: activeAffCode || null,
+      affiliate_commission_amount: computedCommission > 0 ? computedCommission : null,
     };
 
     try {
@@ -439,6 +455,15 @@ export const CheckoutPage: React.FC = () => {
         await saveOrderToDB(savedOrder);
       } catch (dbErr) {
         console.warn('saveOrderToDB fallback notice:', dbErr);
+      }
+
+      // Record Affiliate Referral Sale
+      if (activeAffCode && computedCommission > 0) {
+        try {
+          await recordAffiliateSale(activeAffCode, orderNumber, dynamicTotal, computedCommission);
+        } catch (affErr) {
+          console.warn('Affiliate record sale notice:', affErr);
+        }
       }
 
       // Automatically reduce product stock count on sale for purchased items

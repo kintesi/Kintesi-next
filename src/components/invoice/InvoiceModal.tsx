@@ -261,6 +261,12 @@ export const InvoiceModal: React.FC<InvoiceProps> = ({ order, onClose }) => {
                 <span>Grand Total</span>
                 <span className="text-rose-600 text-lg">{formatPrice(order.total_amount)}</span>
               </div>
+              {order.affiliate_code && (
+                <div className="pt-2 border-t border-gray-200 flex items-center justify-between text-[11px] text-gray-500 font-mono">
+                  <span>Affiliate Partner Ref:</span>
+                  <span className="font-bold text-gray-800">{order.affiliate_code}</span>
+                </div>
+              )}
             </div>
           </div>
 

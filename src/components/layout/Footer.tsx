@@ -93,6 +93,12 @@ export const Footer: React.FC = () => {
               <li><Link to="/shop?category=laptops-computers" className="text-gray-500 hover:text-rose-600 transition">Laptops</Link></li>
               <li><Link to="/shop?category=audio-headphones" className="text-gray-500 hover:text-rose-600 transition">Audio & Sound</Link></li>
               <li><Link to="/orders" className="text-gray-500 hover:text-rose-600 transition">Track Order</Link></li>
+              <li>
+                <Link to="/affiliate" className="text-rose-600 hover:text-rose-700 font-semibold transition flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                  Affiliate Program (ইনকাম পার্টনার)
+                </Link>
+              </li>
             </ul>
           </div>
 
@@ -138,7 +144,14 @@ export const Footer: React.FC = () => {
 
       {/* Bottom Bar */}
       <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 pt-8 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between text-xs text-gray-500 gap-4">
-        <p>© {new Date().getFullYear()} Kintesi. All rights reserved.</p>
+        <div className="flex flex-wrap items-center gap-3">
+          <p>© {new Date().getFullYear()} Kintesi. All rights reserved.</p>
+          <span className="text-gray-300">|</span>
+          <Link to="/affiliate" className="font-semibold text-rose-600 hover:text-rose-700 transition flex items-center gap-1.5 hover:underline">
+            <span className="w-2 h-2 rounded-full bg-rose-500"></span>
+            <span>অ্যাফিলিয়েট প্রোগ্রাম (Affiliate Partner)</span>
+          </Link>
+        </div>
         <p className="flex items-center gap-1.5">
           <span>Developed with</span>
           <Heart className="w-3.5 h-3.5 text-rose-500 fill-rose-500 inline" />

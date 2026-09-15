@@ -24,6 +24,7 @@ import {
   Settings,
   Globe,
   Check,
+  Share2,
 } from 'lucide-react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -233,6 +234,13 @@ export const ProfilePage: React.FC = () => {
           >
             {t('cart.continue')}
           </Link>
+          <Link
+            to="/affiliate"
+            className="w-full sm:w-auto px-6 py-3 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200/80 font-bold rounded-xl text-xs transition flex items-center justify-center gap-1.5"
+          >
+            <Share2 className="w-3.5 h-3.5" />
+            <span>অ্যাফিলিয়েট প্রোগ্রাম</span>
+          </Link>
         </div>
         <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
       </div>
@@ -308,7 +316,7 @@ export const ProfilePage: React.FC = () => {
         </div>
 
         {/* Quick Navigation Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-gray-100">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 border-t border-gray-100">
           <Link
             to="/orders"
             className="flex items-center justify-between p-3.5 rounded-2xl bg-gray-50/70 hover:bg-rose-50/40 border border-gray-100 hover:border-rose-200 transition group"
@@ -343,6 +351,29 @@ export const ProfilePage: React.FC = () => {
               </div>
             </div>
             <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-rose-600 group-hover:translate-x-0.5 transition" />
+          </Link>
+
+          <Link
+            to="/affiliate"
+            className="flex items-center justify-between p-3.5 rounded-2xl bg-rose-50/60 hover:bg-rose-100/70 border border-rose-200/70 hover:border-rose-300 transition group shadow-xs"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-white border border-rose-200 text-rose-600 flex items-center justify-center group-hover:bg-rose-600 group-hover:text-white transition shadow-xs">
+                <Share2 className="w-4 h-4" />
+              </div>
+              <div>
+                <div className="flex items-center gap-1.5">
+                  <h4 className="text-xs font-bold text-gray-900 group-hover:text-rose-600 transition">
+                    {language === 'bn' ? 'অ্যাফিলিয়েট প্রোগ্রাম' : 'Affiliate Program'}
+                  </h4>
+                  <span className="text-[9px] bg-rose-600 text-white font-black px-1.5 py-0.5 rounded-full uppercase tracking-wider">Earn</span>
+                </div>
+                <p className="text-[11px] text-rose-600/90 font-medium">
+                  {language === 'bn' ? 'রেফার করে কমিশন আয় করুন' : 'Earn commission by sharing'}
+                </p>
+              </div>
+            </div>
+            <ChevronRight className="w-4 h-4 text-rose-400 group-hover:text-rose-600 group-hover:translate-x-0.5 transition" />
           </Link>
         </div>
 
