@@ -24,6 +24,7 @@ export default defineConfig({
         manualChunks: {
           'vendor-react': ['react', 'react-dom', 'react-router-dom'],
           'vendor-supabase': ['@supabase/supabase-js'],
+          'vendor-firebase': ['firebase/app', 'firebase/auth', 'firebase/firestore', 'firebase/storage'],
           'vendor-icons': ['lucide-react'],
           'vendor-utils': ['clsx', 'tailwind-merge', 'sonner', 'canvas-confetti'],
         },

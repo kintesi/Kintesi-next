@@ -64,6 +64,9 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onWishlistTog
           alt={product.title}
           className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
           loading="lazy"
+          decoding="async"
+          width="300"
+          height="300"
         />
       </Link>
 
