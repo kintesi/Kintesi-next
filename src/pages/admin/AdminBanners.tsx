@@ -687,9 +687,9 @@ export const AdminBanners: React.FC = () => {
               </div>
 
               <Toggle
-                checked={currentShowcase.enabled !== false}
+                checked={Boolean(currentShowcase.enabled)}
                 onChange={(value) => updateShowcaseField('enabled', value)}
-                label={currentShowcase.enabled !== false ? 'Visible' : 'Hidden'}
+                label={Boolean(currentShowcase.enabled) ? 'Visible' : 'Hidden'}
               />
             </div>
 
@@ -722,7 +722,7 @@ export const AdminBanners: React.FC = () => {
                         <div className="truncate">
                           <span className="text-xs font-black block truncate">{s.title}</span>
                           <span className="text-[10px] text-slate-400">
-                            {s.enabled !== false ? '🟢 Visible' : '⚪ Hidden'}
+                            {Boolean(s.enabled) ? '🟢 Visible' : '⚪ Hidden'}
                           </span>
                         </div>
                       </div>

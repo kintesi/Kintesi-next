@@ -167,57 +167,16 @@ export const HomePage: React.FC = () => {
   );
 
   // 1. Featured Products:
-  // Starts with products marked is_featured by admin.
-  // If fewer than 12 products are marked, backfills with top catalog products so
-  // PC shows at least 10-12 products (full 4-column grid), and mobile shows at least 4 products.
-  const featuredProducts = useMemo(() => {
-    const explicitlyFeatured: Product[] = [];
-    const others: Product[] = [];
-    const seen = new Set<string>();
-
-    for (const p of products) {
-      if (!p || !p.id || seen.has(p.id)) continue;
-      seen.add(p.id);
-      if (Boolean(p.is_featured)) {
-        explicitlyFeatured.push(p);
-      } else {
-        others.push(p);
-      }
-    }
-
-    // Explicitly featured products come first, followed by others up to 12
-    const combined = [...explicitlyFeatured];
-    for (const p of others) {
-      if (combined.length >= 12) break;
-      combined.push(p);
-    }
-    return combined;
-  }, [products]);
-
-  const isFeaturedActive = Boolean(
-    banners.showFeaturedProducts === true &&
-    featuredProducts.length > 0
-  );
 
   // Active Showcase sections (Trending, Featured, New Arrival, Flash Sale)
+  // ONLY showcases explicitly enabled by admin will be shown.
   const activeShowcases = useMemo(() => {
     const rawList: ShowcaseSection[] = (banners.showcases && banners.showcases.length > 0)
       ? banners.showcases
-      : (banners.showFeaturedProducts
-          ? [
-              {
-                id: 'featured',
-                type: 'featured' as const,
-                title: banners.featuredProductsTitle || 'Featured Products',
-                subtitle: banners.featuredProductsSubtitle || '',
-                enabled: true,
-                productIds: [],
-              },
-            ]
-          : []);
+      : [];
 
     return rawList
-      .filter((s) => s.enabled !== false)
+      .filter((s) => Boolean(s.enabled) === true)
       .map((s) => {
         let showcaseProds: Product[] = [];
         if (s.productIds && s.productIds.length > 0) {
@@ -248,7 +207,7 @@ export const HomePage: React.FC = () => {
         };
       })
       .filter((item) => item.products.length > 0);
-  }, [banners.showcases, banners.showFeaturedProducts, banners.featuredProductsTitle, banners.featuredProductsSubtitle, products]);
+  }, [banners.showcases, products]);
 
   // 2. Personalized & Rotated Product Feed:
   // Recommended products (matching search intent / Google search / interests) are ranked 1st at the top!
@@ -419,7 +378,7 @@ export const HomePage: React.FC = () => {
         )}
 
         {/* 3. SHOWCASE STRIPS (Trending, Featured, New Arrival, Flash Sale - 4 per row with auto-slide) */}
-        {activeShowcases.length > 0 ? (
+        {activeShowcases.length > 0 && (
           <div className="px-3 space-y-4 pt-1">
             {activeShowcases.map(({ showcase, products: showProds }) => (
               <ShowcaseStrip
@@ -429,29 +388,6 @@ export const HomePage: React.FC = () => {
               />
             ))}
           </div>
-        ) : (
-          isFeaturedActive && (
-            <div className="px-3 space-y-2.5 pt-1">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-1.5">
-                  <Star className="w-4 h-4 fill-rose-600 text-rose-600" />
-                  <h3 className="text-sm font-bold text-gray-900">
-                    {banners.featuredProductsTitle || 'Featured Products'}
-                  </h3>
-                </div>
-                <Link to="/shop?featured=true" className="text-xs text-rose-600 font-bold flex items-center">
-                  <span>View All</span>
-                  <ChevronRight className="w-3.5 h-3.5" />
-                </Link>
-              </div>
-
-              <div className="grid grid-cols-2 gap-2.5">
-                {featuredProducts.slice(0, 4).map((product) => (
-                  <ProductCard key={product.id} product={product} />
-                ))}
-              </div>
-            </div>
-          )
         )}
 
         {/* 4. Product Feed with Progressive Infinite Scroll */}
@@ -718,7 +654,7 @@ export const HomePage: React.FC = () => {
         )}
 
         {/* 3. DESKTOP SHOWCASE STRIPS (Trending, Featured, New Arrival, Flash Sale) */}
-        {activeShowcases.length > 0 ? (
+        {activeShowcases.length > 0 && (
           <section className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
             {activeShowcases.map(({ showcase, products: showProds }) => (
               <ShowcaseStrip
@@ -728,33 +664,6 @@ export const HomePage: React.FC = () => {
               />
             ))}
           </section>
-        ) : (
-          isFeaturedActive && (
-            <section className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 space-y-5">
-              <div className="flex items-center justify-between border-b border-rose-100 pb-3">
-                <div className="flex items-center gap-2">
-                  <Star className="w-5 h-5 fill-rose-600 text-rose-600" />
-                  <h2 className="text-xl font-bold text-gray-900 tracking-tight">
-                    {banners.featuredProductsTitle || 'Featured Products'}
-                  </h2>
-                </div>
-
-                <Link
-                  to="/shop?featured=true"
-                  className="text-xs font-bold text-rose-600 hover:text-rose-700 transition flex items-center gap-1"
-                >
-                  <span>View All ({featuredProducts.length})</span>
-                  <ChevronRight className="w-4 h-4" />
-                </Link>
-              </div>
-
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                {featuredProducts.slice(0, 12).map((product) => (
-                  <ProductCard key={product.id} product={product} />
-                ))}
-              </div>
-            </section>
-          )
         )}
 
         {/* 4. DESKTOP PRODUCT FEED */}

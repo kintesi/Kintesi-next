@@ -111,7 +111,7 @@ export const DEFAULT_SHOWCASES: ShowcaseSection[] = [
     type: 'trending',
     title: 'Trending',
     subtitle: 'Popular products trending right now',
-    enabled: true,
+    enabled: false,
     productIds: [],
   },
   {
@@ -119,7 +119,7 @@ export const DEFAULT_SHOWCASES: ShowcaseSection[] = [
     type: 'featured',
     title: 'Featured',
     subtitle: 'Hand-picked selections for you',
-    enabled: true,
+    enabled: false,
     productIds: [],
   },
   {
@@ -127,7 +127,7 @@ export const DEFAULT_SHOWCASES: ShowcaseSection[] = [
     type: 'new_arrival',
     title: 'New Arrival',
     subtitle: 'Fresh new arrivals in our store',
-    enabled: true,
+    enabled: false,
     productIds: [],
   },
   {
