@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { Product, AffiliateUser, AffiliateWithdrawal, GeneratedAffiliateProduct } from '../types';
-import { getProductsFromDB } from '../lib/dbService';
+import { Product, AffiliateUser, AffiliateWithdrawal, GeneratedAffiliateProduct, Order } from '../types';
+import { getProductsFromDB, getOrdersFromDB } from '../lib/dbService';
 import {
   getAffiliatesFromDB,
   registerAffiliate,
@@ -34,6 +34,8 @@ import {
   Sparkles,
   HelpCircle,
   Trash2,
+  Truck,
+  Package,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
@@ -44,6 +46,7 @@ export const AffiliateDashboardPage: React.FC = () => {
   const [affiliates, setAffiliates] = useState<AffiliateUser[]>([]);
   const [currentAffiliate, setCurrentAffiliate] = useState<AffiliateUser | null>(null);
   const [withdrawals, setWithdrawals] = useState<AffiliateWithdrawal[]>([]);
+  const [orders, setOrders] = useState<Order[]>([]);
   const [generatedProducts, setGeneratedProducts] = useState<GeneratedAffiliateProduct[]>([]);
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
@@ -78,18 +81,55 @@ export const AffiliateDashboardPage: React.FC = () => {
   const [isSubmittingWithdraw, setIsSubmittingWithdraw] = useState(false);
 
   // Active Tab
-  const [activeTab, setActiveTab] = useState<'overview' | 'links' | 'withdraw'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'orders' | 'withdraw'>('overview');
+
+  // Compute Referral Orders & Delivery Commission Stats
+  const myReferralOrders = useMemo(() => {
+    if (!currentAffiliate?.affiliate_code) return [];
+    const code = currentAffiliate.affiliate_code.trim().toUpperCase();
+    return orders.filter(
+      (o) => o.affiliate_code && o.affiliate_code.trim().toUpperCase() === code
+    );
+  }, [orders, currentAffiliate?.affiliate_code]);
+
+  const pendingDeliveryOrders = useMemo(() => {
+    return myReferralOrders.filter(
+      (o) => o.order_status !== 'delivered' && o.order_status !== 'cancelled' && (o.order_status as string) !== 'returned'
+    );
+  }, [myReferralOrders]);
+
+  const deliveredOrders = useMemo(() => {
+    return myReferralOrders.filter((o) => o.order_status === 'delivered');
+  }, [myReferralOrders]);
+
+  const cancelledOrders = useMemo(() => {
+    return myReferralOrders.filter((o) => o.order_status === 'cancelled' || (o.order_status as string) === 'returned');
+  }, [myReferralOrders]);
+
+  const pendingCommissionAmount = useMemo(() => {
+    return pendingDeliveryOrders.reduce((sum, o) => {
+      return sum + (Number((o as any).affiliate_commission || o.affiliate_commission_amount) || 0);
+    }, 0);
+  }, [pendingDeliveryOrders]);
 
   const loadData = async () => {
     try {
-      const [prods, affs, withs] = await Promise.all([
+      const [prods, affs, withs, allOrders] = await Promise.all([
         getProductsFromDB(),
         getAffiliatesFromDB(),
         getWithdrawalsFromDB(),
+        getOrdersFromDB(),
       ]);
       setProducts(prods);
       setAffiliates(affs);
       setWithdrawals(withs);
+
+      const localOrders = JSON.parse(localStorage.getItem('kintesi_guest_orders') || '[]');
+      const combinedOrders = [
+        ...allOrders,
+        ...localOrders.filter((l: any) => !allOrders.some((o) => o.order_number === l.order_number)),
+      ];
+      setOrders(combinedOrders);
 
       // Identify if current user is an affiliate
       let matched: AffiliateUser | null = null;
@@ -555,10 +595,10 @@ export const AffiliateDashboardPage: React.FC = () => {
               </div>
             )}
 
-            {/* 4 Core Metric Cards */}
+            {/* 4 Core Metric Cards with Pending Delivery Focus */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
               
-              {/* 1. Available Balance */}
+              {/* 1. Available Balance (Only from delivered orders) */}
               <div className="bg-white p-5 rounded-2xl border border-rose-100 shadow-xs space-y-2 relative overflow-hidden">
                 <div className="flex items-center justify-between text-xs font-bold text-gray-500">
                   <span>Available Balance</span>
@@ -569,19 +609,44 @@ export const AffiliateDashboardPage: React.FC = () => {
                 <div className="text-xl sm:text-2xl font-black text-emerald-600">
                   {formatPrice(currentAffiliate.available_balance || 0)}
                 </div>
-                <button
-                  onClick={() => setActiveTab('withdraw')}
-                  className="text-xs font-bold text-rose-600 hover:text-rose-700 flex items-center gap-1 cursor-pointer pt-1"
-                >
-                  <span>Withdraw Funds</span>
-                  <ArrowRight className="w-3 h-3" />
-                </button>
+                <div className="flex items-center justify-between pt-1">
+                  <span className="text-[10px] text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded-md">
+                    Withdrawable Now
+                  </span>
+                  <button
+                    onClick={() => setActiveTab('withdraw')}
+                    className="text-xs font-bold text-rose-600 hover:text-rose-700 flex items-center gap-1 cursor-pointer"
+                  >
+                    <span>Withdraw</span>
+                    <ArrowRight className="w-3 h-3" />
+                  </button>
+                </div>
               </div>
 
-              {/* 2. Total Commission Earned */}
+              {/* 2. Pending Delivery Commission */}
+              <div className="bg-white p-5 rounded-2xl border border-amber-200/90 shadow-xs space-y-2 relative overflow-hidden bg-gradient-to-b from-white to-amber-50/30">
+                <div className="flex items-center justify-between text-xs font-bold text-amber-700">
+                  <span className="flex items-center gap-1.5">
+                    <Truck className="w-4 h-4 text-amber-600" />
+                    <span>Pending Commission</span>
+                  </span>
+                  <span className="w-2 h-2 rounded-full bg-amber-500 animate-ping" />
+                </div>
+                <div className="text-xl sm:text-2xl font-black text-amber-600">
+                  {formatPrice(pendingCommissionAmount)}
+                </div>
+                <p className="text-[11px] text-amber-800 font-medium">
+                  {pendingDeliveryOrders.length} {pendingDeliveryOrders.length === 1 ? 'order' : 'orders'} awaiting delivery
+                </p>
+                <p className="text-[10px] text-gray-400">
+                  Credited automatically upon delivery
+                </p>
+              </div>
+
+              {/* 3. Total Commission Earned (Delivered) */}
               <div className="bg-white p-5 rounded-2xl border border-rose-100 shadow-xs space-y-2">
                 <div className="flex items-center justify-between text-xs font-bold text-gray-500">
-                  <span>Total Commission</span>
+                  <span>Total Earned (Delivered)</span>
                   <div className="w-8 h-8 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center">
                     <DollarSign className="w-4 h-4" />
                   </div>
@@ -589,47 +654,37 @@ export const AffiliateDashboardPage: React.FC = () => {
                 <div className="text-xl sm:text-2xl font-black text-gray-900">
                   {formatPrice(currentAffiliate.total_commission_earned || 0)}
                 </div>
-                <p className="text-[11px] text-gray-400">
-                  Total Withdrawn: {formatPrice(currentAffiliate.total_withdrawn || 0)}
+                <p className="text-[11px] text-gray-500">
+                  {deliveredOrders.length} delivered referral orders
+                </p>
+                <p className="text-[10px] text-gray-400">
+                  Withdrawn: {formatPrice(currentAffiliate.total_withdrawn || 0)}
                 </p>
               </div>
 
-              {/* 3. Total Referral Orders */}
+              {/* 4. Total Orders & Clicks */}
               <div className="bg-white p-5 rounded-2xl border border-rose-100 shadow-xs space-y-2">
                 <div className="flex items-center justify-between text-xs font-bold text-gray-500">
-                  <span>Referral Orders</span>
+                  <span>Referral Performance</span>
                   <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
                     <ShoppingBag className="w-4 h-4" />
                   </div>
                 </div>
                 <div className="text-xl sm:text-2xl font-black text-gray-900">
-                  {currentAffiliate.total_orders || 0} Orders
+                  {myReferralOrders.length || currentAffiliate.total_orders || 0} Orders
                 </div>
-                <p className="text-[11px] text-gray-400">
-                  Sales Volume: {formatPrice(currentAffiliate.total_sales_amount || 0)}
+                <p className="text-[11px] text-gray-500 font-medium">
+                  {currentAffiliate.total_clicks || 0} link clicks
                 </p>
-              </div>
-
-              {/* 4. Total Clicks */}
-              <div className="bg-white p-5 rounded-2xl border border-rose-100 shadow-xs space-y-2">
-                <div className="flex items-center justify-between text-xs font-bold text-gray-500">
-                  <span>Total Link Clicks</span>
-                  <div className="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
-                    <TrendingUp className="w-4 h-4" />
-                  </div>
-                </div>
-                <div className="text-xl sm:text-2xl font-black text-gray-900">
-                  {currentAffiliate.total_clicks || 0} Clicks
-                </div>
-                <p className="text-[11px] text-emerald-600 font-bold">
-                  Active Link Tracking
+                <p className="text-[10px] text-gray-400">
+                  Sales: {formatPrice(currentAffiliate.total_sales_amount || 0)}
                 </p>
               </div>
 
             </div>
 
-            {/* Tab Navigation */}
-            <div className="flex items-center gap-2 border-b border-gray-200 pb-2">
+            {/* Tab Navigation (3 Tabs) */}
+            <div className="flex items-center gap-2 border-b border-gray-200 pb-2 flex-wrap">
               <button
                 onClick={() => setActiveTab('overview')}
                 className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
@@ -640,6 +695,23 @@ export const AffiliateDashboardPage: React.FC = () => {
               >
                 <ShoppingBag className="w-3.5 h-3.5" />
                 <span>My Products & Links ({generatedProducts.length})</span>
+              </button>
+
+              <button
+                onClick={() => setActiveTab('orders')}
+                className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 cursor-pointer ${
+                  activeTab === 'orders'
+                    ? 'bg-rose-600 text-white shadow-xs'
+                    : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'
+                }`}
+              >
+                <Truck className="w-3.5 h-3.5" />
+                <span>Referral Orders ({myReferralOrders.length})</span>
+                {pendingDeliveryOrders.length > 0 && (
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-400 text-amber-950">
+                    {pendingDeliveryOrders.length} Pending
+                  </span>
+                )}
               </button>
 
               <button
@@ -967,7 +1039,200 @@ export const AffiliateDashboardPage: React.FC = () => {
               </div>
             )}
 
-            {/* TAB CONTENT 2: WITHDRAW MONEY & HISTORY */}
+            {/* TAB CONTENT 2: REFERRAL ORDERS & PENDING DELIVERY STATUS */}
+            {activeTab === 'orders' && (
+              <div className="space-y-6">
+                
+                {/* Info Notice Banner explaining commission flow */}
+                <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 text-amber-900 flex items-start gap-3.5 shadow-xs">
+                  <div className="w-9 h-9 rounded-xl bg-amber-100/80 text-amber-700 flex items-center justify-center shrink-0 mt-0.5">
+                    <Truck className="w-5 h-5" />
+                  </div>
+                  <div className="space-y-1 text-xs">
+                    <h4 className="font-extrabold text-amber-950 text-sm flex items-center gap-2">
+                      <span>Delivery Commission Policy</span>
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-200 text-amber-900">
+                        Important
+                      </span>
+                    </h4>
+                    <p className="text-amber-800 leading-relaxed">
+                      All referral commissions are held under <b>"Pending Delivery"</b> when a customer places an order. As soon as admin confirms the order as <b>"Delivered"</b>, the commission is immediately credited to your <b>Available Balance</b> and becomes ready for withdrawal. Cancelled orders will not receive commission.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Orders Listing Card */}
+                <div className="bg-white rounded-3xl border border-rose-100 p-6 sm:p-8 shadow-sm space-y-5">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-gray-100">
+                    <div>
+                      <h3 className="text-base font-extrabold text-gray-900 flex items-center gap-2">
+                        <ShoppingBag className="w-4 h-4 text-rose-600" />
+                        <span>Referral Orders History</span>
+                      </h3>
+                      <p className="text-xs text-gray-500 mt-0.5">
+                        Track every order generated through your affiliate referral links and monitor real-time delivery status.
+                      </p>
+                    </div>
+
+                    {/* Quick Counts Badges */}
+                    <div className="flex items-center gap-2 flex-wrap text-xs">
+                      <span className="px-3 py-1 bg-emerald-50 text-emerald-700 font-bold rounded-lg border border-emerald-200">
+                        {deliveredOrders.length} Delivered
+                      </span>
+                      <span className="px-3 py-1 bg-amber-50 text-amber-700 font-bold rounded-lg border border-amber-200">
+                        {pendingDeliveryOrders.length} Awaiting Delivery
+                      </span>
+                      {cancelledOrders.length > 0 && (
+                        <span className="px-3 py-1 bg-rose-50 text-rose-700 font-bold rounded-lg border border-rose-200">
+                          {cancelledOrders.length} Cancelled
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {myReferralOrders.length === 0 ? (
+                    <div className="text-center py-16 bg-gray-50/70 rounded-2xl p-6 space-y-3">
+                      <div className="w-12 h-12 rounded-2xl bg-rose-50 text-rose-500 mx-auto flex items-center justify-center">
+                        <Package className="w-6 h-6" />
+                      </div>
+                      <h4 className="text-sm font-bold text-gray-800">No referral orders yet</h4>
+                      <p className="text-xs text-gray-500 max-w-md mx-auto">
+                        You haven't received any orders through your affiliate links yet. Generate product affiliate links and share them with your audience to start earning!
+                      </p>
+                      <button
+                        onClick={() => setActiveTab('overview')}
+                        className="px-5 py-2.5 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-xl transition shadow-xs inline-flex items-center gap-2 cursor-pointer"
+                      >
+                        <Search className="w-3.5 h-3.5" />
+                        <span>Search Products & Get Links</span>
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left text-xs">
+                        <thead>
+                          <tr className="border-b border-gray-100 text-gray-400 uppercase tracking-wider text-[10px]">
+                            <th className="pb-3 font-bold">Order # & Date</th>
+                            <th className="pb-3 font-bold">Customer</th>
+                            <th className="pb-3 font-bold">Items</th>
+                            <th className="pb-3 font-bold">Order Value</th>
+                            <th className="pb-3 font-bold">Your Commission</th>
+                            <th className="pb-3 font-bold text-right">Delivery & Commission Status</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-50">
+                          {myReferralOrders.map((order) => {
+                            const comm = Number((order as any).affiliate_commission || order.affiliate_commission_amount) || 0;
+                            const isDelivered = order.order_status === 'delivered';
+                            const isCancelled = order.order_status === 'cancelled' || (order.order_status as string) === 'returned';
+
+                            return (
+                              <tr key={order.id || order.order_number} className="hover:bg-gray-50/60 transition">
+                                {/* Order # & Date */}
+                                <td className="py-3.5 pr-3">
+                                  <div className="font-mono font-black text-gray-900">
+                                    #{order.order_number}
+                                  </div>
+                                  <div className="text-[11px] text-gray-400 mt-0.5">
+                                    {order.created_at ? (() => {
+                                      try {
+                                        const d = new Date(order.created_at);
+                                        return isNaN(d.getTime()) ? '-' : d.toLocaleDateString('en-US', {
+                                          day: 'numeric',
+                                          month: 'short',
+                                          year: 'numeric',
+                                          hour: '2-digit',
+                                          minute: '2-digit',
+                                        });
+                                      } catch {
+                                        return '-';
+                                      }
+                                    })() : '-'}
+                                  </div>
+                                </td>
+
+                                {/* Customer (masked for privacy) */}
+                                <td className="py-3.5 pr-3">
+                                  <div className="font-semibold text-gray-800">
+                                    {order.customer_name || 'Customer'}
+                                  </div>
+                                  <div className="text-[10px] text-gray-400 font-mono">
+                                    {order.customer_phone
+                                      ? order.customer_phone.slice(0, 5) + '****' + order.customer_phone.slice(-2)
+                                      : 'Direct Order'}
+                                  </div>
+                                </td>
+
+                                {/* Items count & preview */}
+                                <td className="py-3.5 pr-3">
+                                  <span className="text-gray-700 font-medium">
+                                    {order.items && order.items.length > 0
+                                      ? `${order.items[0]?.title || 'Product'} ${
+                                          order.items.length > 1 ? `(+${order.items.length - 1} more)` : ''
+                                        }`
+                                      : '1 item'}
+                                  </span>
+                                </td>
+
+                                {/* Order Amount */}
+                                <td className="py-3.5 pr-3 font-black text-gray-900">
+                                  {formatPrice(order.total_amount)}
+                                </td>
+
+                                {/* Commission Amount */}
+                                <td className="py-3.5 pr-3">
+                                  <div className={`font-black text-sm ${isDelivered ? 'text-emerald-600' : isCancelled ? 'text-gray-400 line-through' : 'text-amber-600'}`}>
+                                    {formatPrice(comm)}
+                                  </div>
+                                </td>
+
+                                {/* Delivery & Commission Status */}
+                                <td className="py-3.5 text-right">
+                                  {isDelivered ? (
+                                    <div className="inline-flex flex-col items-end gap-0.5">
+                                      <span className="px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-emerald-50 text-emerald-700 border border-emerald-200 inline-flex items-center gap-1">
+                                        <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                                        <span>Delivered</span>
+                                      </span>
+                                      <span className="text-[10px] text-emerald-600 font-bold">
+                                        Credited to Balance
+                                      </span>
+                                    </div>
+                                  ) : isCancelled ? (
+                                    <div className="inline-flex flex-col items-end gap-0.5">
+                                      <span className="px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-gray-100 text-gray-600 border border-gray-200 inline-flex items-center gap-1">
+                                        <AlertCircle className="w-3 h-3 text-gray-400" />
+                                        <span>Cancelled</span>
+                                      </span>
+                                      <span className="text-[10px] text-gray-400">
+                                        No Commission
+                                      </span>
+                                    </div>
+                                  ) : (
+                                    <div className="inline-flex flex-col items-end gap-0.5">
+                                      <span className="px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-amber-50 text-amber-800 border border-amber-200 inline-flex items-center gap-1">
+                                        <Truck className="w-3 h-3 text-amber-600" />
+                                        <span className="capitalize">{order.order_status || 'Pending'}</span>
+                                      </span>
+                                      <span className="text-[10px] text-amber-700 font-bold">
+                                        Pending Delivery
+                                      </span>
+                                    </div>
+                                  )}
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+
+              </div>
+            )}
+
+            {/* TAB CONTENT 3: WITHDRAW MONEY & HISTORY */}
             {activeTab === 'withdraw' && (
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 
