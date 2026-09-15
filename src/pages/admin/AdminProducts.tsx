@@ -138,6 +138,7 @@ export const AdminProducts: React.FC = () => {
     seller_custom_payment_note: '',
     is_featured: false,
     is_trending: false,
+    hasColorVariants: false,
     // Multiple Images & Color Photos
     imageUrl1: '',
     imageUrl2: '',
@@ -314,6 +315,7 @@ export const AdminProducts: React.FC = () => {
       seller_custom_payment_note: '',
       is_featured: false,
       is_trending: false,
+      hasColorVariants: false,
       imageUrl1: '',
       imageUrl2: '',
       imageUrl3: '',
@@ -432,6 +434,12 @@ export const AdminProducts: React.FC = () => {
       });
     }
 
+    const hasRealColors = Boolean(
+      prod.colors &&
+      prod.colors.length > 0 &&
+      !prod.colors.every((c: any) => !c.name || c.name.toLowerCase() === 'default')
+    );
+
     setFormData({
       title: prod.title || '',
       slug: prod.slug || '',
@@ -466,10 +474,11 @@ export const AdminProducts: React.FC = () => {
       seller_custom_payment_note: prod.seller_payment?.custom_payment_note || '',
       is_featured: !!prod.is_featured,
       is_trending: !!prod.is_trending,
-      imageUrl1: prod.images?.[0] || '',
-      imageUrl2: prod.images?.[1] || '',
-      imageUrl3: prod.images?.[2] || '',
-      imageUrl4: prod.images?.[3] || '',
+      hasColorVariants: hasRealColors,
+      imageUrl1: prod.images?.[0] || mappedVariants[0]?.imageUrl1 || '',
+      imageUrl2: prod.images?.[1] || mappedVariants[0]?.imageUrl2 || '',
+      imageUrl3: prod.images?.[2] || mappedVariants[0]?.imageUrl3 || '',
+      imageUrl4: prod.images?.[3] || mappedVariants[0]?.imageUrl4 || '',
       colorVariants: mappedVariants,
       selectedSizes: prod.sizes || [],
       customSizeInput: '',
@@ -780,46 +789,67 @@ export const AdminProducts: React.FC = () => {
       const rawSlug = formData.slug?.trim() || cleanTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-');
       const slug = rawSlug.replace(/^-+|-+$/g, '') || ('product-' + Date.now());
 
-      // Collect all valid image URLs across all color variants
+      // Collect image URLs and compiled colors
       const allImages: string[] = [];
-      (formData.colorVariants || []).forEach((cv) => {
-        [cv.imageUrl1, cv.imageUrl2, cv.imageUrl3, cv.imageUrl4].forEach((url) => {
+      const compiledColors: ProductColorOption[] = [];
+
+      if (!formData.hasColorVariants) {
+        // Direct product photos without color variations
+        [formData.imageUrl1, formData.imageUrl2, formData.imageUrl3, formData.imageUrl4].forEach((url) => {
           const trimmed = (url || '').trim();
           if (trimmed && !allImages.includes(trimmed)) {
             allImages.push(trimmed);
           }
         });
-      });
-
-      // Extract color variants with individual 4 photos, custom price, discount & stock
-      const compiledColors: ProductColorOption[] = [];
-      (formData.colorVariants || []).forEach((cv) => {
-        const name = (cv.colorName || '').trim();
-        const colorImages = [cv.imageUrl1, cv.imageUrl2, cv.imageUrl3, cv.imageUrl4]
-          .map((u) => (u || '').trim())
-          .filter(Boolean);
-
-        const colorPriceNum = cv.price && !isNaN(Number(cv.price)) ? Number(cv.price) : priceNum;
-        const colorDiscountNum = cv.discount_percent && !isNaN(Number(cv.discount_percent)) ? Number(cv.discount_percent) : percentNum;
-        let calculatedColorDiscountPrice: number | null = null;
-        if (colorPriceNum && colorDiscountNum > 0 && colorDiscountNum < 100) {
-          calculatedColorDiscountPrice = Math.round(colorPriceNum - (colorPriceNum * colorDiscountNum) / 100);
-        }
-        const colorStockNum = cv.stock && !isNaN(Number(cv.stock)) ? Number(cv.stock) : (formData.stock ? Number(formData.stock) : 10);
-
-        if (name || colorImages.length > 0) {
-          compiledColors.push({
-            name: name || 'Default',
-            hex: cv.colorHex || '#EC4899',
-            price: colorPriceNum,
-            discount_price: calculatedColorDiscountPrice,
-            discount_percent: colorDiscountNum > 0 ? colorDiscountNum : null,
-            stock: colorStockNum,
-            image: colorImages[0] || null,
-            images: colorImages,
+        // Fallback if user previously had images in colorVariants[0]
+        if (allImages.length === 0 && formData.colorVariants && formData.colorVariants.length > 0) {
+          [formData.colorVariants[0].imageUrl1, formData.colorVariants[0].imageUrl2, formData.colorVariants[0].imageUrl3, formData.colorVariants[0].imageUrl4].forEach((url) => {
+            const trimmed = (url || '').trim();
+            if (trimmed && !allImages.includes(trimmed)) {
+              allImages.push(trimmed);
+            }
           });
         }
-      });
+      } else {
+        // Collect all valid image URLs across all color variants
+        (formData.colorVariants || []).forEach((cv) => {
+          [cv.imageUrl1, cv.imageUrl2, cv.imageUrl3, cv.imageUrl4].forEach((url) => {
+            const trimmed = (url || '').trim();
+            if (trimmed && !allImages.includes(trimmed)) {
+              allImages.push(trimmed);
+            }
+          });
+        });
+
+        // Extract color variants with individual 4 photos, custom price, discount & stock
+        (formData.colorVariants || []).forEach((cv) => {
+          const name = (cv.colorName || '').trim();
+          const colorImages = [cv.imageUrl1, cv.imageUrl2, cv.imageUrl3, cv.imageUrl4]
+            .map((u) => (u || '').trim())
+            .filter(Boolean);
+
+          const colorPriceNum = cv.price && !isNaN(Number(cv.price)) ? Number(cv.price) : priceNum;
+          const colorDiscountNum = cv.discount_percent && !isNaN(Number(cv.discount_percent)) ? Number(cv.discount_percent) : percentNum;
+          let calculatedColorDiscountPrice: number | null = null;
+          if (colorPriceNum && colorDiscountNum > 0 && colorDiscountNum < 100) {
+            calculatedColorDiscountPrice = Math.round(colorPriceNum - (colorPriceNum * colorDiscountNum) / 100);
+          }
+          const colorStockNum = cv.stock && !isNaN(Number(cv.stock)) ? Number(cv.stock) : (formData.stock ? Number(formData.stock) : 10);
+
+          if (name || colorImages.length > 0) {
+            compiledColors.push({
+              name: name || 'Default',
+              hex: cv.colorHex || '#EC4899',
+              price: colorPriceNum,
+              discount_price: calculatedColorDiscountPrice,
+              discount_percent: colorDiscountNum > 0 ? colorDiscountNum : null,
+              stock: colorStockNum,
+              image: colorImages[0] || null,
+              images: colorImages,
+            });
+          }
+        });
+      }
 
       const highlightsList = [formData.highlight1, formData.highlight2, formData.highlight3]
         .map((h) => String(h || '').trim())
@@ -1333,7 +1363,7 @@ export const AdminProducts: React.FC = () => {
           <div className={`flex items-center gap-1 border-b ${isLight ? 'border-gray-200 bg-slate-50/80' : 'border-gray-800 bg-gray-900/60'} px-4 sm:px-8 py-2 overflow-x-auto no-scrollbar shrink-0`}>
             {[
               { id: 'general', label: '📦 General & Pricing', desc: 'Title, Price & Stock' },
-              { id: 'variants', label: '🎨 Colors, Photos & Pricing', count: (formData.colorVariants?.length || 0) + formData.selectedSizes.length },
+              { id: 'variants', label: formData.hasColorVariants ? '🎨 Colors, Photos & Pricing' : '📷 Photos, Sizes & Pricing', count: (formData.hasColorVariants ? (formData.colorVariants?.length || 0) : ([formData.imageUrl1, formData.imageUrl2, formData.imageUrl3, formData.imageUrl4].filter(Boolean).length)) + formData.selectedSizes.length },
               { id: 'specs', label: '📋 Description & Specs', desc: 'Details & Specs' },
               { id: 'delivery', label: '🚚 Delivery & Payment', desc: 'Shipping & Payment' },
               { id: 'tags', label: '🏷️ Search Tags & Taxonomy', desc: 'Keywords' },
@@ -1644,16 +1674,102 @@ export const AdminProducts: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Section 2: Color Variants with Individual Pricing & 4 Photos Each */}
+                  {/* Section 2: Product Photos & Color Variation Mode */}
                   <div className="space-y-6">
-                    <div className="flex items-center justify-between gap-2 pb-2 border-b border-gray-800">
-                      <h4 className="text-xs font-black uppercase tracking-wider text-rose-400 flex items-center gap-1.5">
-                        <Palette className="w-4 h-4" /> Color Variants & 4 Photos Per Color
-                      </h4>
-                      <span className="text-[10px] bg-rose-500/10 text-rose-300 font-bold px-2.5 py-1 rounded-full border border-rose-500/20 shrink-0">
-                        4 Photos Per Variant
-                      </span>
+                    {/* Mode Switcher: Standard (No Color) vs Color Variants */}
+                    <div className={`p-4 rounded-2xl border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 ${isLight ? 'bg-white border-gray-200 shadow-xs' : 'bg-gray-900/70 border-gray-800'}`}>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <ImageIcon className="w-4 h-4 text-rose-500" />
+                          <h4 className={`text-xs font-black uppercase tracking-wider ${isLight ? 'text-gray-900' : 'text-white'}`}>
+                            Image Upload & Color Variation Mode
+                          </h4>
+                        </div>
+                        <p className={`text-xs mt-0.5 ${isLight ? 'text-gray-500' : 'text-gray-400'}`}>
+                          যেসব প্রোডাক্টে কালার অপশন দেওয়ার দরকার নেই, সেগুলোতে "Standard (No Color)" সিলেক্ট করে সরাসরি ছবি আপলোড করুন
+                        </p>
+                      </div>
+
+                      <div className={`inline-flex p-1 rounded-xl border shrink-0 ${isLight ? 'bg-slate-100 border-gray-200' : 'bg-gray-950 border-gray-800'}`}>
+                        <button
+                          type="button"
+                          onClick={() => setFormData((prev) => ({ ...prev, hasColorVariants: false }))}
+                          className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
+                            !formData.hasColorVariants
+                              ? 'bg-rose-600 text-white shadow-xs'
+                              : isLight ? 'text-gray-600 hover:text-gray-900' : 'text-gray-400 hover:text-white'
+                          }`}
+                        >
+                          <ImageIcon className="w-3.5 h-3.5" />
+                          <span>Standard (No Color / কোনো কালার ছাড়া)</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setFormData((prev) => ({ ...prev, hasColorVariants: true }))}
+                          className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
+                            formData.hasColorVariants
+                              ? 'bg-rose-600 text-white shadow-xs'
+                              : isLight ? 'text-gray-600 hover:text-gray-900' : 'text-gray-400 hover:text-white'
+                          }`}
+                        >
+                          <Palette className="w-3.5 h-3.5" />
+                          <span>With Colors (কালার ভ্যারিয়েন্ট সহ)</span>
+                        </button>
+                      </div>
                     </div>
+
+                    {!formData.hasColorVariants ? (
+                      /* Mode A: Direct 4-Photo Uploader (No Color Selection Required) */
+                      <div className={`space-y-4 p-5 rounded-2xl border ${isLight ? 'bg-white border-gray-200 shadow-xs' : 'bg-gray-950/80 border-gray-800 shadow-md'}`}>
+                        <div className={`flex items-center justify-between gap-2 pb-2 border-b ${isLight ? 'border-gray-200' : 'border-gray-800'}`}>
+                          <div>
+                            <h4 className="text-xs font-black uppercase tracking-wider text-rose-500 flex items-center gap-1.5">
+                              <ImageIcon className="w-4 h-4" /> Product Photos (Direct Upload / কোনো কালার ছাড়া)
+                            </h4>
+                            <p className="text-[11px] text-gray-500 mt-0.5">
+                              কাস্টমার প্রোডাক্ট পেইজে সরাসরি এই ছবিগুলো দেখতে পাবে, কোনো কালার অপশন সিলেক্ট করতে হবে না
+                            </p>
+                          </div>
+                          <span className="text-[10px] bg-rose-500/10 text-rose-400 font-bold px-2.5 py-1 rounded-full border border-rose-500/20 shrink-0">
+                            4 Photo Slots
+                          </span>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3.5">
+                          <ImageUploader
+                            label="Photo 1 (Main Cover) *"
+                            value={formData.imageUrl1}
+                            onChange={(url) => setFormData((prev) => ({ ...prev, imageUrl1: url }))}
+                            required
+                          />
+                          <ImageUploader
+                            label="Photo 2 (Side / Angle)"
+                            value={formData.imageUrl2}
+                            onChange={(url) => setFormData((prev) => ({ ...prev, imageUrl2: url }))}
+                          />
+                          <ImageUploader
+                            label="Photo 3 (Detail / Lifestyle)"
+                            value={formData.imageUrl3}
+                            onChange={(url) => setFormData((prev) => ({ ...prev, imageUrl3: url }))}
+                          />
+                          <ImageUploader
+                            label="Photo 4 (Close-up / Extra)"
+                            value={formData.imageUrl4}
+                            onChange={(url) => setFormData((prev) => ({ ...prev, imageUrl4: url }))}
+                          />
+                        </div>
+                      </div>
+                    ) : (
+                      /* Mode B: Color Variants with Individual Pricing & 4 Photos Each */
+                      <div className="space-y-6">
+                        <div className={`flex items-center justify-between gap-2 pb-2 border-b ${isLight ? 'border-gray-200' : 'border-gray-800'}`}>
+                          <h4 className="text-xs font-black uppercase tracking-wider text-rose-400 flex items-center gap-1.5">
+                            <Palette className="w-4 h-4" /> Color Variants & 4 Photos Per Color
+                          </h4>
+                          <span className="text-[10px] bg-rose-500/10 text-rose-300 font-bold px-2.5 py-1 rounded-full border border-rose-500/20 shrink-0">
+                            4 Photos Per Variant
+                          </span>
+                        </div>
 
                     {/* Color Variant Cards */}
                     <div className="space-y-6">
@@ -1902,6 +2018,8 @@ export const AdminProducts: React.FC = () => {
                       </div>
                     </div>
                   </div>
+                )}
+              </div>
 
                   {/* Section 3: Sizes & Capacities */}
                   <div className="space-y-4 bg-gray-950/60 p-5 rounded-2xl border border-purple-500/30 shadow-xs">

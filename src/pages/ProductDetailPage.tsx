@@ -77,7 +77,14 @@ export const ProductDetailPage: React.FC = () => {
   // Touch Swipe Gesture State for Product Images
   const [touchStartX, setTouchStartX] = useState<number | null>(null);
   const [touchStartY, setTouchStartY] = useState<number | null>(null);
-  const activeColorObj = product?.colors?.find((c) => c.name === selectedColor);
+
+  const isRealColorList = Boolean(
+    product?.colors &&
+    product.colors.length > 0 &&
+    !product.colors.every((c) => !c.name || c.name.toLowerCase() === 'default')
+  );
+
+  const activeColorObj = isRealColorList ? product?.colors?.find((c) => c.name === selectedColor) : null;
   const colorSpecificImages = (activeColorObj?.images && activeColorObj.images.length > 0)
     ? activeColorObj.images
     : (activeColorObj?.image ? [activeColorObj.image] : null);
@@ -199,9 +206,16 @@ export const ProductDetailPage: React.FC = () => {
           trackProductView(localProd);
           setSelectedImage(localProd.images?.[0] || '/logo.webp');
           if (localProd.sizes && localProd.sizes.length > 0) setSelectedSize(localProd.sizes[0]);
-          if (localProd.colors && localProd.colors.length > 0) {
+          const hasRealColorsLocal = Boolean(
+            localProd.colors &&
+            localProd.colors.length > 0 &&
+            !localProd.colors.every((c) => !c.name || c.name.toLowerCase() === 'default')
+          );
+          if (hasRealColorsLocal && localProd.colors && localProd.colors.length > 0) {
             setSelectedColor(localProd.colors[0].name);
             if (localProd.colors[0].image) setSelectedImage(localProd.colors[0].image);
+          } else {
+            setSelectedColor('');
           }
           const customAttrs: any[] = localProd.custom_attributes || (localProd.specifications as any)?.custom_attributes || [];
           if (customAttrs.length > 0) {
@@ -225,12 +239,19 @@ export const ProductDetailPage: React.FC = () => {
           trackProductView(found);
           setSelectedImage(found.images?.[0] || '/logo.webp');
           if (found.sizes && found.sizes.length > 0) setSelectedSize(found.sizes[0]);
-          if (found.colors && found.colors.length > 0) {
+          const hasRealColorsFound = Boolean(
+            found.colors &&
+            found.colors.length > 0 &&
+            !found.colors.every((c) => !c.name || c.name.toLowerCase() === 'default')
+          );
+          if (hasRealColorsFound && found.colors && found.colors.length > 0) {
             setSelectedColor(found.colors[0].name);
             const firstColorImg = (found.colors[0].images && found.colors[0].images.length > 0)
               ? found.colors[0].images[0]
               : found.colors[0].image;
             if (firstColorImg) setSelectedImage(firstColorImg);
+          } else {
+            setSelectedColor('');
           }
           const customAttrs: any[] = found.custom_attributes || (found.specifications as any)?.custom_attributes || [];
           if (customAttrs.length > 0) {
@@ -389,7 +410,7 @@ export const ProductDetailPage: React.FC = () => {
     addToCart(
       product,
       quantity,
-      selectedColor,
+      isRealColorList ? selectedColor : undefined,
       combinedSizeOrAttrs || selectedSize,
       activeVariantPrice || undefined,
       selectedImage || activeVariantImage
@@ -412,7 +433,7 @@ export const ProductDetailPage: React.FC = () => {
     addToCart(
       product,
       quantity,
-      selectedColor,
+      isRealColorList ? selectedColor : undefined,
       combinedSizeOrAttrs || selectedSize,
       activeVariantPrice || undefined,
       selectedImage || activeVariantImage
@@ -602,7 +623,7 @@ export const ProductDetailPage: React.FC = () => {
             <div className="bg-white rounded-2xl sm:rounded-3xl border border-gray-100 p-4 sm:p-6 shadow-xs space-y-4">
               
               {/* Color Selection */}
-              {product.colors && product.colors.length > 0 && (
+              {isRealColorList && product.colors && product.colors.length > 0 && (
                 <div className="space-y-2.5">
                   <div className="flex items-center justify-between text-xs font-bold">
                     <span className="text-gray-500 uppercase tracking-wider text-[11px]">Color:</span>
