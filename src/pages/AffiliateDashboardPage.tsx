@@ -175,8 +175,8 @@ export const AffiliateDashboardPage: React.FC = () => {
       (p) =>
         (p.sku && p.sku.toLowerCase() === q) ||
         (p.slug && p.slug.toLowerCase() === q) ||
-        (p.id && p.id.toLowerCase() === q) ||
-        p.title.toLowerCase().includes(q)
+        (p.id && String(p.id).toLowerCase() === q) ||
+        (p.title && p.title.toLowerCase().includes(q))
     );
     setSearchedProduct(found || null);
   };
@@ -294,13 +294,13 @@ export const AffiliateDashboardPage: React.FC = () => {
             {currentAffiliate && (
               <div className="flex items-center gap-3 bg-gray-50 border border-gray-200/90 px-3.5 py-2 rounded-2xl shadow-2xs">
                 <div className="w-9 h-9 rounded-xl bg-rose-50 text-rose-600 font-black text-sm flex items-center justify-center border border-rose-200 shrink-0">
-                  {currentAffiliate.name.charAt(0)}
+                  {(currentAffiliate.name || 'P').charAt(0).toUpperCase()}
                 </div>
                 <div className="text-left leading-tight">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="font-bold text-gray-900 text-xs sm:text-sm">{currentAffiliate.name}</span>
+                    <span className="font-bold text-gray-900 text-xs sm:text-sm">{currentAffiliate.name || 'Affiliate Partner'}</span>
                     <span className="px-2 py-0.5 bg-rose-100 text-rose-700 text-[10px] font-mono font-black rounded-md">
-                      {currentAffiliate.affiliate_code}
+                      {currentAffiliate.affiliate_code || 'KAF'}
                     </span>
                     {currentAffiliate.status === 'suspended' ? (
                       <span className="text-[10px] font-bold text-rose-700 bg-rose-50 border border-rose-200 px-2 py-0.5 rounded-full flex items-center gap-1">
@@ -315,10 +315,10 @@ export const AffiliateDashboardPage: React.FC = () => {
                     )}
                   </div>
                   <div className="text-[11px] text-gray-500 flex items-center gap-2 mt-1">
-                    <span>{currentAffiliate.phone}</span>
+                    <span>{currentAffiliate.phone || '-'}</span>
                     <span>•</span>
                     <span className="text-gray-700 font-medium">
-                      Payout: <strong className="uppercase">{currentAffiliate.payment_method}</strong> ({currentAffiliate.account_number || currentAffiliate.phone})
+                      Payout: <strong className="uppercase">{currentAffiliate.payment_method || 'bKash'}</strong> ({currentAffiliate.account_number || currentAffiliate.phone || '-'})
                     </span>
                   </div>
                 </div>
@@ -882,11 +882,18 @@ export const AffiliateDashboardPage: React.FC = () => {
                           {myWithdrawals.map((w) => (
                             <tr key={w.id} className="hover:bg-gray-50/50">
                               <td className="py-3 text-gray-600 font-medium">
-                                {new Date(w.created_at).toLocaleDateString('en-US', {
-                                  day: 'numeric',
-                                  month: 'short',
-                                  year: 'numeric',
-                                })}
+                                {w.created_at ? (() => {
+                                  try {
+                                    const d = new Date(w.created_at);
+                                    return isNaN(d.getTime()) ? '-' : d.toLocaleDateString('en-US', {
+                                      day: 'numeric',
+                                      month: 'short',
+                                      year: 'numeric',
+                                    });
+                                  } catch {
+                                    return '-';
+                                  }
+                                })() : '-'}
                               </td>
                               <td className="py-3 font-black text-gray-900">
                                 {formatPrice(w.amount)}

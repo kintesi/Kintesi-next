@@ -88,23 +88,24 @@ export const AdminAffiliates: React.FC = () => {
 
   // Compute Overview Stats
   const totalAffiliates = affiliates.length;
-  const totalSales = affiliates.reduce((sum, a) => sum + (a.total_sales_amount || 0), 0);
-  const totalCommission = affiliates.reduce((sum, a) => sum + (a.total_commission_earned || 0), 0);
-  const pendingWithdrawals = withdrawals.filter((w) => w.status === 'pending');
-  const pendingWithdrawalAmount = pendingWithdrawals.reduce((sum, w) => sum + w.amount, 0);
+  const totalSales = affiliates.reduce((sum, a) => sum + (Number(a?.total_sales_amount) || 0), 0);
+  const totalCommission = affiliates.reduce((sum, a) => sum + (Number(a?.total_commission_earned) || 0), 0);
+  const pendingWithdrawals = withdrawals.filter((w) => w && w.status === 'pending');
+  const pendingWithdrawalAmount = pendingWithdrawals.reduce((sum, w) => sum + (Number(w?.amount) || 0), 0);
 
   // Orders attributed to affiliates
-  const affiliateOrders = orders.filter((o) => Boolean(o.affiliate_code));
+  const affiliateOrders = orders.filter((o) => o && Boolean(o.affiliate_code));
 
   // Filtered Partners
   const filteredAffiliates = affiliates.filter((a) => {
-    const q = partnerSearch.trim().toLowerCase();
+    if (!a) return false;
+    const q = (partnerSearch || '').trim().toLowerCase();
     if (!q) return true;
     return (
-      a.name.toLowerCase().includes(q) ||
-      a.phone.toLowerCase().includes(q) ||
-      a.affiliate_code.toLowerCase().includes(q) ||
-      (a.email && a.email.toLowerCase().includes(q))
+      (a.name || '').toLowerCase().includes(q) ||
+      (a.phone || '').toLowerCase().includes(q) ||
+      (a.affiliate_code || '').toLowerCase().includes(q) ||
+      (a.email ? a.email.toLowerCase().includes(q) : false)
     );
   });
 
@@ -519,11 +520,18 @@ export const AdminAffiliates: React.FC = () => {
                   filteredWithdrawals.map((w) => (
                     <tr key={w.id} className="hover:bg-gray-500/5 transition">
                       <td className="p-4 text-gray-400 font-mono text-[11px]">
-                        {new Date(w.created_at).toLocaleDateString('en-GB', {
-                          day: 'numeric',
-                          month: 'short',
-                          year: 'numeric',
-                        })}
+                        {w.created_at ? (() => {
+                          try {
+                            const d = new Date(w.created_at);
+                            return isNaN(d.getTime()) ? '-' : d.toLocaleDateString('en-GB', {
+                              day: 'numeric',
+                              month: 'short',
+                              year: 'numeric',
+                            });
+                          } catch {
+                            return '-';
+                          }
+                        })() : '-'}
                       </td>
                       <td className="p-4">
                         <p className="font-bold text-gray-900 dark:text-white">{w.affiliate_name}</p>
@@ -623,10 +631,17 @@ export const AdminAffiliates: React.FC = () => {
                         #{ord.order_number}
                       </td>
                       <td className="p-4 text-gray-400 text-[11px]">
-                        {new Date(ord.created_at).toLocaleDateString('en-GB', {
-                          day: 'numeric',
-                          month: 'short',
-                        })}
+                        {ord.created_at ? (() => {
+                          try {
+                            const d = new Date(ord.created_at);
+                            return isNaN(d.getTime()) ? '-' : d.toLocaleDateString('en-GB', {
+                              day: 'numeric',
+                              month: 'short',
+                            });
+                          } catch {
+                            return '-';
+                          }
+                        })() : '-'}
                       </td>
                       <td className="p-4">
                         <p className="font-bold text-gray-900 dark:text-white">{ord.customer_name}</p>

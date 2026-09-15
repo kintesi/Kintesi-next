@@ -79,8 +79,18 @@ export async function getAffiliatesFromDB(): Promise<AffiliateUser[]> {
     console.warn('Supabase fetch affiliates notice:', err);
   }
 
+  const getTime = (d?: string) => {
+    if (!d) return 0;
+    try {
+      const t = new Date(d).getTime();
+      return isNaN(t) ? 0 : t;
+    } catch {
+      return 0;
+    }
+  };
+
   const result = Array.from(map.values()).sort(
-    (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    (a, b) => getTime(b?.created_at) - getTime(a?.created_at)
   );
 
   localStorage.setItem(AFFILIATES_CACHE_KEY, JSON.stringify(result));
@@ -330,8 +340,18 @@ export async function getWithdrawalsFromDB(): Promise<AffiliateWithdrawal[]> {
     console.warn('Supabase fetch withdrawals notice:', err);
   }
 
+  const getTime = (d?: string) => {
+    if (!d) return 0;
+    try {
+      const t = new Date(d).getTime();
+      return isNaN(t) ? 0 : t;
+    } catch {
+      return 0;
+    }
+  };
+
   const result = Array.from(map.values()).sort(
-    (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    (a, b) => getTime(b?.created_at) - getTime(a?.created_at)
   );
 
   localStorage.setItem(WITHDRAWALS_CACHE_KEY, JSON.stringify(result));

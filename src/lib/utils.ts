@@ -5,13 +5,25 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export function formatPrice(amount: number): string {
-  return new Intl.NumberFormat('en-BD', {
-    style: 'currency',
-    currency: 'BDT',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(amount).replace('BDT', '৳');
+export function formatPrice(amount: number | string | null | undefined): string {
+  let num: number;
+  if (typeof amount === 'string') {
+    const cleaned = amount.replace(/[^0-9.-]+/g, '');
+    num = parseFloat(cleaned);
+  } else {
+    num = Number(amount);
+  }
+  const safeAmount = isNaN(num) || !isFinite(num) ? 0 : num;
+  try {
+    return new Intl.NumberFormat('en-BD', {
+      style: 'currency',
+      currency: 'BDT',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(safeAmount).replace('BDT', '৳');
+  } catch {
+    return `৳${Math.round(safeAmount).toLocaleString('en-US')}`;
+  }
 }
 
 export function calculateDiscount(price: number, discountPrice?: number | null): number {

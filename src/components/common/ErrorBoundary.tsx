@@ -1,4 +1,4 @@
-﻿import React, { Component, ErrorInfo, ReactNode } from 'react';
+import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { RefreshCw, AlertTriangle, Home } from 'lucide-react';
 
 interface Props {
@@ -25,6 +25,10 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   private handleReload = () => {
+    try {
+      localStorage.removeItem('kintesi_affiliates_cache');
+      localStorage.removeItem('kintesi_affiliate_withdrawals_cache');
+    } catch {}
     window.location.reload();
   };
 
