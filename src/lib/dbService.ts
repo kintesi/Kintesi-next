@@ -278,19 +278,68 @@ export async function deleteCategoryFromDB(idOrSlug: string): Promise<void> {
 // 📋 ORDERS (Primary: Supabase Relational Ledger | Hot Backup: Firebase)
 // ==========================================
 
-export async function getOrdersFromDB(userId?: string): Promise<Order[]> {
+export function isUUID(str: string | null | undefined): boolean {
+  if (!str) return false;
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str.trim());
+}
+
+export function sanitizeOrderForSupabase(order: any): any {
+  const clean: Record<string, any> = {
+    order_number: order.order_number,
+    user_id: isUUID(order.user_id) ? order.user_id : null,
+    customer_name: order.customer_name || 'Guest Customer',
+    customer_email: order.customer_email || '',
+    customer_phone: order.customer_phone || '',
+    shipping_address: order.shipping_address || '',
+    city: order.city || '',
+    postal_code: order.postal_code || null,
+    customer_note: order.customer_note || null,
+    items: Array.isArray(order.items) ? order.items : [],
+    subtotal: Number(order.subtotal) || 0,
+    shipping_cost: Number(order.shipping_cost) || 0,
+    discount: Number(order.discount) || 0,
+    total_amount: Number(order.total_amount) || 0,
+    payment_method: order.payment_method || 'cod',
+    payment_status: order.payment_status || 'pending',
+    order_status: order.order_status || 'pending',
+    transaction_id: order.transaction_id || null,
+    coupon_code: order.coupon_code || null,
+    affiliate_code: order.affiliate_code || null,
+    affiliate_commission: Number(order.affiliate_commission || order.affiliate_commission_amount) || 0,
+  };
+
+  if (order.id && isUUID(order.id)) {
+    clean.id = order.id;
+  }
+
+  return clean;
+}
+
+export async function getOrdersFromDB(
+  userId?: string,
+  userEmail?: string,
+  userPhone?: string
+): Promise<Order[]> {
   // 1. Primary: Try Supabase
   try {
     let q = supabase.from('orders').select('*').order('created_at', { ascending: false });
-    if (userId) {
+    
+    // Only apply user_id filter if it's a valid Postgres UUID
+    if (userId && isUUID(userId)) {
       q = q.eq('user_id', userId);
+    } else if (userEmail) {
+      q = q.eq('customer_email', userEmail.trim().toLowerCase());
+    } else if (userPhone) {
+      q = q.eq('customer_phone', userPhone.trim());
     }
-    const result = await withTimeout<any>(q, 3500);
-    const supaOrders = result?.data;
-    const error = result?.error;
 
-    if (!error && supaOrders && supaOrders.length > 0) {
+    const { data: supaOrders, error } = await q;
+
+    if (!error && Array.isArray(supaOrders)) {
       return supaOrders;
+    }
+    if (error) {
+      console.warn('Supabase orders fetch note, trying backup:', error.message);
     }
   } catch (err) {
     console.warn('Supabase orders fetch failover to Firebase:', err);
@@ -314,7 +363,7 @@ export async function getOrdersFromDB(userId?: string): Promise<Order[]> {
       const snap = await getDocs(colRef);
       const all = snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) } as Order));
       if (userId) {
-        return all.filter((o) => o.user_id === userId);
+        return all.filter((o) => o.user_id === userId || (userEmail && o.customer_email?.toLowerCase() === userEmail.toLowerCase()));
       }
       return all;
     } catch {
@@ -323,12 +372,18 @@ export async function getOrdersFromDB(userId?: string): Promise<Order[]> {
   }
 }
 
-export async function saveOrderToDB(order: Order): Promise<void> {
+export async function saveOrderToDB(order: any): Promise<void> {
+  const cleanOrder = sanitizeOrderForSupabase(order);
+
   // 1. Primary: Save to Supabase (PostgreSQL Relational Ledger)
   try {
-    const { error } = await supabase.from('orders').upsert([order]);
+    const { error } = await supabase
+      .from('orders')
+      .upsert([cleanOrder], { onConflict: 'order_number' });
     if (error) {
       console.warn('Supabase order insert notice:', error.message);
+    } else {
+      console.log('Order successfully saved to Supabase:', cleanOrder.order_number);
     }
   } catch (err) {
     console.error('Supabase order save error:', err);
@@ -336,21 +391,56 @@ export async function saveOrderToDB(order: Order): Promise<void> {
 
   // 2. Real-time Backup: Save to Firebase Firestore
   try {
-    const docRef = doc(db, 'orders', order.id);
-    await setDoc(docRef, order);
+    const docId = cleanOrder.order_number || cleanOrder.id || `ord-${Date.now()}`;
+    const docRef = doc(db, 'orders', docId);
+    await setDoc(docRef, { ...order, ...cleanOrder });
   } catch (err) {
     console.error('Firestore save order backup error:', err);
   }
+
+  // 3. Notify all listeners in the app
+  try {
+    window.dispatchEvent(new CustomEvent('kintesi_orders_updated', { detail: cleanOrder }));
+  } catch {}
 }
 
 export async function updateOrderInDB(orderId: string, updates: Partial<Order>): Promise<void> {
+  // Only pass known Supabase columns in updates
+  const allowedCols = [
+    'order_status',
+    'payment_status',
+    'payment_method',
+    'customer_name',
+    'customer_email',
+    'customer_phone',
+    'shipping_address',
+    'city',
+    'postal_code',
+    'customer_note',
+    'transaction_id',
+    'total_amount',
+    'subtotal',
+    'discount',
+    'shipping_cost',
+    'items',
+    'affiliate_code',
+    'affiliate_commission',
+    'coupon_code',
+  ];
+
+  const cleanUpdates: Record<string, any> = {};
+  for (const [k, v] of Object.entries(updates)) {
+    if (allowedCols.includes(k)) {
+      cleanUpdates[k] = v;
+    }
+  }
+
   // 1. Primary: Update in Supabase by either id or order_number
   try {
-    const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(orderId);
-    if (isUUID) {
-      await supabase.from('orders').update(updates).eq('id', orderId);
+    if (isUUID(orderId)) {
+      await supabase.from('orders').update(cleanUpdates).eq('id', orderId);
     } else {
-      await supabase.from('orders').update(updates).eq('order_number', orderId);
+      await supabase.from('orders').update(cleanUpdates).eq('order_number', orderId);
     }
   } catch (err) {
     console.warn('Supabase update order warning:', err);
@@ -363,6 +453,11 @@ export async function updateOrderInDB(orderId: string, updates: Partial<Order>):
   } catch (err) {
     console.error('Firestore update order error:', err);
   }
+
+  // 3. Notify listeners
+  try {
+    window.dispatchEvent(new CustomEvent('kintesi_orders_updated'));
+  } catch {}
 }
 
 // ==========================================

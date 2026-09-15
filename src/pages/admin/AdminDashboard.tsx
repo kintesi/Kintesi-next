@@ -38,7 +38,16 @@ export const AdminDashboard: React.FC = () => {
         setLoading(false);
       }
     }
+
     loadStats();
+
+    window.addEventListener('kintesi_orders_updated', loadStats);
+    const interval = setInterval(loadStats, 15000);
+
+    return () => {
+      window.removeEventListener('kintesi_orders_updated', loadStats);
+      clearInterval(interval);
+    };
   }, []);
 
   const totalRevenue = orders.reduce((sum, ord) => sum + Number(ord.total_amount || 0), 0);

@@ -17,9 +17,28 @@ export const AdminOrders: React.FC = () => {
 
   const loadOrders = async () => {
     try {
-      const all = await getOrdersFromDB();
-      const local = JSON.parse(localStorage.getItem('kintesi_guest_orders') || '[]');
-      const combined = [...all, ...local.filter((l: any) => !all.some((o) => o.order_number === l.order_number))];
+      // 1. Direct fetch from Supabase
+      const { data: supaOrders, error: supaErr } = await supabase
+        .from('orders')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      let baseList: Order[] = [];
+      if (!supaErr && Array.isArray(supaOrders)) {
+        baseList = supaOrders;
+      } else {
+        baseList = await getOrdersFromDB();
+      }
+
+      // 2. Merge local guest orders if any
+      let local: any[] = [];
+      try {
+        local = JSON.parse(localStorage.getItem('kintesi_guest_orders') || '[]');
+      } catch {}
+      const combined = [
+        ...baseList,
+        ...local.filter((l: any) => !baseList.some((o) => o.order_number === l.order_number)),
+      ];
       setOrders(combined);
     } catch (err) {
       console.warn('Orders load note:', err);
@@ -28,6 +47,33 @@ export const AdminOrders: React.FC = () => {
 
   useEffect(() => {
     loadOrders();
+
+    // 1. Realtime Supabase changes listener
+    const channel = supabase
+      .channel('admin-orders-realtime-channel')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'orders' },
+        () => {
+          loadOrders();
+        }
+      )
+      .subscribe();
+
+    // 2. Local app event listener
+    const handleOrdersUpdated = () => {
+      loadOrders();
+    };
+    window.addEventListener('kintesi_orders_updated', handleOrdersUpdated);
+
+    // 3. Polling interval every 10 seconds so new orders always show up
+    const interval = setInterval(loadOrders, 10000);
+
+    return () => {
+      supabase.removeChannel(channel);
+      window.removeEventListener('kintesi_orders_updated', handleOrdersUpdated);
+      clearInterval(interval);
+    };
   }, []);
 
   const handleDeleteOrder = async (orderNumber: string) => {

@@ -58,10 +58,20 @@ export const MyOrdersPage: React.FC = () => {
 
       setLoading(true);
       try {
-        const data = await getOrdersFromDB(user.id);
-        if (data) {
-          setOrders(data);
-        }
+        const data = await getOrdersFromDB(user.id, user.email, profile?.phone);
+        let local: any[] = [];
+        try {
+          local = JSON.parse(localStorage.getItem('kintesi_guest_orders') || '[]');
+        } catch {}
+        const userLocal = local.filter((o: any) => 
+          (user.email && o.customer_email?.toLowerCase() === user.email.toLowerCase()) ||
+          (profile?.phone && o.customer_phone === profile.phone)
+        );
+        const combined = [
+          ...(data || []),
+          ...userLocal.filter((l: any) => !(data || []).some((d) => d.order_number === l.order_number)),
+        ];
+        setOrders(combined);
       } catch (err) {
         console.warn('Orders load note:', err);
       } finally {
@@ -70,7 +80,11 @@ export const MyOrdersPage: React.FC = () => {
     }
 
     loadOrders();
-  }, [user]);
+    window.addEventListener('kintesi_orders_updated', loadOrders);
+    return () => {
+      window.removeEventListener('kintesi_orders_updated', loadOrders);
+    };
+  }, [user, profile?.phone]);
 
   const handleOpenReviewModal = (item: { productId: string; title: string; image: string }) => {
     setReviewingItem(item);

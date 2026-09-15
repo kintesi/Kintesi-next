@@ -6,7 +6,7 @@ import { useAddress } from '../contexts/AddressContext';
 import { useSettings } from '../contexts/SettingsContext';
 import { useCoupons } from '../contexts/CouponContext';
 import { supabase } from '../lib/supabase';
-import { saveOrderToDB } from '../lib/dbService';
+import { saveOrderToDB, sanitizeOrderForSupabase } from '../lib/dbService';
 import { formatPrice, generateOrderNumber } from '../lib/utils';
 import { getActiveAffiliateReferral, recordAffiliateSale, recordAffiliateOrderPlaced } from '../lib/affiliateService';
 import {
@@ -384,7 +384,7 @@ export const CheckoutPage: React.FC = () => {
       });
     }
 
-    const orderData: any = {
+    const cleanSupabaseOrder = sanitizeOrderForSupabase({
       order_number: orderNumber,
       user_id: user?.id || null,
       customer_name: name,
@@ -402,65 +402,53 @@ export const CheckoutPage: React.FC = () => {
       payment_status: paymentMethod === 'cod' ? 'pending' : 'paid',
       order_status: 'pending',
       transaction_id: trxId.trim() || null,
-      seller_payment_snapshot: {},
       customer_note: customerNote + (trxId ? ` | TrxID: ${trxId}` : ''),
+      coupon_code: appliedCoupon?.code || null,
       affiliate_code: activeAffCode || null,
       affiliate_commission: computedCommission > 0 ? computedCommission : 0,
-      affiliate_commission_amount: computedCommission > 0 ? computedCommission : 0,
-    };
+    });
 
     try {
-      const { data, error } = await supabase.from('orders').insert([orderData]).select().single();
+      // 1. Primary insert/upsert to Supabase with automatic conflict handling on order_number
+      let insertedOrder: any = cleanSupabaseOrder;
+      const { data, error } = await supabase
+        .from('orders')
+        .upsert([cleanSupabaseOrder], { onConflict: 'order_number' })
+        .select()
+        .single();
 
       if (error) {
-        console.warn('Supabase order insert notice, retrying core fields:', error.message);
-        // Fallback retry
-        const coreOrder = {
-          order_number: orderNumber,
-          user_id: user?.id || null,
-          customer_name: name,
-          customer_email: email,
-          customer_phone: phone,
-          shipping_address: completeShippingAddress,
-          city: `${city}${selectedThanaName ? ` (${selectedThanaName})` : ''}`,
-          postal_code: postalCode,
-          items: orderItems,
-          subtotal: checkoutSubtotal,
-          shipping_cost: dynamicShippingFee,
-          discount: checkoutDiscountAmount,
-          total_amount: dynamicTotal,
-          payment_method: paymentMethod,
-          payment_status: paymentMethod === 'cod' ? 'pending' : 'paid',
-          order_status: 'pending',
-          customer_note: orderData.customer_note,
-          affiliate_code: activeAffCode || null,
-          affiliate_commission: computedCommission > 0 ? computedCommission : 0,
-        };
-        const { error: retryErr } = await supabase.from('orders').insert([coreOrder]);
-        if (retryErr) {
-          console.error('Supabase retry insert notice:', retryErr.message);
-        }
+        console.warn('Supabase primary upsert notice:', error.message);
+      } else if (data) {
+        insertedOrder = data;
+        console.log('Order successfully inserted into Supabase:', orderNumber);
       }
 
-      // Sync local cache and Firestore safely
-      let existingOrders: any[] = [];
-      try {
-        existingOrders = JSON.parse(localStorage.getItem('kintesi_guest_orders') || '[]');
-      } catch {}
-      const savedOrder = { ...orderData, id: orderNumber, created_at: new Date().toISOString() };
-      try {
-        localStorage.setItem(
-          'kintesi_guest_orders',
-          JSON.stringify([savedOrder, ...(Array.isArray(existingOrders) ? existingOrders.slice(0, 50) : [])])
-        );
-      } catch {}
+      // 2. Sync to Firebase Firestore & local state via saveOrderToDB
+      const savedOrder = {
+        ...cleanSupabaseOrder,
+        id: insertedOrder?.id || orderNumber,
+        created_at: insertedOrder?.created_at || new Date().toISOString(),
+      };
       try {
         await saveOrderToDB(savedOrder);
       } catch (dbErr) {
         console.warn('saveOrderToDB fallback notice:', dbErr);
       }
 
-      // Record Affiliate Referral Sale
+      // 3. Sync local storage guest orders for offline fallback
+      let existingOrders: any[] = [];
+      try {
+        existingOrders = JSON.parse(localStorage.getItem('kintesi_guest_orders') || '[]');
+      } catch {}
+      try {
+        localStorage.setItem(
+          'kintesi_guest_orders',
+          JSON.stringify([savedOrder, ...(Array.isArray(existingOrders) ? existingOrders.slice(0, 50) : [])])
+        );
+      } catch {}
+
+      // 4. Record Affiliate Referral Sale (Held under Pending Delivery)
       if (activeAffCode) {
         try {
           await recordAffiliateOrderPlaced(activeAffCode, orderNumber, dynamicTotal, computedCommission);
@@ -508,8 +496,8 @@ export const CheckoutPage: React.FC = () => {
         localStorage.removeItem('kintesi_selected_checkout_items');
       } catch {}
 
-      navigate(`/order-success/${data?.order_number || orderNumber}`, {
-        state: { order: data || { ...orderData, id: orderNumber, created_at: new Date().toISOString() } },
+      navigate(`/order-success/${insertedOrder?.order_number || orderNumber}`, {
+        state: { order: savedOrder },
       });
     } catch (err: any) {
       console.error('Order error:', err);
