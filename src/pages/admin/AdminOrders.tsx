@@ -427,14 +427,14 @@ export const AdminOrders: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <span className="text-rose-300 font-bold uppercase text-[10px] flex items-center gap-1.5">
                     <Share2 className="w-3.5 h-3.5 text-rose-400" />
-                    <span>Affiliate Partner Attribution (অ্যাফিলিয়েট রেফারেল)</span>
+                    <span>Affiliate Partner Attribution</span>
                   </span>
                   <span className="font-mono text-xs font-black text-rose-300 bg-rose-950 px-2.5 py-0.5 rounded-full border border-rose-600">
                     {selectedOrder.affiliate_code}
                   </span>
                 </div>
                 <div className="flex items-center justify-between pt-1">
-                  <span className="text-gray-300">পার্টনার প্রাপ্য কমিশন:</span>
+                  <span className="text-gray-300">Partner Commission:</span>
                   <span className="font-mono text-sm font-black text-emerald-400">
                     {formatPrice(selectedOrder.affiliate_commission_amount || 0)}
                   </span>
