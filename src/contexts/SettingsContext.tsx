@@ -68,10 +68,24 @@ export interface BannerSettings {
   flashSaleLink?: string;
   flashSaleSlides?: FlashSaleSlide[];
 
-  // Featured Products Section
+  // Showcase Sections (Trending, Featured, New Arrival, Flash Sale)
+  showcases?: ShowcaseSection[];
+
+  // Legacy / Backward Compatibility fields
   showFeaturedProducts?: boolean;
   featuredProductsTitle?: string;
   featuredProductsSubtitle?: string;
+}
+
+export type ShowcaseType = 'trending' | 'featured' | 'new_arrival' | 'flash_sale';
+
+export interface ShowcaseSection {
+  id: string; // 'trending' | 'featured' | 'new_arrival' | 'flash_sale'
+  type: ShowcaseType;
+  title: string;
+  subtitle?: string;
+  enabled: boolean;
+  productIds: string[];
 }
 
 export interface StoreSettings {
@@ -90,6 +104,41 @@ export interface StoreSettings {
   authorizedAdmins: string[];
   banners: BannerSettings;
 }
+
+export const DEFAULT_SHOWCASES: ShowcaseSection[] = [
+  {
+    id: 'trending',
+    type: 'trending',
+    title: 'Trending',
+    subtitle: 'Popular products trending right now',
+    enabled: true,
+    productIds: [],
+  },
+  {
+    id: 'featured',
+    type: 'featured',
+    title: 'Featured',
+    subtitle: 'Hand-picked selections for you',
+    enabled: true,
+    productIds: [],
+  },
+  {
+    id: 'new_arrival',
+    type: 'new_arrival',
+    title: 'New Arrival',
+    subtitle: 'Fresh new arrivals in our store',
+    enabled: true,
+    productIds: [],
+  },
+  {
+    id: 'flash_sale',
+    type: 'flash_sale',
+    title: 'Flash Sale',
+    subtitle: 'Limited-time special price offers',
+    enabled: false,
+    productIds: [],
+  },
+];
 
 export const DEFAULT_BANNERS: BannerSettings = {
   showTopAnnouncement: false,
@@ -136,6 +185,8 @@ export const DEFAULT_BANNERS: BannerSettings = {
       link: '/products',
     },
   ],
+
+  showcases: DEFAULT_SHOWCASES,
 
   showFeaturedProducts: false,
   featuredProductsTitle: 'Featured Products',

@@ -14,12 +14,23 @@ import {
   Sparkles,
   Trash2,
   Zap,
+  X,
+  Star,
 } from 'lucide-react';
-import { useSettings, BannerSettings, DEFAULT_BANNERS, FlashSaleSlide, cleanAnnouncementText } from '../../contexts/SettingsContext';
+import {
+  useSettings,
+  BannerSettings,
+  DEFAULT_BANNERS,
+  FlashSaleSlide,
+  cleanAnnouncementText,
+  ShowcaseSection,
+  DEFAULT_SHOWCASES,
+} from '../../contexts/SettingsContext';
 import { useAdminTheme } from '../../contexts/AdminThemeContext';
 import { ImageUploader } from '../../components/common/ImageUploader';
 import { Product } from '../../types';
 import { getProductsFromDB, saveProductToDB } from '../../lib/dbService';
+import { formatPrice } from '../../lib/utils';
 
 const Toggle: React.FC<{ checked: boolean; onChange: (checked: boolean) => void; label: string }> = ({ checked, onChange, label }) => {
   const { isLight } = useAdminTheme();
@@ -172,6 +183,64 @@ export const AdminBanners: React.FC = () => {
 
   const featuredProducts = catalogProducts.filter((product) => product.is_featured);
 
+  const showcases: ShowcaseSection[] = form.showcases?.length
+    ? form.showcases
+    : DEFAULT_SHOWCASES;
+
+  const [activeShowcaseId, setActiveShowcaseId] = useState<string>('trending');
+  const [showcaseSearch, setShowcaseSearch] = useState('');
+
+  const currentShowcase = showcases.find((s) => s.id === activeShowcaseId) || showcases[0] || DEFAULT_SHOWCASES[0];
+
+  const updateShowcaseField = (key: keyof ShowcaseSection, value: any) => {
+    hasUserEdited.current = true;
+    setIsSaved(false);
+    const nextShowcases = showcases.map((s) =>
+      s.id === currentShowcase.id ? { ...s, [key]: value } : s
+    );
+    setForm((prev) => ({
+      ...prev,
+      showcases: nextShowcases,
+      ...(currentShowcase.id === 'featured'
+        ? {
+            showFeaturedProducts: key === 'enabled' ? value : prev.showFeaturedProducts,
+            featuredProductsTitle: key === 'title' ? value : prev.featuredProductsTitle,
+            featuredProductsSubtitle: key === 'subtitle' ? value : prev.featuredProductsSubtitle,
+          }
+        : {}),
+    }));
+  };
+
+  const toggleShowcaseProduct = (productId: string) => {
+    hasUserEdited.current = true;
+    setIsSaved(false);
+    const existing = currentShowcase.productIds || [];
+    const isSelected = existing.includes(productId);
+    const nextProductIds = isSelected
+      ? existing.filter((id) => id !== productId)
+      : [...existing, productId];
+
+    updateShowcaseField('productIds', nextProductIds);
+    toast.success(isSelected ? 'Product removed from showcase' : 'Product added to showcase');
+  };
+
+  const matchedShowcaseProducts = useMemo(() => {
+    const query = showcaseSearch.trim().toLowerCase();
+    if (!query) return [];
+    return catalogProducts
+      .filter((product) =>
+        [product.title, product.sku, product.brand, product.category_id].some((val) =>
+          val?.toLowerCase().includes(query)
+        )
+      )
+      .slice(0, 8);
+  }, [catalogProducts, showcaseSearch]);
+
+  const selectedShowcaseProducts = useMemo(() => {
+    const ids = currentShowcase.productIds || [];
+    return ids.map((id) => catalogProducts.find((p) => p.id === id)).filter(Boolean) as Product[];
+  }, [catalogProducts, currentShowcase.productIds]);
+
   const setValue = <K extends keyof BannerSettings>(key: K, value: BannerSettings[K]) => {
     hasUserEdited.current = true;
     setIsSaved(false);
@@ -284,6 +353,10 @@ export const AdminBanners: React.FC = () => {
       flashSaleSubtitle: slides[0]?.subtitle || form.flashSaleSubtitle,
       flashSaleBgImage: slides[0]?.bgImage || form.flashSaleBgImage,
       flashSaleLink: slides[0]?.link || form.flashSaleLink || '/products',
+      showcases: showcases,
+      showFeaturedProducts: showcases.find((s) => s.id === 'featured')?.enabled ?? form.showFeaturedProducts,
+      featuredProductsTitle: showcases.find((s) => s.id === 'featured')?.title ?? form.featuredProductsTitle,
+      featuredProductsSubtitle: showcases.find((s) => s.id === 'featured')?.subtitle ?? form.featuredProductsSubtitle,
     };
     setForm(nextForm);
     setIsSaved(true);
@@ -310,7 +383,10 @@ export const AdminBanners: React.FC = () => {
     { label: 'Hero', enabled: form.showHeroSection !== false },
     { label: 'Spotlight', enabled: Boolean(form.showSpotlight) },
     { label: 'Flash sale', enabled: Boolean(form.showFlashSale) },
-    { label: 'Featured', enabled: form.showFeaturedProducts !== false },
+    ...showcases.map((s) => ({
+      label: `Showcase: ${s.title}`,
+      enabled: s.enabled === true,
+    })),
   ];
 
   return (
@@ -592,10 +668,238 @@ export const AdminBanners: React.FC = () => {
             </div>
           </section>
 
-          <section className={`rounded-2xl border p-5 sm:p-6 ${card}`}>
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-b border-slate-100 pb-4"><div className="flex items-center gap-3"><div className="w-9 h-9 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center"><Package className="w-4 h-4" /></div><div><h2 className="font-black">Featured products</h2><p className="text-xs text-slate-500">Heading and products in the homepage featured grid.</p></div></div><Toggle checked={form.showFeaturedProducts !== false} onChange={(value) => setValue('showFeaturedProducts', value)} label={form.showFeaturedProducts !== false ? 'Visible' : 'Hidden'} /></div>
-            <div className="mt-5 grid gap-4 sm:grid-cols-2"><Field label="Section heading"><input value={form.featuredProductsTitle || ''} onChange={(event) => setValue('featuredProductsTitle', event.target.value)} className={`w-full px-3.5 py-2.5 border text-sm ${input}`} /></Field><Field label="Section description"><input value={form.featuredProductsSubtitle || ''} onChange={(event) => setValue('featuredProductsSubtitle', event.target.value)} className={`w-full px-3.5 py-2.5 border text-sm ${input}`} /></Field></div>
-            <div className="mt-5"><Field label="Add or remove products" hint={`${featuredProducts.length} featured`}><div className="relative"><Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" /><input value={featuredSearch} onChange={(event) => setFeaturedSearch(event.target.value)} className={`w-full pl-10 pr-3.5 py-2.5 border text-sm ${input}`} placeholder="Search the catalog" /></div></Field>{matchedFeaturedProducts.length > 0 && <div className="mt-2 grid gap-2 sm:grid-cols-2">{matchedFeaturedProducts.map((product) => <button key={product.id} disabled={isUpdatingProduct === product.id} onClick={() => toggleFeaturedProduct(product, !product.is_featured)} className={`flex items-center justify-between gap-3 rounded-xl border px-3.5 py-2.5 text-left ${product.is_featured ? 'border-rose-200 bg-rose-50' : 'border-slate-200 bg-white hover:border-rose-200'}`}><span className="min-w-0"><span className="block truncate text-xs font-bold">{product.title}</span><span className="text-[11px] text-slate-500">{product.is_featured ? 'Featured' : 'Not featured'}</span></span>{product.is_featured ? <Check className="w-4 h-4 text-rose-600" /> : <Plus className="w-4 h-4 text-slate-400" />}</button>)}</div>}</div>
+          {/* Section: Multiple Homepage Showcases (Trending, Featured, New Arrival, Flash Sale) */}
+          <section className={`rounded-2xl border p-5 sm:p-6 ${card} space-y-6`}>
+            {/* Header with Title and Visible Switch */}
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-b border-slate-100 dark:border-gray-800 pb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center">
+                  <Package className="w-4 h-4" />
+                </div>
+                <div>
+                  <h2 className="font-black text-sm sm:text-base text-gray-900 dark:text-white">
+                    Homepage Product Showcases (4-Product Sliding Strip)
+                  </h2>
+                  <p className="text-xs text-slate-500">
+                    হোমপেইজে ৪টি করে প্রোডাক্ট ইমেজ স্লাইডার আকারে দেখানোর জন্য একাধিক শোকেস তৈরি ও নিয়ন্ত্রণ করুন।
+                  </p>
+                </div>
+              </div>
+
+              <Toggle
+                checked={currentShowcase.enabled !== false}
+                onChange={(value) => updateShowcaseField('enabled', value)}
+                label={currentShowcase.enabled !== false ? 'Visible' : 'Hidden'}
+              />
+            </div>
+
+            {/* Showcase Selection Tabs (Trending, Featured, New Arrival, Flash Sale) */}
+            <div className="space-y-2">
+              <label className="block text-[11px] font-black uppercase tracking-wide text-slate-700 dark:text-slate-300">
+                Select Showcase Section to Configure:
+              </label>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                {showcases.map((s) => {
+                  const isCurrent = s.id === currentShowcase.id;
+                  const count = s.productIds?.length || 0;
+                  return (
+                    <button
+                      type="button"
+                      key={s.id}
+                      onClick={() => setActiveShowcaseId(s.id)}
+                      className={`p-2.5 rounded-xl border text-left transition flex items-center justify-between cursor-pointer ${
+                        isCurrent
+                          ? 'border-rose-500 bg-rose-50/70 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 shadow-xs font-bold'
+                          : isLight
+                          ? 'border-slate-200 bg-white hover:border-slate-300 text-slate-700'
+                          : 'border-gray-800 bg-gray-950 hover:border-gray-700 text-gray-300'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className="text-sm">
+                          {s.type === 'trending' ? '🔥' : s.type === 'featured' ? '🌟' : s.type === 'new_arrival' ? '🆕' : '⚡'}
+                        </span>
+                        <div className="truncate">
+                          <span className="text-xs font-black block truncate">{s.title}</span>
+                          <span className="text-[10px] text-slate-400">
+                            {s.enabled !== false ? '🟢 Visible' : '⚪ Hidden'}
+                          </span>
+                        </div>
+                      </div>
+                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold shrink-0 ${
+                        count > 0 ? 'bg-rose-100 dark:bg-rose-900/50 text-rose-700 dark:text-rose-300' : 'bg-gray-100 dark:bg-gray-800 text-gray-500'
+                      }`}>
+                        {count}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Editable Title & Subtitle for Current Showcase */}
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Field label="Section Heading">
+                <input
+                  value={currentShowcase.title || ''}
+                  onChange={(e) => updateShowcaseField('title', e.target.value)}
+                  placeholder="e.g. Trending, Featured, New Arrival..."
+                  className={`w-full px-3.5 py-2.5 border text-sm font-bold ${input}`}
+                />
+              </Field>
+              <Field label="Section Description (Optional)">
+                <input
+                  value={currentShowcase.subtitle || ''}
+                  onChange={(e) => updateShowcaseField('subtitle', e.target.value)}
+                  placeholder="e.g. Popular choices flying off the shelves"
+                  className={`w-full px-3.5 py-2.5 border text-sm ${input}`}
+                />
+              </Field>
+            </div>
+
+            {/* Rules explanation banner */}
+            <div className="p-3 bg-rose-50/70 dark:bg-rose-950/20 border border-rose-200/80 dark:border-rose-900/30 rounded-xl text-xs space-y-1">
+              <div className="font-bold flex items-center gap-1.5 text-rose-900 dark:text-rose-200">
+                <span>💡 রুলস ও ডিসপ্লে মেকানিজম:</span>
+              </div>
+              <ul className="text-[11px] space-y-0.5 list-disc list-inside text-rose-800 dark:text-rose-300">
+                <li>হোমপেইজে এই শোকেসের পণ্যগুলো <strong>এক লাইনে ৪টি করে ইমেজ</strong> আকারে দেখা যাবে।</li>
+                <li>কার্ডের বাইরে কোনো টেক্সট বা প্রাইস থাকবে না, শুধু পরিচ্ছন্ন প্রোডাক্ট ছবি থাকবে (ক্লিক করলে প্রোডাক্ট পেইজে যাবে)।</li>
+                <li><strong>৪টির বেশি পণ্য</strong> যোগ করলে প্রতি ৩.৫ সেকেন্ড পর পর স্বয়ংক্রিয়ভাবে স্লাইড হয়ে নতুন পণ্য আসবে।</li>
+                <li><strong>৪টি বা তার কম পণ্য</strong> থাকলে কোনো মুভমেন্ট হবে না (স্ট্যাটিক থাকবে)।</li>
+              </ul>
+            </div>
+
+            {/* Add or Remove Products Search Box */}
+            <div className="space-y-3">
+              <Field label="Search & Add Multiple Products" hint={`${currentShowcase.productIds?.length || 0} products selected`}>
+                <div className="relative">
+                  <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                  <input
+                    value={showcaseSearch}
+                    onChange={(e) => setShowcaseSearch(e.target.value)}
+                    className={`w-full pl-10 pr-8 py-2.5 border text-sm ${input}`}
+                    placeholder="Search catalog by title, SKU or brand to add..."
+                  />
+                  {showcaseSearch && (
+                    <button
+                      type="button"
+                      onClick={() => setShowcaseSearch('')}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
+              </Field>
+
+              {/* Matched Search Results */}
+              {matchedShowcaseProducts.length > 0 && (
+                <div className="space-y-2 p-3 bg-slate-50/80 dark:bg-gray-950/80 border border-slate-200 dark:border-gray-800 rounded-xl">
+                  <span className="text-[11px] font-bold text-slate-500">Search Results (Click to Add / Remove):</span>
+                  <div className="grid gap-2 sm:grid-cols-2">
+                    {matchedShowcaseProducts.map((product) => {
+                      const isSelected = (currentShowcase.productIds || []).includes(product.id);
+                      return (
+                        <button
+                          key={product.id}
+                          type="button"
+                          onClick={() => toggleShowcaseProduct(product.id)}
+                          className={`flex items-center justify-between gap-3 rounded-xl border p-2.5 text-left transition cursor-pointer ${
+                            isSelected
+                              ? 'border-emerald-500 bg-emerald-50/70 dark:bg-emerald-950/30'
+                              : isLight
+                              ? 'border-slate-200 bg-white hover:border-rose-200'
+                              : 'border-gray-800 bg-gray-900 hover:border-gray-700'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2.5 min-w-0">
+                            <img
+                              src={product.images?.[0] || '/logo.webp'}
+                              alt={product.title}
+                              className="w-9 h-9 rounded-lg object-contain bg-white border border-gray-200/80 shrink-0 p-0.5"
+                            />
+                            <div className="min-w-0">
+                              <span className="block truncate text-xs font-bold text-gray-900 dark:text-white">
+                                {product.title}
+                              </span>
+                              <span className="text-[10px] text-slate-500">
+                                {formatPrice(product.price)} • {isSelected ? '✓ Added to showcase' : '+ Click to add'}
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className={`p-1 rounded-lg shrink-0 ${isSelected ? 'bg-emerald-500 text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-500'}`}>
+                            {isSelected ? <Check className="w-3.5 h-3.5" /> : <Plus className="w-3.5 h-3.5" />}
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Currently Selected Products Preview */}
+              <div className="space-y-2 pt-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                    <span>Selected Products in "{currentShowcase.title}"</span>
+                    <span className="px-2 py-0.5 rounded-full bg-rose-100 dark:bg-rose-900/50 text-rose-700 dark:text-rose-300 text-[10px] font-black">
+                      {selectedShowcaseProducts.length}
+                    </span>
+                  </span>
+                  {selectedShowcaseProducts.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => updateShowcaseField('productIds', [])}
+                      className="text-[11px] text-rose-500 hover:text-rose-600 font-bold cursor-pointer"
+                    >
+                      Clear All
+                    </button>
+                  )}
+                </div>
+
+                {selectedShowcaseProducts.length === 0 ? (
+                  <div className="p-4 rounded-xl border border-dashed border-slate-300 dark:border-gray-800 text-center text-xs text-slate-400">
+                    কোনো পণ্য এখনো ম্যানুয়ালি সিলেক্ট করা হয়নি (খালি থাকলে স্বয়ংক্রিয়ভাবে ক্যাটাগরির সেরা পণ্যগুলো প্রদর্শিত হবে)। উপরের সার্চ বক্স থেকে পণ্য সার্চ করে যোগ করুন।
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-2.5">
+                    {selectedShowcaseProducts.map((p, idx) => (
+                      <div
+                        key={p.id}
+                        className={`relative rounded-xl border p-2 flex flex-col items-center text-center group ${
+                          isLight ? 'bg-white border-slate-200' : 'bg-gray-950 border-gray-800'
+                        }`}
+                      >
+                        <span className="absolute top-1 left-1.5 text-[9px] font-black text-slate-400">
+                          #{idx + 1}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => toggleShowcaseProduct(p.id)}
+                          className="absolute top-1 right-1 p-1 rounded-full bg-rose-500 hover:bg-rose-600 text-white transition shadow-xs cursor-pointer"
+                          title="Remove product"
+                        >
+                          <X className="w-2.5 h-2.5" />
+                        </button>
+                        <img
+                          src={p.images?.[0] || '/logo.webp'}
+                          alt={p.title}
+                          className="w-14 h-14 rounded-lg object-contain p-1 my-1"
+                        />
+                        <span className="text-[10px] font-bold text-gray-800 dark:text-gray-200 line-clamp-1 w-full">
+                          {p.title}
+                        </span>
+                        <span className="text-[9px] text-rose-600 font-black">
+                          {formatPrice(p.price)}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
           </section>
         </div>
 
