@@ -67,10 +67,14 @@ export const AdminAffiliates: React.FC = () => {
       setAffiliates(affs);
       setWithdrawals(withs);
 
-      // Local storage guest orders combined with DB orders
-      const localGuestOrders = JSON.parse(localStorage.getItem('kintesi_guest_orders') || '[]');
-      const combined = [...allOrders, ...localGuestOrders.filter((l: any) => !allOrders.some((o) => o.order_number === l.order_number))];
-      setOrders(combined);
+      // Keep local guest orders synchronized - prune any orders deleted from database
+      try {
+        const localGuestOrders = JSON.parse(localStorage.getItem('kintesi_guest_orders') || '[]');
+        const validLocal = localGuestOrders.filter((l: any) => allOrders.some((o) => o.order_number === l.order_number));
+        localStorage.setItem('kintesi_guest_orders', JSON.stringify(validLocal));
+      } catch {}
+
+      setOrders(allOrders);
     } catch (err) {
       console.warn('Admin affiliates load notice:', err);
     }

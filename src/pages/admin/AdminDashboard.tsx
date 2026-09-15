@@ -23,13 +23,14 @@ export const AdminDashboard: React.FC = () => {
 
         // Load orders
         const { data: orderData } = await supabase.from('orders').select('*').order('created_at', { ascending: false });
-        let allOrders: Order[] = orderData || [];
+        const allOrders: Order[] = orderData || [];
 
-        // Check local guest orders as well
-        const local = JSON.parse(localStorage.getItem('kintesi_guest_orders') || '[]');
-        if (local.length > 0) {
-          allOrders = [...allOrders, ...local.filter((l: any) => !allOrders.some((o) => o.order_number === l.order_number))];
-        }
+        // Keep local guest orders synchronized - prune any orders deleted from database
+        try {
+          const local = JSON.parse(localStorage.getItem('kintesi_guest_orders') || '[]');
+          const validLocal = local.filter((l: any) => allOrders.some((o) => o.order_number === l.order_number));
+          localStorage.setItem('kintesi_guest_orders', JSON.stringify(validLocal));
+        } catch {}
 
         setOrders(allOrders);
       } catch (err) {

@@ -19,6 +19,7 @@ export function generateAffiliateCode(): string {
 // 1. Get All Affiliates
 export async function getAffiliatesFromDB(): Promise<AffiliateUser[]> {
   const codeMap = new Map<string, AffiliateUser>();
+  let supabaseSuccess = false;
 
   // 1. Fetch from Supabase FIRST (Authoritative source of truth)
   try {
@@ -28,6 +29,7 @@ export async function getAffiliatesFromDB(): Promise<AffiliateUser[]> {
       .order('created_at', { ascending: false });
 
     if (!error && Array.isArray(data)) {
+      supabaseSuccess = true;
       data.forEach((a: AffiliateUser) => {
         if (a && a.affiliate_code && !a.id?.startsWith('aff_demo_')) {
           codeMap.set(a.affiliate_code.toUpperCase(), a);
@@ -40,41 +42,51 @@ export async function getAffiliatesFromDB(): Promise<AffiliateUser[]> {
     console.warn('Supabase fetch affiliates notice:', err);
   }
 
-  // 2. Check current browser's active affiliate profile (kintesi_my_affiliate_profile)
-  try {
-    const myProfileRaw = localStorage.getItem('kintesi_my_affiliate_profile');
-    if (myProfileRaw) {
-      const myProfile: AffiliateUser = JSON.parse(myProfileRaw);
-      if (myProfile && myProfile.affiliate_code && !myProfile.id?.startsWith('aff_demo_')) {
-        const code = myProfile.affiliate_code.toUpperCase();
-        if (codeMap.has(code)) {
-          // Supabase has authoritative stats; update local cache with fresh DB data!
-          const freshFromDB = codeMap.get(code)!;
-          localStorage.setItem('kintesi_my_affiliate_profile', JSON.stringify(freshFromDB));
-        } else {
-          codeMap.set(code, myProfile);
-          // Sync to Supabase in background
-          supabase.from('affiliate_users').upsert([myProfile]).then();
-        }
-      }
-    }
-  } catch {}
-
-  // 3. Fallback to local storage cache if not already in codeMap
-  try {
-    const cached = localStorage.getItem(AFFILIATES_CACHE_KEY);
-    if (cached) {
-      const parsed: AffiliateUser[] = JSON.parse(cached);
-      parsed.forEach((a) => {
-        if (a && a.affiliate_code && !a.id?.startsWith('aff_demo_')) {
-          const code = a.affiliate_code.toUpperCase();
-          if (!codeMap.has(code)) {
-            codeMap.set(code, a);
+  if (supabaseSuccess) {
+    // Supabase is authoritative: synchronize local storage and prune deleted accounts
+    try {
+      const myProfileRaw = localStorage.getItem('kintesi_my_affiliate_profile');
+      if (myProfileRaw) {
+        const myProfile: AffiliateUser = JSON.parse(myProfileRaw);
+        if (myProfile && myProfile.affiliate_code && !myProfile.id?.startsWith('aff_demo_')) {
+          const code = myProfile.affiliate_code.toUpperCase();
+          if (codeMap.has(code)) {
+            localStorage.setItem('kintesi_my_affiliate_profile', JSON.stringify(codeMap.get(code)!));
+          } else {
+            // Profile was deleted from Supabase; prune from local storage
+            localStorage.removeItem('kintesi_my_affiliate_profile');
           }
         }
-      });
-    }
-  } catch {}
+      }
+      localStorage.setItem(AFFILIATES_CACHE_KEY, JSON.stringify(Array.from(codeMap.values())));
+    } catch {}
+  } else {
+    // Offline fallback only when Supabase is down
+    try {
+      const myProfileRaw = localStorage.getItem('kintesi_my_affiliate_profile');
+      if (myProfileRaw) {
+        const myProfile: AffiliateUser = JSON.parse(myProfileRaw);
+        if (myProfile && myProfile.affiliate_code && !myProfile.id?.startsWith('aff_demo_')) {
+          codeMap.set(myProfile.affiliate_code.toUpperCase(), myProfile);
+        }
+      }
+    } catch {}
+
+    try {
+      const cached = localStorage.getItem(AFFILIATES_CACHE_KEY);
+      if (cached) {
+        const parsed: AffiliateUser[] = JSON.parse(cached);
+        parsed.forEach((a) => {
+          if (a && a.affiliate_code && !a.id?.startsWith('aff_demo_')) {
+            const code = a.affiliate_code.toUpperCase();
+            if (!codeMap.has(code)) {
+              codeMap.set(code, a);
+            }
+          }
+        });
+      }
+    } catch {}
+  }
 
   const getTime = (d?: string) => {
     if (!d) return 0;
@@ -546,21 +558,9 @@ export async function revokeAffiliateCommissionOnCancellation(
 // 7. Withdrawals Management
 export async function getWithdrawalsFromDB(): Promise<AffiliateWithdrawal[]> {
   const map = new Map<string, AffiliateWithdrawal>();
+  let supabaseSuccess = false;
 
-  // 1. Check local cache
-  try {
-    const cached = localStorage.getItem(WITHDRAWALS_CACHE_KEY);
-    if (cached) {
-      const parsed: AffiliateWithdrawal[] = JSON.parse(cached);
-      parsed.forEach((w) => {
-        if (w && w.id && !w.id.startsWith('with_demo_')) {
-          map.set(w.id, w);
-        }
-      });
-    }
-  } catch {}
-
-  // 2. Fetch from Supabase
+  // 1. Fetch from Supabase (Authoritative source of truth)
   try {
     const { data, error } = await supabase
       .from('affiliate_withdrawals')
@@ -568,29 +568,36 @@ export async function getWithdrawalsFromDB(): Promise<AffiliateWithdrawal[]> {
       .order('created_at', { ascending: false });
 
     if (!error && Array.isArray(data)) {
+      supabaseSuccess = true;
       data.forEach((w: AffiliateWithdrawal) => {
         if (w && w.id && !w.id.startsWith('with_demo_')) {
           map.set(w.id, w);
         }
       });
-
-      // Background sync any local-only withdrawals to Supabase
-      const allList = Array.from(map.values());
-      const localOnly = allList.filter((w) => !data.some((d: any) => d.id === w.id));
-      if (localOnly.length > 0) {
-        (async () => {
-          try {
-            for (const item of localOnly) {
-              await supabase.from('affiliate_withdrawals').upsert([item]);
-            }
-          } catch {}
-        })();
-      }
+      // Synchronize local cache with clean DB state
+      try {
+        localStorage.setItem(WITHDRAWALS_CACHE_KEY, JSON.stringify(Array.from(map.values())));
+      } catch {}
     } else if (error) {
       console.warn('Supabase fetch withdrawals notice:', error.message);
     }
   } catch (err) {
     console.warn('Supabase fetch withdrawals notice:', err);
+  }
+
+  // 2. Offline fallback ONLY if Supabase is unreachable
+  if (!supabaseSuccess) {
+    try {
+      const cached = localStorage.getItem(WITHDRAWALS_CACHE_KEY);
+      if (cached) {
+        const parsed: AffiliateWithdrawal[] = JSON.parse(cached);
+        parsed.forEach((w) => {
+          if (w && w.id && !w.id.startsWith('with_demo_')) {
+            map.set(w.id, w);
+          }
+        });
+      }
+    } catch {}
   }
 
   const getTime = (d?: string) => {

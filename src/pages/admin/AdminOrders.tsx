@@ -26,20 +26,17 @@ export const AdminOrders: React.FC = () => {
       let baseList: Order[] = [];
       if (!supaErr && Array.isArray(supaOrders)) {
         baseList = supaOrders;
+        // Keep local guest orders synchronized - prune any orders deleted from database
+        try {
+          const local = JSON.parse(localStorage.getItem('kintesi_guest_orders') || '[]');
+          const validLocal = local.filter((l: any) => baseList.some((o) => o.order_number === l.order_number));
+          localStorage.setItem('kintesi_guest_orders', JSON.stringify(validLocal));
+        } catch {}
       } else {
         baseList = await getOrdersFromDB();
       }
 
-      // 2. Merge local guest orders if any
-      let local: any[] = [];
-      try {
-        local = JSON.parse(localStorage.getItem('kintesi_guest_orders') || '[]');
-      } catch {}
-      const combined = [
-        ...baseList,
-        ...local.filter((l: any) => !baseList.some((o) => o.order_number === l.order_number)),
-      ];
-      setOrders(combined);
+      setOrders(baseList);
     } catch (err) {
       console.warn('Orders load note:', err);
     }

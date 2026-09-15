@@ -124,12 +124,14 @@ export const AffiliateDashboardPage: React.FC = () => {
       setAffiliates(affs);
       setWithdrawals(withs);
 
-      const localOrders = JSON.parse(localStorage.getItem('kintesi_guest_orders') || '[]');
-      const combinedOrders = [
-        ...allOrders,
-        ...localOrders.filter((l: any) => !allOrders.some((o) => o.order_number === l.order_number)),
-      ];
-      setOrders(combinedOrders);
+      // Keep local guest orders synchronized - prune any orders deleted from database
+      try {
+        const localOrders = JSON.parse(localStorage.getItem('kintesi_guest_orders') || '[]');
+        const validLocal = localOrders.filter((l: any) => allOrders.some((o) => o.order_number === l.order_number));
+        localStorage.setItem('kintesi_guest_orders', JSON.stringify(validLocal));
+      } catch {}
+
+      setOrders(allOrders);
 
       // Identify if current user is an affiliate
       let matched: AffiliateUser | null = null;

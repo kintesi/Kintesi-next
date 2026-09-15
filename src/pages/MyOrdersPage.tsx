@@ -61,19 +61,16 @@ export const MyOrdersPage: React.FC = () => {
       setLoading(true);
       try {
         const data = await getOrdersFromDB(user.id, user.email, profile?.phone);
-        let local: any[] = [];
+        const orderList = data || [];
+        
+        // Keep local guest orders synchronized - prune any orders deleted from database
         try {
-          local = JSON.parse(localStorage.getItem('kintesi_guest_orders') || '[]');
+          const rawLocal = JSON.parse(localStorage.getItem('kintesi_guest_orders') || '[]');
+          const validLocal = rawLocal.filter((l: any) => orderList.some((d) => d.order_number === l.order_number));
+          localStorage.setItem('kintesi_guest_orders', JSON.stringify(validLocal));
         } catch {}
-        const userLocal = local.filter((o: any) => 
-          (user.email && o.customer_email?.toLowerCase() === user.email.toLowerCase()) ||
-          (profile?.phone && o.customer_phone === profile.phone)
-        );
-        const combined = [
-          ...(data || []),
-          ...userLocal.filter((l: any) => !(data || []).some((d) => d.order_number === l.order_number)),
-        ];
-        setOrders(combined);
+
+        setOrders(orderList);
       } catch (err) {
         console.warn('Orders load note:', err);
       } finally {
