@@ -271,13 +271,15 @@ export async function recordAffiliateClick(affiliateCode: string, productId?: st
       .eq('affiliate_code', clean)
       .maybeSingle();
 
-    if (dbUser) {
-      const nextClicks = (Number(dbUser.total_clicks) || 0) + 1;
-      await supabase
-        .from('affiliate_users')
-        .update({ total_clicks: nextClicks })
-        .eq('id', dbUser.id);
+    if (!dbUser || dbUser.status === 'suspended' || dbUser.status === 'rejected') {
+      return;
     }
+
+    const nextClicks = (Number(dbUser.total_clicks) || 0) + 1;
+    await supabase
+      .from('affiliate_users')
+      .update({ total_clicks: nextClicks })
+      .eq('id', dbUser.id);
 
     // 2. Insert click log
     await supabase.from('affiliate_clicks').insert([
