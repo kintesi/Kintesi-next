@@ -6,64 +6,9 @@ const WITHDRAWALS_CACHE_KEY = 'kintesi_affiliate_withdrawals_cache';
 const ACTIVE_REFERRAL_KEY = 'kintesi_active_affiliate_ref';
 const REFERRAL_EXPIRY_DAYS = 30;
 
-// Demo seed affiliates so the admin and preview always have realistic test data
-const DEFAULT_AFFILIATES: AffiliateUser[] = [
-  {
-    id: 'aff_demo_1',
-    affiliate_code: 'KAF-10928',
-    name: 'তানভীর আহমেদ (Tanvir Ahmed)',
-    phone: '01711223344',
-    address: 'মিরপুর ১০, ঢাকা (Mirpur 10, Dhaka)',
-    email: 'tanvir.partner@gmail.com',
-    status: 'approved',
-    total_clicks: 142,
-    total_orders: 8,
-    total_sales_amount: 18450,
-    total_commission_earned: 1845,
-    available_balance: 1345,
-    total_withdrawn: 500,
-    payment_method: 'bkash',
-    account_number: '01711223344',
-    created_at: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString(),
-  },
-  {
-    id: 'aff_demo_2',
-    affiliate_code: 'KAF-20815',
-    name: 'নুসরাত জাহান (Nusrat Jahan)',
-    phone: '01899887766',
-    address: 'জিইসি মোড়, চট্টগ্রাম (GEC, Chattogram)',
-    email: 'nusrat.j@gmail.com',
-    status: 'approved',
-    total_clicks: 86,
-    total_orders: 4,
-    total_sales_amount: 9200,
-    total_commission_earned: 920,
-    available_balance: 920,
-    total_withdrawn: 0,
-    payment_method: 'nagad',
-    account_number: '01899887766',
-    created_at: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-  },
-];
-
-const DEFAULT_WITHDRAWALS: AffiliateWithdrawal[] = [
-  {
-    id: 'with_demo_1',
-    affiliate_id: 'aff_demo_1',
-    affiliate_code: 'KAF-10928',
-    affiliate_name: 'তানভীর আহমেদ (Tanvir Ahmed)',
-    affiliate_phone: '01711223344',
-    amount: 500,
-    payment_method: 'bkash',
-    account_number: '01711223344',
-    notes: 'Weekly commission payout',
-    status: 'approved',
-    admin_trx_id: 'BK90218X4',
-    admin_note: 'Sent via bKash Personal',
-    created_at: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
-    processed_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-  },
-];
+// No fake/demo users. Starts empty until real users register.
+const DEFAULT_AFFILIATES: AffiliateUser[] = [];
+const DEFAULT_WITHDRAWALS: AffiliateWithdrawal[] = [];
 
 // Helper: Generate a unique affiliate code
 export function generateAffiliateCode(): string {
@@ -80,8 +25,9 @@ export async function getAffiliatesFromDB(): Promise<AffiliateUser[]> {
       .order('created_at', { ascending: false });
 
     if (!error && data && data.length > 0) {
-      localStorage.setItem(AFFILIATES_CACHE_KEY, JSON.stringify(data));
-      return data as AffiliateUser[];
+      const clean = data.filter((a: any) => !a.id?.startsWith('aff_demo_'));
+      localStorage.setItem(AFFILIATES_CACHE_KEY, JSON.stringify(clean));
+      return clean as AffiliateUser[];
     }
   } catch (err) {
     console.warn('Supabase fetch affiliates notice, using local cache:', err);
@@ -91,12 +37,17 @@ export async function getAffiliatesFromDB(): Promise<AffiliateUser[]> {
   try {
     const cached = localStorage.getItem(AFFILIATES_CACHE_KEY);
     if (cached) {
-      return JSON.parse(cached);
+      const parsed: AffiliateUser[] = JSON.parse(cached);
+      const clean = parsed.filter((a) => !a.id?.startsWith('aff_demo_'));
+      if (clean.length !== parsed.length) {
+        localStorage.setItem(AFFILIATES_CACHE_KEY, JSON.stringify(clean));
+      }
+      return clean;
     }
   } catch {}
 
-  localStorage.setItem(AFFILIATES_CACHE_KEY, JSON.stringify(DEFAULT_AFFILIATES));
-  return DEFAULT_AFFILIATES;
+  localStorage.setItem(AFFILIATES_CACHE_KEY, JSON.stringify([]));
+  return [];
 }
 
 // 2. Get Single Affiliate by Code
@@ -255,8 +206,9 @@ export async function getWithdrawalsFromDB(): Promise<AffiliateWithdrawal[]> {
       .order('created_at', { ascending: false });
 
     if (!error && data && data.length > 0) {
-      localStorage.setItem(WITHDRAWALS_CACHE_KEY, JSON.stringify(data));
-      return data as AffiliateWithdrawal[];
+      const clean = data.filter((w: any) => !w.id?.startsWith('with_demo_'));
+      localStorage.setItem(WITHDRAWALS_CACHE_KEY, JSON.stringify(clean));
+      return clean as AffiliateWithdrawal[];
     }
   } catch (err) {
     console.warn('Supabase fetch withdrawals notice:', err);
@@ -264,11 +216,18 @@ export async function getWithdrawalsFromDB(): Promise<AffiliateWithdrawal[]> {
 
   try {
     const cached = localStorage.getItem(WITHDRAWALS_CACHE_KEY);
-    if (cached) return JSON.parse(cached);
+    if (cached) {
+      const parsed: AffiliateWithdrawal[] = JSON.parse(cached);
+      const clean = parsed.filter((w) => !w.id?.startsWith('with_demo_'));
+      if (clean.length !== parsed.length) {
+        localStorage.setItem(WITHDRAWALS_CACHE_KEY, JSON.stringify(clean));
+      }
+      return clean;
+    }
   } catch {}
 
-  localStorage.setItem(WITHDRAWALS_CACHE_KEY, JSON.stringify(DEFAULT_WITHDRAWALS));
-  return DEFAULT_WITHDRAWALS;
+  localStorage.setItem(WITHDRAWALS_CACHE_KEY, JSON.stringify([]));
+  return [];
 }
 
 // 8. Create Withdrawal Request
