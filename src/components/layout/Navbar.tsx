@@ -267,7 +267,7 @@ export const Navbar: React.FC = () => {
                 </div>
               </form>
 
-              {/* Wishlist & Admin */}
+              {/* Wishlist */}
               <div className="flex items-center gap-1.5 shrink-0">
                 <Link to="/wishlist" className="p-1.5 text-gray-600 relative" title={t('nav.wishlist')}>
                   <Heart className="w-5 h-5" />
@@ -277,42 +277,11 @@ export const Navbar: React.FC = () => {
                     </span>
                   )}
                 </Link>
-                {isAdmin && (
-                  <Link to="/admin" className="px-2 py-0.5 bg-rose-50 text-rose-700 border border-rose-200/80 rounded-lg text-[10px] font-black uppercase">
-                    Admin
-                  </Link>
-                )}
               </div>
             </div>
           ) : (
-            <div className="md:hidden py-2 space-y-2">
-              <div className="flex items-center justify-between gap-2">
-                <Link to="/" className="flex items-center flex-shrink-0 group">
-                  <img 
-                    src="/navbar-logo.webp" 
-                    alt="Kintesi" 
-                    className="h-7 w-auto max-w-[140px] object-contain transition-transform group-hover:scale-105" 
-                  />
-                </Link>
-
-                <div className="flex items-center gap-2">
-                  <Link to="/wishlist" className="p-1.5 text-gray-600 relative">
-                    <Heart className="w-5 h-5" />
-                    {wishlist.length > 0 && (
-                      <span className="absolute 0 top-0 right-0 w-3.5 h-3.5 bg-rose-600 text-white text-[8px] font-bold rounded-full flex items-center justify-center">
-                        {wishlist.length}
-                      </span>
-                    )}
-                  </Link>
-                  {isAdmin && (
-                    <Link to="/admin" className="px-2 py-0.5 bg-rose-50 text-rose-700 border border-rose-200/80 rounded-lg text-[10px] font-black uppercase">
-                      Admin
-                    </Link>
-                  )}
-                </div>
-              </div>
-
-              {/* Mobile Search Input */}
+            <div className="md:hidden py-2">
+              {/* Mobile Search Input - Clean, Single Bar */}
               <form onSubmit={handleSearchSubmit} className="relative flex items-center">
                 <div className="relative w-full">
                   <input
@@ -320,12 +289,12 @@ export const Navbar: React.FC = () => {
                     placeholder={t('nav.searchPlaceholder')}
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-8 pr-16 py-2 bg-gray-50/80 focus:bg-white border border-rose-100 focus:border-rose-500 rounded-full text-xs transition focus:outline-none focus:ring-2 focus:ring-rose-500/20"
+                    className="w-full pl-8.5 pr-18 py-2 bg-gray-50/90 focus:bg-white border border-rose-100 focus:border-rose-500 rounded-full text-xs transition focus:outline-none focus:ring-2 focus:ring-rose-500/20 shadow-2xs"
                   />
-                  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
                   <button
                     type="submit"
-                    className="absolute right-1 top-1/2 -translate-y-1/2 px-3 py-1 bg-rose-600 text-white rounded-full text-[11px] font-bold shadow-xs hover:bg-rose-700 transition"
+                    className="absolute right-1 top-1/2 -translate-y-1/2 px-3.5 py-1 bg-rose-600 text-white rounded-full text-[11px] font-bold shadow-xs hover:bg-rose-700 transition"
                   >
                     {language === 'bn' ? 'খুঁজুন' : 'Search'}
                   </button>

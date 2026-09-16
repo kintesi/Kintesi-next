@@ -304,21 +304,64 @@ export const ProfilePage: React.FC = () => {
             </div>
           </div>
 
-          {/* Single, Clear Sign Out Action */}
-          <button
-            onClick={handleSignOut}
-            className="px-3.5 py-2 text-xs font-bold text-rose-600 hover:text-white bg-rose-50 hover:bg-rose-600 border border-rose-200/80 rounded-xl flex items-center gap-1.5 transition cursor-pointer shrink-0 active:scale-95"
-            title={t('profile.logout')}
-          >
-            <LogOut className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">{t('profile.logout')}</span>
-          </button>
+          {/* Actions: Admin Panel (if admin) + Sign Out */}
+          <div className="flex items-center gap-2 shrink-0">
+            {(isAdmin || isSuperAdmin) && (
+              <Link
+                to="/admin"
+                className="px-3 py-2 text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 rounded-xl flex items-center gap-1.5 transition cursor-pointer shadow-xs active:scale-95"
+              >
+                <ShieldCheck className="w-3.5 h-3.5" />
+                <span>{language === 'bn' ? 'অ্যাডমিন ড্যাশবোর্ড' : 'Admin Panel'}</span>
+              </Link>
+            )}
+
+            <button
+              onClick={handleSignOut}
+              className="px-3.5 py-2 text-xs font-bold text-rose-600 hover:text-white bg-rose-50 hover:bg-rose-600 border border-rose-200/80 rounded-xl flex items-center gap-1.5 transition cursor-pointer active:scale-95"
+              title={t('profile.logout')}
+            >
+              <LogOut className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">{t('profile.logout')}</span>
+            </button>
+          </div>
         </div>
 
         {/* Quick Navigation Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 border-t border-gray-100">
-          <Link
-            to="/orders"
+        <div className="space-y-3 pt-2 border-t border-gray-100">
+          {(isAdmin || isSuperAdmin) && (
+            <Link
+              to="/admin"
+              className="flex items-center justify-between p-3.5 sm:p-4 rounded-2xl bg-gradient-to-r from-rose-50 via-pink-50/60 to-rose-50 border border-rose-200/90 hover:border-rose-300 transition group shadow-xs"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-rose-600 text-white flex items-center justify-center shadow-xs shrink-0">
+                  <Crown className="w-5 h-5" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h4 className="text-xs sm:text-sm font-black text-gray-900 group-hover:text-rose-600 transition">
+                      {language === 'bn' ? 'অ্যাডমিন ড্যাশবোর্ড (কন্ট্রোল প্যানেল)' : 'Admin Dashboard (Control Panel)'}
+                    </h4>
+                    <span className="text-[9px] bg-rose-600 text-white font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
+                      Store Manager
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-gray-500 mt-0.5">
+                    {language === 'bn' ? 'পণ্য, অর্ডার, কুপন, ব্যানার ও পেমেন্ট সেটিংস পরিচালনা করুন' : 'Manage products, orders, coupons, banners & store settings'}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-1 text-xs font-bold text-rose-600 group-hover:translate-x-0.5 transition shrink-0">
+                <span className="hidden sm:inline">{language === 'bn' ? 'প্রবেশ করুন' : 'Open'}</span>
+                <ChevronRight className="w-4 h-4" />
+              </div>
+            </Link>
+          )}
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <Link
+              to="/orders"
             className="flex items-center justify-between p-3.5 rounded-2xl bg-gray-50/70 hover:bg-rose-50/40 border border-gray-100 hover:border-rose-200 transition group"
           >
             <div className="flex items-center gap-3">
@@ -376,6 +419,7 @@ export const ProfilePage: React.FC = () => {
             <ChevronRight className="w-4 h-4 text-rose-400 group-hover:text-rose-600 group-hover:translate-x-0.5 transition" />
           </Link>
         </div>
+      </div>
 
       </div>
 
