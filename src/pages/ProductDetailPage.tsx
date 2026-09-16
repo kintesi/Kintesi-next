@@ -703,6 +703,15 @@ export const ProductDetailPage: React.FC = () => {
                       </span>
                     </>
                   )}
+
+                  {product.gender && product.gender.trim() && (
+                    <>
+                      <span className="text-gray-200 hidden sm:inline">•</span>
+                      <span className="text-[11px] font-bold text-pink-700 bg-pink-50 px-2 py-0.5 rounded border border-pink-200/60 hidden sm:inline-flex items-center gap-1">
+                        <span>{product.gender}</span>
+                      </span>
+                    </>
+                  )}
                 </div>
 
                 <div className="flex items-center gap-1">
@@ -1150,12 +1159,17 @@ export const ProductDetailPage: React.FC = () => {
           return s !== '' && s !== 'null' && s !== 'undefined' && s !== '[]' && s !== '{}' && s !== '-';
         };
 
+        const effectiveSpecMode = product.spec_mode || (product.specifications as any)?.spec_mode || 'auto';
+        if (effectiveSpecMode === 'none' || effectiveSpecMode === 'skip') {
+          return null;
+        }
+
         const validSpecs = Object.entries(product.specifications || {}).filter(
-          ([key, val]) => isKeyValid(key) && isValueNonEmpty(val)
+          ([key, val]) => isKeyValid(key) && isValueNonEmpty(val) && key !== 'spec_mode' && key !== 'sub_category'
         );
         const hasHardwareSpecs = validSpecs.length > 0;
 
-        const isGadget = Boolean(
+        const isGadget = effectiveSpecMode === 'gadgets' || (effectiveSpecMode === 'auto' && Boolean(
           hasHardwareSpecs ||
           cat.includes('smartphones') ||
           cat.includes('laptops') ||
@@ -1165,31 +1179,26 @@ export const ProductDetailPage: React.FC = () => {
           cat.includes('gadget') ||
           cat.includes('electronic') ||
           cat.includes('tech')
-        );
+        ));
 
-        const isGroceries = Boolean(
-          !isGadget && (
-            cat.includes('groceries') ||
-            cat.includes('food') ||
-            cat.includes('daily-essentials') ||
-            cat.includes('pantry')
-          )
-        );
+        const isGroceries = !isGadget && (effectiveSpecMode === 'groceries' || (effectiveSpecMode === 'auto' && Boolean(
+          cat.includes('groceries') ||
+          cat.includes('food') ||
+          cat.includes('daily-essentials') ||
+          cat.includes('pantry')
+        )));
 
-        const isFashion = Boolean(
-          !isGadget && !isGroceries && (
-            cat.includes('fashion') ||
-            cat.includes('footwear') ||
-            cat.includes('apparel') ||
-            cat.includes('clothing') ||
-            cat.includes('saree') ||
-            cat.includes('kurti') ||
-            cat.includes('shoes') ||
-            isValueNonEmpty(product.fabric) ||
-            isValueNonEmpty(product.fit_type) ||
-            isValueNonEmpty(product.gender)
-          )
-        );
+        const isFashion = !isGadget && !isGroceries && (effectiveSpecMode === 'fashion' || (effectiveSpecMode === 'auto' && Boolean(
+          cat.includes('fashion') ||
+          cat.includes('footwear') ||
+          cat.includes('apparel') ||
+          cat.includes('clothing') ||
+          cat.includes('saree') ||
+          cat.includes('kurti') ||
+          cat.includes('shoes') ||
+          isValueNonEmpty(product.fabric) ||
+          isValueNonEmpty(product.fit_type)
+        )));
 
         // Check if there is any genuine specification to show for this specific mode
         const shouldShow = isGadget
@@ -1207,7 +1216,7 @@ export const ProductDetailPage: React.FC = () => {
           ? Boolean(
               isValueNonEmpty(product.fabric) ||
               isValueNonEmpty(product.fit_type) ||
-              isValueNonEmpty(product.gender) ||
+              (isValueNonEmpty(product.gender) && product.gender !== 'Unisex') ||
               isValueNonEmpty(product.origin) ||
               isValueNonEmpty(product.care_instructions) ||
               hasHardwareSpecs

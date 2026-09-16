@@ -200,7 +200,7 @@ export const AdminProducts: React.FC = () => {
     fit_type: '',
     care_instructions: '',
     origin: '',
-    gender: 'Unisex',
+    gender: '',
     specKey1: '',
     specVal1: '',
     specKey2: '',
@@ -374,7 +374,7 @@ export const AdminProducts: React.FC = () => {
       fit_type: '',
       care_instructions: '',
       origin: '',
-      gender: 'Unisex',
+      gender: '',
       specKey1: '',
       specVal1: '',
       specKey2: '',
@@ -1093,7 +1093,7 @@ export const AdminProducts: React.FC = () => {
       let cleanedFabric = String(formData.fabric || '').trim();
       let cleanedFitType = String(formData.fit_type || '').trim();
       let cleanedCare = String(formData.care_instructions || '').trim();
-      let cleanedGender = String(formData.gender || '').trim() || 'Unisex';
+      let cleanedGender = String(formData.gender || '').trim() || null;
       let cleanedWarranty = String(formData.warranty || '').trim();
       let cleanedSpecs: Record<string, string> = { ...specsObj };
 
@@ -1106,7 +1106,6 @@ export const AdminProducts: React.FC = () => {
         price: priceNum,
         discount_price: calculatedDiscountPrice,
         category_id: formData.category_id || categories[0]?.slug || 'mens-fashion',
-        sub_category: String(formData.sub_category || '').trim() || null,
         stock: effectiveStock,
         images: allImages.length > 0 ? allImages : ['/logo.webp'],
         brand: String(formData.brand || '').trim() || 'No Brand',
@@ -1127,8 +1126,11 @@ export const AdminProducts: React.FC = () => {
         specifications: {
           ...(editingProduct?.specifications || {}),
           ...cleanedSpecs,
+          sub_category: String(formData.sub_category || '').trim(),
+          spec_mode: currentSpecMode,
           custom_attributes: formData.customAttributes || [],
         },
+        sub_category: String(formData.sub_category || '').trim(),
         spec_mode: currentSpecMode,
         tags: uniqueTags,
         sizes: formData.selectedSizes || [],
@@ -3017,10 +3019,11 @@ export const AdminProducts: React.FC = () => {
                       <div>
                         <label className="block text-xs font-bold text-gray-300 mb-1">Target Gender / Dept</label>
                         <select
-                          value={formData.gender}
+                          value={formData.gender || ''}
                           onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
                           className="w-full bg-gray-900 border border-gray-700 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-pink-500"
                         >
+                          <option value="">Not Specified (কোনো জেন্ডার শো করবে না)</option>
                           <option value="Unisex">Unisex (সবার জন্য)</option>
                           <option value="Men">Men (পুরুষ)</option>
                           <option value="Women">Women (মহিলা)</option>
@@ -3209,13 +3212,36 @@ export const AdminProducts: React.FC = () => {
 
                 {/* 4. DISABLED / SKIPPED SPECIFICATIONS */}
                 {currentSpecMode === 'none' && (
-                  <div className="p-4 rounded-xl bg-gray-900/60 border border-dashed border-gray-800 text-center space-y-2">
-                    <p className="text-xs text-gray-400">
-                      🚫 এই প্রোডাক্টের জন্য কোনো বিশেষ স্পেসিফিকেশন বন্ধ রাখা হয়েছে।
-                    </p>
-                    <p className="text-[11px] text-gray-500">
-                      প্রয়োজন হলে ওপরের <strong>"⚡ Gadget & Tech"</strong> বা <strong>"👕 Fashion"</strong> ট্যাবে ক্লিক করে যেকোনো সময় স্পেসিফিকেশন চালু করতে পারবেন।
-                    </p>
+                  <div className="p-4 rounded-xl bg-gray-900/60 border border-dashed border-gray-800 space-y-3">
+                    <div className="flex items-center justify-between flex-wrap gap-2">
+                      <p className="text-xs text-gray-400">
+                        🚫 হার্ডওয়্যার বা কাপড়ের সাইজ স্পেসিফিকেশন স্কিপ করা হয়েছে।
+                      </p>
+                      <span className="text-[10px] text-gray-500">ঐচ্ছিক সেটিং</span>
+                    </div>
+
+                    {/* Optional Target Gender / Dept (e.g. for Jewelry, Necklace, Cosmetics) */}
+                    <div className="max-w-xs pt-1">
+                      <label className="block text-xs font-bold text-gray-300 mb-1">
+                        Target Gender / Department (ঐচ্ছিক জেন্ডার অপশন)
+                      </label>
+                      <select
+                        value={formData.gender || ''}
+                        onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
+                        className="w-full bg-gray-900 border border-gray-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-rose-500"
+                      >
+                        <option value="">Not Specified (কোনো জেন্ডার শো করবে না)</option>
+                        <option value="Women">Women / Female (মহিলাদের জন্য)</option>
+                        <option value="Men">Men / Male (পুরুষদের জন্য)</option>
+                        <option value="Unisex">Unisex (সবার জন্য)</option>
+                        <option value="Kids / Girls">Kids / Girls (মেয়ে শিশু)</option>
+                        <option value="Kids / Boys">Kids / Boys (ছেলে শিশু)</option>
+                        <option value="Baby">Baby (নবজাতক)</option>
+                      </select>
+                      <p className="text-[10px] text-gray-500 mt-1">
+                        মহিলাদের জুয়েলারি বা নেকলেস হলে এখানে "Women" সিলেক্ট করে দিতে পারেন।
+                      </p>
+                    </div>
                   </div>
                 )}
               </div>

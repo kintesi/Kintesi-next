@@ -48,7 +48,13 @@ export async function getProductsFromDB(): Promise<Product[]> {
     const error = result?.error;
 
     if (!error && supaProducts && supaProducts.length > 0) {
-      const clean = supaProducts.filter((p: any) => p && p.id && !p.id.startsWith('prod-'));
+      const clean = supaProducts
+        .filter((p: any) => p && p.id && !p.id.startsWith('prod-'))
+        .map((p: any) => ({
+          ...p,
+          spec_mode: p.spec_mode || p.specifications?.spec_mode || 'auto',
+          sub_category: p.sub_category || p.specifications?.sub_category || '',
+        }));
       localStorage.setItem('kintesi_custom_products', JSON.stringify(clean));
 
       // Asynchronously mirror / shadow backup to Firebase
@@ -112,6 +118,15 @@ export async function saveProductToDB(product: Product): Promise<void> {
       if (val !== undefined) cleanPayload[key] = val;
     });
     cleanPayload.id = product.id;
+
+    // Safely embed extra metadata inside specifications jsonb to prevent schema mismatch
+    cleanPayload.specifications = {
+      ...(cleanPayload.specifications || {}),
+      spec_mode: product.spec_mode || (cleanPayload.specifications?.spec_mode) || 'auto',
+      sub_category: product.sub_category || (cleanPayload.specifications?.sub_category) || '',
+    };
+    delete cleanPayload.sub_category;
+    delete cleanPayload.spec_mode;
 
     // Check if another product already uses this exact slug
     const { data: existingSlugRow } = await supabase
