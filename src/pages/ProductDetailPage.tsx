@@ -1143,6 +1143,25 @@ export const ProductDetailPage: React.FC = () => {
           </div>
         </div>
 
+      {/* Related Products Showcase Strip (Similar Items You May Like - Placed Above Description) */}
+      {relatedProducts.length > 0 && (
+        <section className="bg-white rounded-2xl sm:rounded-3xl border border-gray-100 p-3.5 sm:p-7 shadow-sm">
+          <ShowcaseStrip
+            showcase={{
+              id: 'similar',
+              type: 'trending',
+              title: language === 'bn' ? 'অনুরূপ পণ্যসমূহ (Similar Items)' : 'Similar Items You May Like',
+              subtitle: language === 'bn' ? 'একই কালেকশনের অন্যান্য পণ্য' : 'Related items from this collection',
+              enabled: true,
+              productIds: [],
+            }}
+            products={relatedProducts}
+            viewAllLink={product.category_id ? `/shop?category=${encodeURIComponent(product.category_id)}` : '/shop'}
+            icon={<Sparkles className="w-4 h-4 text-rose-600" />}
+          />
+        </section>
+      )}
+
       {/* Section 1: Comprehensive Specifications & Technical Details Card (Strictly Isolated by Category Mode) */}
       {(() => {
         const cat = (product.category_id || '').toLowerCase();
@@ -1531,25 +1550,6 @@ export const ProductDetailPage: React.FC = () => {
           </div>
         )}
       </section>
-
-      {/* Related Products Showcase Strip (4 per row on mobile, auto-advances if > 4, exactly like Flash Sale & New Arrival) */}
-      {relatedProducts.length > 0 && (
-        <section className="pt-2">
-          <ShowcaseStrip
-            showcase={{
-              id: 'similar',
-              type: 'trending',
-              title: language === 'bn' ? 'অনুরূপ পণ্যসমূহ (Similar Items)' : 'Similar Items You May Like',
-              subtitle: language === 'bn' ? 'একই কালেকশনের অন্যান্য পণ্য' : 'Related items from this collection',
-              enabled: true,
-              productIds: [],
-            }}
-            products={relatedProducts}
-            viewAllLink={product.category_id ? `/shop?category=${encodeURIComponent(product.category_id)}` : '/shop'}
-            icon={<Sparkles className="w-4 h-4 text-rose-600" />}
-          />
-        </section>
-      )}
 
       </div>
 
