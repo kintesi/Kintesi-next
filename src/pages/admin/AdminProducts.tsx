@@ -74,6 +74,7 @@ export const AdminProducts: React.FC = () => {
   const [isColorImageUploading, setIsColorImageUploading] = useState(false);
   const [showColorUrlInput, setShowColorUrlInput] = useState(false);
   const [isSavingProduct, setIsSavingProduct] = useState(false);
+  const [isCustomSubCategory, setIsCustomSubCategory] = useState(false);
   const colorFileInputRef = useRef<HTMLInputElement>(null);
   const [showTemplatePicker, setShowTemplatePicker] = useState(false);
   const [templateSearchQuery, setTemplateSearchQuery] = useState('');
@@ -300,6 +301,7 @@ export const AdminProducts: React.FC = () => {
     setColorPresetSearch('');
     setSizePresetSearch('');
     setEditingProduct(null);
+    setIsCustomSubCategory(false);
     setFormData({
       title: '',
       slug: '',
@@ -461,6 +463,17 @@ export const AdminProducts: React.FC = () => {
       prod.colors.length > 0 &&
       !prod.colors.every((c: any) => !c.name || c.name.toLowerCase() === 'default')
     );
+    const currentCatObj = categories.find(
+      (c) =>
+        c.slug.toLowerCase() === (prod.category_id || '').toLowerCase() ||
+        c.id.toLowerCase() === (prod.category_id || '').toLowerCase()
+    );
+    const availableSubs = currentCatObj?.subcategories || [];
+    const isCustomSub = Boolean(
+      prod.sub_category &&
+      !availableSubs.some((s) => s.toLowerCase() === (prod.sub_category || '').toLowerCase())
+    );
+    setIsCustomSubCategory(isCustomSub);
 
     setFormData({
       title: prod.title || '',
@@ -628,6 +641,18 @@ export const AdminProducts: React.FC = () => {
     const newSku = 'KT-' + randomSuffix;
     const baseSlug = (prod.slug || prod.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')).replace(/-copy-[a-z0-9]+/g, '');
     const newSlug = baseSlug + '-copy-' + randomSuffix.toLowerCase();
+
+    const currentCatObj = categories.find(
+      (c) =>
+        c.slug.toLowerCase() === (prod.category_id || '').toLowerCase() ||
+        c.id.toLowerCase() === (prod.category_id || '').toLowerCase()
+    );
+    const availableSubs = currentCatObj?.subcategories || [];
+    const isCustomSub = Boolean(
+      prod.sub_category &&
+      !availableSubs.some((s) => s.toLowerCase() === (prod.sub_category || '').toLowerCase())
+    );
+    setIsCustomSubCategory(isCustomSub);
 
     setFormData({
       title: `${prod.title} (Copy)`,
@@ -1761,8 +1786,25 @@ export const AdminProducts: React.FC = () => {
                     <label className={`block text-xs font-bold ${isLight ? 'text-gray-700' : 'text-gray-300'} mb-1`}>Category *</label>
                     <select
                       value={formData.category_id}
-                      onChange={(e) => setFormData({ ...formData, category_id: e.target.value })}
-                      className="w-full bg-gray-900 border border-gray-700 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-emerald-500"
+                      onChange={(e) => {
+                        const newCat = e.target.value;
+                        const catObj = categories.find(
+                          (c) => c.slug.toLowerCase() === newCat.toLowerCase() || c.id.toLowerCase() === newCat.toLowerCase()
+                        );
+                        const availableSubs = catObj?.subcategories || [];
+                        const isStillValid = availableSubs.some(
+                          (s) => s.toLowerCase() === (formData.sub_category || '').toLowerCase()
+                        );
+                        setFormData({
+                          ...formData,
+                          category_id: newCat,
+                          sub_category: isStillValid ? formData.sub_category : '',
+                        });
+                        if (!isStillValid) {
+                          setIsCustomSubCategory(false);
+                        }
+                      }}
+                      className={`w-full ${isLight ? 'bg-gray-50 border-gray-300 text-gray-900' : 'bg-gray-900 border-gray-700 text-white'} border rounded-xl px-3.5 py-2.5 text-xs focus:outline-none focus:border-rose-500 cursor-pointer`}
                     >
                       {formData.category_id && !categories.some((c) => (c.slug === formData.category_id || c.id === formData.category_id)) && (
                         <option value={formData.category_id}>
@@ -1777,7 +1819,7 @@ export const AdminProducts: React.FC = () => {
                     </select>
                   </div>
 
-                  {/* Sub-Category with dynamic suggestion list and quick-pick chips */}
+                  {/* Professional Clean Sub-Category Dropdown */}
                   {(() => {
                     const currentCatObj = categories.find(
                       (c) =>
@@ -1788,54 +1830,77 @@ export const AdminProducts: React.FC = () => {
                       ? currentCatObj.subcategories
                       : [];
 
+                    const isPredefined = availableSubs.some(
+                      (s) => s.toLowerCase() === (formData.sub_category || '').toLowerCase()
+                    );
+
                     return (
                       <div>
                         <div className="flex items-center justify-between mb-1">
                           <label className={`block text-xs font-bold ${isLight ? 'text-gray-700' : 'text-gray-300'}`}>
                             Sub-Category (সাব-ক্যাটাগরি)
                           </label>
-                          {availableSubs.length > 0 && (
-                            <span className="text-[10px] text-rose-500 font-bold">
-                              {availableSubs.length} options for {currentCatObj?.name}
-                            </span>
-                          )}
+                          <button
+                            type="button"
+                            onClick={() => setIsCustomSubCategory(!isCustomSubCategory)}
+                            className="text-[11px] text-rose-600 dark:text-rose-400 font-bold hover:underline cursor-pointer"
+                          >
+                            {isCustomSubCategory ? '← ড্রপডাউন লিস্টে ফিরুন' : '+ নতুন কাস্টম লিখুন'}
+                          </button>
                         </div>
-                        <input
-                          type="text"
-                          list="sub-category-suggestions"
-                          placeholder={availableSubs.length > 0 ? `e.g. ${availableSubs.slice(0, 3).join(', ')}...` : 'e.g. Type custom sub-category...'}
-                          value={formData.sub_category || ''}
-                          onChange={(e) => setFormData({ ...formData, sub_category: e.target.value })}
-                          className="w-full bg-gray-900 border border-gray-700 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-emerald-500"
-                        />
-                        <datalist id="sub-category-suggestions">
-                          {availableSubs.map((sub) => (
-                            <option key={sub} value={sub} />
-                          ))}
-                        </datalist>
 
-                        {/* Quick clickable chips for rapid selection */}
-                        {availableSubs.length > 0 && (
-                          <div className="flex flex-wrap gap-1.5 mt-2">
-                            {availableSubs.map((sub) => {
-                              const isSelected = (formData.sub_category || '').toLowerCase() === sub.toLowerCase();
-                              return (
-                                <button
-                                  key={sub}
-                                  type="button"
-                                  onClick={() => setFormData({ ...formData, sub_category: sub })}
-                                  className={`px-2.5 py-1 rounded-lg text-[10px] font-bold border transition active:scale-95 cursor-pointer ${
-                                    isSelected
-                                      ? 'bg-rose-600 border-rose-600 text-white shadow-xs'
-                                      : 'bg-gray-800 border-gray-700 text-gray-300 hover:border-gray-500 hover:text-white'
-                                  }`}
-                                >
-                                  {sub}
-                                </button>
-                              );
-                            })}
+                        {isCustomSubCategory ? (
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="text"
+                              placeholder="নতুন সাব-ক্যাটাগরির নাম লিখুন (e.g. Silk Sharee)..."
+                              value={formData.sub_category || ''}
+                              onChange={(e) => setFormData({ ...formData, sub_category: e.target.value })}
+                              className={`w-full ${isLight ? 'bg-gray-50 border-rose-300 text-gray-900' : 'bg-gray-900 border-rose-500 text-white'} border rounded-xl px-3.5 py-2.5 text-xs focus:outline-none focus:ring-1 focus:ring-rose-500`}
+                              autoFocus
+                            />
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setIsCustomSubCategory(false);
+                                if (!isPredefined) {
+                                  setFormData({ ...formData, sub_category: availableSubs[0] || '' });
+                                }
+                              }}
+                              className={`px-3.5 py-2.5 ${isLight ? 'bg-gray-100 hover:bg-gray-200 text-gray-700' : 'bg-gray-800 hover:bg-gray-700 text-gray-300'} rounded-xl text-xs font-bold transition cursor-pointer shrink-0`}
+                            >
+                              লিস্ট
+                            </button>
                           </div>
+                        ) : (
+                          <select
+                            value={formData.sub_category || ''}
+                            onChange={(e) => {
+                              if (e.target.value === '__add_custom__') {
+                                setIsCustomSubCategory(true);
+                              } else {
+                                setFormData({ ...formData, sub_category: e.target.value });
+                              }
+                            }}
+                            className={`w-full ${isLight ? 'bg-gray-50 border-gray-300 text-gray-900' : 'bg-gray-900 border-gray-700 text-white'} border rounded-xl px-3.5 py-2.5 text-xs focus:outline-none focus:border-rose-500 cursor-pointer`}
+                          >
+                            <option value="">-- সাব-ক্যাটাগরি সিলেক্ট করুন (Select Sub-Category) --</option>
+                            {availableSubs.map((sub) => (
+                              <option key={sub} value={sub}>
+                                {sub}
+                              </option>
+                            ))}
+                            {formData.sub_category && !isPredefined && (
+                              <option value={formData.sub_category}>
+                                {formData.sub_category} (Custom)
+                              </option>
+                            )}
+                            <option value="__add_custom__" className="text-rose-600 font-bold">
+                              ✍️ + অন্য কাস্টম সাব-ক্যাটাগরি লিখুন...
+                            </option>
+                          </select>
                         )}
+
                         {/* Live Category > Subcategory Breadcrumb Preview */}
                         <div className={`flex items-center gap-2 px-3 py-2 rounded-xl text-xs mt-2 border ${
                           isLight ? 'bg-rose-50/70 border-rose-200 text-rose-950' : 'bg-rose-500/10 border-rose-500/20 text-rose-200'
@@ -1849,10 +1914,6 @@ export const AdminProducts: React.FC = () => {
                             {formData.sub_category || 'No sub-category selected'}
                           </span>
                         </div>
-
-                        <p className="text-[10px] text-gray-500 mt-1.5">
-                          উপরে ক্লিক করে সহজেই সাব-ক্যাটাগরি সিলেক্ট করুন অথবা ইচ্ছামতো কাস্টম নাম লিখুন।
-                        </p>
                       </div>
                     );
                   })()}
