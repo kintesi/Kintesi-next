@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { supabase } from '../../lib/supabase';
 import { getProductsFromDB, saveProductToDB, deleteProductFromDB, getCategoriesFromDB } from '../../lib/dbService';
@@ -10,6 +10,7 @@ import { uploadToCloudinary } from '../../lib/cloudinary';
 import {
   Plus,
   Edit2,
+  Copy,
   Trash2,
   Search,
   X,
@@ -74,6 +75,18 @@ export const AdminProducts: React.FC = () => {
   const [showColorUrlInput, setShowColorUrlInput] = useState(false);
   const [isSavingProduct, setIsSavingProduct] = useState(false);
   const colorFileInputRef = useRef<HTMLInputElement>(null);
+  const [showTemplatePicker, setShowTemplatePicker] = useState(false);
+  const [templateSearchQuery, setTemplateSearchQuery] = useState('');
+
+  const filteredTemplateProducts = useMemo(() => {
+    const q = templateSearchQuery.trim().toLowerCase();
+    if (!q) return products;
+    return products.filter((p) =>
+      [p.title, p.sku, p.brand, p.category_id].some((val) =>
+        val?.toLowerCase().includes(q)
+      )
+    );
+  }, [products, templateSearchQuery]);
 
   const getCategorySpecMode = (catId: string): 'gadgets' | 'fashion' | 'groceries' => {
     const c = (catId || '').toLowerCase();
@@ -390,7 +403,9 @@ export const AdminProducts: React.FC = () => {
     const cat = (prod.category_id || '').toLowerCase();
     const hasHardwareSpecs = Boolean(prod.specifications && Object.keys(prod.specifications).length > 0);
     let detectedMode: 'gadgets' | 'fashion' | 'groceries' | 'none' = 'gadgets';
-    if (hasHardwareSpecs || cat.includes('gadget') || cat.includes('smartphones') || cat.includes('tech') || cat.includes('electronic')) {
+    if (prod.spec_mode) {
+      detectedMode = prod.spec_mode as any;
+    } else if (hasHardwareSpecs || cat.includes('gadget') || cat.includes('smartphones') || cat.includes('tech') || cat.includes('electronic')) {
       detectedMode = 'gadgets';
     } else if (cat.includes('groceries') || cat.includes('food') || cat.includes('pantry') || cat.includes('daily-essentials')) {
       detectedMode = 'groceries';
@@ -526,6 +541,173 @@ export const AdminProducts: React.FC = () => {
     });
     setActiveModalTab('general');
     setIsModalOpen(true);
+  };
+
+  const handleDuplicateProduct = (prod: Product) => {
+    refreshPresetsFromStorage();
+    setColorPresetSearch('');
+    setSizePresetSearch('');
+    setEditingProduct(null); // CRUCIAL: null so saving creates a NEW product!
+
+    const existingPercent = calculateDiscount(prod.price, prod.discount_price);
+    const specEntries = Object.entries(prod.specifications || {}).filter(
+      ([key, val]) =>
+        key !== 'custom_attributes' &&
+        typeof key === 'string' &&
+        val !== null &&
+        val !== undefined &&
+        typeof val !== 'object'
+    );
+
+    if (prod.spec_mode) {
+      setSpecMode(prod.spec_mode as any);
+    } else {
+      const cat = (prod.category_id || '').toLowerCase();
+      const hasHardwareSpecs = Boolean(prod.specifications && Object.keys(prod.specifications).length > 0);
+      let detectedMode: 'gadgets' | 'fashion' | 'groceries' | 'none' = 'gadgets';
+      if (hasHardwareSpecs || cat.includes('gadget') || cat.includes('smartphones') || cat.includes('tech') || cat.includes('electronic')) {
+        detectedMode = 'gadgets';
+      } else if (cat.includes('groceries') || cat.includes('food') || cat.includes('pantry') || cat.includes('daily-essentials')) {
+        detectedMode = 'groceries';
+      } else if (cat.includes('fashion') || cat.includes('apparel') || cat.includes('footwear') || cat.includes('shoes')) {
+        detectedMode = 'fashion';
+      } else {
+        detectedMode = getCategorySpecMode(cat);
+      }
+      setSpecMode(detectedMode);
+    }
+
+    const mappedVariants: ColorVariantSection[] = [];
+    if (prod.colors && prod.colors.length > 0) {
+      prod.colors.forEach((c: any, i: number) => {
+        const cImages = (c.images && c.images.length > 0)
+          ? c.images
+          : (c.image ? [c.image] : []);
+        const cPercent = (c.discount_percent !== undefined && c.discount_percent !== null)
+          ? String(c.discount_percent)
+          : (c.discount_price && c.price ? String(calculateDiscount(c.price, c.discount_price)) : (existingPercent > 0 ? String(existingPercent) : ''));
+        mappedVariants.push({
+          id: 'cv_' + i + '_' + Date.now(),
+          colorName: c.name || '',
+          colorHex: c.hex || '#EC4899',
+          price: c.price !== undefined && c.price !== null ? String(c.price) : (prod.price ? String(prod.price) : ''),
+          discount_percent: cPercent,
+          stock: c.stock !== undefined && c.stock !== null ? String(c.stock) : (prod.stock ? String(prod.stock) : ''),
+          imageUrl1: cImages[0] || (i === 0 ? prod.images?.[0] || '' : ''),
+          imageUrl2: cImages[1] || (i === 0 ? prod.images?.[1] || '' : ''),
+          imageUrl3: cImages[2] || (i === 0 ? prod.images?.[2] || '' : ''),
+          imageUrl4: cImages[3] || (i === 0 ? prod.images?.[3] || '' : ''),
+        });
+      });
+    }
+    if (mappedVariants.length === 0) {
+      mappedVariants.push({
+        id: 'cv_1',
+        colorName: '',
+        colorHex: '#EC4899',
+        price: prod.price ? String(prod.price) : '',
+        discount_percent: existingPercent > 0 ? String(existingPercent) : '',
+        stock: prod.stock ? String(prod.stock) : '',
+        imageUrl1: prod.images?.[0] || '',
+        imageUrl2: prod.images?.[1] || '',
+        imageUrl3: prod.images?.[2] || '',
+        imageUrl4: prod.images?.[3] || '',
+      });
+    }
+
+    const hasRealColors = Boolean(
+      prod.colors &&
+      prod.colors.length > 0 &&
+      !prod.colors.every((c: any) => !c.name || c.name.toLowerCase() === 'default')
+    );
+
+    const randomSuffix = Math.random().toString(36).substring(2, 6).toUpperCase();
+    const newSku = 'KT-' + randomSuffix;
+    const baseSlug = (prod.slug || prod.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')).replace(/-copy-[a-z0-9]+/g, '');
+    const newSlug = baseSlug + '-copy-' + randomSuffix.toLowerCase();
+
+    setFormData({
+      title: `${prod.title} (Copy)`,
+      slug: newSlug,
+      description: prod.description || '',
+      price: prod.price ? prod.price.toString() : '',
+      discount_percent: existingPercent > 0 ? existingPercent.toString() : '',
+      category_id: prod.category_id || categories[0]?.slug || 'mens-fashion',
+      stock: prod.stock ? prod.stock.toString() : '0',
+      sku: newSku,
+      brand: prod.brand || '',
+      warranty: prod.warranty || '',
+      delivery_note: prod.delivery_note || '',
+      dropshipping_url: prod.dropshipping_url || '',
+      allowed_payment_methods: prod.allowed_payment_methods && prod.allowed_payment_methods.length > 0
+        ? prod.allowed_payment_methods
+        : ['cod', 'bkash', 'nagad', 'card'],
+      payment_instruction: prod.payment_instruction || '',
+      use_custom_seller_payment: !!prod.seller_payment?.use_custom_payment,
+      seller_name: prod.seller_payment?.seller_name || '',
+      seller_phone: prod.seller_payment?.seller_phone || '',
+      seller_bkash_number: prod.seller_payment?.bkash_number || '',
+      seller_bkash_type: prod.seller_payment?.bkash_type || 'Personal',
+      seller_nagad_number: prod.seller_payment?.nagad_number || '',
+      seller_nagad_type: prod.seller_payment?.nagad_type || 'Personal',
+      seller_rocket_number: prod.seller_payment?.rocket_number || '',
+      seller_rocket_type: prod.seller_payment?.rocket_type || 'Personal',
+      seller_bank_name: prod.seller_payment?.bank_name || '',
+      seller_bank_account_name: prod.seller_payment?.bank_account_name || '',
+      seller_bank_account_number: prod.seller_payment?.bank_account_number || '',
+      seller_bank_branch: prod.seller_payment?.bank_branch || '',
+      seller_bank_routing_number: prod.seller_payment?.bank_routing_number || '',
+      seller_custom_payment_note: prod.seller_payment?.custom_payment_note || '',
+      is_featured: false,
+      is_trending: false,
+      is_affiliate_enabled: !!prod.is_affiliate_enabled,
+      affiliate_commission_rate: prod.affiliate_commission_rate ? String(prod.affiliate_commission_rate) : '10',
+      hasColorVariants: hasRealColors,
+      imageUrl1: prod.images?.[0] || mappedVariants[0]?.imageUrl1 || '',
+      imageUrl2: prod.images?.[1] || mappedVariants[0]?.imageUrl2 || '',
+      imageUrl3: prod.images?.[2] || mappedVariants[0]?.imageUrl3 || '',
+      imageUrl4: prod.images?.[3] || mappedVariants[0]?.imageUrl4 || '',
+      colorVariants: mappedVariants,
+      selectedSizes: prod.sizes || [],
+      customSizeInput: '',
+      colors: prod.colors
+        ? prod.colors.map((c: any) => ({
+            name: c.name || '',
+            hex: c.hex || '#EC4899',
+            price: c.price ?? null,
+            image: c.image || null,
+            stock: c.stock ?? null,
+          }))
+        : [],
+      newColorName: '',
+      newColorHex: '#EC4899',
+      newColorPrice: '',
+      newColorImage: '',
+      newColorStock: '',
+      customAttributes: prod.custom_attributes || (prod.specifications?.custom_attributes as any) || [],
+      newAttrType: 'Size',
+      newAttrName: '',
+      newAttrPrice: '',
+      newAttrStock: '',
+      highlight1: prod.highlights?.[0] || '',
+      highlight2: prod.highlights?.[1] || '',
+      highlight3: prod.highlights?.[2] || '',
+      fabric: prod.fabric || '',
+      fit_type: prod.fit_type || '',
+      care_instructions: prod.care_instructions || '',
+      origin: prod.origin || '',
+      gender: prod.gender || '',
+      specKey1: specEntries[0]?.[0] ? String(specEntries[0][0]) : '',
+      specVal1: specEntries[0]?.[1] !== undefined ? String(specEntries[0][1]) : '',
+      specKey2: specEntries[1]?.[0] ? String(specEntries[1][0]) : '',
+      specVal2: specEntries[1]?.[1] !== undefined ? String(specEntries[1][1]) : '',
+      specKey3: specEntries[2]?.[0] ? String(specEntries[2][0]) : '',
+      specVal3: specEntries[2]?.[1] !== undefined ? String(specEntries[2][1]) : '',
+      tags: Array.isArray(prod.tags) ? prod.tags.join(', ') : (typeof prod.tags === 'string' ? prod.tags : ''),
+    });
+    setActiveModalTab('general');
+    setIsModalOpen(true);
+    toast.success(`"${prod.title}" ডুপ্লিকেট করা হয়েছে! পরিবর্তন করে 'Create Product' এ ক্লিক করুন।`);
   };
 
   const handleToggleSize = (size: string) => {
@@ -904,41 +1086,12 @@ export const AdminProducts: React.FC = () => {
       ];
       const uniqueTags = Array.from(new Set(autoKeywords.filter(Boolean)));
 
-      let cleanedFabric = '';
-      let cleanedFitType = '';
-      let cleanedCare = '';
-      let cleanedGender = '';
+      let cleanedFabric = String(formData.fabric || '').trim();
+      let cleanedFitType = String(formData.fit_type || '').trim();
+      let cleanedCare = String(formData.care_instructions || '').trim();
+      let cleanedGender = String(formData.gender || '').trim() || 'Unisex';
       let cleanedWarranty = String(formData.warranty || '').trim();
-      let cleanedSpecs: Record<string, string> = {};
-
-      if (currentSpecMode === 'gadgets') {
-        cleanedSpecs = specsObj;
-        cleanedFabric = '';
-        cleanedFitType = '';
-        cleanedCare = '';
-        cleanedGender = '';
-      } else if (currentSpecMode === 'fashion') {
-        cleanedSpecs = {};
-        cleanedFabric = String(formData.fabric || '').trim();
-        cleanedFitType = String(formData.fit_type || '').trim();
-        cleanedCare = String(formData.care_instructions || '').trim();
-        cleanedGender = String(formData.gender || '').trim();
-        cleanedWarranty = '';
-      } else if (currentSpecMode === 'groceries') {
-        cleanedSpecs = {};
-        cleanedFabric = String(formData.fabric || '').trim();
-        cleanedFitType = String(formData.fit_type || '').trim();
-        cleanedCare = String(formData.care_instructions || '').trim();
-        cleanedWarranty = String(formData.warranty || '').trim();
-        cleanedGender = '';
-      } else {
-        cleanedSpecs = {};
-        cleanedFabric = '';
-        cleanedFitType = '';
-        cleanedCare = '';
-        cleanedGender = '';
-        cleanedWarranty = '';
-      }
+      let cleanedSpecs: Record<string, string> = { ...specsObj };
 
       const effectiveStock = Number(formData.stock) || (compiledColors.reduce((sum, c) => sum + (c.stock || 0), 0) || 10);
 
@@ -964,14 +1117,16 @@ export const AdminProducts: React.FC = () => {
         fabric: cleanedFabric,
         fit_type: cleanedFitType,
         care_instructions: cleanedCare,
-        origin: currentSpecMode === 'none' ? '' : (formData.origin || '').trim() || 'Made in Bangladesh',
-        gender: cleanedGender || 'Unisex',
+        origin: (formData.origin || '').trim() || 'Made in Bangladesh',
+        gender: cleanedGender,
         specifications: {
+          ...(editingProduct?.specifications || {}),
           ...cleanedSpecs,
           custom_attributes: formData.customAttributes || [],
         },
+        spec_mode: currentSpecMode,
         tags: uniqueTags,
-        sizes: currentSpecMode === 'none' ? [] : (formData.selectedSizes || []),
+        sizes: formData.selectedSizes || [],
         colors: compiledColors,
         custom_attributes: formData.customAttributes || [],
         is_featured: !!formData.is_featured,
@@ -1299,6 +1454,13 @@ export const AdminProducts: React.FC = () => {
                             </a>
                           )}
                           <button
+                            onClick={() => handleDuplicateProduct(prod)}
+                            className="p-2 hover:bg-gray-800 text-indigo-400 rounded-xl transition cursor-pointer"
+                            title="Duplicate Product (ডুপ্লিকেট করে নতুন বানান)"
+                          >
+                            <Copy className="w-4 h-4" />
+                          </button>
+                          <button
                             onClick={() => handleOpenEditModal(prod)}
                             className="p-2 hover:bg-gray-800 text-emerald-400 rounded-xl transition"
                             title="Edit Product"
@@ -1354,7 +1516,84 @@ export const AdminProducts: React.FC = () => {
               
             </div>
             
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 sm:gap-3">
+              {editingProduct ? (
+                <button
+                  type="button"
+                  onClick={() => handleDuplicateProduct(editingProduct)}
+                  className={`px-3.5 py-2 ${isLight ? 'bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200' : 'bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/40'} font-bold rounded-xl text-xs transition flex items-center gap-1.5 cursor-pointer`}
+                  title="Make a copy of this product to create a new one"
+                >
+                  <Copy className="w-3.5 h-3.5 text-indigo-400" />
+                  <span className="hidden sm:inline">Duplicate as New</span>
+                </button>
+              ) : (
+                <div className="relative">
+                  <button
+                    type="button"
+                    onClick={() => setShowTemplatePicker(!showTemplatePicker)}
+                    className={`px-3.5 py-2 ${isLight ? 'bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200' : 'bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/40'} font-bold rounded-xl text-xs transition flex items-center gap-1.5 cursor-pointer`}
+                    title="Copy details from an existing product"
+                  >
+                    <Copy className="w-3.5 h-3.5 text-indigo-400" />
+                    <span className="hidden sm:inline">Copy from Existing</span>
+                  </button>
+                  {showTemplatePicker && (
+                    <div className={`absolute right-0 mt-2 w-80 sm:w-96 ${isLight ? 'bg-white border-slate-200 shadow-2xl' : 'bg-gray-900 border-gray-700 shadow-2xl'} border rounded-2xl p-3 z-50 animate-fadeIn`}>
+                      <div className="flex items-center justify-between pb-2 border-b border-gray-700/50">
+                        <span className={`text-xs font-black ${isLight ? 'text-slate-800' : 'text-white'}`}>Select Product to Copy</span>
+                        <button
+                          type="button"
+                          onClick={() => setShowTemplatePicker(false)}
+                          className="text-gray-400 hover:text-white cursor-pointer"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+                      <div className="mt-2 relative">
+                        <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
+                        <input
+                          type="text"
+                          value={templateSearchQuery}
+                          onChange={(e) => setTemplateSearchQuery(e.target.value)}
+                          placeholder="Search product name, SKU, brand..."
+                          className={`w-full ${isLight ? 'bg-slate-50 border-slate-200 text-slate-900' : 'bg-gray-950 border-gray-800 text-white'} border rounded-xl pl-8 pr-3 py-1.5 text-xs focus:outline-none focus:border-indigo-500`}
+                        />
+                      </div>
+                      <div className="mt-2 max-h-60 overflow-y-auto space-y-1">
+                        {filteredTemplateProducts.length === 0 ? (
+                          <p className="text-center py-4 text-xs text-gray-500">No products found</p>
+                        ) : (
+                          filteredTemplateProducts.slice(0, 15).map((p) => (
+                            <button
+                              key={p.id}
+                              type="button"
+                              onClick={() => {
+                                handleDuplicateProduct(p);
+                                setShowTemplatePicker(false);
+                              }}
+                              className={`w-full text-left p-2 ${isLight ? 'hover:bg-slate-100' : 'hover:bg-gray-800'} rounded-xl flex items-center gap-2.5 transition cursor-pointer`}
+                            >
+                              <img
+                                src={p.images?.[0] || '/logo.webp'}
+                                alt=""
+                                className="w-8 h-8 rounded-lg object-cover bg-gray-950 border border-gray-700 shrink-0"
+                              />
+                              <div className="min-w-0 flex-1">
+                                <p className={`text-xs font-bold ${isLight ? 'text-slate-900' : 'text-white'} truncate`}>{p.title}</p>
+                                <p className="text-[10px] text-gray-400">
+                                  ৳{p.price} {p.sku ? `• ${p.sku}` : ''} • {p.category_id}
+                                </p>
+                              </div>
+                              <span className="text-[10px] font-bold text-indigo-400 shrink-0">Copy</span>
+                            </button>
+                          ))
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
               <button
                 type="button"
                 onClick={() => setIsModalOpen(false)}
@@ -1427,6 +1666,42 @@ export const AdminProducts: React.FC = () => {
               {/* Tab 1: General & Pricing */}
               {activeModalTab === 'general' && (
                 <div className="space-y-6 animate-fadeIn">
+                  {/* Quick Copy / Template Banner */}
+                  <div className={`p-3.5 rounded-2xl border flex flex-wrap items-center justify-between gap-3 ${isLight ? 'bg-indigo-50/80 border-indigo-200 text-indigo-950' : 'bg-indigo-950/30 border-indigo-800/50 text-indigo-200'}`}>
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <div className="w-8 h-8 rounded-xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center shrink-0">
+                        <Copy className="w-4 h-4" />
+                      </div>
+                      <div className="min-w-0">
+                        <span className="text-xs font-black block">
+                          {editingProduct ? 'Duplicate this product to create a new one' : 'Create similar product from an existing one'}
+                        </span>
+                        <span className="text-[11px] opacity-80 block truncate">
+                          অন্য কোনো প্রোডাক্টের অনুরূপ তৈরি করতে এক ক্লিকেই সম্পূর্ণ তথ্য কপি করে নিন (ক্যাটাগরি, স্পেক্স, ছবি ইত্যাদি)
+                        </span>
+                      </div>
+                    </div>
+                    {editingProduct ? (
+                      <button
+                        type="button"
+                        onClick={() => handleDuplicateProduct(editingProduct)}
+                        className="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl text-xs transition flex items-center gap-1.5 cursor-pointer shadow-xs"
+                      >
+                        <Copy className="w-3.5 h-3.5" />
+                        <span>ডুপ্লিকেট করে নতুন বানান</span>
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => setShowTemplatePicker(true)}
+                        className="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl text-xs transition flex items-center gap-1.5 cursor-pointer shadow-xs"
+                      >
+                        <Copy className="w-3.5 h-3.5" />
+                        <span>অন্য প্রোডাক্ট থেকে কপি করুন</span>
+                      </button>
+                    )}
+                  </div>
+
                   {/* Section 1: Basic Identifiers */}
               <div className={`space-y-4 p-5 rounded-2xl border ${isLight ? 'bg-white border-gray-200 shadow-xs' : 'bg-gray-950/60 border-gray-800/80'}`}>
                 <h4 className="text-xs font-black uppercase tracking-wider text-rose-600 dark:text-rose-400 flex items-center gap-1.5">
@@ -1463,8 +1738,13 @@ export const AdminProducts: React.FC = () => {
                       onChange={(e) => setFormData({ ...formData, category_id: e.target.value })}
                       className="w-full bg-gray-900 border border-gray-700 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-emerald-500"
                     >
+                      {formData.category_id && !categories.some((c) => (c.slug === formData.category_id || c.id === formData.category_id)) && (
+                        <option value={formData.category_id}>
+                          {formData.category_id.replace(/[-_]/g, ' ').toUpperCase()} (Current Selected)
+                        </option>
+                      )}
                       {categories.map((cat) => (
-                        <option key={cat.slug || cat.id} value={cat.slug}>
+                        <option key={cat.slug || cat.id} value={cat.slug || cat.id}>
                           {cat.name}
                         </option>
                       ))}
@@ -2418,16 +2698,7 @@ export const AdminProducts: React.FC = () => {
                   <div className="flex flex-wrap items-center gap-1 bg-gray-900 p-1 rounded-xl border border-gray-800">
                     <button
                       type="button"
-                      onClick={() => {
-                        setSpecMode('gadgets');
-                        setFormData((prev) => ({
-                          ...prev,
-                          fabric: '',
-                          fit_type: '',
-                          care_instructions: '',
-                          gender: 'Unisex',
-                        }));
-                      }}
+                      onClick={() => setSpecMode('gadgets')}
                       className={`px-2.5 py-1 rounded-lg text-[10px] font-bold transition flex items-center gap-1 ${
                         currentSpecMode === 'gadgets'
                           ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 shadow-xs'
@@ -2438,19 +2709,7 @@ export const AdminProducts: React.FC = () => {
                     </button>
                     <button
                       type="button"
-                      onClick={() => {
-                        setSpecMode('fashion');
-                        setFormData((prev) => ({
-                          ...prev,
-                          specKey1: '',
-                          specVal1: '',
-                          specKey2: '',
-                          specVal2: '',
-                          specKey3: '',
-                          specVal3: '',
-                          warranty: '',
-                        }));
-                      }}
+                      onClick={() => setSpecMode('fashion')}
                       className={`px-2.5 py-1 rounded-lg text-[10px] font-bold transition flex items-center gap-1 ${
                         currentSpecMode === 'fashion'
                           ? 'bg-pink-500/20 text-pink-300 border border-pink-500/40 shadow-xs'
@@ -2461,19 +2720,7 @@ export const AdminProducts: React.FC = () => {
                     </button>
                     <button
                       type="button"
-                      onClick={() => {
-                        setSpecMode('groceries');
-                        setFormData((prev) => ({
-                          ...prev,
-                          specKey1: '',
-                          specVal1: '',
-                          specKey2: '',
-                          specVal2: '',
-                          specKey3: '',
-                          specVal3: '',
-                          gender: '',
-                        }));
-                      }}
+                      onClick={() => setSpecMode('groceries')}
                       className={`px-2.5 py-1 rounded-lg text-[10px] font-bold transition flex items-center gap-1 ${
                         currentSpecMode === 'groceries'
                           ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 shadow-xs'
@@ -2484,24 +2731,7 @@ export const AdminProducts: React.FC = () => {
                     </button>
                     <button
                       type="button"
-                      onClick={() => {
-                        setSpecMode('none');
-                        setFormData((prev) => ({
-                          ...prev,
-                          specKey1: '',
-                          specVal1: '',
-                          specKey2: '',
-                          specVal2: '',
-                          specKey3: '',
-                          specVal3: '',
-                          fabric: '',
-                          fit_type: '',
-                          care_instructions: '',
-                          gender: '',
-                          warranty: '',
-                          origin: '',
-                        }));
-                      }}
+                      onClick={() => setSpecMode('none')}
                       className={`px-2 py-1 rounded-lg text-[10px] font-bold transition flex items-center gap-1 ${
                         currentSpecMode === 'none'
                           ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40 shadow-xs'

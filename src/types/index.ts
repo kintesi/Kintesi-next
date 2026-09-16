@@ -82,6 +82,7 @@ export interface Product {
   origin?: string;
   gender?: string;
   specifications?: Record<string, any>;
+  spec_mode?: 'auto' | 'gadgets' | 'fashion' | 'groceries' | 'none' | string;
   tags?: string[];
   sizes?: string[];
   colors?: ProductColorOption[];
