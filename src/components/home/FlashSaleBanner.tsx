@@ -179,9 +179,9 @@ export const FlashSaleBanner: React.FC<FlashSaleBannerProps> = ({
     slides && slides.length > 0
       ? slides.map((s, idx) => ({
           id: s.id || `slide-${idx}`,
-          tag: s.tag || defaultTag || '⚡ FLASH SALE',
-          title: s.title || defaultTitle || 'EXCLUSIVE SUPER DEALS',
-          subtitle: s.subtitle || defaultSubtitle || 'Limited stock flash offers with up to 50% discount. Order before time runs out!',
+          tag: s.tag !== undefined ? s.tag : (defaultTag ?? ''),
+          title: s.title !== undefined ? s.title : (defaultTitle ?? ''),
+          subtitle: s.subtitle !== undefined ? s.subtitle : (defaultSubtitle ?? ''),
           bgImage: s.bgImage || defaultBgImage || '',
           desktopImage: s.desktopImage || defaultDesktopImage || s.bgImage || defaultBgImage || '',
           mobileImage: s.mobileImage || defaultMobileImage || s.bgImage || defaultBgImage || '',
@@ -190,13 +190,14 @@ export const FlashSaleBanner: React.FC<FlashSaleBannerProps> = ({
           bannerType: s.bannerType,
           layoutStyle: s.layoutStyle,
           showTimer: s.showTimer,
+          hideText: s.hideText,
         }))
       : [
           {
             id: 'default',
-            tag: defaultTag || '⚡ FLASH SALE',
-            title: defaultTitle || 'EXCLUSIVE SUPER DEALS',
-            subtitle: defaultSubtitle || 'Limited stock flash offers with up to 50% discount. Order before time runs out!',
+            tag: defaultTag ?? '',
+            title: defaultTitle ?? '',
+            subtitle: defaultSubtitle ?? '',
             bgImage: defaultBgImage || '',
             desktopImage: defaultDesktopImage || defaultBgImage || '',
             mobileImage: defaultMobileImage || defaultBgImage || '',
@@ -257,16 +258,17 @@ export const FlashSaleBanner: React.FC<FlashSaleBannerProps> = ({
 
   const currentImage = getSlideImage(currentSlide);
 
-  const hasTag = Boolean(currentSlide.tag?.trim());
-  const hasTitle = Boolean(currentSlide.title?.trim());
-  const hasSubtitle = Boolean(currentSlide.subtitle?.trim());
+  const isSlideTextHidden = Boolean(currentSlide.hideText);
+  const hasTag = !isSlideTextHidden && Boolean(currentSlide.tag?.trim());
+  const hasTitle = !isSlideTextHidden && Boolean(currentSlide.title?.trim());
+  const hasSubtitle = !isSlideTextHidden && Boolean(currentSlide.subtitle?.trim());
   const hasText = hasTag || hasTitle || hasSubtitle;
   const hasTimer = Boolean(showTimer === true && currentSlide.showTimer !== false && timeLeft && (timeLeft.hours > 0 || timeLeft.minutes > 0 || timeLeft.seconds > 0));
   const isClickable =
     bannerType !== undefined
       ? bannerType === 'clickable'
       : currentSlide.bannerType !== 'normal';
-  const isFullLayout = currentSlide.layoutStyle !== 'split';
+  const isFullLayout = currentSlide.layoutStyle !== 'split' || (!hasText && !hasTimer);
 
   const handleBannerClick = (e: React.MouseEvent) => {
     if (!isClickable) return;
@@ -296,9 +298,9 @@ export const FlashSaleBanner: React.FC<FlashSaleBannerProps> = ({
       return (
         <div
           onClick={isClickable ? handleBannerClick : undefined}
-          className={`relative overflow-hidden rounded-[20px] sm:rounded-[24px] shadow-lg flex select-none transition-all ${
+          className={`relative w-full h-[155px] xs:h-[170px] sm:h-[190px] overflow-hidden rounded-[20px] sm:rounded-[24px] shadow-lg flex select-none transition-all ${
             isClickable ? 'cursor-pointer active:scale-[0.99]' : 'cursor-default'
-          } bg-gradient-to-r ${themeConfig.cardBg} border ${themeConfig.border} min-h-[145px] sm:min-h-[165px]`}
+          } bg-gradient-to-r ${themeConfig.cardBg} border ${themeConfig.border}`}
           onMouseEnter={() => setIsPaused(true)}
           onMouseLeave={() => setIsPaused(false)}
           onTouchStart={handleTouchStart}
@@ -327,10 +329,10 @@ export const FlashSaleBanner: React.FC<FlashSaleBannerProps> = ({
             <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/45 to-transparent pointer-events-none z-[1]" />
           )}
 
-          {/* Overlay Content (Only if text or timer exists) */}
+          {/* Overlay Content (Only if text or timer exists) - absolute inset-0 locks height */}
           {(hasText || hasTimer) && (
-            <div className="relative z-10 flex-1 p-3.5 sm:p-4 flex flex-col justify-between min-w-0 max-w-[75%] min-h-[145px] sm:min-h-[165px]">
-              <div className="space-y-1.5">
+            <div className="absolute inset-0 z-10 p-3.5 sm:p-4 flex flex-col justify-between min-w-0 max-w-[75%] overflow-hidden">
+              <div className="space-y-1 sm:space-y-1.5 min-w-0">
                 {/* Tag & Shop Deal Chip */}
                 <div className="flex items-center gap-1.5 flex-wrap">
                   {hasTag && (
@@ -350,23 +352,23 @@ export const FlashSaleBanner: React.FC<FlashSaleBannerProps> = ({
 
                 {/* Title */}
                 {hasTitle && (
-                  <h2 className="text-base sm:text-lg font-black text-white uppercase tracking-tight leading-tight drop-shadow-md truncate">
+                  <h2 className="text-sm sm:text-base md:text-lg font-black text-white uppercase tracking-tight leading-tight drop-shadow-md truncate">
                     {currentSlide.title}
                   </h2>
                 )}
 
                 {/* Subtitle */}
                 {hasSubtitle && (
-                  <p className="text-gray-200 text-[10.5px] sm:text-xs font-normal leading-snug line-clamp-2 drop-shadow-sm">
+                  <p className="text-gray-200 text-[10px] sm:text-xs font-normal leading-snug line-clamp-2 drop-shadow-sm">
                     {currentSlide.subtitle}
                   </p>
                 )}
               </div>
 
               {/* Bottom: Timer & Slide Dots */}
-              <div className="pt-2 flex items-center justify-between gap-2">
+              <div className="pt-1.5 flex items-center justify-between gap-2">
                 {hasTimer ? (
-                  <div className={`flex items-center gap-1 backdrop-blur-md px-2.5 py-1 rounded-xl border text-[10.5px] font-mono font-bold shadow-xs text-white ${themeConfig.timerBg}`}>
+                  <div className={`flex items-center gap-1 backdrop-blur-md px-2.5 py-1 rounded-xl border text-[10px] font-mono font-bold shadow-xs text-white ${themeConfig.timerBg}`}>
                     <Timer className="w-3 h-3 text-white/80 mr-0.5 shrink-0" />
                     <span>{String(timeLeft.hours).padStart(2, '0')}h</span>
                     <span className="opacity-40">:</span>
@@ -425,9 +427,9 @@ export const FlashSaleBanner: React.FC<FlashSaleBannerProps> = ({
     return (
       <div
         onClick={isClickable ? handleBannerClick : undefined}
-        className={`relative overflow-hidden rounded-[22px] sm:rounded-[24px] shadow-xl flex select-none transition-all ${
+        className={`relative w-full h-[155px] xs:h-[170px] sm:h-[190px] overflow-hidden rounded-[22px] sm:rounded-[24px] shadow-xl flex select-none transition-all ${
           isClickable ? 'cursor-pointer' : 'cursor-default'
-        } group bg-gradient-to-r ${themeConfig.cardBg} border ${themeConfig.border} min-h-[145px]`}
+        } group bg-gradient-to-r ${themeConfig.cardBg} border ${themeConfig.border}`}
         onMouseEnter={() => setIsPaused(true)}
         onMouseLeave={() => setIsPaused(false)}
         onTouchStart={handleTouchStart}
@@ -437,15 +439,15 @@ export const FlashSaleBanner: React.FC<FlashSaleBannerProps> = ({
         <div className={`absolute -left-10 -top-10 w-44 h-44 rounded-full blur-2xl pointer-events-none ${themeConfig.glowColor}`} />
 
         {/* Left Content Area: Tag, Title, Subtitle & Timer */}
-        <div className="relative z-10 flex-1 p-3.5 sm:p-4 flex flex-col justify-between min-w-0 max-w-[62%] sm:max-w-[65%] min-h-[145px]">
-          <div className="space-y-1.5">
+        <div className="relative z-10 flex-1 p-3.5 sm:p-4 flex flex-col justify-between min-w-0 max-w-[60%] sm:max-w-[63%] h-full overflow-hidden">
+          <div className="space-y-1 sm:space-y-1.5 min-w-0">
             <div className="flex items-center gap-1.5 flex-wrap">
               {hasTag && (
                 <div
                   className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider shadow-xs border backdrop-blur-md ${themeConfig.badgeBg}`}
                 >
                   <Flame className="w-3 h-3 fill-current animate-pulse" />
-                  <span>{currentSlide.tag || '⚡ FLASH SALE'}</span>
+                  <span>{currentSlide.tag}</span>
                 </div>
               )}
               {isClickable && (
@@ -455,20 +457,22 @@ export const FlashSaleBanner: React.FC<FlashSaleBannerProps> = ({
               )}
             </div>
 
-            <h2 className="text-base sm:text-lg font-black text-white uppercase tracking-tight leading-tight drop-shadow-xs truncate">
-              {currentSlide.title || 'EXCLUSIVE SUPER DEALS'}
-            </h2>
+            {hasTitle && (
+              <h2 className="text-sm sm:text-base font-black text-white uppercase tracking-tight leading-tight drop-shadow-xs truncate">
+                {currentSlide.title}
+              </h2>
+            )}
 
-            {currentSlide.subtitle && (
-              <p className="text-gray-300 text-[10.5px] sm:text-xs font-normal leading-snug line-clamp-2">
+            {hasSubtitle && (
+              <p className="text-gray-300 text-[10px] sm:text-xs font-normal leading-snug line-clamp-2">
                 {currentSlide.subtitle}
               </p>
             )}
           </div>
 
-          <div className="pt-2 flex items-center justify-between gap-2">
+          <div className="pt-1.5 flex items-center justify-between gap-2">
             {hasTimer && (
-              <div className={`flex items-center gap-1 backdrop-blur-md px-2.5 py-1 rounded-xl border text-[10.5px] font-mono font-bold shadow-xs text-white ${themeConfig.timerBg}`}>
+              <div className={`flex items-center gap-1 backdrop-blur-md px-2.5 py-1 rounded-xl border text-[10px] font-mono font-bold shadow-xs text-white ${themeConfig.timerBg}`}>
                 <Timer className="w-3 h-3 text-white/80 mr-0.5 shrink-0" />
                 <span>{String(timeLeft.hours).padStart(2, '0')}h</span>
                 <span className="opacity-40">:</span>
@@ -511,7 +515,7 @@ export const FlashSaleBanner: React.FC<FlashSaleBannerProps> = ({
               <img
                 key={slide.id}
                 src={getSlideImage(slide)}
-                alt={slide.title}
+                alt={slide.title || 'Product Offer'}
                 className={`absolute inset-0 w-full h-full object-cover object-center transition-opacity duration-700 ease-in-out ${
                   idx === safeIndex ? 'opacity-100 z-0' : 'opacity-0 -z-10'
                 }`}
@@ -534,9 +538,9 @@ export const FlashSaleBanner: React.FC<FlashSaleBannerProps> = ({
     return (
       <div
         onClick={isClickable ? handleBannerClick : undefined}
-        className={`relative overflow-hidden rounded-[26px] sm:rounded-[30px] shadow-2xl flex mb-6 text-white group select-none transition-all ${
+        className={`relative w-full h-[240px] sm:h-[270px] lg:h-[300px] xl:h-[320px] overflow-hidden rounded-[24px] sm:rounded-[28px] shadow-2xl flex mb-6 text-white group select-none transition-all ${
           isClickable ? 'cursor-pointer' : 'cursor-default'
-        } bg-gradient-to-r ${themeConfig.cardBg} border ${themeConfig.border} min-h-[220px] sm:min-h-[260px] lg:min-h-[290px]`}
+        } bg-gradient-to-r ${themeConfig.cardBg} border ${themeConfig.border}`}
         onMouseEnter={() => setIsPaused(true)}
         onMouseLeave={() => setIsPaused(false)}
       >
@@ -563,10 +567,10 @@ export const FlashSaleBanner: React.FC<FlashSaleBannerProps> = ({
           <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/45 to-transparent pointer-events-none z-[1]" />
         )}
 
-        {/* Floating Content: Tag, Bold Headline, Subtitle, HUD Timer */}
+        {/* Floating Content: Tag, Bold Headline, Subtitle, HUD Timer - absolute inset-0 locks height */}
         {(hasText || hasTimer) && (
-          <div className="relative z-10 flex-1 p-7 sm:p-9 lg:p-10 flex flex-col justify-between min-w-0 max-w-xl lg:max-w-2xl min-h-[220px] sm:min-h-[260px] lg:min-h-[290px]">
-            <div className="space-y-3">
+          <div className="absolute inset-0 z-10 p-7 sm:p-9 lg:p-10 flex flex-col justify-between min-w-0 max-w-xl lg:max-w-2xl overflow-hidden">
+            <div className="space-y-3 min-w-0">
               {hasTag && (
                 <div
                   className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-black uppercase tracking-wider backdrop-blur-md self-start border shadow-sm ${themeConfig.badgeBg}`}
@@ -577,22 +581,22 @@ export const FlashSaleBanner: React.FC<FlashSaleBannerProps> = ({
               )}
 
               {hasTitle && (
-                <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-white uppercase tracking-tight leading-tight drop-shadow-md">
+                <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-white uppercase tracking-tight leading-tight drop-shadow-md line-clamp-2">
                   {currentSlide.title}
                 </h2>
               )}
 
               {hasSubtitle && (
-                <p className="text-gray-200 text-xs sm:text-sm font-normal leading-relaxed max-w-lg drop-shadow-sm">
+                <p className="text-gray-200 text-xs sm:text-sm font-normal leading-relaxed max-w-lg drop-shadow-sm line-clamp-2">
                   {currentSlide.subtitle}
                 </p>
               )}
             </div>
 
             {/* Bottom HUD: Timer & Action */}
-            <div className="pt-5 flex items-center justify-between gap-4 flex-wrap">
+            <div className="pt-4 flex items-center justify-between gap-4 flex-wrap">
               {hasTimer ? (
-                <div className={`flex items-center gap-2.5 backdrop-blur-md px-4 py-2.5 rounded-2xl border shadow-lg ${themeConfig.timerBg}`}>
+                <div className={`flex items-center gap-2.5 backdrop-blur-md px-4 py-2 rounded-2xl border shadow-lg ${themeConfig.timerBg}`}>
                   <Timer className="w-4 h-4 text-white/80 shrink-0" />
                   <div className="flex items-center gap-1.5 font-mono text-sm font-black tracking-wide">
                     <div className="bg-white/10 px-2.5 py-1 rounded-lg text-center min-w-[38px]">
@@ -616,7 +620,7 @@ export const FlashSaleBanner: React.FC<FlashSaleBannerProps> = ({
               <div className="flex items-center gap-3">
                 {isClickable && (
                   <span
-                    className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider shadow-lg transition-all duration-200 group-hover:scale-105 active:scale-95 ${themeConfig.ctaBg}`}
+                    className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider shadow-lg transition-all duration-200 group-hover:scale-105 active:scale-95 ${themeConfig.ctaBg}`}
                   >
                     Shop Deal <ArrowRight className="w-3.5 h-3.5 transition-transform duration-200 group-hover:translate-x-1" />
                   </span>
@@ -671,7 +675,7 @@ export const FlashSaleBanner: React.FC<FlashSaleBannerProps> = ({
             <button
               type="button"
               onClick={handlePrev}
-              className="absolute left-3 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-black/50 hover:bg-black/80 backdrop-blur-md border border-white/20 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 active:scale-90 cursor-pointer shadow-md"
+              className="absolute left-4 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-black/50 hover:bg-black/80 backdrop-blur-md border border-white/20 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 active:scale-90 cursor-pointer shadow-md"
               aria-label="Previous Slide"
             >
               <ChevronLeft className="w-5 h-5" />
@@ -679,7 +683,7 @@ export const FlashSaleBanner: React.FC<FlashSaleBannerProps> = ({
             <button
               type="button"
               onClick={handleNext}
-              className="absolute right-3 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-black/50 hover:bg-black/80 backdrop-blur-md border border-white/20 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 active:scale-90 cursor-pointer shadow-md"
+              className="absolute right-4 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-black/50 hover:bg-black/80 backdrop-blur-md border border-white/20 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 active:scale-90 cursor-pointer shadow-md"
               aria-label="Next Slide"
             >
               <ChevronRight className="w-5 h-5" />
@@ -696,9 +700,9 @@ export const FlashSaleBanner: React.FC<FlashSaleBannerProps> = ({
   return (
     <div
       onClick={isClickable ? handleBannerClick : undefined}
-      className={`relative overflow-hidden rounded-[26px] sm:rounded-[30px] shadow-2xl flex mb-6 text-white group select-none transition-all ${
+      className={`relative w-full h-[240px] sm:h-[270px] lg:h-[300px] xl:h-[320px] overflow-hidden rounded-[24px] sm:rounded-[28px] shadow-2xl flex mb-6 text-white group select-none transition-all ${
         isClickable ? 'cursor-pointer' : 'cursor-default'
-      } bg-gradient-to-r ${themeConfig.cardBg} border ${themeConfig.border} min-h-[220px] sm:min-h-[250px] lg:min-h-[270px]`}
+      } bg-gradient-to-r ${themeConfig.cardBg} border ${themeConfig.border}`}
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
     >
@@ -707,32 +711,34 @@ export const FlashSaleBanner: React.FC<FlashSaleBannerProps> = ({
       <div className={`absolute left-1/3 -bottom-20 w-60 h-60 rounded-full blur-3xl pointer-events-none ${themeConfig.glowColor}`} />
 
       {/* Left Content Column: Tag, Bold Headline, Subtitle, HUD Timer */}
-      <div className="relative z-10 flex-1 p-7 sm:p-9 lg:p-10 flex flex-col justify-between min-w-0 max-w-xl lg:max-w-2xl min-h-[220px] sm:min-h-[250px] lg:min-h-[270px]">
-        <div className="space-y-3">
+      <div className="relative z-10 flex-1 p-7 sm:p-9 lg:p-10 flex flex-col justify-between min-w-0 max-w-xl lg:max-w-2xl h-full overflow-hidden">
+        <div className="space-y-3 min-w-0">
           {hasTag && (
             <div
               className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-black uppercase tracking-wider backdrop-blur-md self-start border shadow-sm ${themeConfig.badgeBg}`}
             >
               <Flame className="w-3.5 h-3.5 fill-current animate-pulse" />
-              <span>{currentSlide.tag || '⚡ FLASH SALE'}</span>
+              <span>{currentSlide.tag}</span>
             </div>
           )}
 
-          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-white uppercase tracking-tight leading-tight drop-shadow-sm">
-            {currentSlide.title || 'EXCLUSIVE SUPER DEALS'}
-          </h2>
+          {hasTitle && (
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-white uppercase tracking-tight leading-tight drop-shadow-sm line-clamp-2">
+              {currentSlide.title}
+            </h2>
+          )}
 
-          {currentSlide.subtitle && (
-            <p className="text-gray-300 text-xs sm:text-sm font-normal leading-relaxed max-w-lg">
+          {hasSubtitle && (
+            <p className="text-gray-300 text-xs sm:text-sm font-normal leading-relaxed max-w-lg line-clamp-2">
               {currentSlide.subtitle}
             </p>
           )}
         </div>
 
         {/* Bottom Area: Modern HUD Countdown Timer, Slide Indicators & Shop Deal Button */}
-        <div className="pt-5 flex items-center justify-between gap-4 flex-wrap">
+        <div className="pt-4 flex items-center justify-between gap-4 flex-wrap">
           {hasTimer ? (
-            <div className={`flex items-center gap-2.5 backdrop-blur-md px-4 py-2.5 rounded-2xl border shadow-lg ${themeConfig.timerBg}`}>
+            <div className={`flex items-center gap-2.5 backdrop-blur-md px-4 py-2 rounded-2xl border shadow-lg ${themeConfig.timerBg}`}>
               <Timer className="w-4 h-4 text-white/80 shrink-0" />
               <div className="flex items-center gap-1.5 font-mono text-sm font-black tracking-wide">
                 <div className="bg-white/10 px-2.5 py-1 rounded-lg text-center min-w-[38px]">
@@ -756,7 +762,7 @@ export const FlashSaleBanner: React.FC<FlashSaleBannerProps> = ({
           <div className="flex items-center gap-3">
             {isClickable && (
               <span
-                className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider shadow-lg transition-all duration-200 group-hover:scale-105 active:scale-95 ${themeConfig.ctaBg}`}
+                className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider shadow-lg transition-all duration-200 group-hover:scale-105 active:scale-95 ${themeConfig.ctaBg}`}
               >
                 Shop Deal <ArrowRight className="w-3.5 h-3.5 transition-transform duration-200 group-hover:translate-x-1" />
               </span>
@@ -816,7 +822,7 @@ export const FlashSaleBanner: React.FC<FlashSaleBannerProps> = ({
           <button
             type="button"
             onClick={handlePrev}
-            className="absolute left-3 top-1/2 -translate-y-1/2 z-20 w-9 h-9 rounded-full bg-black/50 hover:bg-black/80 backdrop-blur-md border border-white/20 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 active:scale-90 cursor-pointer shadow-md"
+            className="absolute left-4 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-black/50 hover:bg-black/80 backdrop-blur-md border border-white/20 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 active:scale-90 cursor-pointer shadow-md"
             aria-label="Previous Slide"
           >
             <ChevronLeft className="w-5 h-5" />
@@ -824,7 +830,7 @@ export const FlashSaleBanner: React.FC<FlashSaleBannerProps> = ({
           <button
             type="button"
             onClick={handleNext}
-            className="absolute right-3 top-1/2 -translate-y-1/2 z-20 w-9 h-9 rounded-full bg-black/50 hover:bg-black/80 backdrop-blur-md border border-white/20 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 active:scale-90 cursor-pointer shadow-md"
+            className="absolute right-4 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-black/50 hover:bg-black/80 backdrop-blur-md border border-white/20 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 active:scale-90 cursor-pointer shadow-md"
             aria-label="Next Slide"
           >
             <ChevronRight className="w-5 h-5" />

@@ -122,10 +122,17 @@ export const AdminBanners: React.FC = () => {
     ? form.flashSaleSlides
     : [{
         id: 'slide-1',
-        tag: form.flashSaleTag || '⚡ FLASH SALE',
-        title: form.flashSaleTitle || 'Exclusive 24-Hour Super Deals',
-        subtitle: form.flashSaleSubtitle || 'Limited stock flash offers with up to 50% discount.',
+        tag: form.flashSaleTag ?? '',
+        title: form.flashSaleTitle ?? '',
+        subtitle: form.flashSaleSubtitle ?? '',
         bgImage: form.flashSaleBgImage || '',
+        desktopImage: form.flashSaleDesktopImage || form.flashSaleBgImage || '',
+        mobileImage: form.flashSaleMobileImage || form.flashSaleBgImage || '',
+        link: form.flashSaleLink || '',
+        bannerType: form.flashSaleBannerType || 'clickable',
+        layoutStyle: form.flashSaleLayoutStyle || 'full',
+        showTimer: form.flashSaleShowTimer || false,
+        hideText: form.flashSaleHideText || false,
       }];
   const currentSlide = slides[Math.min(selectedSlideIndex, slides.length - 1)];
 
@@ -322,8 +329,32 @@ export const AdminBanners: React.FC = () => {
         flashSaleBannerType: key === 'bannerType' ? value : previous.flashSaleBannerType,
         flashSaleLayoutStyle: key === 'layoutStyle' ? value : previous.flashSaleLayoutStyle,
         flashSaleShowTimer: key === 'showTimer' ? value : previous.flashSaleShowTimer,
+        flashSaleHideText: key === 'hideText' ? value : previous.flashSaleHideText,
       } : {}),
     }));
+  };
+
+  const clearSlideText = () => {
+    hasUserEdited.current = true;
+    setIsSaved(false);
+    const nextSlides = slides.map((slide, index) =>
+      index === selectedSlideIndex
+        ? { ...slide, tag: '', title: '', subtitle: '', hideText: true }
+        : slide
+    );
+    setForm((previous) => ({
+      ...previous,
+      flashSaleSlides: nextSlides,
+      ...(selectedSlideIndex === 0
+        ? {
+            flashSaleTag: '',
+            flashSaleTitle: '',
+            flashSaleSubtitle: '',
+            flashSaleHideText: true,
+          }
+        : {}),
+    }));
+    toast.success('স্লাইডারের টেক্সট মুছে দেওয়া হয়েছে (Pure Image Banner)।');
   };
 
   const addSlide = () => {
@@ -332,8 +363,8 @@ export const AdminBanners: React.FC = () => {
     const currentBannerType = form.flashSaleBannerType || 'clickable';
     const nextSlides = [...slides, {
       id: `slide-${Date.now()}`,
-      tag: '⚡ FLASH SALE',
-      title: 'New Promotional Banner',
+      tag: '',
+      title: '',
       subtitle: '',
       bgImage: '',
       desktopImage: '',
@@ -342,6 +373,7 @@ export const AdminBanners: React.FC = () => {
       bannerType: currentBannerType,
       layoutStyle: (form.flashSaleLayoutStyle || 'full') as any,
       showTimer: false,
+      hideText: false,
     }];
     setForm((previous) => ({ ...previous, flashSaleSlides: nextSlides }));
     setSelectedSlideIndex(nextSlides.length - 1);
@@ -811,6 +843,42 @@ export const AdminBanners: React.FC = () => {
                     ))}
                   </div>
                 )}
+              </div>
+            )}
+
+            {/* Pure Image / No Text Mode Option */}
+            <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 rounded-xl bg-slate-50 dark:bg-gray-800/60 border border-slate-200 dark:border-gray-700">
+              <div className="min-w-0 flex-1">
+                <span className="text-xs font-bold text-slate-800 dark:text-slate-200 block">
+                  🖼️ Pure Image Banner (No Text Overlay)
+                </span>
+                <span className="text-[11px] text-slate-500 dark:text-slate-400">
+                  ব্যানার ইমেজে নিজেই ডিজাইন/লেখা থাকলে এটি অন রাখুন অথবা টেক্সট ফাঁকা রাখুন। ব্যানার ছবির ওপর কোনো লেখা বা কালো শ্যাডো আসবে না।
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={clearSlideText}
+                  className="px-2.5 py-1 text-xs font-bold rounded-lg border border-slate-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-slate-700 dark:text-slate-200 hover:bg-rose-50 hover:border-rose-300 hover:text-rose-600 transition cursor-pointer"
+                  title="Clear all text fields for this slide"
+                >
+                  🧹 Clear Text
+                </button>
+                <Toggle
+                  checked={Boolean(currentSlide.hideText)}
+                  onChange={(value) => updateSlide('hideText', value)}
+                  label={currentSlide.hideText ? 'No Text' : 'Text Active'}
+                />
+              </div>
+            </div>
+
+            {currentSlide.hideText && (
+              <div className="p-3 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/50 text-xs text-amber-800 dark:text-amber-300 flex items-center gap-2">
+                <span>💡</span>
+                <span>
+                  <strong>Pure Image Banner Active:</strong> এই স্লাইডারে কোনো টেক্সট ওভারলে বা ডার্ক শ্যাডো প্রদর্শিত হবে না। শুধুমাত্র ব্যানার ছবিটি ক্লিয়ার ও পূর্ণাঙ্গভাবে দেখা যাবে।
+                </span>
               </div>
             )}
 

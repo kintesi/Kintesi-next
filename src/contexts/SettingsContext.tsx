@@ -17,6 +17,7 @@ export interface FlashSaleSlide {
   bannerType?: 'normal' | 'clickable'; // 'normal' = full image display only, 'clickable' = clicking navigates to link/product
   layoutStyle?: 'full' | 'split'; // 'full' = full-bleed edge-to-edge image, 'split' = text on left, image on right
   showTimer?: boolean; // toggle countdown timer on this slide
+  hideText?: boolean; // toggle to hide all text overlays (pure image banner)
 }
 
 export interface BannerSettings {
@@ -58,6 +59,7 @@ export interface BannerSettings {
   flashSaleBannerType?: 'normal' | 'clickable';
   flashSaleLayoutStyle?: 'full' | 'split';
   flashSaleShowTimer?: boolean;
+  flashSaleHideText?: boolean;
   flashSaleDurationType?: 'infinite' | 'countdown';
   flashSaleInfinite?: boolean;
   flashSaleTag: string;
