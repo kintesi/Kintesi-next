@@ -260,7 +260,7 @@ export const Navbar: React.FC = () => {
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-rose-500/70 pointer-events-none" />
                   <button
                     type="submit"
-                    className="absolute right-1 top-1/2 -translate-y-1/2 h-7 px-3 bg-gradient-to-r from-rose-600 to-rose-700 hover:from-rose-500 hover:to-rose-600 text-white rounded-full text-[11px] font-bold shadow-xs hover:shadow-rose-500/25 transition-all cursor-pointer active:scale-95 flex items-center justify-center"
+                    className="absolute right-1 top-1/2 -translate-y-1/2 h-7 px-3 bg-gradient-to-r from-rose-600 to-rose-700 hover:from-rose-500 hover:to-rose-600 text-white rounded-full text-[10px] font-bold tracking-wide leading-none shadow-xs hover:shadow-rose-500/25 transition-all cursor-pointer active:scale-95 flex items-center justify-center"
                   >
                     {language === 'bn' ? 'খুঁজুন' : 'Search'}
                   </button>
@@ -298,7 +298,7 @@ export const Navbar: React.FC = () => {
                   <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-rose-500/70 pointer-events-none" />
                   <button
                     type="submit"
-                    className="absolute right-1.5 top-1/2 -translate-y-1/2 h-7.5 px-4 bg-gradient-to-r from-rose-600 to-rose-700 hover:from-rose-500 hover:to-rose-600 text-white rounded-full text-xs font-bold shadow-xs hover:shadow-rose-500/25 transition-all cursor-pointer active:scale-95 flex items-center justify-center"
+                    className="absolute right-1.5 top-1/2 -translate-y-1/2 h-7.5 px-3.5 bg-gradient-to-r from-rose-600 to-rose-700 hover:from-rose-500 hover:to-rose-600 text-white rounded-full text-[11px] font-bold tracking-wide leading-none shadow-xs hover:shadow-rose-500/25 transition-all cursor-pointer active:scale-95 flex items-center justify-center"
                   >
                     {language === 'bn' ? 'খুঁজুন' : 'Search'}
                   </button>
@@ -372,12 +372,12 @@ export const Navbar: React.FC = () => {
                     setShowSearchResults(true);
                   }}
                   onFocus={() => setShowSearchResults(true)}
-                  className="w-full pl-10 pr-20 py-2 bg-gray-50/80 hover:bg-gray-50 focus:bg-white border border-rose-100 focus:border-rose-500 rounded-full text-xs transition focus:outline-none focus:ring-3 focus:ring-rose-500/15"
+                  className="w-full pl-10 pr-22 py-2 bg-gray-50/80 hover:bg-gray-50 focus:bg-white border border-rose-100 focus:border-rose-500 rounded-full text-xs transition focus:outline-none focus:ring-3 focus:ring-rose-500/15"
                 />
                 <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <button
                   type="submit"
-                  className="absolute right-1 top-1/2 -translate-y-1/2 px-3.5 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-full text-xs font-bold transition shadow-xs"
+                  className="absolute right-1.5 top-1/2 -translate-y-1/2 h-8 px-4 bg-gradient-to-r from-rose-600 to-rose-700 hover:from-rose-500 hover:to-rose-600 text-white rounded-full text-[11px] font-bold tracking-wide leading-none transition-all shadow-xs hover:shadow-rose-500/25 active:scale-95 flex items-center justify-center cursor-pointer"
                 >
                   {language === 'bn' ? 'খুঁজুন' : 'Search'}
                 </button>
