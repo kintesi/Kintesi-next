@@ -123,7 +123,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // If database is clean and has 0 messages, clear local state & storage completely
       if (!error && Array.isArray(data)) {
         if (data.length === 0) {
-          setAllMessages([]);
+          setAllMessages((prev) => (prev.length === 0 ? prev : []));
           localStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify([]));
           return;
         }
@@ -169,8 +169,20 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const merged = cloudMessages.sort(
           (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
         );
-        setAllMessages(merged);
-        localStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(merged));
+
+        setAllMessages((prev) => {
+          if (prev.length === merged.length) {
+            const isSame = prev.every(
+              (m, idx) =>
+                m.id === merged[idx].id &&
+                m.text === merged[idx].text &&
+                m.read === merged[idx].read
+            );
+            if (isSame) return prev;
+          }
+          localStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(merged));
+          return merged;
+        });
       }
     } catch (err) {
       console.warn('Chat cloud sync note:', err);
@@ -290,7 +302,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
     );
   }, [allMessages, profile]);
 
-  const openChat = (context?: { product?: ChatProductContext; order?: ChatOrderContext }) => {
+  const openChat = useCallback((context?: { product?: ChatProductContext; order?: ChatOrderContext }) => {
     if (context?.product) setActiveProductContext(context.product);
     if (context?.order) setActiveOrderContext(context.order);
     setIsOpen(true);
@@ -298,16 +310,12 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setAllMessages((prev) =>
       prev.map((m) => (m.conversationId === activeConversationId ? { ...m, read: true } : m))
     );
-  };
+  }, [activeConversationId]);
 
-  const closeChat = () => setIsOpen(false);
-  const toggleChat = () => {
-    if (!isOpen) {
-      openChat();
-    } else {
-      closeChat();
-    }
-  };
+  const closeChat = useCallback(() => setIsOpen(false), []);
+  const toggleChat = useCallback(() => {
+    setIsOpen((prev) => !prev);
+  }, []);
 
   // Customer sending message -> Saves to Cloud & Local
   const sendMessage = async (text: string) => {
