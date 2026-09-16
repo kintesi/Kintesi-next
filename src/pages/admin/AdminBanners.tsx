@@ -363,22 +363,38 @@ export const AdminBanners: React.FC = () => {
     hasUserEdited.current = true;
     setIsSaved(false);
     const hours = Math.max(1, Math.min(72, Number(form.flashSaleHours) || 4));
-    setForm((previous) => ({ ...previous, showFlashSale: true, flashSaleHours: hours, flashSaleEndsAt: new Date(Date.now() + hours * 60 * 60 * 1000).toISOString() }));
+    setForm((previous) => ({
+      ...previous,
+      showFlashSale: true,
+      flashSaleDurationType: 'countdown',
+      flashSaleInfinite: false,
+      flashSaleHours: hours,
+      flashSaleEndsAt: new Date(Date.now() + hours * 60 * 60 * 1000).toISOString(),
+    }));
     toast.info(`Timer reset to ${hours} hours. Click Save to publish.`);
   };
 
   const saveAll = async () => {
     hasUserEdited.current = false;
+    const isInfinite = (form.flashSaleDurationType || 'infinite') === 'infinite' || form.flashSaleInfinite === true;
     const hours = Math.max(1, Math.min(72, Number(form.flashSaleHours) || 4));
-    const expiresAt = form.showFlashSale && (!form.flashSaleEndsAt || new Date(form.flashSaleEndsAt).getTime() <= Date.now())
-      ? new Date(Date.now() + hours * 60 * 60 * 1000).toISOString()
-      : form.flashSaleEndsAt;
+    const expiresAt = isInfinite
+      ? ''
+      : (form.showFlashSale && (!form.flashSaleEndsAt || new Date(form.flashSaleEndsAt).getTime() <= Date.now())
+        ? new Date(Date.now() + hours * 60 * 60 * 1000).toISOString()
+        : form.flashSaleEndsAt);
     const nextForm = {
       ...form,
       topAnnouncementText: cleanAnnouncementText(form.topAnnouncementText),
+      flashSaleDurationType: (isInfinite ? 'infinite' : 'countdown') as 'infinite' | 'countdown',
+      flashSaleInfinite: isInfinite,
+      flashSaleShowTimer: Boolean(form.flashSaleShowTimer),
       flashSaleHours: hours,
       flashSaleEndsAt: expiresAt,
-      flashSaleSlides: slides,
+      flashSaleSlides: slides.map((slide) => ({
+        ...slide,
+        showTimer: Boolean(form.flashSaleShowTimer),
+      })),
       flashSaleTag: slides[0]?.tag || form.flashSaleTag,
       flashSaleTitle: slides[0]?.title || form.flashSaleTitle,
       flashSaleSubtitle: slides[0]?.subtitle || form.flashSaleSubtitle,
@@ -599,18 +615,87 @@ export const AdminBanners: React.FC = () => {
               </div>
             </div>
 
-            {/* Countdown Hours, Theme & Restart Timer */}
-            <div className="grid gap-4 sm:grid-cols-[160px_1fr_auto] sm:items-end">
-              <Field label="Countdown hours">
-                <input
-                  type="number"
-                  min="1"
-                  max="72"
-                  value={form.flashSaleHours || ''}
-                  onChange={(event) => setValue('flashSaleHours', Number(event.target.value))}
-                  className={`w-full px-3.5 py-2.5 border text-sm ${input}`}
-                />
-              </Field>
+            {/* Banner Duration Mode (Infinite vs Timed) */}
+            <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-100 dark:border-gray-800">
+              <div>
+                <span className="text-xs font-bold text-slate-700 dark:text-slate-300 block">
+                  Duration Mode (সময়সীমা)
+                </span>
+                <span className="text-[11px] text-slate-400">
+                  {(form.flashSaleDurationType || 'infinite') === 'infinite'
+                    ? '♾️ Always Active / Infinite (ম্যানুয়ালি অফ না করা পর্যন্ত সর্বক্ষণ সচল থাকবে - Never expires)'
+                    : '⏳ Timed Countdown (নির্ধারিত সময়ের পর স্বয়ংক্রিয়ভাবে অফ হবে)'}
+                </span>
+              </div>
+              <div className="inline-flex rounded-lg p-1 bg-slate-100 dark:bg-gray-800 border border-slate-200 dark:border-gray-700">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setValue('flashSaleDurationType', 'infinite');
+                    setValue('flashSaleInfinite', true);
+                  }}
+                  className={`px-3 py-1.5 text-xs font-bold rounded-md transition cursor-pointer ${
+                    (form.flashSaleDurationType || 'infinite') === 'infinite'
+                      ? 'bg-white dark:bg-gray-900 text-rose-600 shadow-xs'
+                      : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
+                  }`}
+                >
+                  ♾️ Always Active (Infinite)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setValue('flashSaleDurationType', 'countdown');
+                    setValue('flashSaleInfinite', false);
+                  }}
+                  className={`px-3 py-1.5 text-xs font-bold rounded-md transition cursor-pointer ${
+                    form.flashSaleDurationType === 'countdown'
+                      ? 'bg-white dark:bg-gray-900 text-rose-600 shadow-xs'
+                      : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
+                  }`}
+                >
+                  ⏳ Timed Countdown
+                </button>
+              </div>
+            </div>
+
+            {/* Customer Timer Visibility Toggle */}
+            <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-100 dark:border-gray-800">
+              <div>
+                <span className="text-xs font-bold text-slate-700 dark:text-slate-300 block">
+                  Customer Countdown Timer
+                </span>
+                <span className="text-[11px] text-slate-400">
+                  {form.flashSaleShowTimer
+                    ? 'টাইমার দেখানো হচ্ছে (Timer visible on banner to visitors)'
+                    : 'টাইমার হাইড করা আছে (কাস্টমাররা কোনো টাইমার দেখবে না - Default: Hidden)'}
+                </span>
+              </div>
+              <Toggle
+                checked={Boolean(form.flashSaleShowTimer)}
+                onChange={(value) => {
+                  setValue('flashSaleShowTimer', value);
+                  const nextSlides = slides.map((s) => ({ ...s, showTimer: value }));
+                  setValue('flashSaleSlides', nextSlides);
+                }}
+                label={form.flashSaleShowTimer ? 'Timer Visible' : 'Timer Hidden'}
+              />
+            </div>
+
+            {/* Theme & Countdown Hours Settings */}
+            <div className={`grid gap-4 ${form.flashSaleDurationType === 'countdown' ? 'sm:grid-cols-[160px_1fr_auto]' : 'sm:grid-cols-1'} sm:items-end`}>
+              {form.flashSaleDurationType === 'countdown' && (
+                <Field label="Countdown hours">
+                  <input
+                    type="number"
+                    min="1"
+                    max="72"
+                    value={form.flashSaleHours || ''}
+                    onChange={(event) => setValue('flashSaleHours', Number(event.target.value))}
+                    className={`w-full px-3.5 py-2.5 border text-sm ${input}`}
+                  />
+                </Field>
+              )}
               <Field label="Theme">
                 <select
                   value={form.flashSaleTheme || 'sunset'}
@@ -629,13 +714,15 @@ export const AdminBanners: React.FC = () => {
                   <option value="solar">☀️ Solar Flare (Fiery Orange & Flame)</option>
                 </select>
               </Field>
-              <button
-                type="button"
-                onClick={resetFlashTimer}
-                className="px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white dark:bg-gray-900 text-xs font-bold hover:bg-rose-50 cursor-pointer"
-              >
-                Restart timer
-              </button>
+              {form.flashSaleDurationType === 'countdown' && (
+                <button
+                  type="button"
+                  onClick={resetFlashTimer}
+                  className="px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white dark:bg-gray-900 text-xs font-bold hover:bg-rose-50 cursor-pointer"
+                >
+                  Restart timer
+                </button>
+              )}
             </div>
 
             {/* Slides selector */}

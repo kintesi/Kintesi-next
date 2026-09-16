@@ -100,7 +100,12 @@ export const HomePage: React.FC = () => {
   const desktopSentinelRef = useRef<HTMLDivElement | null>(null);
 
   // Flash sale countdown timer state
+  const isInfinite = banners.flashSaleDurationType === 'infinite' || banners.flashSaleInfinite === true;
+
   const calculateFlashTime = () => {
+    if (isInfinite) {
+      return { hours: 0, minutes: 0, seconds: 0, isExpired: false };
+    }
     if (!banners.flashSaleEndsAt) {
       return { hours: banners.flashSaleHours || 4, minutes: 0, seconds: 0, isExpired: false };
     }
@@ -118,19 +123,19 @@ export const HomePage: React.FC = () => {
 
   useEffect(() => {
     setTimeLeft(calculateFlashTime());
-  }, [banners.flashSaleEndsAt, banners.flashSaleHours]);
+  }, [banners.flashSaleEndsAt, banners.flashSaleHours, banners.flashSaleDurationType, banners.flashSaleInfinite, isInfinite]);
 
   useEffect(() => {
+    if (isInfinite) return;
     const timer = setInterval(() => {
       setTimeLeft(calculateFlashTime());
     }, 1000);
     return () => clearInterval(timer);
-  }, [banners.flashSaleEndsAt, banners.flashSaleHours]);
+  }, [banners.flashSaleEndsAt, banners.flashSaleHours, banners.flashSaleDurationType, banners.flashSaleInfinite, isInfinite]);
 
   const isFlashSaleActive = Boolean(
     banners.showFlashSale === true &&
-    !timeLeft.isExpired &&
-    (!banners.flashSaleEndsAt || new Date(banners.flashSaleEndsAt).getTime() > Date.now())
+    (isInfinite || (!timeLeft.isExpired && (!banners.flashSaleEndsAt || new Date(banners.flashSaleEndsAt).getTime() > Date.now())))
   );
 
   useEffect(() => {
@@ -376,6 +381,7 @@ export const HomePage: React.FC = () => {
               timeLeft={timeLeft}
               isMobile={true}
               bannerType={banners.flashSaleBannerType}
+              showTimer={banners.flashSaleShowTimer === true}
             />
           </div>
         )}
@@ -655,6 +661,7 @@ export const HomePage: React.FC = () => {
               timeLeft={timeLeft}
               isMobile={false}
               bannerType={banners.flashSaleBannerType}
+              showTimer={banners.flashSaleShowTimer === true}
             />
           </section>
         )}

@@ -16,6 +16,7 @@ interface FlashSaleBannerProps {
   timeLeft: { hours: number; minutes: number; seconds: number };
   isMobile?: boolean;
   bannerType?: 'normal' | 'clickable';
+  showTimer?: boolean;
 }
 
 interface ThemePalette {
@@ -169,6 +170,7 @@ export const FlashSaleBanner: React.FC<FlashSaleBannerProps> = ({
   timeLeft,
   isMobile = false,
   bannerType,
+  showTimer = false,
 }) => {
   const navigate = useNavigate();
 
@@ -259,7 +261,7 @@ export const FlashSaleBanner: React.FC<FlashSaleBannerProps> = ({
   const hasTitle = Boolean(currentSlide.title?.trim());
   const hasSubtitle = Boolean(currentSlide.subtitle?.trim());
   const hasText = hasTag || hasTitle || hasSubtitle;
-  const hasTimer = Boolean(currentSlide.showTimer !== false && timeLeft && (timeLeft.hours > 0 || timeLeft.minutes > 0 || timeLeft.seconds > 0));
+  const hasTimer = Boolean(showTimer === true && currentSlide.showTimer !== false && timeLeft && (timeLeft.hours > 0 || timeLeft.minutes > 0 || timeLeft.seconds > 0));
   const isClickable =
     bannerType !== undefined
       ? bannerType === 'clickable'

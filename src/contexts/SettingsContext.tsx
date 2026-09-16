@@ -58,6 +58,8 @@ export interface BannerSettings {
   flashSaleBannerType?: 'normal' | 'clickable';
   flashSaleLayoutStyle?: 'full' | 'split';
   flashSaleShowTimer?: boolean;
+  flashSaleDurationType?: 'infinite' | 'countdown';
+  flashSaleInfinite?: boolean;
   flashSaleTag: string;
   flashSaleTitle: string;
   flashSaleSubtitle: string;
@@ -183,7 +185,9 @@ export const DEFAULT_BANNERS: BannerSettings = {
   showFlashSale: false,
   flashSaleBannerType: 'clickable',
   flashSaleLayoutStyle: 'full',
-  flashSaleShowTimer: true,
+  flashSaleShowTimer: false,
+  flashSaleDurationType: 'infinite',
+  flashSaleInfinite: true,
   flashSaleTag: '⚡ FLASH SALE',
   flashSaleTitle: 'Exclusive 24-Hour Super Deals',
   flashSaleSubtitle: 'Limited stock flash offers with up to 50% discount. Order before time runs out!',
@@ -202,7 +206,7 @@ export const DEFAULT_BANNERS: BannerSettings = {
       link: '/products',
       bannerType: 'clickable',
       layoutStyle: 'full',
-      showTimer: true,
+      showTimer: false,
     },
   ],
 
@@ -353,6 +357,13 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
               isCustomAnnouncement: remoteBanners?.isCustomAnnouncement !== undefined
                 ? remoteBanners.isCustomAnnouncement
                 : Boolean(cleanText && cleanText !== '⚡ Welcome to Kintesi! Use coupon KINTESI10 for 10% OFF'),
+              flashSaleShowTimer: remoteBanners?.flashSaleShowTimer !== undefined
+                ? Boolean(remoteBanners.flashSaleShowTimer)
+                : false,
+              flashSaleDurationType: remoteBanners?.flashSaleDurationType || 'infinite',
+              flashSaleInfinite: remoteBanners?.flashSaleInfinite !== undefined
+                ? Boolean(remoteBanners.flashSaleInfinite)
+                : (remoteBanners?.flashSaleDurationType ? remoteBanners.flashSaleDurationType === 'infinite' : true),
             };
 
             const merged: StoreSettings = {
