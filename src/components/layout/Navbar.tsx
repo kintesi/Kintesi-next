@@ -255,12 +255,12 @@ export const Navbar: React.FC = () => {
                     placeholder={language === 'bn' ? 'পণ্য খুঁজুন...' : 'Search products...'}
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-8 pr-16 py-1.5 bg-gray-50/90 focus:bg-white border border-rose-100 focus:border-rose-500 rounded-full text-xs text-gray-900 placeholder:text-gray-400 transition focus:outline-none focus:ring-2 focus:ring-rose-500/20 shadow-2xs"
+                    className="w-full pl-9 pr-20 h-9 bg-gray-50/90 focus:bg-white border border-rose-200/80 focus:border-rose-500 rounded-full text-xs text-gray-900 placeholder:text-gray-400 transition-all focus:outline-none focus:ring-2 focus:ring-rose-500/20 shadow-xs"
                   />
-                  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none" />
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-rose-500/70 pointer-events-none" />
                   <button
                     type="submit"
-                    className="absolute right-1 top-1/2 -translate-y-1/2 px-2.5 py-0.5 bg-rose-600 text-white rounded-full text-[10px] font-bold shadow-xs hover:bg-rose-700 transition"
+                    className="absolute right-1 top-1/2 -translate-y-1/2 h-7 px-3 bg-gradient-to-r from-rose-600 to-rose-700 hover:from-rose-500 hover:to-rose-600 text-white rounded-full text-[11px] font-bold shadow-xs hover:shadow-rose-500/25 transition-all cursor-pointer active:scale-95 flex items-center justify-center"
                   >
                     {language === 'bn' ? 'খুঁজুন' : 'Search'}
                   </button>
@@ -281,7 +281,7 @@ export const Navbar: React.FC = () => {
             </div>
           ) : (
             <div className="md:hidden py-2">
-              {/* Mobile Search Input - Clean, Balanced & Beautiful */}
+              {/* Mobile Search Input - Ultra-Premium Capsule Design */}
               <form onSubmit={handleSearchSubmit} className="relative flex items-center w-full">
                 <div className="relative w-full">
                   <input
@@ -293,12 +293,12 @@ export const Navbar: React.FC = () => {
                       setShowSearchResults(true);
                     }}
                     onFocus={() => setShowSearchResults(true)}
-                    className="w-full pl-10 pr-20 py-2 bg-gray-50/90 hover:bg-gray-50 focus:bg-white border border-rose-100 focus:border-rose-500 rounded-full text-xs text-gray-900 placeholder:text-gray-400 transition focus:outline-none focus:ring-2 focus:ring-rose-500/20 shadow-2xs"
+                    className="w-full pl-10 pr-24 h-10 bg-gray-50/90 hover:bg-gray-50 focus:bg-white border border-rose-200/80 focus:border-rose-500 rounded-full text-xs text-gray-900 placeholder:text-gray-400 transition-all focus:outline-none focus:ring-2 focus:ring-rose-500/20 shadow-xs"
                   />
-                  <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                  <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-rose-500/70 pointer-events-none" />
                   <button
                     type="submit"
-                    className="absolute right-1 top-1/2 -translate-y-1/2 px-3.5 py-1 bg-rose-600 text-white rounded-full text-[11px] font-bold shadow-xs hover:bg-rose-700 transition cursor-pointer"
+                    className="absolute right-1.5 top-1/2 -translate-y-1/2 h-7.5 px-4 bg-gradient-to-r from-rose-600 to-rose-700 hover:from-rose-500 hover:to-rose-600 text-white rounded-full text-xs font-bold shadow-xs hover:shadow-rose-500/25 transition-all cursor-pointer active:scale-95 flex items-center justify-center"
                   >
                     {language === 'bn' ? 'খুঁজুন' : 'Search'}
                   </button>

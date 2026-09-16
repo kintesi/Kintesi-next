@@ -258,32 +258,32 @@ export const ShopPage: React.FC = () => {
         </div>
 
         {/* Sort & Filter triggers */}
-        <div className="flex items-center gap-2.5 sm:gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
           {/* Mobile Filter Button */}
           <button
             onClick={() => setIsMobileFilterOpen(true)}
-            className="md:hidden flex items-center gap-2 px-3.5 py-2 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-xl text-xs font-bold transition active:scale-95"
+            className="md:hidden flex items-center gap-1.5 h-8.5 px-3 bg-white hover:bg-gray-50 border border-gray-200/90 text-gray-800 rounded-full text-xs font-bold transition active:scale-95 shadow-xs cursor-pointer"
           >
-            <SlidersHorizontal className="w-3.5 h-3.5" />
+            <SlidersHorizontal className="w-3.5 h-3.5 text-rose-600" />
             <span>Filters</span>
           </button>
 
           {/* Desktop Filter Toggle Button */}
           <button
             onClick={() => setIsDesktopFilterOpen(!isDesktopFilterOpen)}
-            className="hidden md:flex items-center gap-2 px-3.5 py-2 bg-white hover:bg-gray-50 border border-gray-200 text-gray-700 rounded-xl text-xs font-bold shadow-2xs transition"
+            className="hidden md:flex items-center gap-2 px-3.5 py-2 bg-white hover:bg-gray-50 border border-gray-200 text-gray-700 rounded-xl text-xs font-bold shadow-2xs transition cursor-pointer"
           >
             <SlidersHorizontal className="w-3.5 h-3.5 text-rose-600" />
             <span>{isDesktopFilterOpen ? 'Hide Filters' : 'Show Filters'}</span>
           </button>
 
-          <div className="flex items-center gap-2 bg-white border border-gray-200 rounded-xl px-3 py-2 text-xs font-semibold text-gray-700 shadow-sm">
+          <div className="flex items-center gap-1.5 bg-white border border-gray-200/90 rounded-full sm:rounded-xl px-3 h-8.5 sm:h-auto sm:py-2 text-xs font-semibold text-gray-700 shadow-xs sm:shadow-sm">
             <ArrowUpDown className="w-3.5 h-3.5 text-gray-400" />
             <span className="text-gray-400 hidden sm:inline">Sort by:</span>
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
-              className="bg-transparent focus:outline-none font-bold text-gray-900 cursor-pointer"
+              className="bg-transparent focus:outline-none font-bold text-gray-900 cursor-pointer text-xs"
             >
               <option value="featured">Featured First</option>
               <option value="price-low">Price: Low to High</option>
