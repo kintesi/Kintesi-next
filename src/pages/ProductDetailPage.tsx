@@ -736,8 +736,22 @@ export const ProductDetailPage: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => {
-                      navigator.clipboard.writeText(window.location.href);
-                      toast.success('Product link copied to clipboard!');
+                      let shareUrl = window.location.href.split('?')[0];
+                      try {
+                        const affRaw = localStorage.getItem('kintesi_my_affiliate_profile');
+                        if (affRaw) {
+                          const aff = JSON.parse(affRaw);
+                          if (aff?.affiliate_code) {
+                            shareUrl += `?aff=${encodeURIComponent(aff.affiliate_code)}`;
+                          }
+                        }
+                      } catch {}
+                      navigator.clipboard.writeText(shareUrl);
+                      toast.success(
+                        shareUrl.includes('?aff=')
+                          ? 'Affiliate referral link copied to clipboard!'
+                          : 'Product link copied to clipboard!'
+                      );
                     }}
                     className="text-gray-400 hover:text-gray-700 p-1.5 rounded-lg hover:bg-gray-100 transition inline-flex items-center gap-1 cursor-pointer"
                     title="Share link"

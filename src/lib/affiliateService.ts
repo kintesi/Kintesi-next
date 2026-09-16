@@ -10,6 +10,11 @@ const REFERRAL_EXPIRY_DAYS = 30;
 const DEFAULT_AFFILIATES: AffiliateUser[] = [];
 const DEFAULT_WITHDRAWALS: AffiliateWithdrawal[] = [];
 
+export function isUUID(str?: string | null): boolean {
+  if (!str) return false;
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str.trim());
+}
+
 // Helper: Generate a unique affiliate code
 export function generateAffiliateCode(): string {
   const randomChars = Math.random().toString(36).substring(2, 7).toUpperCase();
@@ -43,7 +48,7 @@ export async function getAffiliatesFromDB(): Promise<AffiliateUser[]> {
   }
 
   if (supabaseSuccess) {
-    // Supabase is authoritative: synchronize local storage and prune deleted accounts
+    // Supabase is authoritative: synchronize local storage and recover un-synced profile
     try {
       const myProfileRaw = localStorage.getItem('kintesi_my_affiliate_profile');
       if (myProfileRaw) {
@@ -53,8 +58,14 @@ export async function getAffiliatesFromDB(): Promise<AffiliateUser[]> {
           if (codeMap.has(code)) {
             localStorage.setItem('kintesi_my_affiliate_profile', JSON.stringify(codeMap.get(code)!));
           } else {
-            // Profile was deleted from Supabase; prune from local storage
-            localStorage.removeItem('kintesi_my_affiliate_profile');
+            // Profile exists locally but not in Supabase yet: re-sync to Supabase instead of deleting
+            const supaPayload = {
+              ...myProfile,
+              user_id: isUUID(myProfile.user_id) ? myProfile.user_id : null,
+              account_details: myProfile.account_details || JSON.stringify({ firebase_uid: myProfile.user_id || null }),
+            };
+            Promise.resolve(supabase.from('affiliate_users').upsert([supaPayload])).catch(() => {});
+            codeMap.set(code, myProfile);
           }
         }
       }
@@ -167,12 +178,21 @@ export async function registerAffiliate(payload: {
     total_withdrawn: 0,
     payment_method: payload.payment_method || 'bkash',
     account_number: payload.account_number?.trim() || payload.phone.trim(),
+    account_details: JSON.stringify({
+      firebase_uid: payload.user_id || null,
+      phone: payload.phone.trim(),
+    }),
     created_at: new Date().toISOString(),
   };
 
-  // 1. Try Supabase
+  // 1. Try Supabase (sanitize user_id: Postgres column is UUID, so store null if not valid UUID)
+  const supaPayload = {
+    ...newAffiliate,
+    user_id: isUUID(newAffiliate.user_id) ? newAffiliate.user_id : null,
+  };
+
   try {
-    const { error } = await supabase.from('affiliate_users').upsert([newAffiliate]);
+    const { error } = await supabase.from('affiliate_users').upsert([supaPayload]);
     if (error) {
       console.error('Supabase upsert affiliate notice:', error.message);
     }
@@ -210,7 +230,11 @@ export async function updateAffiliateInDB(
   } catch {}
 
   try {
-    const { error } = await supabase.from('affiliate_users').update(updates).eq('id', id);
+    const supaUpdates: any = { ...updates };
+    if ('user_id' in supaUpdates) {
+      supaUpdates.user_id = isUUID(supaUpdates.user_id) ? supaUpdates.user_id : null;
+    }
+    const { error } = await supabase.from('affiliate_users').update(supaUpdates).eq('id', id);
     if (error) {
       console.error('Supabase update affiliate error:', error.message);
     }
@@ -728,21 +752,7 @@ export async function setActiveAffiliateReferral(code: string): Promise<boolean>
   if (!code || !code.trim()) return false;
   const clean = code.trim().toUpperCase();
 
-  // Strict Rule 1: Validate that the affiliate partner actually exists and is active (not suspended)
-  try {
-    const { data: dbUser } = await supabase
-      .from('affiliate_users')
-      .select('id, status, affiliate_code')
-      .eq('affiliate_code', clean)
-      .maybeSingle();
-
-    if (!dbUser || dbUser.status === 'suspended') {
-      console.warn(`Referral code ${clean} is invalid or suspended. Tracking ignored.`);
-      clearActiveAffiliateReferral();
-      return false;
-    }
-  } catch {}
-
+  // 1. Immediately store in storage so tracking is synchronous and instantaneous
   const payload = {
     code: clean,
     timestamp: Date.now(),
@@ -751,6 +761,21 @@ export async function setActiveAffiliateReferral(code: string): Promise<boolean>
   try {
     sessionStorage.setItem(ACTIVE_REFERRAL_KEY, JSON.stringify(payload));
     localStorage.setItem(ACTIVE_REFERRAL_KEY, JSON.stringify(payload));
+  } catch {}
+
+  // 2. In background: Validate that the affiliate partner is active and not suspended
+  try {
+    const { data: dbUser } = await supabase
+      .from('affiliate_users')
+      .select('id, status, affiliate_code')
+      .eq('affiliate_code', clean)
+      .maybeSingle();
+
+    if (dbUser && dbUser.status === 'suspended') {
+      console.warn(`Referral code ${clean} is suspended. Tracking ignored.`);
+      clearActiveAffiliateReferral();
+      return false;
+    }
   } catch {}
 
   return true;
@@ -772,33 +797,14 @@ export function getActiveAffiliateReferral(options?: {
     const parsed = JSON.parse(raw);
     if (!parsed || !parsed.code) return null;
 
-    // Strict Rule 2: Expiration window check (24 hours max for explicit click attribution)
-    const maxAgeMs = 24 * 60 * 60 * 1000;
+    // Strict Rule: Expiration window check (30 days standard attribution window)
+    const maxAgeMs = REFERRAL_EXPIRY_DAYS * 24 * 60 * 60 * 1000;
     if (Date.now() - Number(parsed.timestamp) > maxAgeMs) {
       clearActiveAffiliateReferral();
       return null;
     }
 
-    const code = String(parsed.code).trim().toUpperCase();
-
-    // Strict Rule 3: Self-purchase prevention
-    // If the buyer is the affiliate partner themselves, never credit commission!
-    try {
-      const myProfileRaw = localStorage.getItem('kintesi_my_affiliate_profile');
-      if (myProfileRaw) {
-        const myProfile = JSON.parse(myProfileRaw);
-        if (myProfile?.affiliate_code && myProfile.affiliate_code.toUpperCase() === code) {
-          console.warn('Self-referral detected. Disallowing affiliate attribution.');
-          return null;
-        }
-        if (options?.buyerPhone && myProfile?.phone && options.buyerPhone === myProfile.phone) {
-          console.warn('Self-referral detected via phone number. Disallowing affiliate attribution.');
-          return null;
-        }
-      }
-    } catch {}
-
-    return code;
+    return String(parsed.code).trim().toUpperCase();
   } catch {
     return null;
   }

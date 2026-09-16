@@ -49,6 +49,7 @@ export const AffiliateDashboardPage: React.FC = () => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [generatedProducts, setGeneratedProducts] = useState<GeneratedAffiliateProduct[]>([]);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const originUrl = typeof window !== 'undefined' ? window.location.origin : 'https://kintesi.com';
 
   // Registration Form state
   const [regName, setRegName] = useState(profile?.full_name || user?.displayName || user?.user_metadata?.full_name || '');
@@ -136,22 +137,32 @@ export const AffiliateDashboardPage: React.FC = () => {
       // Identify if current user is an affiliate
       let matched: AffiliateUser | null = null;
       if (user?.id) {
-        matched = affs.find((a) => a.user_id === user.id) || null;
+        matched = affs.find(
+          (a) => a.user_id === user.id || (a.account_details && a.account_details.includes(user.id))
+        ) || null;
       }
-      if (!matched && (profile?.phone || regPhone)) {
-        const ph = profile?.phone || regPhone;
+      if (!matched && (profile?.phone || regPhone || user?.phoneNumber)) {
+        const ph = profile?.phone || regPhone || user?.phoneNumber;
         matched = affs.find((a) => a.phone === ph) || null;
+      }
+      if (!matched && (user?.email || profile?.email)) {
+        const em = (user?.email || profile?.email || '').toLowerCase().trim();
+        if (em) {
+          matched = affs.find((a) => a.email && a.email.toLowerCase().trim() === em) || null;
+        }
       }
       if (!matched) {
         const cached = localStorage.getItem('kintesi_my_affiliate_profile');
         if (cached) {
-          const parsed = JSON.parse(cached);
-          matched = affs.find(
-            (a) =>
-              a.id === parsed.id ||
-              (a.affiliate_code && parsed.affiliate_code && a.affiliate_code.toUpperCase() === parsed.affiliate_code.toUpperCase()) ||
-              (a.phone && parsed.phone && a.phone === parsed.phone)
-          ) || parsed;
+          try {
+            const parsed = JSON.parse(cached);
+            matched = affs.find(
+              (a) =>
+                a.id === parsed.id ||
+                (a.affiliate_code && parsed.affiliate_code && a.affiliate_code.toUpperCase() === parsed.affiliate_code.toUpperCase()) ||
+                (a.phone && parsed.phone && a.phone === parsed.phone)
+            ) || parsed;
+          } catch {}
         }
       }
 
@@ -326,8 +337,6 @@ export const AffiliateDashboardPage: React.FC = () => {
       setIsSubmittingWithdraw(false);
     }
   };
-
-  const originUrl = typeof window !== 'undefined' ? window.location.origin : 'https://kintesi.com';
 
   const myWithdrawals = withdrawals.filter(
     (w) => currentAffiliate && (w.affiliate_id === currentAffiliate.id || w.affiliate_code === currentAffiliate.affiliate_code)

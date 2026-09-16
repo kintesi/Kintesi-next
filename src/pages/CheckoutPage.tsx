@@ -377,8 +377,7 @@ export const CheckoutPage: React.FC = () => {
     }));
 
     // Calculate Affiliate Commission with STRICT rules
-    // Rule 1: Must have clicked an active, approved affiliate link (not expired, within 24h)
-    // Rule 2: Buyer cannot be the affiliate partner themselves (no self-referral)
+    // Calculate Affiliate Commission
     const rawAffCode = getActiveAffiliateReferral({
       buyerPhone: phone,
       buyerUserId: user?.id,
@@ -389,19 +388,19 @@ export const CheckoutPage: React.FC = () => {
     let finalAffiliateCode: string | null = null;
 
     if (rawAffCode) {
+      finalAffiliateCode = rawAffCode;
       checkoutItems.forEach((ci) => {
-        // Rule 3: Only products explicitly marked as affiliate-enabled generate commission
-        if (ci.product?.is_affiliate_enabled) {
-          const rate = ci.product.affiliate_commission_rate || 10;
-          const itemTotal = (ci.customPrice || ci.product.discount_price || ci.product.price) * ci.quantity;
-          computedCommission += Math.round((itemTotal * rate) / 100);
+        const isExplicitlyDisabled = ci.product?.is_affiliate_enabled === false && ci.product?.affiliate_commission_rate === 0;
+        if (!isExplicitlyDisabled) {
+          const rate = ci.product?.affiliate_commission_rate !== undefined && ci.product?.affiliate_commission_rate !== null
+            ? Number(ci.product.affiliate_commission_rate)
+            : 10;
+          if (rate > 0) {
+            const itemTotal = (ci.customPrice || ci.product?.discount_price || ci.product?.price || 0) * ci.quantity;
+            computedCommission += Math.round((itemTotal * rate) / 100);
+          }
         }
       });
-
-      // Rule 4: If no affiliate product was purchased or commission is 0, do NOT attribute to affiliate!
-      if (computedCommission > 0) {
-        finalAffiliateCode = rawAffCode;
-      }
     }
 
     const cleanSupabaseOrder = sanitizeOrderForSupabase({
@@ -469,7 +468,7 @@ export const CheckoutPage: React.FC = () => {
       } catch {}
 
       // 4. Record Affiliate Referral Sale (Held under Pending Delivery)
-      if (finalAffiliateCode && computedCommission > 0) {
+      if (finalAffiliateCode) {
         try {
           await recordAffiliateOrderPlaced(finalAffiliateCode, orderNumber, dynamicTotal, computedCommission);
         } catch (affErr) {
