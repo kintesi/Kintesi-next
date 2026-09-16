@@ -127,7 +127,11 @@ export const ShopPage: React.FC = () => {
         if (sortBy === 'price-high') return priceB - priceA;
         if (sortBy === 'rating') return (b.rating || 0) - (a.rating || 0);
         if (sortBy === 'newest') return (b.created_at || '').localeCompare(a.created_at || '');
-        return 0; // featured default
+        if (sortBy === 'featured') {
+          if (a.is_featured && !b.is_featured) return -1;
+          if (!a.is_featured && b.is_featured) return 1;
+        }
+        return 0;
       });
   }, [products, selectedCategory, searchQuery, appliedMaxPrice, onlyInStock, sortBy]);
 
@@ -226,45 +230,12 @@ export const ShopPage: React.FC = () => {
                 )}
               </div>
 
-              {/* Categories */}
-              <div>
-                <h4 className="text-[11px] font-bold uppercase tracking-wider text-gray-400 mb-2.5">Categories</h4>
-                <div className="space-y-1 max-h-[300px] overflow-y-auto pr-1">
-                  <button
-                    onClick={() => handleCategorySelect('all')}
-                    className={`w-full text-left px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center justify-between ${
-                      selectedCategory === 'all'
-                        ? 'bg-rose-50 text-rose-700'
-                        : 'text-gray-600 hover:bg-rose-50/40'
-                    }`}
-                  >
-                    <span>All Categories</span>
-                    <span>{products.length}</span>
-                  </button>
-                  {categories.map((cat) => {
-                    const count = products.filter((p) => isCategoryMatch(p.category_id, cat.slug)).length;
-                    return (
-                      <button
-                        key={cat.slug || cat.id}
-                        onClick={() => handleCategorySelect(cat.slug)}
-                        className={`w-full text-left px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center justify-between ${
-                          selectedCategory === cat.slug
-                            ? 'bg-rose-50 text-rose-700'
-                            : 'text-gray-600 hover:bg-rose-50/40'
-                        }`}
-                      >
-                        <span className="truncate pr-2">{cat.name}</span>
-                        <span className="text-gray-400 font-normal shrink-0">{count}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Max Price Custom Input (0 to Any Amount, No Upper Bound Specified) */}
-              <div className="pt-3.5 border-t border-rose-100">
+              {/* Max Price Custom Input (Top Position) */}
+              <div className="pt-2">
                 <div className="flex items-center justify-between mb-2">
-                  <h4 className="text-[11px] font-bold uppercase tracking-wider text-gray-500">Max Price (৳)</h4>
+                  <h4 className="text-[11px] font-bold uppercase tracking-wider text-gray-700 flex items-center gap-1.5">
+                    <span>Max Price (৳)</span>
+                  </h4>
                   {appliedMaxPrice !== null && (
                     <button
                       type="button"
@@ -301,17 +272,52 @@ export const ShopPage: React.FC = () => {
                 )}
               </div>
 
-              {/* In Stock only toggle */}
-              <div className="pt-3.5 border-t border-rose-100">
-                <label className="flex items-center gap-2.5 cursor-pointer text-xs font-bold text-gray-700">
+              {/* In Stock only toggle (Top Position) */}
+              <div className="pt-3 border-t border-rose-100">
+                <label className="flex items-center gap-2.5 cursor-pointer text-xs font-bold text-gray-700 select-none">
                   <input
                     type="checkbox"
                     checked={onlyInStock}
                     onChange={(e) => setOnlyInStock(e.target.checked)}
-                    className="w-4 h-4 accent-rose-600 rounded"
+                    className="w-4 h-4 accent-rose-600 rounded cursor-pointer"
                   />
                   <span>In Stock Items Only</span>
                 </label>
+              </div>
+
+              {/* Categories */}
+              <div className="pt-3 border-t border-rose-100">
+                <h4 className="text-[11px] font-bold uppercase tracking-wider text-gray-400 mb-2.5">Categories</h4>
+                <div className="space-y-1 max-h-[300px] overflow-y-auto pr-1">
+                  <button
+                    onClick={() => handleCategorySelect('all')}
+                    className={`w-full text-left px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center justify-between ${
+                      selectedCategory === 'all'
+                        ? 'bg-rose-50 text-rose-700'
+                        : 'text-gray-600 hover:bg-rose-50/40'
+                    }`}
+                  >
+                    <span>All Categories</span>
+                    <span>{products.length}</span>
+                  </button>
+                  {categories.map((cat) => {
+                    const count = products.filter((p) => isCategoryMatch(p.category_id, cat.slug)).length;
+                    return (
+                      <button
+                        key={cat.slug || cat.id}
+                        onClick={() => handleCategorySelect(cat.slug)}
+                        className={`w-full text-left px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center justify-between ${
+                          selectedCategory === cat.slug
+                            ? 'bg-rose-50 text-rose-700'
+                            : 'text-gray-600 hover:bg-rose-50/40'
+                        }`}
+                      >
+                        <span className="truncate pr-2">{cat.name}</span>
+                        <span className="text-gray-400 font-normal shrink-0">{count}</span>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
 
             </div>
@@ -357,41 +363,15 @@ export const ShopPage: React.FC = () => {
                 <X className="w-5 h-5" />
               </button>
             </div>
-            {/* Categories */}
-            <div>
-              <h4 className="text-xs font-bold text-gray-400 uppercase mb-2">Categories</h4>
-              <div className="space-y-1">
-                <button
-                  onClick={() => handleCategorySelect('all')}
-                  className={`w-full text-left p-2 rounded-lg text-xs font-bold ${
-                    selectedCategory === 'all' ? 'bg-rose-50 text-rose-700' : 'text-gray-600'
-                  }`}
-                >
-                  All Categories
-                </button>
-                {categories.map((cat) => (
-                  <button
-                    key={cat.slug || cat.id}
-                    onClick={() => handleCategorySelect(cat.slug)}
-                    className={`w-full text-left p-2 rounded-lg text-xs font-bold ${
-                      selectedCategory === cat.slug ? 'bg-rose-50 text-rose-700' : 'text-gray-600'
-                    }`}
-                  >
-                    {cat.name}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Mobile Max Price Input */}
-            <div className="pt-4 border-t border-gray-100">
-              <div className="flex items-center justify-between mb-2">
+            {/* Mobile Max Price Input (Top Position) */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between mb-1">
                 <h4 className="text-xs font-bold uppercase tracking-wider text-gray-700">Max Price (৳)</h4>
                 {appliedMaxPrice !== null && (
                   <button
                     type="button"
                     onClick={handleClearMaxPrice}
-                    className="text-[11px] text-rose-600 font-bold underline"
+                    className="text-[11px] text-rose-600 font-bold underline cursor-pointer"
                   >
                     Clear
                   </button>
@@ -412,24 +392,55 @@ export const ShopPage: React.FC = () => {
                 <button
                   type="submit"
                   onClick={() => setIsMobileFilterOpen(false)}
-                  className="w-full py-2 bg-rose-600 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-1.5"
+                  className="w-full py-2 bg-rose-600 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 cursor-pointer shadow-xs active:scale-95 transition"
                 >
                   Apply Price
                 </button>
               </form>
+              {appliedMaxPrice !== null && (
+                <p className="text-[11px] text-emerald-600 font-bold">
+                  ✓ Up to {formatPrice(appliedMaxPrice)}
+                </p>
+              )}
             </div>
 
-            {/* Mobile In Stock */}
-            <div className="pt-4 border-t border-gray-100">
-              <label className="flex items-center gap-2.5 cursor-pointer text-xs font-bold text-gray-700">
+            {/* Mobile In Stock (Top Position) */}
+            <div className="pt-3 border-t border-gray-100">
+              <label className="flex items-center gap-2.5 cursor-pointer text-xs font-bold text-gray-700 select-none">
                 <input
                   type="checkbox"
                   checked={onlyInStock}
                   onChange={(e) => setOnlyInStock(e.target.checked)}
-                  className="w-4 h-4 accent-rose-600 rounded"
+                  className="w-4 h-4 accent-rose-600 rounded cursor-pointer"
                 />
                 <span>In Stock Items Only</span>
               </label>
+            </div>
+
+            {/* Categories */}
+            <div className="pt-3 border-t border-gray-100">
+              <h4 className="text-xs font-bold text-gray-400 uppercase mb-2">Categories</h4>
+              <div className="space-y-1 max-h-[300px] overflow-y-auto pr-1">
+                <button
+                  onClick={() => handleCategorySelect('all')}
+                  className={`w-full text-left p-2 rounded-lg text-xs font-bold ${
+                    selectedCategory === 'all' ? 'bg-rose-50 text-rose-700' : 'text-gray-600'
+                  }`}
+                >
+                  All Categories
+                </button>
+                {categories.map((cat) => (
+                  <button
+                    key={cat.slug || cat.id}
+                    onClick={() => handleCategorySelect(cat.slug)}
+                    className={`w-full text-left p-2 rounded-lg text-xs font-bold ${
+                      selectedCategory === cat.slug ? 'bg-rose-50 text-rose-700' : 'text-gray-600'
+                    }`}
+                  >
+                    {cat.name}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
         </div>

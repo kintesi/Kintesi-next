@@ -95,6 +95,7 @@ export function matchesProductSearch(product: Product, searchQuery: string): boo
     product.slug || '',
     product.brand || '',
     product.category_id || '',
+    product.sub_category || '',
     product.description || '',
     product.fabric || '',
     product.material || '',

@@ -58,6 +58,7 @@ export interface Product {
   price: number;
   discount_price?: number | null;
   category_id: string;
+  sub_category?: string;
   stock: number;
   images: string[];
   rating: number;

@@ -127,6 +127,7 @@ export const AdminProducts: React.FC = () => {
     price: '',
     discount_percent: '',
     category_id: 'mens-fashion',
+    sub_category: '',
     stock: '',
     sku: '',
     brand: '',
@@ -306,6 +307,7 @@ export const AdminProducts: React.FC = () => {
       price: '',
       discount_percent: '',
       category_id: categories[0]?.slug || 'mens-fashion',
+      sub_category: '',
       stock: '',
       sku: '',
       brand: '',
@@ -467,6 +469,7 @@ export const AdminProducts: React.FC = () => {
       price: prod.price ? prod.price.toString() : '',
       discount_percent: existingPercent > 0 ? existingPercent.toString() : '',
       category_id: prod.category_id || categories[0]?.slug || 'mens-fashion',
+      sub_category: prod.sub_category || '',
       stock: prod.stock ? prod.stock.toString() : '0',
       sku: prod.sku || 'KT-' + prod.id.slice(0, 6).toUpperCase(),
       brand: prod.brand || '',
@@ -633,6 +636,7 @@ export const AdminProducts: React.FC = () => {
       price: prod.price ? prod.price.toString() : '',
       discount_percent: existingPercent > 0 ? existingPercent.toString() : '',
       category_id: prod.category_id || categories[0]?.slug || 'mens-fashion',
+      sub_category: prod.sub_category || '',
       stock: prod.stock ? prod.stock.toString() : '0',
       sku: newSku,
       brand: prod.brand || '',
@@ -1102,6 +1106,7 @@ export const AdminProducts: React.FC = () => {
         price: priceNum,
         discount_price: calculatedDiscountPrice,
         category_id: formData.category_id || categories[0]?.slug || 'mens-fashion',
+        sub_category: String(formData.sub_category || '').trim() || null,
         stock: effectiveStock,
         images: allImages.length > 0 ? allImages : ['/logo.webp'],
         brand: String(formData.brand || '').trim() || 'No Brand',
@@ -1749,6 +1754,41 @@ export const AdminProducts: React.FC = () => {
                         </option>
                       ))}
                     </select>
+                  </div>
+
+                  <div>
+                    <label className={`block text-xs font-bold ${isLight ? 'text-gray-700' : 'text-gray-300'} mb-1`}>
+                      Sub-Category (সাব-ক্যাটাগরি)
+                    </label>
+                    <input
+                      type="text"
+                      list="sub-category-suggestions"
+                      placeholder="e.g. Panjabi, Wireless Earbuds, Smartwatch, T-Shirt, Sneaker, Face Wash..."
+                      value={formData.sub_category || ''}
+                      onChange={(e) => setFormData({ ...formData, sub_category: e.target.value })}
+                      className="w-full bg-gray-900 border border-gray-700 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-emerald-500"
+                    />
+                    <datalist id="sub-category-suggestions">
+                      <option value="Panjabi & Kurta" />
+                      <option value="T-Shirts & Polos" />
+                      <option value="Shirts & Formal" />
+                      <option value="Pants & Trousers" />
+                      <option value="Sneakers & Casual Shoes" />
+                      <option value="Watches & Smartwatches" />
+                      <option value="Wireless Earbuds & Headphones" />
+                      <option value="Chargers & Power Banks" />
+                      <option value="Phone Cases & Screen Protectors" />
+                      <option value="Backpacks & Wallets" />
+                      <option value="Face Care & Cleansers" />
+                      <option value="Hair Care & Grooming" />
+                      <option value="Perfume & Body Spray" />
+                      <option value="Organic Honey & Ghee" />
+                      <option value="Dry Fruits & Nuts" />
+                      <option value="Spices & Cooking Essentials" />
+                    </datalist>
+                    <p className="text-[10px] text-gray-500 mt-1">
+                      নির্দিষ্ট আইটেম সহজে খুঁজে পাওয়ার জন্য সাব-ক্যাটাগরি লিখুন বা লিস্ট থেকে সিলেক্ট করুন।
+                    </p>
                   </div>
 
                   <div>
@@ -3349,6 +3389,8 @@ export const AdminProducts: React.FC = () => {
                 }
                 onChangeTags={(newTags) => setFormData({ ...formData, tags: newTags.join(', ') })}
                 currentCategoryId={formData.category_id}
+                productTitle={formData.title}
+                productDescription={formData.description}
                 onSelectCategory={(catId) => {
                   setFormData({ ...formData, category_id: catId });
                   toast.success(`Product category updated to: ${catId}`);

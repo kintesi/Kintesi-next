@@ -8,6 +8,8 @@ interface CategoryTagExplorerProps {
   onChangeTags: (tags: string[]) => void;
   currentCategoryId: string;
   onSelectCategory?: (categoryId: string) => void;
+  productTitle?: string;
+  productDescription?: string;
 }
 
 export const CategoryTagExplorer: React.FC<CategoryTagExplorerProps> = ({
@@ -15,11 +17,15 @@ export const CategoryTagExplorer: React.FC<CategoryTagExplorerProps> = ({
   onChangeTags,
   currentCategoryId,
   onSelectCategory,
+  productTitle,
+  productDescription,
 }) => {
   const { isLight } = useAdminTheme();
   const [searchQuery, setSearchQuery] = useState('');
   const [activeSector, setActiveSector] = useState<string>('all');
   const [customTagInput, setCustomTagInput] = useState('');
+  const [aiPasteText, setAiPasteText] = useState('');
+  const [showAiPaste, setShowAiPaste] = useState(false);
 
   // On-demand lazy loaded taxonomy dataset
   const [taxonomyList, setTaxonomyList] = useState<TaxonomyCategory[]>([]);
@@ -88,6 +94,47 @@ export const CategoryTagExplorer: React.FC<CategoryTagExplorerProps> = ({
 
     onChangeTags(newTags);
     setCustomTagInput('');
+  };
+
+  // Import bulk keywords from ChatGPT / AI
+  const handleImportAiKeywords = () => {
+    if (!aiPasteText.trim()) return;
+    const rawList = aiPasteText
+      .split(/[\n,;•\r]+/)
+      .map((k) => k.replace(/^\d+[\.\)]\s*/, '').replace(/^[#\*\-]\s*/, '').trim())
+      .filter((k) => k.length > 1 && !k.startsWith('http'));
+
+    const newTags = [...selectedTags];
+    rawList.forEach((item) => {
+      if (!newTags.some((t) => t.toLowerCase() === item.toLowerCase())) {
+        newTags.push(item);
+      }
+    });
+
+    onChangeTags(newTags);
+    setAiPasteText('');
+    setShowAiPaste(false);
+  };
+
+  // Auto-extract keywords from Product Title and Description
+  const handleAutoExtractFromTitle = () => {
+    const text = `${productTitle || ''} ${productDescription || ''}`;
+    if (!text.trim()) return;
+    const stopWords = new Set(['and', 'for', 'with', 'the', 'this', 'that', 'from', 'best', 'new', 'item', 'product', 'free', 'all', 'etc']);
+    const words = text
+      .toLowerCase()
+      .replace(/[^\w\s\u0980-\u09FF-]/g, ' ')
+      .split(/\s+/)
+      .filter((w) => w.length >= 3 && !stopWords.has(w));
+
+    const uniqueWords = Array.from(new Set(words)).slice(0, 15);
+    const newTags = [...selectedTags];
+    uniqueWords.forEach((item) => {
+      if (!newTags.some((t) => t.toLowerCase() === item.toLowerCase())) {
+        newTags.push(item);
+      }
+    });
+    onChangeTags(newTags);
   };
 
   // Remove tag
@@ -189,6 +236,69 @@ export const CategoryTagExplorer: React.FC<CategoryTagExplorerProps> = ({
           </div>
         </div>
       )}
+
+      {/* AI Keywords Bulk Paste & Smart Tools */}
+      <div className={`p-3.5 rounded-2xl border transition-all ${
+        isLight ? 'bg-amber-50/60 border-amber-200' : 'bg-amber-950/20 border-amber-500/20'
+      }`}>
+        <div className="flex items-center justify-between gap-2 flex-wrap mb-2">
+          <div className="flex items-center gap-2">
+            <Sparkles className="w-4 h-4 text-amber-500" />
+            <span className={`text-xs font-bold ${isLight ? 'text-gray-900' : 'text-gray-200'}`}>
+              AI Chat Keywords & Bulk Import (ChatGPT / Claude / Gemini)
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            {productTitle && (
+              <button
+                type="button"
+                onClick={handleAutoExtractFromTitle}
+                className="px-2.5 py-1 bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30 rounded-lg text-[11px] font-bold transition flex items-center gap-1 cursor-pointer"
+              >
+                <Sparkles className="w-3 h-3" />
+                <span>Auto-Extract from Title</span>
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={() => setShowAiPaste(!showAiPaste)}
+              className="px-2.5 py-1 bg-amber-600 hover:bg-amber-500 text-white rounded-lg text-[11px] font-bold transition flex items-center gap-1 cursor-pointer shadow-2xs"
+            >
+              <Plus className="w-3 h-3" />
+              <span>{showAiPaste ? 'Close Bulk Box' : 'Paste AI Keywords'}</span>
+            </button>
+          </div>
+        </div>
+
+        {showAiPaste && (
+          <div className="space-y-2 pt-2 border-t border-amber-200/60 dark:border-amber-500/20">
+            <textarea
+              rows={3}
+              placeholder="Paste ChatGPT / AI keyword list here (separated by comma, line by line, or numbers)... e.g.:&#10;men panjabi, cotton kurta, eid fashion, পাঞ্জাবি, ছেলেদের পোশাক"
+              value={aiPasteText}
+              onChange={(e) => setAiPasteText(e.target.value)}
+              className={`w-full rounded-xl p-3 text-xs focus:outline-none focus:border-amber-500 ${
+                isLight
+                  ? 'bg-white border border-gray-300 text-gray-900 placeholder:text-gray-400'
+                  : 'bg-gray-900 border border-gray-700 text-white placeholder-gray-500'
+              }`}
+            />
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] text-gray-500">
+                AI চ্যাট থেকে কিওয়ার্ড কপি করে এখানে পেস্ট করলেই অটোমেটিক ক্লিন ট্যাগ তৈরি হবে।
+              </span>
+              <button
+                type="button"
+                onClick={handleImportAiKeywords}
+                disabled={!aiPasteText.trim()}
+                className="px-4 py-1.5 bg-amber-600 hover:bg-amber-500 disabled:opacity-50 text-white rounded-xl text-xs font-bold transition shadow-xs cursor-pointer"
+              >
+                Import to Tags
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
 
       {/* Manual Tag Input Bar */}
       <form onSubmit={handleAddCustomTag} className="flex gap-2">

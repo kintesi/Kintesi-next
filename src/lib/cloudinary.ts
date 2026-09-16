@@ -51,8 +51,10 @@ export async function convertImageToWebP(
             resolve(file);
             return;
           }
-          const baseName = file.name.replace(/\.[^/.]+$/, '');
-          const webpFile = new File([blob], `${baseName}.webp`, {
+          const rawBaseName = file.name.replace(/\.[^/.]+$/, '');
+          const cleanBase = rawBaseName.replace(/[^a-zA-Z0-9_-]/g, '_') || 'img';
+          const uniqueName = `${cleanBase}_${Date.now()}`;
+          const webpFile = new File([blob], `${uniqueName}.webp`, {
             type: 'image/webp',
             lastModified: Date.now(),
           });
@@ -88,6 +90,7 @@ export function formatCloudinaryWebPUrl(url: string): string {
 /**
  * Uploads an image file to Cloudinary unsigned upload preset,
  * automatically converting to WebP format for optimal storage and loading speed.
+ * Appends a unique timestamp to prevent browser/CDN cache collision on re-uploads.
  * @param file File object from file input
  * @returns Promise<string> The secure HTTPS URL of the uploaded image in WebP format
  */
@@ -108,6 +111,13 @@ export async function uploadToCloudinary(file: File): Promise<string> {
     fileToUpload = await convertImageToWebP(file);
   } catch (err) {
     console.warn('Could not convert to WebP client-side, using original file', err);
+    // Fallback: Ensure even unconverted files get a unique timestamp to avoid cache collision
+    const ext = file.name.includes('.') ? file.name.substring(file.name.lastIndexOf('.')) : '';
+    const cleanBase = file.name.replace(/\.[^/.]+$/, '').replace(/[^a-zA-Z0-9_-]/g, '_') || 'img';
+    fileToUpload = new File([file], `${cleanBase}_${Date.now()}${ext}`, {
+      type: file.type,
+      lastModified: Date.now(),
+    });
   }
 
   const formData = new FormData();

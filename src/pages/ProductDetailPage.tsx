@@ -517,6 +517,27 @@ export const ProductDetailPage: React.FC = () => {
     <div className="bg-[#f6f7f9] sm:bg-transparent min-h-screen py-3 sm:py-8 pb-28 md:pb-12">
       <div className="max-w-[1440px] mx-auto px-2.5 sm:px-6 lg:px-8 space-y-3 sm:space-y-8">
         
+        {/* Category & Subcategory Breadcrumb */}
+        <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-xs text-gray-500 overflow-x-auto whitespace-nowrap pb-1">
+          <Link to="/" className="hover:text-rose-600 transition">Home</Link>
+          <span>/</span>
+          <Link to="/shop" className="hover:text-rose-600 transition">Shop</Link>
+          {product.category_id && (
+            <>
+              <span>/</span>
+              <Link to={`/shop?category=${encodeURIComponent(product.category_id)}`} className="hover:text-rose-600 transition capitalize">
+                {product.category_id.replace(/[-_]/g, ' ')}
+              </Link>
+            </>
+          )}
+          {product.sub_category && (
+            <>
+              <span>/</span>
+              <span className="text-gray-900 font-semibold">{product.sub_category}</span>
+            </>
+          )}
+        </nav>
+
         {/* Product Main Section: 2 Balanced Columns (Gallery 6 cols | Details & Delivery Buy Box 6 cols) */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 sm:gap-6 lg:gap-10 items-start">
           
@@ -622,6 +643,23 @@ export const ProductDetailPage: React.FC = () => {
                       -{discountPercent}% OFF
                     </span>
                   </div>
+                )}
+              </div>
+
+              {/* Category & Subcategory tags */}
+              <div className="flex items-center gap-1.5 flex-wrap">
+                {product.category_id && (
+                  <Link
+                    to={`/shop?category=${encodeURIComponent(product.category_id)}`}
+                    className="text-[10px] font-bold text-rose-700 bg-rose-50 hover:bg-rose-100 px-2 py-0.5 rounded-full border border-rose-200/60 uppercase tracking-wider transition"
+                  >
+                    {product.category_id.replace(/[-_]/g, ' ')}
+                  </Link>
+                )}
+                {product.sub_category && (
+                  <span className="text-[10px] font-bold text-gray-700 bg-gray-100 px-2.5 py-0.5 rounded-full border border-gray-200/60">
+                    {product.sub_category}
+                  </span>
                 )}
               </div>
 
@@ -1053,7 +1091,7 @@ export const ProductDetailPage: React.FC = () => {
               )}
 
               {/* Service Guarantees */}
-              <div className="grid grid-cols-3 gap-2 pt-2 border-t border-gray-100 text-center">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2 border-t border-gray-100 text-center">
                 <div className="p-2 bg-gray-50 rounded-xl space-y-0.5">
                   <CreditCard className="w-4 h-4 text-emerald-600 mx-auto" />
                   <p className="text-[11px] font-bold text-gray-800">Cash on Delivery</p>
@@ -1063,6 +1101,11 @@ export const ProductDetailPage: React.FC = () => {
                   <ShieldCheck className="w-4 h-4 text-emerald-600 mx-auto" />
                   <p className="text-[11px] font-bold text-gray-800">100% Authentic</p>
                   <p className="text-[9px] text-gray-400">Verified</p>
+                </div>
+                <div className="p-2 bg-gray-50 rounded-xl space-y-0.5">
+                  <Truck className="w-4 h-4 text-emerald-600 mx-auto" />
+                  <p className="text-[11px] font-bold text-gray-800">Fast Delivery</p>
+                  <p className="text-[9px] text-gray-400">Nationwide</p>
                 </div>
                 <div className="p-2 bg-gray-50 rounded-xl space-y-0.5">
                   <RotateCcw className="w-4 h-4 text-emerald-600 mx-auto" />
@@ -1215,7 +1258,7 @@ export const ProductDetailPage: React.FC = () => {
 
             {/* 1. GADGET & HARDWARE DETAILS ONLY */}
             {isGadget && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-xs">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
                 {isValueNonEmpty(product.warranty) && (
                   <div className="p-4 bg-cyan-50/40 rounded-2xl space-y-1 border border-cyan-100">
                     <span className="text-cyan-700 font-bold uppercase text-[10px] tracking-wider">Official Warranty</span>
@@ -1239,7 +1282,7 @@ export const ProductDetailPage: React.FC = () => {
 
             {/* 2. FASHION & APPAREL DETAILS ONLY */}
             {isFashion && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-xs">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
                 {isValueNonEmpty(product.fabric) && (
                   <div className="p-4 bg-gray-50 rounded-2xl space-y-1 border border-gray-100">
                     <span className="text-gray-400 font-bold uppercase text-[10px] tracking-wider">Fabric / Material</span>
@@ -1281,7 +1324,7 @@ export const ProductDetailPage: React.FC = () => {
 
             {/* 3. GROCERIES & FOOD DETAILS ONLY */}
             {isGroceries && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-xs">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
                 {isValueNonEmpty(product.fabric) && (
                   <div className="p-4 bg-emerald-50/40 rounded-2xl space-y-1 border border-emerald-100">
                     <span className="text-emerald-700 font-bold uppercase text-[10px] tracking-wider">Net Weight / Volume</span>
@@ -1348,7 +1391,7 @@ export const ProductDetailPage: React.FC = () => {
               <h3 className="text-xs font-black uppercase tracking-wider text-emerald-800 flex items-center gap-1.5">
                 <Check className="w-4 h-4 text-emerald-600" /> Key Features & Guarantee Highlights
               </h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                 {product.highlights.map((h, i) => (
                   <div key={i} className="flex items-start gap-2.5 text-xs font-semibold text-emerald-950 bg-white/80 p-3 rounded-xl border border-emerald-100/60">
                     <Check className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
