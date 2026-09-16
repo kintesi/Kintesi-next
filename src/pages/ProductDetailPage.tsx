@@ -425,9 +425,21 @@ export const ProductDetailPage: React.FC = () => {
 
   const isWishlisted = isInWishlist(product.id);
 
-  const relatedProducts = allProducts
-    .filter((p) => p.id !== product.id && p.category_id === product.category_id)
-    .slice(0, 4);
+  const relatedProducts = useMemo(() => {
+    if (!allProducts || allProducts.length === 0) return [];
+    // 1. Same category items first
+    const sameCat = allProducts.filter(
+      (p) => p.id !== product.id && p.category_id && p.category_id === product.category_id
+    );
+    // 2. Backfill from catalog if fewer than 4 so the 4-slot grid is always filled
+    if (sameCat.length < 4) {
+      const remaining = allProducts.filter(
+        (p) => p.id !== product.id && !sameCat.some((sc) => sc.id === p.id)
+      );
+      return [...sameCat, ...remaining].slice(0, 4);
+    }
+    return sameCat.slice(0, 4);
+  }, [allProducts, product.id, product.category_id]);
 
   const customAttrLabels = Object.entries(selectedCustomAttributes)
     .map(([k, v]) => `${k}: ${v}`)
@@ -1424,9 +1436,9 @@ export const ProductDetailPage: React.FC = () => {
 
       {/* Related Products */}
       {relatedProducts.length > 0 && (
-        <section className="space-y-6">
-          <h3 className="text-2xl font-extrabold text-gray-900">Similar Items You May Like</h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+        <section className="space-y-4 sm:space-y-6">
+          <h3 className="text-lg sm:text-2xl font-extrabold text-gray-900">Similar Items You May Like</h3>
+          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
             {relatedProducts.map((p) => (
               <ProductCard key={p.id} product={p} />
             ))}
