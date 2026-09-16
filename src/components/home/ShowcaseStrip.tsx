@@ -19,6 +19,7 @@ export const ShowcaseStrip: React.FC<ShowcaseStripProps> = ({
 }) => {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [isPaused, setIsPaused] = useState(false);
+  const pauseTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [isDesktop, setIsDesktop] = useState(() => {
     if (typeof window !== 'undefined') {
       return window.innerWidth >= 768;
@@ -38,63 +39,105 @@ export const ShowcaseStrip: React.FC<ShowcaseStripProps> = ({
   // If there are 0 products, do not render
   if (!products || products.length === 0) return null;
 
-  // On PC view (Desktop >= 768px): 8 products per serial/row
-  // On Mobile view: 4 products per serial/row
-  const threshold = isDesktop ? 8 : 4;
-  const hasMoreThanThreshold = products.length > threshold;
+  // Auto-slide whenever there are 2 or more products so items come one after another continuously
+  const shouldSlide = products.length >= 2;
 
-  // Duplicate list if > threshold to enable infinite continuous wrap-around feel
+  // Duplicate list enough times so infinite continuous scrolling is completely seamless
   const displayItems = useMemo(() => {
-    if (!hasMoreThanThreshold) return products;
-    return [...products, ...products, ...products];
-  }, [products, hasMoreThanThreshold]);
-
-  // Seamless infinite reset on scroll
-  const handleScroll = () => {
-    const el = containerRef.current;
-    if (!el || !hasMoreThanThreshold) return;
-    const oneThird = el.scrollWidth / 3;
-    if (el.scrollLeft >= oneThird * 2) {
-      el.scrollLeft -= oneThird;
-    } else if (el.scrollLeft <= 0) {
-      el.scrollLeft += oneThird;
+    if (!shouldSlide) return products;
+    const repeatCount = Math.max(4, Math.ceil(24 / products.length));
+    const list: Product[] = [];
+    for (let i = 0; i < repeatCount; i++) {
+      list.push(...products);
     }
-  };
+    return list;
+  }, [products, shouldSlide]);
 
-  // Set initial scroll to middle set so backward scroll/swipe is also infinite
+  // Set initial scroll to cycle 1 so backward swipe is also infinite
   useEffect(() => {
     const el = containerRef.current;
-    if (!el || !hasMoreThanThreshold) return;
-    const frame = requestAnimationFrame(() => {
-      if (el && el.scrollWidth > 0) {
-        el.scrollLeft = el.scrollWidth / 3;
+    if (!el || !shouldSlide) return;
+
+    const initTimer = setTimeout(() => {
+      if (!el) return;
+      const firstCard = el.children[0] as HTMLElement | undefined;
+      const secondCard = el.children[1] as HTMLElement | undefined;
+      if (firstCard && secondCard) {
+        const cardStep = secondCard.offsetLeft - firstCard.offsetLeft;
+        const cycleWidth = cardStep * products.length;
+        el.scrollTo({ left: cycleWidth, behavior: 'auto' });
       }
-    });
-    return () => cancelAnimationFrame(frame);
-  }, [hasMoreThanThreshold, displayItems.length]);
+    }, 100);
+
+    return () => clearTimeout(initTimer);
+  }, [shouldSlide, products.length]);
+
+  // Seamless infinite reset check
+  const handleScroll = () => {
+    const el = containerRef.current;
+    if (!el || !shouldSlide) return;
+
+    const firstCard = el.children[0] as HTMLElement | undefined;
+    const secondCard = el.children[1] as HTMLElement | undefined;
+    if (!firstCard || !secondCard) return;
+
+    const cardStep = secondCard.offsetLeft - firstCard.offsetLeft;
+    const cycleWidth = cardStep * products.length;
+    const maxScroll = el.scrollWidth - el.clientWidth;
+
+    // Reset forward seamlessly
+    if (el.scrollLeft >= cycleWidth * 2 || el.scrollLeft >= maxScroll - cardStep) {
+      el.scrollTo({ left: el.scrollLeft - cycleWidth, behavior: 'auto' });
+    }
+    // Reset backward seamlessly
+    else if (el.scrollLeft <= cardStep) {
+      el.scrollTo({ left: el.scrollLeft + cycleWidth, behavior: 'auto' });
+    }
+  };
 
   const scrollNext = useCallback(() => {
     const el = containerRef.current;
     if (!el) return;
+
     const firstCard = el.children[0] as HTMLElement | undefined;
     const secondCard = el.children[1] as HTMLElement | undefined;
     const step = (firstCard && secondCard)
       ? (secondCard.offsetLeft - firstCard.offsetLeft)
       : (el.clientWidth / (isDesktop ? 8 : 4));
 
-    el.scrollBy({ left: step, behavior: 'smooth' });
-  }, [isDesktop]);
+    const cycleWidth = step * products.length;
+    const maxScroll = el.scrollWidth - el.clientWidth;
 
-  // Auto-advance infinitely every 3.5 seconds if more than threshold and not paused
+    // If near the end of cycle 2, snap to cycle 1 instantly before smooth scrolling
+    if (el.scrollLeft >= cycleWidth * 2 || el.scrollLeft >= maxScroll - step * 2) {
+      el.scrollTo({ left: el.scrollLeft - cycleWidth, behavior: 'auto' });
+    }
+
+    el.scrollBy({ left: step, behavior: 'smooth' });
+  }, [isDesktop, products.length]);
+
+  // Auto-advance infinitely every 2.6 seconds when not paused
   useEffect(() => {
-    if (!hasMoreThanThreshold || isPaused) return;
+    if (!shouldSlide || isPaused) return;
 
     const timer = setInterval(() => {
       scrollNext();
-    }, 3500);
+    }, 2600);
 
     return () => clearInterval(timer);
-  }, [hasMoreThanThreshold, isPaused, scrollNext]);
+  }, [shouldSlide, isPaused, scrollNext]);
+
+  const handleTouchStart = () => {
+    if (pauseTimeoutRef.current) clearTimeout(pauseTimeoutRef.current);
+    setIsPaused(true);
+  };
+
+  const handleTouchEnd = () => {
+    if (pauseTimeoutRef.current) clearTimeout(pauseTimeoutRef.current);
+    pauseTimeoutRef.current = setTimeout(() => {
+      setIsPaused(false);
+    }, 3000);
+  };
 
   // Icon mapping
   const getIcon = () => {
@@ -117,7 +160,7 @@ export const ShowcaseStrip: React.FC<ShowcaseStripProps> = ({
 
   return (
     <div className="space-y-2.5">
-      {/* Sleek Header (Clean title and View All, no slider buttons) */}
+      {/* Sleek Header (Clean title and View All) */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-1.5">
           {displayIcon}
@@ -140,24 +183,25 @@ export const ShowcaseStrip: React.FC<ShowcaseStripProps> = ({
         </Link>
       </div>
 
-      {/* Row: 4 items on mobile, 8 items on PC view
-          - Completely static if <= threshold (<=4 on mobile, <=8 on PC)
-          - Seamless infinite auto-advance if > threshold */}
-      {!hasMoreThanThreshold ? (
-        /* Static grid: 4 columns on mobile, 8 columns on PC */
+      {/* Row: 4 items visible on mobile, 8 items visible on PC
+          - Seamless continuous auto-slide one after another
+          - Supports touch swiping on mobile and trackpad scrolling */}
+      {!shouldSlide ? (
         <div className="grid grid-cols-4 md:grid-cols-8 gap-2 md:gap-3">
-          {products.slice(0, threshold).map((product, idx) => (
+          {products.map((product, idx) => (
             <ShowcaseItem key={`${product.id}-${idx}`} product={product} />
           ))}
         </div>
       ) : (
-        /* Seamless Infinite Overflow-Hidden Auto-Slide when products > threshold */
         <div
           ref={containerRef}
           onMouseEnter={() => setIsPaused(true)}
           onMouseLeave={() => setIsPaused(false)}
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
+          onTouchCancel={handleTouchEnd}
           onScroll={handleScroll}
-          className="flex gap-2 md:gap-3 overflow-hidden scroll-smooth select-none py-0.5"
+          className="flex gap-2 md:gap-3 overflow-x-auto select-none py-0.5 scrollbar-none [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
         >
           {displayItems.map((product, idx) => (
             <div
