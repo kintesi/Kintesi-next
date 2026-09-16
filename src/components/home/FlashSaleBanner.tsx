@@ -314,7 +314,8 @@ export const FlashSaleBanner: React.FC<FlashSaleBannerProps> = ({
       return (
         <div
           onClick={isClickable ? handleBannerClick : undefined}
-          className={`relative w-full h-[155px] xs:h-[170px] sm:h-[190px] overflow-hidden rounded-[20px] sm:rounded-[24px] shadow-lg flex select-none transition-all ${
+          style={{ aspectRatio: '2 / 1' }}
+          className={`relative w-full aspect-[2/1] overflow-hidden rounded-[20px] sm:rounded-[24px] shadow-lg flex select-none transition-all ${
             isClickable ? 'cursor-pointer active:scale-[0.99]' : 'cursor-default'
           } bg-gradient-to-r ${themeConfig.cardBg} border ${themeConfig.border}`}
           onTouchStart={handleTouchStart}
@@ -442,7 +443,8 @@ export const FlashSaleBanner: React.FC<FlashSaleBannerProps> = ({
     return (
       <div
         onClick={isClickable ? handleBannerClick : undefined}
-        className={`relative w-full h-[155px] xs:h-[170px] sm:h-[190px] overflow-hidden rounded-[22px] sm:rounded-[24px] shadow-xl flex select-none transition-all ${
+        style={{ aspectRatio: '2 / 1' }}
+        className={`relative w-full aspect-[2/1] min-h-[160px] overflow-hidden rounded-[22px] sm:rounded-[24px] shadow-xl flex select-none transition-all ${
           isClickable ? 'cursor-pointer' : 'cursor-default'
         } group bg-gradient-to-r ${themeConfig.cardBg} border ${themeConfig.border}`}
         onTouchStart={handleTouchStart}
@@ -552,7 +554,8 @@ export const FlashSaleBanner: React.FC<FlashSaleBannerProps> = ({
     return (
       <div
         onClick={isClickable ? handleBannerClick : undefined}
-        className={`relative w-full h-[240px] sm:h-[270px] lg:h-[300px] xl:h-[320px] overflow-hidden rounded-[24px] sm:rounded-[28px] shadow-2xl flex mb-6 text-white group select-none transition-all ${
+        style={{ aspectRatio: '1920 / 600' }}
+        className={`relative w-full aspect-[1920/600] overflow-hidden rounded-[24px] sm:rounded-[28px] shadow-2xl flex mb-6 text-white group select-none transition-all ${
           isClickable ? 'cursor-pointer' : 'cursor-default'
         } bg-gradient-to-r ${themeConfig.cardBg} border ${themeConfig.border}`}
         onMouseEnter={() => setIsPaused(true)}
@@ -714,7 +717,8 @@ export const FlashSaleBanner: React.FC<FlashSaleBannerProps> = ({
   return (
     <div
       onClick={isClickable ? handleBannerClick : undefined}
-      className={`relative w-full h-[240px] sm:h-[270px] lg:h-[300px] xl:h-[320px] overflow-hidden rounded-[24px] sm:rounded-[28px] shadow-2xl flex mb-6 text-white group select-none transition-all ${
+      style={{ aspectRatio: '1920 / 600' }}
+      className={`relative w-full aspect-[1920/600] min-h-[260px] overflow-hidden rounded-[24px] sm:rounded-[28px] shadow-2xl flex mb-6 text-white group select-none transition-all ${
         isClickable ? 'cursor-pointer' : 'cursor-default'
       } bg-gradient-to-r ${themeConfig.cardBg} border ${themeConfig.border}`}
       onMouseEnter={() => setIsPaused(true)}
