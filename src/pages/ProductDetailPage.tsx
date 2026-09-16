@@ -426,19 +426,38 @@ export const ProductDetailPage: React.FC = () => {
   const isWishlisted = isInWishlist(product.id);
 
   const relatedProducts = (() => {
-    if (!allProducts || allProducts.length === 0) return [];
-    // 1. Same category items first
+    if (!product || !allProducts || allProducts.length === 0) return [];
+    
+    // Strictly find genuinely similar products from the SAME category
     const sameCat = allProducts.filter(
       (p) => p.id !== product.id && p.category_id && p.category_id === product.category_id
     );
-    // 2. Backfill from catalog if fewer than 4 so the 4-slot grid is always filled
-    if (sameCat.length < 4) {
-      const remaining = allProducts.filter(
-        (p) => p.id !== product.id && !sameCat.some((sc) => sc.id === p.id)
-      );
-      return [...sameCat, ...remaining].slice(0, 4);
-    }
-    return sameCat.slice(0, 4);
+
+    if (sameCat.length === 0) return [];
+
+    // Sort by title & tag similarity so the most relevant matching items appear first
+    const currentTags = (product.tags || []).map((t: string) => t.toLowerCase().trim());
+    const currentTitleWords = product.title.toLowerCase().split(/[\s–—,-]+/).filter((w: string) => w.length > 3);
+
+    return [...sameCat].sort((a, b) => {
+      let scoreA = 0;
+      let scoreB = 0;
+
+      const tagsA = (a.tags || []).map((t: string) => t.toLowerCase().trim());
+      const tagsB = (b.tags || []).map((t: string) => t.toLowerCase().trim());
+      const titleA = a.title.toLowerCase();
+      const titleB = b.title.toLowerCase();
+
+      tagsA.forEach((t) => { if (currentTags.includes(t)) scoreA += 2; });
+      tagsB.forEach((t) => { if (currentTags.includes(t)) scoreB += 2; });
+
+      currentTitleWords.forEach((word) => {
+        if (titleA.includes(word)) scoreA += 3;
+        if (titleB.includes(word)) scoreB += 3;
+      });
+
+      return scoreB - scoreA;
+    }).slice(0, 4);
   })();
 
   const customAttrLabels = Object.entries(selectedCustomAttributes)
