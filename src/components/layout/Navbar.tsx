@@ -45,6 +45,15 @@ export const Navbar: React.FC = () => {
   const [showSearchResults, setShowSearchResults] = useState(false);
   const [liveProducts, setLiveProducts] = useState<Product[]>(() => getAllLiveProducts(INITIAL_PRODUCTS));
   const [showAnnouncement, setShowAnnouncement] = useState(() => Boolean(settings?.banners?.showTopAnnouncement === true));
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 20);
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   useEffect(() => {
     async function loadNavbarCategories() {
@@ -183,18 +192,21 @@ export const Navbar: React.FC = () => {
 
   return (
     <>
-      <div className={`sticky top-0 z-40 w-full ${location.pathname === '/checkout' ? 'hidden md:block' : ''}`}>
-        {/* Top Announcement Bar (7-Day New User Welcome or Admin Broadcast) */}
-        {showAnnouncement && (
-          <div className={`bg-gradient-to-r from-gray-950 via-rose-950 to-gray-950 text-white text-[10px] sm:text-[11px] font-semibold py-1.5 px-3 sm:px-4 text-center items-center justify-center gap-1.5 sm:gap-2 border-b border-rose-900/40 shadow-xs transition-all ${location.pathname === '/checkout' ? 'hidden md:flex' : 'flex'}`}>
-            <Sparkles className="w-3 h-3 flex-shrink-0 animate-pulse text-amber-300" />
-            <span className="truncate sm:overflow-visible">
-              {renderAnnouncementText(settings?.banners?.topAnnouncementText)}
-            </span>
-          </div>
-        )}
+      {/* Top Announcement Bar (Collapses smoothly on downward scroll) */}
+      {showAnnouncement && (
+        <div
+          className={`bg-gradient-to-r from-gray-950 via-rose-950 to-gray-950 text-white text-[10px] sm:text-[11px] font-semibold text-center items-center justify-center gap-1.5 sm:gap-2 border-b border-rose-900/40 shadow-xs transition-all duration-300 overflow-hidden ${
+            isScrolled ? 'max-h-0 py-0 opacity-0 border-none' : 'max-h-12 py-1.5 px-3 sm:px-4 opacity-100'
+          } ${location.pathname === '/checkout' ? 'hidden md:flex' : 'flex'}`}
+        >
+          <Sparkles className="w-3 h-3 flex-shrink-0 animate-pulse text-amber-300" />
+          <span className="truncate sm:overflow-visible">
+            {renderAnnouncementText(settings?.banners?.topAnnouncementText)}
+          </span>
+        </div>
+      )}
 
-        <header className="bg-white border-b border-rose-100 shadow-[0_2px_12px_rgba(225,29,72,0.03)] w-full">
+      <header className={`sticky top-0 z-40 bg-white border-b border-rose-100 shadow-[0_2px_12px_rgba(225,29,72,0.03)] w-full ${location.pathname === '/checkout' ? 'hidden md:block' : ''}`}>
         <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
           
           {/* Mobile Top Bar */}
@@ -612,9 +624,8 @@ export const Navbar: React.FC = () => {
 
         </div>
       </header>
-    </div>
 
-    {/* Auth Modal */}
+      {/* Auth Modal */}
       <AuthModal isOpen={isAuthOpen} onClose={() => setIsAuthOpen(false)} />
     </>
   );
