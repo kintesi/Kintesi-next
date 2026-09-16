@@ -4,7 +4,7 @@ import { INITIAL_CATEGORIES } from '../../data/mockData';
 import { useCart } from '../../contexts/CartContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { useWishlist } from '../../contexts/WishlistContext';
-import { formatPrice, calculateDiscount } from '../../lib/utils';
+import { formatPrice, calculateDiscount, getProductUrl } from '../../lib/utils';
 import { ShoppingCart, Heart, Star } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
@@ -57,7 +57,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onWishlistTog
 
       {/* Product Image */}
       <Link
-        to={`/product/${product.id}`}
+        to={getProductUrl(product)}
         className="block relative aspect-square bg-white border-b border-rose-50 overflow-hidden p-3"
       >
         <img
@@ -105,7 +105,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onWishlistTog
           )}
 
           {/* Title */}
-          <Link to={`/product/${product.id}`} className="block">
+          <Link to={getProductUrl(product)} className="block">
             <h3 className="font-bold text-gray-900 text-xs sm:text-sm leading-snug line-clamp-2 hover:text-rose-600 transition">
               {product.title}
             </h3>

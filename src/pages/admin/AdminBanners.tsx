@@ -198,7 +198,7 @@ export const AdminBanners: React.FC = () => {
     let autoLink = '';
 
     if (nextProductIds.length === 1) {
-      autoLink = `/product/${product.id}`;
+      autoLink = `/product/${product.slug || product.id}`;
     } else {
       autoLink = `/showcase/banner-${currentSlide.id}`;
     }
@@ -240,7 +240,8 @@ export const AdminBanners: React.FC = () => {
     const nextProductIds = currentSlideProductIds.filter((id) => id !== productId);
     let autoLink = '';
     if (nextProductIds.length === 1) {
-      autoLink = `/product/${nextProductIds[0]}`;
+      const singleProd = catalogProducts.find((p) => p.id === nextProductIds[0]);
+      autoLink = `/product/${singleProd?.slug || nextProductIds[0]}`;
     } else if (nextProductIds.length > 1) {
       autoLink = `/showcase/banner-${currentSlide.id}`;
     } else {
@@ -362,7 +363,7 @@ export const AdminBanners: React.FC = () => {
       spotlightStockText: product.stock ? `${product.stock} left in stock` : 'Limited stock',
       spotlightSavingsText: price > discountPrice ? `Save ৳${price - discountPrice}` : 'Special deal',
       spotlightBadge: 'Deal of the day',
-      spotlightBtnLink: `/product/${product.id}`,
+      spotlightBtnLink: `/product/${product.slug || product.id}`,
     }));
     setSpotlightSearch('');
     toast.success('Spotlight details filled from the selected product.');
@@ -538,7 +539,8 @@ export const AdminBanners: React.FC = () => {
 
       let autoLink = slide.link;
       if (pIds.length === 1) {
-        autoLink = `/product/${pIds[0]}`;
+        const singleProd = catalogProducts.find((p) => p.id === pIds[0]);
+        autoLink = `/product/${singleProd?.slug || pIds[0]}`;
       } else if (pIds.length > 1) {
         autoLink = `/showcase/banner-${slide.id}`;
       } else {
@@ -1115,14 +1117,14 @@ export const AdminBanners: React.FC = () => {
                     <input
                       value={
                         currentSlideProductIds.length === 1
-                          ? `/product/${currentSlideProductIds[0]}`
+                          ? `/product/${catalogProducts.find((p) => p.id === currentSlideProductIds[0])?.slug || currentSlideProductIds[0]}`
                           : currentSlideProductIds.length > 1
                           ? `/showcase/banner-${currentSlide.id}`
                           : currentSlide.link || ''
                       }
                       onChange={(e) => updateSlide('link', e.target.value)}
                       className={`w-full px-3 py-2 border text-xs ${input}`}
-                      placeholder="e.g. /product/123 or /shop"
+                      placeholder="e.g. /product/rose-arabian-borka or /shop"
                     />
                   </Field>
                 </div>

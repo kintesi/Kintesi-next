@@ -4,7 +4,7 @@ import { useCart, sanitizeCartItems } from '../contexts/CartContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useSettings } from '../contexts/SettingsContext';
-import { formatPrice } from '../lib/utils';
+import { formatPrice, getProductUrl } from '../lib/utils';
 import { toast } from 'sonner';
 import {
   ShoppingBag,
@@ -350,7 +350,7 @@ export const CartPage: React.FC = () => {
 
                     {/* Left: Product Image */}
                     <Link
-                      to={`/product/${item.product.id}`}
+                      to={getProductUrl(item.product)}
                       className="w-20 h-20 rounded-xl overflow-hidden bg-gray-50 border border-gray-100 shrink-0 relative block"
                     >
                       <img
@@ -370,7 +370,7 @@ export const CartPage: React.FC = () => {
                       <div>
                         {/* Title */}
                         <Link
-                          to={`/product/${item.product.id}`}
+                          to={getProductUrl(item.product)}
                           className="text-xs font-bold text-gray-900 line-clamp-2 hover:text-rose-600 transition leading-snug"
                         >
                           {item.product.title}
@@ -481,7 +481,7 @@ export const CartPage: React.FC = () => {
 
                     {/* Product Image */}
                     <Link
-                      to={`/product/${item.product.id}`}
+                      to={getProductUrl(item.product)}
                       className="w-20 h-20 rounded-xl overflow-hidden bg-gray-50 border border-gray-100 shrink-0 block"
                     >
                       <img
@@ -501,7 +501,7 @@ export const CartPage: React.FC = () => {
                       </div>
 
                       <Link
-                        to={`/product/${item.product.id}`}
+                        to={getProductUrl(item.product)}
                         className="text-sm font-bold text-gray-900 hover:text-rose-600 transition line-clamp-1 mt-0.5"
                       >
                         {item.product.title}

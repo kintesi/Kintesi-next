@@ -36,3 +36,19 @@ export function generateOrderNumber(): string {
   const randomStr = Math.random().toString(36).substring(2, 6).toUpperCase();
   return `CF-${timestamp}-${randomStr}`;
 }
+
+export function generateSlug(text?: string | null): string {
+  if (!text) return '';
+  return text
+    .toLowerCase()
+    .trim()
+    .replace(/[^\w\s-]/g, '')
+    .replace(/[\s_-]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
+export function getProductUrl(product?: { slug?: string; id?: string; title?: string } | null): string {
+  if (!product) return '/shop';
+  const slug = product.slug?.trim() || (product.title ? generateSlug(product.title) : '') || product.id || '';
+  return `/product/${slug}`;
+}

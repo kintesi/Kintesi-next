@@ -4,7 +4,7 @@ import { useCart } from '../contexts/CartContext';
 import { ProductCard } from '../components/common/ProductCard';
 import { Link } from 'react-router-dom';
 import { Heart, ShoppingBag, Trash2, AlertTriangle, X } from 'lucide-react';
-import { formatPrice } from '../lib/utils';
+import { formatPrice, getProductUrl } from '../lib/utils';
 import { Product } from '../types';
 import { useLanguage } from '../contexts/LanguageContext';
 
@@ -60,7 +60,7 @@ export const WishlistPage: React.FC = () => {
                 >
                   {/* Left: Product Image */}
                   <Link
-                    to={`/product/${product.id}`}
+                    to={getProductUrl(product)}
                     className="w-24 h-24 rounded-xl overflow-hidden bg-gray-50 border border-gray-100 shrink-0 relative block"
                   >
                     <img
@@ -88,7 +88,7 @@ export const WishlistPage: React.FC = () => {
 
                       {/* Title */}
                       <Link
-                        to={`/product/${product.id}`}
+                        to={getProductUrl(product)}
                         className="text-xs font-bold text-gray-900 line-clamp-2 hover:text-rose-600 transition leading-snug mt-0.5"
                       >
                         {product.title}

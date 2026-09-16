@@ -102,6 +102,16 @@ export async function saveProductToDB(product: Product): Promise<void> {
       : '00000000-0000-4000-8000-' + Date.now().toString(16).padStart(12, '0');
   }
 
+  // Ensure product has an SEO-friendly slug
+  if (!product.slug || product.slug.trim() === '') {
+    product.slug = (product.title || 'product')
+      .toLowerCase()
+      .trim()
+      .replace(/[^\w\s-]/g, '')
+      .replace(/[\s_-]+/g, '-')
+      .replace(/^-+|-+$/g, '') || `product-${product.id.slice(0, 8)}`;
+  }
+
   // 1. Instant local reactivity (0ms) - Only replace if exact same ID matches!
   try {
     const localSaved: Product[] = JSON.parse(localStorage.getItem('kintesi_custom_products') || '[]');

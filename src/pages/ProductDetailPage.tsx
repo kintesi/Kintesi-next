@@ -208,6 +208,9 @@ export const ProductDetailPage: React.FC = () => {
         if (localProd) {
           setProduct(localProd);
           trackProductView(localProd);
+          if (localProd.slug && slug !== localProd.slug) {
+            navigate(`/product/${localProd.slug}${window.location.search}`, { replace: true });
+          }
           setSelectedImage(localProd.images?.[0] || '/logo.webp');
           if (localProd.sizes && localProd.sizes.length > 0) setSelectedSize(localProd.sizes[0]);
           const hasRealColorsLocal = Boolean(
@@ -241,6 +244,9 @@ export const ProductDetailPage: React.FC = () => {
         if (found) {
           setProduct(found);
           trackProductView(found);
+          if (found.slug && slug !== found.slug) {
+            navigate(`/product/${found.slug}${window.location.search}`, { replace: true });
+          }
           setSelectedImage(found.images?.[0] || '/logo.webp');
           if (found.sizes && found.sizes.length > 0) setSelectedSize(found.sizes[0]);
           const hasRealColorsFound = Boolean(
@@ -288,6 +294,26 @@ export const ProductDetailPage: React.FC = () => {
     window.addEventListener('kintesi_products_updated', loadProduct);
     return () => window.removeEventListener('kintesi_products_updated', loadProduct);
   }, [slug]);
+
+  // Set document title and canonical link for SEO
+  useEffect(() => {
+    if (product?.title) {
+      document.title = `${product.title} | Kintesi`;
+      try {
+        let canonical = document.querySelector("link[rel='canonical']") as HTMLLinkElement | null;
+        if (!canonical) {
+          canonical = document.createElement('link');
+          canonical.setAttribute('rel', 'canonical');
+          document.head.appendChild(canonical);
+        }
+        const canonicalSlug = product.slug || product.id;
+        canonical.setAttribute('href', `${window.location.origin}/product/${canonicalSlug}`);
+      } catch {}
+    }
+    return () => {
+      document.title = 'Kintesi - Online Shopping in Bangladesh';
+    };
+  }, [product?.title, product?.slug, product?.id]);
 
   // Compute active variant pricing based on selected color or custom attribute
   let activeVariantPrice: number | null = null;

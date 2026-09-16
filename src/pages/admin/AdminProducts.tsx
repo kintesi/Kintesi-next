@@ -5,7 +5,7 @@ import { getProductsFromDB, saveProductToDB, deleteProductFromDB, getCategoriesF
 import { useAuth } from '../../contexts/AuthContext';
 import { INITIAL_PRODUCTS, INITIAL_CATEGORIES } from '../../data/mockData';
 import { Product, Category, ProductColorOption, ProductCustomAttributeOption } from '../../types';
-import { formatPrice, calculateDiscount } from '../../lib/utils';
+import { formatPrice, calculateDiscount, getProductUrl } from '../../lib/utils';
 import { uploadToCloudinary, deleteImagesFromCloudinary } from '../../lib/cloudinary';
 import {
   Plus,
@@ -1751,7 +1751,7 @@ export const AdminProducts: React.FC = () => {
                         <div className="flex items-center justify-end gap-1.5">
                           {/* Live View Button */}
                           <Link
-                            to={`/product/${prod.id}`}
+                            to={getProductUrl(prod)}
                             target="_blank"
                             className={`p-2 rounded-xl transition cursor-pointer ${
                               isLight ? 'hover:bg-slate-100 text-slate-500 hover:text-slate-800' : 'hover:bg-gray-800 text-gray-400 hover:text-white'

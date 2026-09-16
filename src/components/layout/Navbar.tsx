@@ -22,7 +22,7 @@ import {
   ArrowLeft,
 } from 'lucide-react';
 import { INITIAL_PRODUCTS, INITIAL_CATEGORIES } from '../../data/mockData';
-import { formatPrice } from '../../lib/utils';
+import { formatPrice, getProductUrl } from '../../lib/utils';
 import { matchesProductSearch, getAllLiveProducts } from '../../lib/searchUtils';
 import { Product, Category } from '../../types';
 import { getCategoriesFromDB } from '../../lib/dbService';
@@ -315,7 +315,7 @@ export const Navbar: React.FC = () => {
                       {searchFilteredProducts.slice(0, 5).map((prod) => (
                         <Link
                           key={prod.id}
-                          to={`/product/${prod.id}`}
+                          to={getProductUrl(prod)}
                           onClick={() => setShowSearchResults(false)}
                           className="flex items-center gap-3 p-2.5 hover:bg-rose-50/40 transition"
                         >
@@ -394,7 +394,7 @@ export const Navbar: React.FC = () => {
                       {searchFilteredProducts.map((prod) => (
                         <Link
                           key={prod.id}
-                          to={`/product/${prod.id}`}
+                          to={getProductUrl(prod)}
                           onClick={() => setShowSearchResults(false)}
                           className="flex items-center gap-3 p-2.5 hover:bg-rose-50/40 transition"
                         >
