@@ -166,25 +166,34 @@ export const AdminBanners: React.FC = () => {
       (product as any).image ||
       '';
 
-    const nextSlides = slides.map((slide, index) => {
-      if (index !== selectedSlideIndex) return slide;
+    hasUserEdited.current = true;
+    setIsSaved(false);
+    setForm((previous) => {
+      const currentSlides = previous.flashSaleSlides?.length ? previous.flashSaleSlides : slides;
+      const nextSlides = currentSlides.map((slide, index) => {
+        if (index !== selectedSlideIndex) return slide;
+        return {
+          ...slide,
+          title: product.title,
+          bgImage: defaultProductImage,
+          desktopImage: defaultProductImage,
+          mobileImage: defaultProductImage,
+          link: `/product/${product.id}`,
+          productId: product.id,
+        };
+      });
       return {
-        ...slide,
-        title: product.title,
-        bgImage: defaultProductImage,
-        link: `/product/${product.id}`,
-        productId: product.id,
+        ...previous,
+        flashSaleSlides: nextSlides,
+        ...(selectedSlideIndex === 0 ? {
+          flashSaleTitle: nextSlides[0].title,
+          flashSaleBgImage: nextSlides[0].bgImage,
+          flashSaleDesktopImage: nextSlides[0].desktopImage,
+          flashSaleMobileImage: nextSlides[0].mobileImage,
+          flashSaleLink: nextSlides[0].link,
+        } : {}),
       };
     });
-    setForm((previous) => ({
-      ...previous,
-      flashSaleSlides: nextSlides,
-      ...(selectedSlideIndex === 0 ? {
-        flashSaleTitle: nextSlides[0].title,
-        flashSaleBgImage: nextSlides[0].bgImage,
-        flashSaleLink: nextSlides[0].link,
-      } : {}),
-    }));
     setFlashSlideSearch('');
     toast.success(`"${product.title}" selected! Product's default image applied automatically.`);
   };
@@ -311,27 +320,36 @@ export const AdminBanners: React.FC = () => {
     );
   };
 
-  const updateSlide = (key: keyof FlashSaleSlide, value: any) => {
+  const updateSlideFields = (fields: Partial<FlashSaleSlide>) => {
     hasUserEdited.current = true;
     setIsSaved(false);
-    const nextSlides = slides.map((slide, index) => index === selectedSlideIndex ? { ...slide, [key]: value } : slide);
-    setForm((previous) => ({
-      ...previous,
-      flashSaleSlides: nextSlides,
-      ...(selectedSlideIndex === 0 ? {
-        flashSaleTag: key === 'tag' ? value : previous.flashSaleTag,
-        flashSaleTitle: key === 'title' ? value : previous.flashSaleTitle,
-        flashSaleSubtitle: key === 'subtitle' ? value : previous.flashSaleSubtitle,
-        flashSaleBgImage: key === 'bgImage' ? value : previous.flashSaleBgImage,
-        flashSaleDesktopImage: key === 'desktopImage' ? value : previous.flashSaleDesktopImage,
-        flashSaleMobileImage: key === 'mobileImage' ? value : previous.flashSaleMobileImage,
-        flashSaleLink: key === 'link' ? value : previous.flashSaleLink,
-        flashSaleBannerType: key === 'bannerType' ? value : previous.flashSaleBannerType,
-        flashSaleLayoutStyle: key === 'layoutStyle' ? value : previous.flashSaleLayoutStyle,
-        flashSaleShowTimer: key === 'showTimer' ? value : previous.flashSaleShowTimer,
-        flashSaleHideText: key === 'hideText' ? value : previous.flashSaleHideText,
-      } : {}),
-    }));
+    setForm((previous) => {
+      const currentSlides = previous.flashSaleSlides?.length ? previous.flashSaleSlides : slides;
+      const nextSlides = currentSlides.map((slide, index) =>
+        index === selectedSlideIndex ? { ...slide, ...fields } : slide
+      );
+      return {
+        ...previous,
+        flashSaleSlides: nextSlides,
+        ...(selectedSlideIndex === 0 ? {
+          ...('tag' in fields ? { flashSaleTag: fields.tag } : {}),
+          ...('title' in fields ? { flashSaleTitle: fields.title } : {}),
+          ...('subtitle' in fields ? { flashSaleSubtitle: fields.subtitle } : {}),
+          ...('bgImage' in fields ? { flashSaleBgImage: fields.bgImage } : {}),
+          ...('desktopImage' in fields ? { flashSaleDesktopImage: fields.desktopImage } : {}),
+          ...('mobileImage' in fields ? { flashSaleMobileImage: fields.mobileImage } : {}),
+          ...('link' in fields ? { flashSaleLink: fields.link } : {}),
+          ...('bannerType' in fields ? { flashSaleBannerType: fields.bannerType } : {}),
+          ...('layoutStyle' in fields ? { flashSaleLayoutStyle: fields.layoutStyle } : {}),
+          ...('showTimer' in fields ? { flashSaleShowTimer: fields.showTimer } : {}),
+          ...('hideText' in fields ? { flashSaleHideText: fields.hideText } : {}),
+        } : {}),
+      };
+    });
+  };
+
+  const updateSlide = (key: keyof FlashSaleSlide, value: any) => {
+    updateSlideFields({ [key]: value });
   };
 
   const clearSlideText = () => {
@@ -431,6 +449,8 @@ export const AdminBanners: React.FC = () => {
       flashSaleTitle: slides[0]?.title || form.flashSaleTitle,
       flashSaleSubtitle: slides[0]?.subtitle || form.flashSaleSubtitle,
       flashSaleBgImage: slides[0]?.bgImage || form.flashSaleBgImage,
+      flashSaleDesktopImage: slides[0]?.desktopImage || slides[0]?.bgImage || form.flashSaleDesktopImage,
+      flashSaleMobileImage: slides[0]?.mobileImage || form.flashSaleMobileImage,
       flashSaleLink: slides[0]?.link || form.flashSaleLink || '/products',
       showcases: showcases,
       showFeaturedProducts: showcases.find((s) => s.id === 'featured')?.enabled ?? form.showFeaturedProducts,
@@ -964,8 +984,10 @@ export const AdminBanners: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => {
-                      updateSlide('link', '');
-                      updateSlide('bgImage', '');
+                      updateSlideFields({
+                        link: '',
+                        productId: undefined,
+                      });
                     }}
                     className="text-xs text-rose-600 hover:text-rose-800 font-bold px-3 py-1.5 rounded-lg border border-rose-200 bg-white hover:bg-rose-50 transition shrink-0 cursor-pointer"
                   >
@@ -991,8 +1013,10 @@ export const AdminBanners: React.FC = () => {
                       label=""
                       value={currentSlide.desktopImage || currentSlide.bgImage || ''}
                       onChange={(value) => {
-                        updateSlide('desktopImage', value);
-                        updateSlide('bgImage', value);
+                        updateSlideFields({
+                          desktopImage: value,
+                          bgImage: value,
+                        });
                       }}
                       helpText="Recommended: 1920×600 px or 1200×400 px."
                     />

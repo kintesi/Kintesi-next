@@ -310,9 +310,9 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   useEffect(() => {
     async function loadRemoteSettings() {
       try {
-        // 1. Try Supabase first
+        // 1. Try Supabase first (fetch the latest store settings record)
         const supaRes = await withTimeout<any>(
-          supabase.from('store_settings').select('*').eq('id', 'global_store_settings').maybeSingle(),
+          supabase.from('store_settings').select('*').order('updated_at', { ascending: false }).limit(1).maybeSingle(),
           3000
         ).catch(() => null);
 
