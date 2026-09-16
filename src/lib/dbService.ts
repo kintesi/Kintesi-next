@@ -208,6 +208,137 @@ export async function deleteProductFromDB(productId: string): Promise<void> {
 // 🏷️ CATEGORIES (Primary: Supabase | Hot Backup: Firebase)
 // ==========================================
 
+const STANDARD_CATEGORY_SLUGS = new Set(INITIAL_CATEGORIES.map((c) => c.slug.toLowerCase()));
+const STANDARD_CATEGORY_IDS = new Set(INITIAL_CATEGORIES.map((c) => c.id.toLowerCase()));
+
+// Asynchronously purge obsolete bloated categories from the database in background
+async function purgeOldCategoriesFromDB(cats: Category[]) {
+  try {
+    const oldCats = cats.filter((cat) => {
+      if (!cat) return false;
+      const slug = (cat.slug || '').toLowerCase();
+      const id = (cat.id || '').toLowerCase();
+      if (STANDARD_CATEGORY_SLUGS.has(slug) || STANDARD_CATEGORY_IDS.has(id)) {
+        return false;
+      }
+      return (
+        slug.includes('heating') ||
+        slug.includes('posture') ||
+        slug.includes('spine') ||
+        slug.includes('therapy') ||
+        slug.includes('snoring') ||
+        slug.includes('postpartum') ||
+        slug.includes('problem-solver') ||
+        slug.includes('pedicure') ||
+        slug.includes('grooming') ||
+        slug.includes('sanitary') ||
+        slug.includes('menstrual') ||
+        slug.includes('physiotherapy') ||
+        id.startsWith('cat-legacy') ||
+        slug === 'beauty-skincare' ||
+        slug === 'gadgets' ||
+        slug === 'smartphones-tablets' ||
+        slug === 'laptops-computers' ||
+        slug === 'home-kitchen' ||
+        slug === 'groceries-daily-essentials' ||
+        slug === 'health-baby-care' ||
+        slug === 'smart-watches' ||
+        slug === 'sports-fitness'
+      );
+    });
+
+    for (const old of oldCats) {
+      const targetId = old.id || old.slug;
+      if (targetId) {
+        try {
+          await supabase.from('categories').delete().eq('id', targetId);
+        } catch {}
+        deleteDoc(doc(db, 'categories', targetId)).catch(() => {});
+      }
+      if (old.slug) {
+        try {
+          await supabase.from('categories').delete().eq('slug', old.slug);
+        } catch {}
+        deleteDoc(doc(db, 'categories', old.slug)).catch(() => {});
+      }
+    }
+  } catch (err) {
+    console.warn('Purging legacy categories notice:', err);
+  }
+}
+
+// Helper to ensure ONLY valid categories exist and all 14 standard categories have their rich subcategories
+function enrichCategoriesWithDefaults(cats: Category[]): Category[] {
+  // Purge any old legacy bloated categories from the old system
+  const cleanCats = (cats || []).filter((cat) => {
+    if (!cat) return false;
+    const slug = (cat.slug || '').toLowerCase();
+    const id = (cat.id || '').toLowerCase();
+    if (STANDARD_CATEGORY_SLUGS.has(slug) || STANDARD_CATEGORY_IDS.has(id)) {
+      return true;
+    }
+    // Discard any old bloated category slugs
+    if (
+      slug.includes('heating') ||
+      slug.includes('posture') ||
+      slug.includes('spine') ||
+      slug.includes('therapy') ||
+      slug.includes('snoring') ||
+      slug.includes('postpartum') ||
+      slug.includes('problem-solver') ||
+      slug.includes('pedicure') ||
+      slug.includes('grooming') ||
+      slug.includes('sanitary') ||
+      slug.includes('menstrual') ||
+      slug.includes('physiotherapy') ||
+      id.startsWith('cat-legacy') ||
+      slug === 'beauty-skincare' ||
+      slug === 'gadgets' ||
+      slug === 'smartphones-tablets' ||
+      slug === 'laptops-computers' ||
+      slug === 'home-kitchen' ||
+      slug === 'groceries-daily-essentials' ||
+      slug === 'health-baby-care' ||
+      slug === 'smart-watches' ||
+      slug === 'sports-fitness'
+    ) {
+      return false;
+    }
+    // Only allow custom categories with valid names
+    return Boolean(cat.name && cat.name.trim().length > 1);
+  });
+
+  // Kick off background DB cleanup for old categories if found
+  purgeOldCategoriesFromDB(cats);
+
+  const enriched = INITIAL_CATEGORIES.map((std) => {
+    const existing = cleanCats.find(
+      (c) => c.slug.toLowerCase() === std.slug.toLowerCase() || c.id.toLowerCase() === std.id.toLowerCase()
+    );
+    if (!existing) return std;
+    return {
+      ...std,
+      ...existing,
+      subcategories:
+        Array.isArray(existing.subcategories) && existing.subcategories.length > 0
+          ? existing.subcategories
+          : std.subcategories,
+    };
+  });
+
+  // Include any extra custom categories created by admin under the new system
+  for (const c of cleanCats) {
+    if (
+      !STANDARD_CATEGORY_SLUGS.has((c.slug || '').toLowerCase()) &&
+      !STANDARD_CATEGORY_IDS.has((c.id || '').toLowerCase())
+    ) {
+      enriched.push(c);
+    }
+  }
+
+  return enriched;
+}
+
 export async function getCategoriesFromDB(): Promise<Category[]> {
   // 1. Primary: Try Supabase
   try {
@@ -219,12 +350,12 @@ export async function getCategoriesFromDB(): Promise<Category[]> {
     const error = result?.error;
 
     if (!error && supaCats && supaCats.length > 0) {
-      localStorage.setItem('kintesi_custom_categories', JSON.stringify(supaCats));
-      // Backup to Firebase
-      for (const cat of supaCats) {
+      const enriched = enrichCategoriesWithDefaults(supaCats);
+      localStorage.setItem('kintesi_custom_categories', JSON.stringify(enriched));
+      for (const cat of enriched) {
         setDoc(doc(db, 'categories', cat.id || cat.slug), cat, { merge: true }).catch(() => {});
       }
-      return supaCats;
+      return enriched;
     }
   } catch (err) {
     console.warn('Supabase categories fetch failover to Firebase:', err);
@@ -236,13 +367,15 @@ export async function getCategoriesFromDB(): Promise<Category[]> {
     const snap = await getDocs(colRef);
     if (!snap.empty) {
       const items = snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) } as Category));
-      localStorage.setItem('kintesi_custom_categories', JSON.stringify(items));
-      return items;
+      const enriched = enrichCategoriesWithDefaults(items);
+      localStorage.setItem('kintesi_custom_categories', JSON.stringify(enriched));
+      return enriched;
     } else {
       // Seed initial categories to Firestore in background
       for (const cat of INITIAL_CATEGORIES) {
         setDoc(doc(db, 'categories', cat.id), cat).catch(() => {});
       }
+      localStorage.setItem('kintesi_custom_categories', JSON.stringify(INITIAL_CATEGORIES));
       return INITIAL_CATEGORIES;
     }
   } catch (err) {
@@ -252,8 +385,36 @@ export async function getCategoriesFromDB(): Promise<Category[]> {
   // 3. Local fallback
   try {
     const saved = localStorage.getItem('kintesi_custom_categories');
-    if (saved) return JSON.parse(saved);
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return enrichCategoriesWithDefaults(parsed);
+      }
+    }
   } catch {}
+  return INITIAL_CATEGORIES;
+}
+
+export async function resetCategoriesToDefault(): Promise<Category[]> {
+  localStorage.setItem('kintesi_custom_categories', JSON.stringify(INITIAL_CATEGORIES));
+
+  // Purge any old categories in Supabase & Firebase
+  try {
+    const { data: allSupabaseCats } = await supabase.from('categories').select('*');
+    if (allSupabaseCats && allSupabaseCats.length > 0) {
+      purgeOldCategoriesFromDB(allSupabaseCats);
+    }
+  } catch {}
+
+  for (const cat of INITIAL_CATEGORIES) {
+    // Save to Firebase
+    setDoc(doc(db, 'categories', cat.id || cat.slug), cat, { merge: true }).catch(() => {});
+    // Save to Supabase
+    try {
+      await supabase.from('categories').upsert([cat]);
+    } catch {}
+  }
+  window.dispatchEvent(new CustomEvent('kintesi_categories_updated'));
   return INITIAL_CATEGORIES;
 }
 

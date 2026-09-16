@@ -1381,10 +1381,29 @@ export const AdminProducts: React.FC = () => {
                       </td>
 
                       <td className="p-4">
-                        <span className="px-2.5 py-1 bg-emerald-500/10 text-emerald-400 font-bold rounded-lg text-[10px] uppercase block w-max">
-                          {prod.category_id.replace('-', ' ')}
-                        </span>
-                        <span className="text-[11px] text-gray-400 mt-1 block">{prod.brand || 'No Brand'}</span>
+                        {(() => {
+                          const catObj = categories.find(
+                            (c) => c.slug === prod.category_id || c.id === prod.category_id
+                          );
+                          const catName = catObj?.name || prod.category_id.replace(/[-_]/g, ' ');
+                          return (
+                            <div className="space-y-0.5">
+                              <span
+                                className="inline-flex items-center gap-1 px-2.5 py-1 bg-rose-500/10 text-rose-400 font-bold rounded-lg text-[10px] max-w-[220px] truncate"
+                                title={`${catName} > ${prod.sub_category || 'General'}`}
+                              >
+                                <span className="truncate">{catName}</span>
+                                {prod.sub_category && (
+                                  <>
+                                    <span className="text-gray-500 font-black">&gt;</span>
+                                    <span className="text-amber-300 truncate font-semibold">{prod.sub_category}</span>
+                                  </>
+                                )}
+                              </span>
+                              <span className="text-[11px] text-gray-400 mt-1 block">{prod.brand || 'No Brand'}</span>
+                            </div>
+                          );
+                        })()}
                       </td>
 
                       <td className="p-4">
@@ -1758,40 +1777,85 @@ export const AdminProducts: React.FC = () => {
                     </select>
                   </div>
 
-                  <div>
-                    <label className={`block text-xs font-bold ${isLight ? 'text-gray-700' : 'text-gray-300'} mb-1`}>
-                      Sub-Category (সাব-ক্যাটাগরি)
-                    </label>
-                    <input
-                      type="text"
-                      list="sub-category-suggestions"
-                      placeholder="e.g. Panjabi, Wireless Earbuds, Smartwatch, T-Shirt, Sneaker, Face Wash..."
-                      value={formData.sub_category || ''}
-                      onChange={(e) => setFormData({ ...formData, sub_category: e.target.value })}
-                      className="w-full bg-gray-900 border border-gray-700 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-emerald-500"
-                    />
-                    <datalist id="sub-category-suggestions">
-                      <option value="Panjabi & Kurta" />
-                      <option value="T-Shirts & Polos" />
-                      <option value="Shirts & Formal" />
-                      <option value="Pants & Trousers" />
-                      <option value="Sneakers & Casual Shoes" />
-                      <option value="Watches & Smartwatches" />
-                      <option value="Wireless Earbuds & Headphones" />
-                      <option value="Chargers & Power Banks" />
-                      <option value="Phone Cases & Screen Protectors" />
-                      <option value="Backpacks & Wallets" />
-                      <option value="Face Care & Cleansers" />
-                      <option value="Hair Care & Grooming" />
-                      <option value="Perfume & Body Spray" />
-                      <option value="Organic Honey & Ghee" />
-                      <option value="Dry Fruits & Nuts" />
-                      <option value="Spices & Cooking Essentials" />
-                    </datalist>
-                    <p className="text-[10px] text-gray-500 mt-1">
-                      নির্দিষ্ট আইটেম সহজে খুঁজে পাওয়ার জন্য সাব-ক্যাটাগরি লিখুন বা লিস্ট থেকে সিলেক্ট করুন।
-                    </p>
-                  </div>
+                  {/* Sub-Category with dynamic suggestion list and quick-pick chips */}
+                  {(() => {
+                    const currentCatObj = categories.find(
+                      (c) =>
+                        c.slug.toLowerCase() === (formData.category_id || '').toLowerCase() ||
+                        c.id.toLowerCase() === (formData.category_id || '').toLowerCase()
+                    );
+                    const availableSubs = (currentCatObj?.subcategories && currentCatObj.subcategories.length > 0)
+                      ? currentCatObj.subcategories
+                      : [];
+
+                    return (
+                      <div>
+                        <div className="flex items-center justify-between mb-1">
+                          <label className={`block text-xs font-bold ${isLight ? 'text-gray-700' : 'text-gray-300'}`}>
+                            Sub-Category (সাব-ক্যাটাগরি)
+                          </label>
+                          {availableSubs.length > 0 && (
+                            <span className="text-[10px] text-rose-500 font-bold">
+                              {availableSubs.length} options for {currentCatObj?.name}
+                            </span>
+                          )}
+                        </div>
+                        <input
+                          type="text"
+                          list="sub-category-suggestions"
+                          placeholder={availableSubs.length > 0 ? `e.g. ${availableSubs.slice(0, 3).join(', ')}...` : 'e.g. Type custom sub-category...'}
+                          value={formData.sub_category || ''}
+                          onChange={(e) => setFormData({ ...formData, sub_category: e.target.value })}
+                          className="w-full bg-gray-900 border border-gray-700 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-emerald-500"
+                        />
+                        <datalist id="sub-category-suggestions">
+                          {availableSubs.map((sub) => (
+                            <option key={sub} value={sub} />
+                          ))}
+                        </datalist>
+
+                        {/* Quick clickable chips for rapid selection */}
+                        {availableSubs.length > 0 && (
+                          <div className="flex flex-wrap gap-1.5 mt-2">
+                            {availableSubs.map((sub) => {
+                              const isSelected = (formData.sub_category || '').toLowerCase() === sub.toLowerCase();
+                              return (
+                                <button
+                                  key={sub}
+                                  type="button"
+                                  onClick={() => setFormData({ ...formData, sub_category: sub })}
+                                  className={`px-2.5 py-1 rounded-lg text-[10px] font-bold border transition active:scale-95 cursor-pointer ${
+                                    isSelected
+                                      ? 'bg-rose-600 border-rose-600 text-white shadow-xs'
+                                      : 'bg-gray-800 border-gray-700 text-gray-300 hover:border-gray-500 hover:text-white'
+                                  }`}
+                                >
+                                  {sub}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        )}
+                        {/* Live Category > Subcategory Breadcrumb Preview */}
+                        <div className={`flex items-center gap-2 px-3 py-2 rounded-xl text-xs mt-2 border ${
+                          isLight ? 'bg-rose-50/70 border-rose-200 text-rose-950' : 'bg-rose-500/10 border-rose-500/20 text-rose-200'
+                        }`}>
+                          <span className="text-gray-400 font-bold text-[11px]">Hierarchy Preview:</span>
+                          <span className="font-black text-rose-600 dark:text-rose-400">
+                            {currentCatObj?.name || 'Category'}
+                          </span>
+                          <span className="text-gray-400 font-black">&gt;</span>
+                          <span className={`font-black ${formData.sub_category ? 'text-amber-500 dark:text-amber-300' : 'text-gray-400 italic'}`}>
+                            {formData.sub_category || 'No sub-category selected'}
+                          </span>
+                        </div>
+
+                        <p className="text-[10px] text-gray-500 mt-1.5">
+                          উপরে ক্লিক করে সহজেই সাব-ক্যাটাগরি সিলেক্ট করুন অথবা ইচ্ছামতো কাস্টম নাম লিখুন।
+                        </p>
+                      </div>
+                    );
+                  })()}
 
                   <div>
                     <label className={`block text-xs font-bold ${isLight ? 'text-gray-700' : 'text-gray-300'} mb-1`}>SKU / Model Code</label>

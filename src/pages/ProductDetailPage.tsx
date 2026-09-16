@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { Product } from '../types';
-import { INITIAL_PRODUCTS } from '../data/mockData';
+import { INITIAL_PRODUCTS, INITIAL_CATEGORIES } from '../data/mockData';
 import { getProductsFromDB } from '../lib/dbService';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
@@ -520,25 +520,39 @@ export const ProductDetailPage: React.FC = () => {
     <div className="bg-[#f6f7f9] sm:bg-transparent min-h-screen py-3 sm:py-8 pb-28 md:pb-12">
       <div className="max-w-[1440px] mx-auto px-2.5 sm:px-6 lg:px-8 space-y-3 sm:space-y-8">
         
-        {/* Category & Subcategory Breadcrumb */}
+        {/* Category & Subcategory Breadcrumb: Category > Sub-category */}
         <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-xs text-gray-500 overflow-x-auto whitespace-nowrap pb-1">
           <Link to="/" className="hover:text-rose-600 transition">Home</Link>
-          <span>/</span>
+          <span className="text-gray-400">/</span>
           <Link to="/shop" className="hover:text-rose-600 transition">Shop</Link>
-          {product.category_id && (
-            <>
-              <span>/</span>
-              <Link to={`/shop?category=${encodeURIComponent(product.category_id)}`} className="hover:text-rose-600 transition capitalize">
-                {product.category_id.replace(/[-_]/g, ' ')}
-              </Link>
-            </>
-          )}
-          {product.sub_category && (
-            <>
-              <span>/</span>
-              <span className="text-gray-900 font-semibold">{product.sub_category}</span>
-            </>
-          )}
+          {product.category_id && (() => {
+            const catObj = INITIAL_CATEGORIES.find(
+              (c) => c.slug.toLowerCase() === product.category_id.toLowerCase() || c.id.toLowerCase() === product.category_id.toLowerCase()
+            );
+            const catDisplayName = catObj?.name || product.category_id.replace(/[-_]/g, ' ');
+            return (
+              <>
+                <span className="text-gray-400">/</span>
+                <Link
+                  to={`/shop?category=${encodeURIComponent(catObj?.slug || product.category_id)}`}
+                  className="hover:text-rose-600 font-bold text-gray-800 transition"
+                >
+                  {catDisplayName}
+                </Link>
+                {product.sub_category && (
+                  <>
+                    <span className="text-gray-400 font-bold">&gt;</span>
+                    <Link
+                      to={`/shop?category=${encodeURIComponent(catObj?.slug || product.category_id)}&sub_category=${encodeURIComponent(product.sub_category)}`}
+                      className="text-rose-600 font-extrabold hover:underline"
+                    >
+                      {product.sub_category}
+                    </Link>
+                  </>
+                )}
+              </>
+            );
+          })()}
         </nav>
 
         {/* Product Main Section: 2 Balanced Columns (Gallery 6 cols | Details & Delivery Buy Box 6 cols) */}
@@ -649,22 +663,34 @@ export const ProductDetailPage: React.FC = () => {
                 )}
               </div>
 
-              {/* Category & Subcategory tags */}
-              <div className="flex items-center gap-1.5 flex-wrap">
-                {product.category_id && (
-                  <Link
-                    to={`/shop?category=${encodeURIComponent(product.category_id)}`}
-                    className="text-[10px] font-bold text-rose-700 bg-rose-50 hover:bg-rose-100 px-2 py-0.5 rounded-full border border-rose-200/60 uppercase tracking-wider transition"
-                  >
-                    {product.category_id.replace(/[-_]/g, ' ')}
-                  </Link>
-                )}
-                {product.sub_category && (
-                  <span className="text-[10px] font-bold text-gray-700 bg-gray-100 px-2.5 py-0.5 rounded-full border border-gray-200/60">
-                    {product.sub_category}
-                  </span>
-                )}
-              </div>
+              {/* Category & Subcategory Hierarchy: Women's Fashion > Sharee */}
+              {product.category_id && (() => {
+                const catObj = INITIAL_CATEGORIES.find(
+                  (c) => c.slug.toLowerCase() === product.category_id.toLowerCase() || c.id.toLowerCase() === product.category_id.toLowerCase()
+                );
+                const catDisplayName = catObj?.name || product.category_id.replace(/[-_]/g, ' ');
+                return (
+                  <div className="inline-flex items-center gap-1.5 text-xs font-bold text-rose-700 bg-rose-50/80 px-2.5 py-1 rounded-lg border border-rose-200/70 w-fit">
+                    <Link
+                      to={`/shop?category=${encodeURIComponent(catObj?.slug || product.category_id)}`}
+                      className="hover:underline text-rose-700"
+                    >
+                      {catDisplayName}
+                    </Link>
+                    {product.sub_category && (
+                      <>
+                        <span className="text-gray-400 font-black">&gt;</span>
+                        <Link
+                          to={`/shop?category=${encodeURIComponent(catObj?.slug || product.category_id)}&sub_category=${encodeURIComponent(product.sub_category)}`}
+                          className="text-gray-800 hover:text-rose-600 font-extrabold"
+                        >
+                          {product.sub_category}
+                        </Link>
+                      </>
+                    )}
+                  </div>
+                );
+              })()}
 
               {/* Product Title */}
               <h1 className="text-base sm:text-xl lg:text-2xl font-bold text-gray-900 leading-snug">

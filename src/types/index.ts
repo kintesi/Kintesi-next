@@ -30,6 +30,7 @@ export interface Category {
   description?: string;
   image_url?: string;
   icon?: string;
+  subcategories?: string[];
 }
 
 export interface SellerPaymentConfig {
