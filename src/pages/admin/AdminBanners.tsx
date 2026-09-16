@@ -194,28 +194,10 @@ export const AdminBanners: React.FC = () => {
     setIsSaved(false);
 
     const nextProductIds = [...existingIds, product.id];
-    const defaultProductImage =
-      (product.images && product.images.length > 0 ? product.images[0] : '') ||
-      (product as any).image ||
-      '';
-
     let autoLink = '';
-    let autoTitle = currentSlide.title;
-    let autoBgImage = currentSlide.bgImage;
-    let autoDesktopImage = currentSlide.desktopImage;
-    let autoMobileImage = currentSlide.mobileImage;
 
     if (nextProductIds.length === 1) {
       autoLink = `/product/${product.id}`;
-      // Prefill slide title & image if empty/default
-      if (!currentSlide.title || currentSlide.title === 'Exclusive 24-Hour Super Deals') {
-        autoTitle = product.title;
-      }
-      if (!currentSlide.bgImage) {
-        autoBgImage = defaultProductImage;
-        autoDesktopImage = defaultProductImage;
-        autoMobileImage = defaultProductImage;
-      }
     } else {
       autoLink = `/showcase/banner-${currentSlide.id}`;
     }
@@ -226,24 +208,17 @@ export const AdminBanners: React.FC = () => {
         if (index !== selectedSlideIndex) return slide;
         return {
           ...slide,
-          title: autoTitle,
-          bgImage: autoBgImage,
-          desktopImage: autoDesktopImage,
-          mobileImage: autoMobileImage,
           link: autoLink,
           productId: nextProductIds.length === 1 ? nextProductIds[0] : undefined,
           productIds: nextProductIds,
           pageTitle: slide.pageTitle || (nextProductIds.length > 1 ? (slide.title || 'Flash Sale') : ''),
+          // NOTE: Banner images are strictly manual! Never auto-selected.
         };
       });
       return {
         ...previous,
         flashSaleSlides: nextSlides,
         ...(selectedSlideIndex === 0 ? {
-          flashSaleTitle: nextSlides[0].title,
-          flashSaleBgImage: nextSlides[0].bgImage,
-          flashSaleDesktopImage: nextSlides[0].desktopImage,
-          flashSaleMobileImage: nextSlides[0].mobileImage,
           flashSaleLink: nextSlides[0].link,
         } : {}),
       };
@@ -251,9 +226,9 @@ export const AdminBanners: React.FC = () => {
 
     setFlashSlideSearch('');
     if (nextProductIds.length === 1) {
-      toast.success(`"${product.title}" linked (Single Product: opens product detail directly).`);
+      toast.success(`"${product.title}" linked (Single Product).`);
     } else {
-      toast.success(`"${product.title}" added (${nextProductIds.length} products: opens Multi-Product Landing Page).`);
+      toast.success(`"${product.title}" added (${nextProductIds.length} products).`);
     }
   };
 
@@ -291,23 +266,6 @@ export const AdminBanners: React.FC = () => {
       };
     });
     toast.success('Product unlinked from banner.');
-  };
-
-  const useProductAsBannerContent = (product: Product) => {
-    hasUserEdited.current = true;
-    setIsSaved(false);
-    const defaultProductImage =
-      (product.images && product.images.length > 0 ? product.images[0] : '') ||
-      (product as any).image ||
-      '';
-
-    updateSlideFields({
-      title: product.title,
-      bgImage: defaultProductImage,
-      desktopImage: defaultProductImage,
-      mobileImage: defaultProductImage,
-    });
-    toast.success(`Banner title & image updated to match "${product.title}".`);
   };
 
   const clearSlideProducts = () => {
@@ -776,246 +734,279 @@ export const AdminBanners: React.FC = () => {
               />
             </div>
 
-            {/* Banner Mode Toggle */}
-            <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-100 dark:border-gray-800">
-              <div>
-                <span className="text-xs font-bold text-slate-700 dark:text-slate-300 block">
-                  Banner Mode
-                </span>
-                <span className="text-[11px] text-slate-400">
-                  {(form.flashSaleBannerType || 'clickable') === 'clickable' ? 'Clickable (links to product or URL)' : 'Normal Image Banner (non-clickable)'}
-                </span>
+            {/* Compact Banner Controls Toolbar */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 p-3.5 rounded-2xl bg-slate-50/80 dark:bg-gray-800/50 border border-slate-200 dark:border-gray-700/80">
+              {/* 1. Click Mode */}
+              <div className="space-y-1">
+                <span className="text-[11px] font-bold text-slate-600 dark:text-slate-400 block">Click Action</span>
+                <div className="inline-flex w-full rounded-xl p-0.5 bg-white dark:bg-gray-900 border border-slate-200 dark:border-gray-700 text-xs">
+                  <button
+                    type="button"
+                    onClick={() => setGlobalBannerType('clickable')}
+                    className={`flex-1 py-1 font-bold rounded-lg transition cursor-pointer text-center text-[11px] ${
+                      (form.flashSaleBannerType || 'clickable') === 'clickable'
+                        ? 'bg-rose-600 text-white shadow-xs'
+                        : 'text-slate-600 hover:text-slate-900 dark:text-slate-400'
+                    }`}
+                  >
+                    Clickable
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setGlobalBannerType('normal')}
+                    className={`flex-1 py-1 font-bold rounded-lg transition cursor-pointer text-center text-[11px] ${
+                      (form.flashSaleBannerType || 'clickable') === 'normal'
+                        ? 'bg-rose-600 text-white shadow-xs'
+                        : 'text-slate-600 hover:text-slate-900 dark:text-slate-400'
+                    }`}
+                  >
+                    Image Only
+                  </button>
+                </div>
               </div>
-              <div className="inline-flex rounded-lg p-1 bg-slate-100 dark:bg-gray-800 border border-slate-200 dark:border-gray-700">
-                <button
-                  type="button"
-                  onClick={() => setGlobalBannerType('normal')}
-                  className={`px-3 py-1.5 text-xs font-bold rounded-md transition cursor-pointer ${
-                    (form.flashSaleBannerType || 'clickable') === 'normal'
-                      ? 'bg-white dark:bg-gray-900 text-rose-600 shadow-xs'
-                      : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
-                  }`}
-                >
-                  Normal Banner
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setGlobalBannerType('clickable')}
-                  className={`px-3 py-1.5 text-xs font-bold rounded-md transition cursor-pointer ${
-                    (form.flashSaleBannerType || 'clickable') === 'clickable'
-                      ? 'bg-white dark:bg-gray-900 text-rose-600 shadow-xs'
-                      : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
-                  }`}
-                >
-                  Clickable Banner
-                </button>
-              </div>
-            </div>
 
-            {/* Banner Duration Mode (Infinite vs Timed) */}
-            <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-100 dark:border-gray-800">
-              <div>
-                <span className="text-xs font-bold text-slate-700 dark:text-slate-300 block">
-                  Duration Mode (সময়সীমা)
-                </span>
-                <span className="text-[11px] text-slate-400">
-                  {(form.flashSaleDurationType || 'infinite') === 'infinite'
-                    ? '♾️ Always Active / Infinite (ম্যানুয়ালি অফ না করা পর্যন্ত সর্বক্ষণ সচল থাকবে - Never expires)'
-                    : '⏳ Timed Countdown (নির্ধারিত সময়ের পর স্বয়ংক্রিয়ভাবে অফ হবে)'}
-                </span>
+              {/* 2. Duration Mode */}
+              <div className="space-y-1">
+                <span className="text-[11px] font-bold text-slate-600 dark:text-slate-400 block">Duration</span>
+                <div className="inline-flex w-full rounded-xl p-0.5 bg-white dark:bg-gray-900 border border-slate-200 dark:border-gray-700 text-xs">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setValue('flashSaleDurationType', 'infinite');
+                      setValue('flashSaleInfinite', true);
+                    }}
+                    className={`flex-1 py-1 font-bold rounded-lg transition cursor-pointer text-center text-[11px] ${
+                      (form.flashSaleDurationType || 'infinite') === 'infinite'
+                        ? 'bg-rose-600 text-white shadow-xs'
+                        : 'text-slate-600 hover:text-slate-900 dark:text-slate-400'
+                    }`}
+                  >
+                    ♾️ Infinite
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setValue('flashSaleDurationType', 'countdown');
+                      setValue('flashSaleInfinite', false);
+                    }}
+                    className={`flex-1 py-1 font-bold rounded-lg transition cursor-pointer text-center text-[11px] ${
+                      form.flashSaleDurationType === 'countdown'
+                        ? 'bg-rose-600 text-white shadow-xs'
+                        : 'text-slate-600 hover:text-slate-900 dark:text-slate-400'
+                    }`}
+                  >
+                    ⏳ Timed
+                  </button>
+                </div>
               </div>
-              <div className="inline-flex rounded-lg p-1 bg-slate-100 dark:bg-gray-800 border border-slate-200 dark:border-gray-700">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setValue('flashSaleDurationType', 'infinite');
-                    setValue('flashSaleInfinite', true);
-                  }}
-                  className={`px-3 py-1.5 text-xs font-bold rounded-md transition cursor-pointer ${
-                    (form.flashSaleDurationType || 'infinite') === 'infinite'
-                      ? 'bg-white dark:bg-gray-900 text-rose-600 shadow-xs'
-                      : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
-                  }`}
-                >
-                  ♾️ Always Active (Infinite)
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setValue('flashSaleDurationType', 'countdown');
-                    setValue('flashSaleInfinite', false);
-                  }}
-                  className={`px-3 py-1.5 text-xs font-bold rounded-md transition cursor-pointer ${
-                    form.flashSaleDurationType === 'countdown'
-                      ? 'bg-white dark:bg-gray-900 text-rose-600 shadow-xs'
-                      : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
-                  }`}
-                >
-                  ⏳ Timed Countdown
-                </button>
-              </div>
-            </div>
 
-            {/* Customer Timer Visibility Toggle */}
-            <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-100 dark:border-gray-800">
-              <div>
-                <span className="text-xs font-bold text-slate-700 dark:text-slate-300 block">
-                  Customer Countdown Timer
-                </span>
-                <span className="text-[11px] text-slate-400">
-                  {form.flashSaleShowTimer
-                    ? 'টাইমার দেখানো হচ্ছে (Timer visible on banner to visitors)'
-                    : 'টাইমার হাইড করা আছে (কাস্টমাররা কোনো টাইমার দেখবে না - Default: Hidden)'}
-                </span>
+              {/* 3. Timer on Banner */}
+              <div className="space-y-1">
+                <span className="text-[11px] font-bold text-slate-600 dark:text-slate-400 block">Visitor Timer</span>
+                <div className="inline-flex w-full rounded-xl p-0.5 bg-white dark:bg-gray-900 border border-slate-200 dark:border-gray-700 text-xs">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setValue('flashSaleShowTimer', false);
+                      setValue('flashSaleSlides', slides.map((s) => ({ ...s, showTimer: false })));
+                    }}
+                    className={`flex-1 py-1 font-bold rounded-lg transition cursor-pointer text-center text-[11px] ${
+                      !form.flashSaleShowTimer
+                        ? 'bg-rose-600 text-white shadow-xs'
+                        : 'text-slate-600 hover:text-slate-900 dark:text-slate-400'
+                    }`}
+                  >
+                    Hidden
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setValue('flashSaleShowTimer', true);
+                      setValue('flashSaleSlides', slides.map((s) => ({ ...s, showTimer: true })));
+                    }}
+                    className={`flex-1 py-1 font-bold rounded-lg transition cursor-pointer text-center text-[11px] ${
+                      form.flashSaleShowTimer
+                        ? 'bg-rose-600 text-white shadow-xs'
+                        : 'text-slate-600 hover:text-slate-900 dark:text-slate-400'
+                    }`}
+                  >
+                    Visible
+                  </button>
+                </div>
               </div>
-              <Toggle
-                checked={Boolean(form.flashSaleShowTimer)}
-                onChange={(value) => {
-                  setValue('flashSaleShowTimer', value);
-                  const nextSlides = slides.map((s) => ({ ...s, showTimer: value }));
-                  setValue('flashSaleSlides', nextSlides);
-                }}
-                label={form.flashSaleShowTimer ? 'Timer Visible' : 'Timer Hidden'}
-              />
-            </div>
 
-            {/* Theme & Countdown Hours Settings */}
-            <div className={`grid gap-4 ${form.flashSaleDurationType === 'countdown' ? 'sm:grid-cols-[160px_1fr_auto]' : 'sm:grid-cols-1'} sm:items-end`}>
-              {form.flashSaleDurationType === 'countdown' && (
-                <Field label="Countdown hours">
-                  <input
-                    type="number"
-                    min="1"
-                    max="72"
-                    value={form.flashSaleHours || ''}
-                    onChange={(event) => setValue('flashSaleHours', Number(event.target.value))}
-                    className={`w-full px-3.5 py-2.5 border text-sm ${input}`}
-                  />
-                </Field>
-              )}
-              <Field label="Theme">
+              {/* 4. Color Theme */}
+              <div className="space-y-1">
+                <span className="text-[11px] font-bold text-slate-600 dark:text-slate-400 block">Color Theme</span>
                 <select
                   value={form.flashSaleTheme || 'sunset'}
-                  onChange={(event) => setValue('flashSaleTheme', event.target.value as BannerSettings['flashSaleTheme'])}
-                  className={`w-full px-3.5 py-2.5 border text-sm ${input}`}
+                  onChange={(e) => setValue('flashSaleTheme', e.target.value as any)}
+                  className={`w-full py-1.5 px-2.5 border text-xs font-bold rounded-xl ${input}`}
                 >
-                  <option value="sunset">🌅 Sunset Radish (Signature Rose & Ruby)</option>
-                  <option value="emerald">🌲 Emerald Luxe (Deep Forest & Teal)</option>
-                  <option value="cyber">⚡ Cyber Neon (Electric Violet & Cyan)</option>
-                  <option value="dark">🌑 Midnight Onyx (Obsidian & Silver)</option>
-                  <option value="crimson">💎 Ruby Crimson (Vivid Crimson & Fire Red)</option>
-                  <option value="gold">👑 Royal Gold (Imperial Amber & Gold)</option>
-                  <option value="ocean">🌊 Deep Ocean (Sapphire & Royal Blue)</option>
-                  <option value="aurora">🌌 Aurora Borealis (Mystic Teal & Magenta)</option>
-                  <option value="cherry">🌸 Cherry Blossom (Neon Fuchsia & Pink)</option>
-                  <option value="solar">☀️ Solar Flare (Fiery Orange & Flame)</option>
+                  <option value="sunset">🌅 Sunset Rose</option>
+                  <option value="emerald">🌲 Emerald Luxe</option>
+                  <option value="cyber">⚡ Cyber Neon</option>
+                  <option value="dark">🌑 Midnight Onyx</option>
+                  <option value="crimson">💎 Ruby Crimson</option>
+                  <option value="gold">👑 Royal Gold</option>
+                  <option value="ocean">🌊 Deep Ocean</option>
+                  <option value="aurora">🌌 Aurora</option>
+                  <option value="cherry">🌸 Cherry Blossom</option>
+                  <option value="solar">☀️ Solar Flare</option>
                 </select>
-              </Field>
-              {form.flashSaleDurationType === 'countdown' && (
-                <button
-                  type="button"
-                  onClick={resetFlashTimer}
-                  className="px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white dark:bg-gray-900 text-xs font-bold hover:bg-rose-50 cursor-pointer"
-                >
-                  Restart timer
-                </button>
-              )}
+              </div>
             </div>
 
-            {/* Slides selector */}
-            <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-100 dark:border-gray-800">
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mr-2">
-                Slides
-              </span>
-              {slides.map((slide, index) => (
-                <button
-                  key={slide.id}
-                  type="button"
-                  onClick={() => setSelectedSlideIndex(index)}
-                  className={`h-8 min-w-8 rounded-lg px-2.5 text-xs font-bold border cursor-pointer flex items-center justify-center gap-1 ${
-                    index === selectedSlideIndex
-                      ? 'bg-rose-600 border-rose-600 text-white shadow-xs'
-                      : isLight
-                      ? 'bg-white border-slate-200 text-slate-600 hover:border-rose-300'
-                      : 'bg-gray-900 border-gray-800 text-gray-300'
-                  }`}
-                >
-                  {index + 1}
-                </button>
-              ))}
-              <button
-                type="button"
-                onClick={addSlide}
-                className="h-8 px-2.5 rounded-lg border border-dashed border-rose-300 text-rose-600 text-xs font-bold hover:bg-rose-50 cursor-pointer"
-              >
-                <Plus className="w-3.5 h-3.5 inline mr-1" />Add slide
-              </button>
-              {slides.length > 1 && (
-                <button
-                  type="button"
-                  onClick={removeSlide}
-                  className="h-8 px-2.5 rounded-lg text-rose-600 text-xs font-bold hover:bg-rose-50 cursor-pointer"
-                >
-                  <Trash2 className="w-3.5 h-3.5 inline mr-1" />Remove
-                </button>
-              )}
-            </div>
-
-            {/* Link Single or Multiple Products to this slide & Landing Page Configuration */}
-            {(form.flashSaleBannerType || 'clickable') === 'clickable' && (
-              <div className={`space-y-4 pt-1 rounded-2xl border p-4 sm:p-5 ${card}`}>
-                {/* Header with Mode Badge */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 border-b border-slate-100 dark:border-gray-800 pb-3.5">
-                  <div>
-                    <h4 className="text-xs font-black text-slate-900 dark:text-white flex items-center gap-1.5">
-                      <Sparkles className="w-3.5 h-3.5 text-rose-600" />
-                      ব্যানার প্রোডাক্ট ও ল্যান্ডিং পেজ লিংক (Banner Product Linking)
-                    </h4>
-                    <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
-                      ১টি প্রোডাক্ট যুক্ত করলে ব্যানার ক্লিক করলে সরাসরি প্রোডাক্ট পেজ ওপেন হবে। একাধিক প্রোডাক্ট যুক্ত করলে কাস্টম টাইটেলসহ স্পেশাল ল্যান্ডিং পেজ ওপেন হবে।
-                    </p>
-                  </div>
-                  <div className="shrink-0">
-                    {currentSlideProductIds.length === 0 ? (
-                      <span className="inline-flex items-center gap-1 text-[11px] font-bold px-3 py-1 rounded-full bg-slate-100 dark:bg-gray-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-gray-700">
-                        🔗 Custom Link Mode
-                      </span>
-                    ) : currentSlideProductIds.length === 1 ? (
-                      <span className="inline-flex items-center gap-1.5 text-[11px] font-black px-3 py-1 rounded-full bg-rose-50 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-800 shadow-2xs">
-                        <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse" />
-                        🎯 Single Product Mode (Direct Product Page)
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center gap-1.5 text-[11px] font-black px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 shadow-2xs">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                        🛍️ Multi-Product Landing Page ({currentSlideProductIds.length} Products)
+            {/* Slide Navigation & Live Mode Indicator */}
+            <div className="flex flex-wrap items-center justify-between gap-2.5 pt-1 border-t border-slate-100 dark:border-gray-800">
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <span className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mr-1">
+                  Slides:
+                </span>
+                {slides.map((slide, index) => (
+                  <button
+                    key={slide.id}
+                    type="button"
+                    onClick={() => setSelectedSlideIndex(index)}
+                    className={`h-8 px-3 rounded-xl text-xs font-bold border cursor-pointer transition flex items-center justify-center gap-1.5 ${
+                      index === selectedSlideIndex
+                        ? 'bg-rose-600 border-rose-600 text-white shadow-xs'
+                        : isLight
+                        ? 'bg-white border-slate-200 text-slate-700 hover:border-rose-300'
+                        : 'bg-gray-900 border-gray-800 text-gray-300'
+                    }`}
+                  >
+                    <span>Slide {index + 1}</span>
+                    {slide.productIds && slide.productIds.length > 0 && (
+                      <span
+                        className={`text-[10px] px-1.5 py-0.5 rounded-full font-black ${
+                          index === selectedSlideIndex ? 'bg-white/25 text-white' : 'bg-rose-100 text-rose-700'
+                        }`}
+                      >
+                        {slide.productIds.length}
                       </span>
                     )}
-                  </div>
+                  </button>
+                ))}
+                <button
+                  type="button"
+                  onClick={addSlide}
+                  className="h-8 px-2.5 rounded-xl border border-dashed border-rose-300 text-rose-600 text-xs font-bold hover:bg-rose-50 cursor-pointer flex items-center gap-1"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>Add Slide</span>
+                </button>
+                {slides.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={removeSlide}
+                    className="h-8 px-2.5 rounded-xl text-rose-600 text-xs font-bold hover:bg-rose-50 cursor-pointer flex items-center gap-1"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                    <span>Remove</span>
+                  </button>
+                )}
+              </div>
+
+              {/* Status Pill */}
+              <div className="shrink-0">
+                {currentSlideProductIds.length === 0 ? (
+                  <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full bg-slate-100 dark:bg-gray-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-gray-700">
+                    🔗 Custom Link Mode
+                  </span>
+                ) : currentSlideProductIds.length === 1 ? (
+                  <span className="inline-flex items-center gap-1.5 text-[11px] font-black px-2.5 py-1 rounded-full bg-rose-50 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-800 shadow-2xs">
+                    <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse" />
+                    🎯 Single Product Mode (Direct: /product/:id)
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1.5 text-[11px] font-black px-2.5 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 shadow-2xs">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                    🛍️ Multi-Product Landing Page ({currentSlideProductIds.length} Products)
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* Compact 2-Column Slide Editor */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start pt-1">
+              {/* Left Column: Manual Banner Images (5 cols) */}
+              <div className="lg:col-span-5 space-y-3 p-4 rounded-2xl bg-slate-50/70 dark:bg-gray-800/40 border border-slate-200/90 dark:border-gray-700/70">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-xs font-black text-slate-900 dark:text-white flex items-center gap-1.5">
+                    <span>🖼️</span> ব্যানার ছবি (Manual Upload)
+                  </h4>
+                  <span className="text-[10px] font-bold text-slate-500">ম্যানুয়াল সিলেক্ট</span>
                 </div>
 
-                {/* Custom Landing Page Title */}
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <Field
-                    label="Landing Page Title (কাস্টম পেজ টাইটেল)"
-                    hint="e.g. Flash Sale, Mega Deal, Eid Collection"
-                  >
+                {/* Desktop Banner Image */}
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between text-[11px]">
+                    <span className="font-bold text-slate-700 dark:text-slate-300">Desktop Banner</span>
+                    <span className="text-[10px] text-slate-400">1920×600 px</span>
+                  </div>
+                  <ImageUploader
+                    label=""
+                    value={currentSlide.desktopImage || currentSlide.bgImage || ''}
+                    onChange={(value) => {
+                      updateSlideFields({
+                        desktopImage: value,
+                        bgImage: value,
+                      });
+                    }}
+                    helpText="Desktop / Laptop view image"
+                  />
+                </div>
+
+                {/* Mobile Banner Image */}
+                <div className="space-y-1 pt-2 border-t border-slate-200/60 dark:border-gray-700/60">
+                  <div className="flex items-center justify-between text-[11px]">
+                    <span className="font-bold text-slate-700 dark:text-slate-300">Mobile Banner</span>
+                    <span className="text-[10px] text-slate-400">800×400 px</span>
+                  </div>
+                  <ImageUploader
+                    label=""
+                    value={currentSlide.mobileImage || ''}
+                    onChange={(value) => updateSlide('mobileImage', value)}
+                    helpText="Mobile view image (Desktop image used if empty)"
+                  />
+                </div>
+
+                {/* Pure Image Banner Switch */}
+                <div className="flex items-center justify-between pt-2 border-t border-slate-200/60 dark:border-gray-700/60">
+                  <div>
+                    <span className="text-xs font-bold text-slate-800 dark:text-slate-200 block">Pure Image (No Text)</span>
+                    <span className="text-[10px] text-slate-400">ছবির ওপর টেক্সট ওভারলে দেখাবে না</span>
+                  </div>
+                  <Toggle
+                    checked={Boolean(currentSlide.hideText)}
+                    onChange={(val) => updateSlide('hideText', val)}
+                    label={currentSlide.hideText ? 'No Text' : 'Text ON'}
+                  />
+                </div>
+              </div>
+
+              {/* Right Column: Products, Links & Content (7 cols) */}
+              <div className="lg:col-span-7 space-y-3.5">
+                {/* 1. Landing Page Title & Destination Link */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <Field label="Landing Page Title" hint="যেমন: Flash Sale, Mega Deal">
                     <input
                       value={currentSlide.pageTitle || ''}
                       onChange={(e) => updateSlide('pageTitle', e.target.value)}
-                      className={`w-full px-3.5 py-2.5 border text-sm ${input}`}
-                      placeholder={currentSlide.title || 'যেমন: Flash Sale অথবা Mega Deal...'}
+                      className={`w-full px-3 py-2 border text-xs font-bold ${input}`}
+                      placeholder={currentSlide.title || 'যেমন: Mega Deal অথবা Flash Sale'}
                     />
                   </Field>
 
                   <Field
-                    label="Click Destination (লিংক গন্তব্য)"
+                    label="Click Destination Link"
                     hint={
                       currentSlideProductIds.length === 1
-                        ? 'Direct Product Route'
+                        ? 'Direct Product'
                         : currentSlideProductIds.length > 1
-                        ? 'Custom Showcase Route'
-                        : 'Manual Link Route'
+                        ? 'Showcase Page'
+                        : 'Custom URL'
                     }
                   >
                     <input
@@ -1027,264 +1018,170 @@ export const AdminBanners: React.FC = () => {
                           : currentSlide.link || ''
                       }
                       onChange={(e) => updateSlide('link', e.target.value)}
-                      className={`w-full px-3.5 py-2.5 border text-sm ${input}`}
-                      placeholder="e.g. /product/abc-123 or /shop"
+                      className={`w-full px-3 py-2 border text-xs ${input}`}
+                      placeholder="e.g. /product/123 or /shop"
                     />
                   </Field>
                 </div>
 
-                {/* Search & Add Product to this Banner */}
-                <div className="space-y-2">
-                  <Field label="প্রোডাক্ট খুঁজুন এবং ব্যানারে যুক্ত করুন" hint="Search catalog by name, brand, or SKU">
+                {/* 2. Product Search & Link */}
+                {(form.flashSaleBannerType || 'clickable') === 'clickable' && (
+                  <div className="space-y-2 p-3.5 rounded-2xl bg-slate-50/60 dark:bg-gray-800/40 border border-slate-200/90 dark:border-gray-700/70">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1">
+                        <Package className="w-3.5 h-3.5 text-rose-600" />
+                        প্রোডাক্ট লিংক করুন (Link Products)
+                      </span>
+                      <span className="text-[10px] text-slate-500 font-medium">
+                        {currentSlideProductIds.length === 0
+                          ? 'কোনো প্রোডাক্ট নেই'
+                          : `${currentSlideProductIds.length} টি প্রোডাক্ট সিলেক্টেড`}
+                      </span>
+                    </div>
+
                     <div className="relative">
-                      <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
                       <input
                         value={flashSlideSearch}
-                        onChange={(event) => setFlashSlideSearch(event.target.value)}
-                        className={`w-full pl-10 pr-3.5 py-2.5 border text-sm ${input}`}
+                        onChange={(e) => setFlashSlideSearch(e.target.value)}
+                        className={`w-full pl-8.5 pr-3 py-1.5 border text-xs ${input}`}
                         placeholder="Search product by name, brand, or SKU to link..."
                       />
                     </div>
-                  </Field>
 
-                  {matchedFlashSlideProducts.length > 0 && (
-                    <div className="rounded-xl border border-slate-200 dark:border-gray-700 divide-y divide-slate-100 dark:divide-gray-800 overflow-hidden bg-white dark:bg-gray-900 shadow-md max-h-64 overflow-y-auto">
-                      {matchedFlashSlideProducts.map((product) => {
-                        const isSelected = currentSlideProductIds.includes(product.id);
-                        return (
-                          <div
-                            key={product.id}
-                            className="w-full px-3.5 py-2.5 flex items-center justify-between gap-3 hover:bg-slate-50 dark:hover:bg-gray-800/80 transition"
-                          >
-                            <div className="flex items-center gap-2.5 min-w-0">
-                              {product.images?.[0] ? (
-                                <img
-                                  src={product.images[0]}
-                                  alt={product.title}
-                                  className="w-10 h-10 rounded-lg object-cover border border-slate-200 dark:border-gray-700 shrink-0 bg-white"
-                                />
-                              ) : (
-                                <div className="w-10 h-10 rounded-lg bg-slate-100 dark:bg-gray-800 flex items-center justify-center shrink-0 text-[10px] text-slate-400 font-bold">
-                                  No img
+                    {/* Search Results Dropdown */}
+                    {matchedFlashSlideProducts.length > 0 && (
+                      <div className="rounded-xl border border-slate-200 dark:border-gray-700 divide-y divide-slate-100 dark:divide-gray-800 overflow-hidden bg-white dark:bg-gray-900 shadow-md max-h-48 overflow-y-auto">
+                        {matchedFlashSlideProducts.map((product) => {
+                          const isSelected = currentSlideProductIds.includes(product.id);
+                          return (
+                            <div
+                              key={product.id}
+                              className="px-3 py-2 flex items-center justify-between gap-2 hover:bg-slate-50 dark:hover:bg-gray-800 transition"
+                            >
+                              <div className="flex items-center gap-2 min-w-0">
+                                {product.images?.[0] ? (
+                                  <img
+                                    src={product.images[0]}
+                                    alt={product.title}
+                                    className="w-8 h-8 rounded-lg object-cover border border-slate-200 dark:border-gray-700 shrink-0 bg-white"
+                                  />
+                                ) : (
+                                  <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-gray-800 flex items-center justify-center shrink-0 text-[9px] text-slate-400">
+                                    No img
+                                  </div>
+                                )}
+                                <div className="min-w-0">
+                                  <p className="text-xs font-bold truncate text-slate-800 dark:text-slate-200">
+                                    {product.title}
+                                  </p>
+                                  <p className="text-[10px] text-slate-500">
+                                    ৳{product.price} {product.sku ? `• SKU: ${product.sku}` : ''}
+                                  </p>
                                 </div>
-                              )}
-                              <span className="min-w-0">
-                                <span className="block text-xs font-bold truncate text-slate-800 dark:text-slate-200">
-                                  {product.title}
-                                </span>
-                                <span className="text-[11px] text-slate-500 dark:text-slate-400">
-                                  ৳{product.price} {product.sku ? `• SKU: ${product.sku}` : ''}
-                                </span>
-                              </span>
-                            </div>
-
-                            <button
-                              type="button"
-                              onClick={() => {
-                                if (isSelected) {
-                                  removeProductFromSlide(product.id);
-                                } else {
-                                  addProductToSlide(product);
-                                }
-                              }}
-                              className={`text-xs font-bold px-3 py-1.5 rounded-lg transition shrink-0 cursor-pointer ${
-                                isSelected
-                                  ? 'bg-rose-100 text-rose-700 hover:bg-rose-200 dark:bg-rose-950/60 dark:text-rose-300'
-                                  : 'bg-rose-600 hover:bg-rose-700 text-white shadow-xs'
-                              }`}
-                            >
-                              {isSelected ? '✓ Added (Remove)' : '+ Add to Banner'}
-                            </button>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
-
-                {/* Selected Products List */}
-                {selectedSlideProducts.length > 0 && (
-                  <div className="space-y-2.5 pt-3 border-t border-slate-100 dark:border-gray-800">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
-                        <Package className="w-3.5 h-3.5 text-rose-600" />
-                        সংযুক্ত প্রোডাক্টসমূহ ({selectedSlideProducts.length} টি)
-                      </span>
-                      <button
-                        type="button"
-                        onClick={clearSlideProducts}
-                        className="text-[11px] font-bold text-rose-600 hover:text-rose-700 cursor-pointer"
-                      >
-                        সবগুলো আনলিঙ্ক করুন (Clear All)
-                      </button>
-                    </div>
-
-                    <div className="grid gap-2.5 sm:grid-cols-2">
-                      {selectedSlideProducts.map((prod, idx) => (
-                        <div
-                          key={prod.id}
-                          className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50/70 dark:bg-gray-800/80 border border-slate-200/90 dark:border-gray-700 shadow-2xs gap-2.5"
-                        >
-                          <div className="flex items-center gap-2.5 min-w-0">
-                            {prod.images?.[0] ? (
-                              <img
-                                src={prod.images[0]}
-                                alt={prod.title}
-                                className="w-10 h-10 rounded-lg object-cover border border-slate-200 dark:border-gray-700 shrink-0 bg-white"
-                              />
-                            ) : (
-                              <div className="w-10 h-10 rounded-lg bg-slate-100 dark:bg-gray-700 flex items-center justify-center shrink-0 text-[9px] font-bold text-slate-400">
-                                IMG
                               </div>
-                            )}
-                            <div className="min-w-0">
-                              <p className="text-xs font-bold text-slate-900 dark:text-white truncate">
-                                {idx + 1}. {prod.title}
-                              </p>
-                              <p className="text-[10px] text-slate-500 dark:text-slate-400">
-                                ৳{prod.price} {prod.sku ? `• SKU: ${prod.sku}` : ''}
-                              </p>
-                            </div>
-                          </div>
 
-                          <div className="flex items-center gap-1 shrink-0">
-                            <button
-                              type="button"
-                              onClick={() => useProductAsBannerContent(prod)}
-                              title="Use this product's title and image for this banner slide"
-                              className="px-2 py-1 text-[10px] font-bold rounded-lg bg-white dark:bg-gray-700 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-gray-600 hover:bg-rose-50 hover:text-rose-600 transition cursor-pointer"
-                            >
-                              Use on Banner
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => removeProductFromSlide(prod.id)}
-                              className="w-7 h-7 flex items-center justify-center rounded-lg text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/50 transition cursor-pointer"
-                              title="Remove"
-                            >
-                              <X className="w-3.5 h-3.5" />
-                            </button>
-                          </div>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  if (isSelected) {
+                                    removeProductFromSlide(product.id);
+                                  } else {
+                                    addProductToSlide(product);
+                                  }
+                                }}
+                                className={`text-[11px] font-bold px-2.5 py-1 rounded-lg transition shrink-0 cursor-pointer ${
+                                  isSelected
+                                    ? 'bg-rose-100 text-rose-700 hover:bg-rose-200 dark:bg-rose-950/60 dark:text-rose-300'
+                                    : 'bg-rose-600 hover:bg-rose-700 text-white shadow-xs'
+                                }`}
+                              >
+                                {isSelected ? 'Added ✓' : '+ Add'}
+                              </button>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+
+                    {/* Compact Selected Products Chips */}
+                    {selectedSlideProducts.length > 0 && (
+                      <div className="space-y-1.5 pt-2 border-t border-slate-200/60 dark:border-gray-700/60">
+                        <div className="flex items-center justify-between text-[11px] font-bold text-slate-600 dark:text-slate-400">
+                          <span>সংযুক্ত প্রোডাক্ট ({selectedSlideProducts.length}):</span>
+                          <button
+                            type="button"
+                            onClick={clearSlideProducts}
+                            className="text-rose-600 hover:text-rose-700 text-[10px] cursor-pointer"
+                          >
+                            Clear all
+                          </button>
                         </div>
-                      ))}
+                        <div className="flex flex-wrap gap-1.5 max-h-32 overflow-y-auto p-0.5">
+                          {selectedSlideProducts.map((prod) => (
+                            <div
+                              key={prod.id}
+                              className="inline-flex items-center gap-1.5 pl-1.5 pr-2 py-1 rounded-lg bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 shadow-2xs text-xs"
+                            >
+                              {prod.images?.[0] && (
+                                <img src={prod.images[0]} alt="" className="w-5 h-5 rounded object-cover" />
+                              )}
+                              <span className="font-bold text-slate-800 dark:text-slate-200 max-w-[140px] truncate text-[11px]">
+                                {prod.title}
+                              </span>
+                              <span className="text-[10px] text-slate-400">৳{prod.price}</span>
+                              <button
+                                type="button"
+                                onClick={() => removeProductFromSlide(prod.id)}
+                                className="text-slate-400 hover:text-rose-600 ml-0.5 cursor-pointer"
+                                title="Remove"
+                              >
+                                <X className="w-3 h-3" />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* 3. Optional Overlay Text Fields (Only if not pure image) */}
+                {!currentSlide.hideText && (
+                  <div className="space-y-2 p-3.5 rounded-2xl bg-slate-50/60 dark:bg-gray-800/40 border border-slate-200/90 dark:border-gray-700/70">
+                    <span className="text-xs font-bold text-slate-800 dark:text-slate-200 block">
+                      📝 Overlay Text (Optional)
+                    </span>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                      <Field label="Tag (Optional)" hint="e.g. ⚡ FLASH SALE">
+                        <input
+                          value={currentSlide.tag || ''}
+                          onChange={(e) => updateSlide('tag', e.target.value)}
+                          className={`w-full px-3 py-1.5 border text-xs ${input}`}
+                          placeholder="Optional tag"
+                        />
+                      </Field>
+                      <Field label="Title (Optional)" hint="e.g. 24-Hour Deals">
+                        <input
+                          value={currentSlide.title || ''}
+                          onChange={(e) => updateSlide('title', e.target.value)}
+                          className={`w-full px-3 py-1.5 border text-xs ${input}`}
+                          placeholder="Optional title"
+                        />
+                      </Field>
+                      <div className="sm:col-span-2">
+                        <Field label="Description (Optional)">
+                          <input
+                            value={currentSlide.subtitle || ''}
+                            onChange={(e) => updateSlide('subtitle', e.target.value)}
+                            className={`w-full px-3 py-1.5 border text-xs ${input}`}
+                            placeholder="Optional brief description"
+                          />
+                        </Field>
+                      </div>
                     </div>
                   </div>
                 )}
-              </div>
-            )}
-
-            {/* Pure Image / No Text Mode Option */}
-            <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 rounded-xl bg-slate-50 dark:bg-gray-800/60 border border-slate-200 dark:border-gray-700">
-              <div className="min-w-0 flex-1">
-                <span className="text-xs font-bold text-slate-800 dark:text-slate-200 block">
-                  🖼️ Pure Image Banner (No Text Overlay)
-                </span>
-                <span className="text-[11px] text-slate-500 dark:text-slate-400">
-                  ব্যানার ইমেজে নিজেই ডিজাইন/লেখা থাকলে এটি অন রাখুন অথবা টেক্সট ফাঁকা রাখুন। ব্যানার ছবির ওপর কোনো লেখা বা কালো শ্যাডো আসবে না।
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={clearSlideText}
-                  className="px-2.5 py-1 text-xs font-bold rounded-lg border border-slate-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-slate-700 dark:text-slate-200 hover:bg-rose-50 hover:border-rose-300 hover:text-rose-600 transition cursor-pointer"
-                  title="Clear all text fields for this slide"
-                >
-                  🧹 Clear Text
-                </button>
-                <Toggle
-                  checked={Boolean(currentSlide.hideText)}
-                  onChange={(value) => updateSlide('hideText', value)}
-                  label={currentSlide.hideText ? 'No Text' : 'Text Active'}
-                />
-              </div>
-            </div>
-
-            {currentSlide.hideText && (
-              <div className="p-3 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/50 text-xs text-amber-800 dark:text-amber-300 flex items-center gap-2">
-                <span>💡</span>
-                <span>
-                  <strong>Pure Image Banner Active:</strong> এই স্লাইডারে কোনো টেক্সট ওভারলে বা ডার্ক শ্যাডো প্রদর্শিত হবে না। শুধুমাত্র ব্যানার ছবিটি ক্লিয়ার ও পূর্ণাঙ্গভাবে দেখা যাবে।
-                </span>
-              </div>
-            )}
-
-            {/* Slide Tag, Title, Destination Link & Description */}
-            <div className="grid gap-4 sm:grid-cols-2">
-              <Field label="Slide tag (Optional)" hint="e.g. ⚡ FLASH SALE">
-                <input
-                  value={currentSlide.tag || ''}
-                  onChange={(event) => updateSlide('tag', event.target.value)}
-                  className={`w-full px-3.5 py-2.5 border text-sm ${input}`}
-                  placeholder="Optional tag text"
-                />
-              </Field>
-
-              <Field label="Slide title (Optional)" hint="Leave empty if banner image already has text">
-                <input
-                  value={currentSlide.title || ''}
-                  onChange={(event) => updateSlide('title', event.target.value)}
-                  className={`w-full px-3.5 py-2.5 border text-sm ${input}`}
-                  placeholder="e.g. 24-Hour Super Deals"
-                />
-              </Field>
-
-              <div className="sm:col-span-2">
-                <Field label="Slide description (Optional)" hint="Leave empty if banner image already has text">
-                  <textarea
-                    rows={2}
-                    value={currentSlide.subtitle || ''}
-                    onChange={(event) => updateSlide('subtitle', event.target.value)}
-                    className={`w-full px-3.5 py-2.5 border text-sm resize-y ${input}`}
-                    placeholder="Optional brief description"
-                  />
-                </Field>
-              </div>
-
-              {/* Image Uploaders for PC and Mobile */}
-              <div className="sm:col-span-2 space-y-4 pt-3 border-t border-slate-100 dark:border-gray-800">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                  {/* Desktop / PC Banner Image */}
-                  <div className="rounded-2xl border border-slate-200 dark:border-gray-800 p-4 bg-slate-50/50 dark:bg-gray-900/40 space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
-                        <span>🖥️</span> Desktop Banner Image
-                      </span>
-                      <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-white dark:bg-gray-800 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-700 font-bold shadow-2xs">
-                        1920×600 px
-                      </span>
-                    </div>
-                    <ImageUploader
-                      label=""
-                      value={currentSlide.desktopImage || currentSlide.bgImage || ''}
-                      onChange={(value) => {
-                        updateSlideFields({
-                          desktopImage: value,
-                          bgImage: value,
-                        });
-                      }}
-                      helpText="Recommended: 1920×600 px or 1200×400 px."
-                    />
-                  </div>
-
-                  {/* Mobile Banner Image */}
-                  <div className="rounded-2xl border border-slate-200 dark:border-gray-800 p-4 bg-slate-50/50 dark:bg-gray-900/40 space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
-                        <span>📱</span> Mobile Banner Image
-                      </span>
-                      <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-white dark:bg-gray-800 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-700 font-bold shadow-2xs">
-                        800×400 px
-                      </span>
-                    </div>
-                    <ImageUploader
-                      label=""
-                      value={currentSlide.mobileImage || ''}
-                      onChange={(value) => updateSlide('mobileImage', value)}
-                      helpText="Recommended: 800×400 px or 600×300 px (Defaults to desktop image if empty)."
-                    />
-                  </div>
-                </div>
               </div>
             </div>
           </section>
