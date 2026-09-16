@@ -12,6 +12,7 @@ import { useSettings } from '../contexts/SettingsContext';
 import { useChat } from '../contexts/ChatContext';
 import { formatPrice, calculateDiscount } from '../lib/utils';
 import { ProductCard } from '../components/common/ProductCard';
+import { ShowcaseStrip } from '../components/home/ShowcaseStrip';
 import { trackProductView } from '../lib/recommendationEngine';
 import {
   Star,
@@ -457,7 +458,7 @@ export const ProductDetailPage: React.FC = () => {
       });
 
       return scoreB - scoreA;
-    }).slice(0, 4);
+    }).slice(0, 16);
   })();
 
   const customAttrLabels = Object.entries(selectedCustomAttributes)
@@ -1453,15 +1454,22 @@ export const ProductDetailPage: React.FC = () => {
         )}
       </section>
 
-      {/* Related Products */}
+      {/* Related Products Showcase Strip (4 per row on mobile, auto-advances if > 4, exactly like Flash Sale & New Arrival) */}
       {relatedProducts.length > 0 && (
-        <section className="space-y-4 sm:space-y-6">
-          <h3 className="text-lg sm:text-2xl font-extrabold text-gray-900">Similar Items You May Like</h3>
-          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
-            {relatedProducts.map((p) => (
-              <ProductCard key={p.id} product={p} />
-            ))}
-          </div>
+        <section className="pt-2">
+          <ShowcaseStrip
+            showcase={{
+              id: 'similar',
+              type: 'trending',
+              title: language === 'bn' ? 'অনুরূপ পণ্যসমূহ (Similar Items)' : 'Similar Items You May Like',
+              subtitle: language === 'bn' ? 'একই কালেকশনের অন্যান্য পণ্য' : 'Related items from this collection',
+              enabled: true,
+              productIds: [],
+            }}
+            products={relatedProducts}
+            viewAllLink={product.category_id ? `/shop?category=${encodeURIComponent(product.category_id)}` : '/shop'}
+            icon={<Sparkles className="w-4 h-4 text-rose-600" />}
+          />
         </section>
       )}
 

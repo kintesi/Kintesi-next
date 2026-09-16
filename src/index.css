@@ -8,7 +8,7 @@
     background-color: #ffffff;
     width: 100%;
     max-width: 100vw;
-    overflow-x: hidden;
+    overflow-x: clip;
     position: relative;
     -webkit-text-size-adjust: 100%;
   }
@@ -17,7 +17,7 @@
     @apply antialiased text-gray-900 bg-white;
     width: 100%;
     max-width: 100vw;
-    overflow-x: hidden;
+    overflow-x: clip;
     position: relative;
     overscroll-behavior-x: none;
     -webkit-overflow-scrolling: touch;
@@ -26,7 +26,7 @@
   #root {
     width: 100%;
     max-width: 100vw;
-    overflow-x: hidden;
+    overflow-x: clip;
     position: relative;
   }
 }

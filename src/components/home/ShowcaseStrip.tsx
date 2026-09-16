@@ -7,9 +7,16 @@ import { Flame, Star, Sparkles, Zap, ChevronRight } from 'lucide-react';
 interface ShowcaseStripProps {
   showcase: ShowcaseSection;
   products: Product[];
+  viewAllLink?: string;
+  icon?: React.ReactNode;
 }
 
-export const ShowcaseStrip: React.FC<ShowcaseStripProps> = ({ showcase, products }) => {
+export const ShowcaseStrip: React.FC<ShowcaseStripProps> = ({
+  showcase,
+  products,
+  viewAllLink,
+  icon,
+}) => {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [isPaused, setIsPaused] = useState(false);
   const [isDesktop, setIsDesktop] = useState(() => {
@@ -105,14 +112,15 @@ export const ShowcaseStrip: React.FC<ShowcaseStripProps> = ({ showcase, products
     }
   };
 
-  const linkTarget = `/showcase/${showcase.id || showcase.type}`;
+  const linkTarget = viewAllLink || `/showcase/${showcase.id || showcase.type}`;
+  const displayIcon = icon || getIcon();
 
   return (
     <div className="space-y-2.5">
       {/* Sleek Header (Clean title and View All, no slider buttons) */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-1.5">
-          {getIcon()}
+          {displayIcon}
           <h3 className="text-sm font-extrabold text-gray-950 tracking-tight">
             {showcase.title}
           </h3>
