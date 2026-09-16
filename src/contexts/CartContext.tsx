@@ -133,31 +133,10 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setIsLoading(false);
         if (snap.exists()) {
           const remoteItems = sanitizeCartItems(snap.data()?.items);
-          setCart((localCart) => {
-            const cleanLocal = sanitizeCartItems(localCart);
-            // Merge guest cart with remote cart once
-            const merged = [...remoteItems];
-            let hasNew = false;
-            for (const item of cleanLocal) {
-              const existing = merged.find(
-                (m) =>
-                  m.product?.id === item.product?.id &&
-                  m.selectedColor === item.selectedColor &&
-                  m.selectedSize === item.selectedSize
-              );
-              if (!existing) {
-                merged.push(item);
-                hasNew = true;
-              }
-            }
-            try {
-              localStorage.setItem('kintesi_cart', JSON.stringify(merged));
-            } catch {}
-            if (hasNew) {
-              setDoc(userCartRef, { items: merged, updatedAt: new Date().toISOString() }, { merge: true }).catch(() => {});
-            }
-            return merged;
-          });
+          setCart(remoteItems);
+          try {
+            localStorage.setItem('kintesi_cart', JSON.stringify(remoteItems));
+          } catch {}
         } else {
           // Check fallback profiles collection
           getDoc(userProfileRef).then((profSnap) => {
@@ -169,15 +148,20 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
               } catch {}
               setDoc(userCartRef, { items: profileCart, updatedAt: new Date().toISOString() }, { merge: true }).catch(() => {});
             } else {
-              setCart((localCart) => {
-                const cleanLocal = sanitizeCartItems(localCart);
-                if (cleanLocal.length > 0) {
-                  setDoc(userCartRef, { items: cleanLocal, updatedAt: new Date().toISOString() }, { merge: true }).catch(() => {});
-                }
-                return cleanLocal;
-              });
+              // STRICT RULE 1: Fresh new user account MUST have empty cart!
+              // Never auto-populate/copy guest or leftover items into a new user's cart!
+              setCart([]);
+              try {
+                localStorage.setItem('kintesi_cart', JSON.stringify([]));
+              } catch {}
+              setDoc(userCartRef, { items: [], updatedAt: new Date().toISOString() }, { merge: true }).catch(() => {});
             }
-          }).catch(() => {});
+          }).catch(() => {
+            setCart([]);
+            try {
+              localStorage.setItem('kintesi_cart', JSON.stringify([]));
+            } catch {}
+          });
         }
       }).catch((err) => {
         console.warn('Initial cart fetch note:', err);
@@ -232,6 +216,17 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       ).catch(() => {});
     }
   };
+
+  useEffect(() => {
+    const handleClear = () => {
+      setCart([]);
+      try {
+        localStorage.setItem('kintesi_cart', JSON.stringify([]));
+      } catch {}
+    };
+    window.addEventListener('kintesi_cart_cleared', handleClear);
+    return () => window.removeEventListener('kintesi_cart_cleared', handleClear);
+  }, []);
 
   useEffect(() => {
     if (appliedCoupon) {

@@ -44,25 +44,10 @@ export const WishlistProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         setIsLoading(false);
         if (snapshot.exists()) {
           const remoteItems: Product[] = snapshot.data()?.items || [];
-          setWishlist((currentLocal) => {
-            const remoteIds = new Set(remoteItems.map((p) => p.id));
-            const localOnlyItems = currentLocal.filter((p) => !remoteIds.has(p.id));
-            const merged = [...remoteItems, ...localOnlyItems];
-
-            try {
-              localStorage.setItem('kintesi_wishlist', JSON.stringify(merged));
-            } catch {}
-
-            if (localOnlyItems.length > 0) {
-              setDoc(
-                userWishlistRef,
-                { items: merged, updatedAt: new Date().toISOString() },
-                { merge: true }
-              ).catch(() => {});
-            }
-
-            return merged;
-          });
+          setWishlist(remoteItems);
+          try {
+            localStorage.setItem('kintesi_wishlist', JSON.stringify(remoteItems));
+          } catch {}
         } else {
           // Check fallback profiles collection
           getDoc(userProfileRef).then((profSnap) => {
@@ -78,18 +63,24 @@ export const WishlistProvider: React.FC<{ children: React.ReactNode }> = ({ chil
                 { merge: true }
               ).catch(() => {});
             } else {
-              setWishlist((curr) => {
-                if (curr.length > 0) {
-                  setDoc(
-                    userWishlistRef,
-                    { items: curr, updatedAt: new Date().toISOString() },
-                    { merge: true }
-                  ).catch(() => {});
-                }
-                return curr;
-              });
+              // STRICT RULE 1: Fresh new user account MUST have empty wishlist!
+              // Never auto-populate/copy guest or leftover items into a new user's wishlist!
+              setWishlist([]);
+              try {
+                localStorage.setItem('kintesi_wishlist', JSON.stringify([]));
+              } catch {}
+              setDoc(
+                userWishlistRef,
+                { items: [], updatedAt: new Date().toISOString() },
+                { merge: true }
+              ).catch(() => {});
             }
-          }).catch(() => {});
+          }).catch(() => {
+            setWishlist([]);
+            try {
+              localStorage.setItem('kintesi_wishlist', JSON.stringify([]));
+            } catch {}
+          });
         }
       }).catch((error) => {
         console.warn('Initial wishlist fetch note:', error);
@@ -119,6 +110,17 @@ export const WishlistProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
     return () => unsubscribe();
   }, [user?.id]);
+
+  useEffect(() => {
+    const handleClear = () => {
+      setWishlist([]);
+      try {
+        localStorage.setItem('kintesi_wishlist', JSON.stringify([]));
+      } catch {}
+    };
+    window.addEventListener('kintesi_wishlist_cleared', handleClear);
+    return () => window.removeEventListener('kintesi_wishlist_cleared', handleClear);
+  }, []);
 
   // Save changes locally and persist to database
   const persistWishlist = (newList: Product[]) => {

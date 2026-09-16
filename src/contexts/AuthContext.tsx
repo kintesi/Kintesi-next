@@ -6,6 +6,7 @@ import {
   signOut as fbSignOut,
   onAuthStateChanged,
   updateProfile as fbUpdateProfile,
+  getAdditionalUserInfo,
   User as FirebaseUser
 } from 'firebase/auth';
 import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
@@ -304,6 +305,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       localStorage.removeItem(EXPLICIT_SIGNOUT_KEY);
       const result = await signInWithPopup(auth, googleProvider);
+      const isNewUser = Boolean(getAdditionalUserInfo(result)?.isNewUser);
+
+      // STRICT RULE 1: If brand new user account, ensure cart and wishlist start 100% empty!
+      if (isNewUser) {
+        localStorage.removeItem('kintesi_cart');
+        localStorage.removeItem('kintesi_wishlist');
+        window.dispatchEvent(new Event('kintesi_cart_cleared'));
+        window.dispatchEvent(new Event('kintesi_wishlist_cleared'));
+        setDoc(doc(db, 'user_carts', result.user.uid), { items: [], updatedAt: new Date().toISOString() }, { merge: true }).catch(() => {});
+        setDoc(doc(db, 'user_wishlists', result.user.uid), { items: [], updatedAt: new Date().toISOString() }, { merge: true }).catch(() => {});
+      }
+
       const mapped = mapFirebaseUser(result.user);
       saveUserToStorage(mapped);
       await fetchProfile(mapped);
@@ -339,8 +352,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signUpWithEmail = async (email: string, pass: string, name: string) => {
     try {
       localStorage.removeItem(EXPLICIT_SIGNOUT_KEY);
+
+      // STRICT RULE 1: Fresh new user account MUST have empty cart & wishlist!
+      localStorage.removeItem('kintesi_cart');
+      localStorage.removeItem('kintesi_wishlist');
+      window.dispatchEvent(new Event('kintesi_cart_cleared'));
+      window.dispatchEvent(new Event('kintesi_wishlist_cleared'));
+
       const result = await createUserWithEmailAndPassword(auth, email.trim(), pass);
       await fbUpdateProfile(result.user, { displayName: name.trim() });
+
+      // Initialize empty in Firestore for the brand new user ID
+      setDoc(doc(db, 'user_carts', result.user.uid), { items: [], updatedAt: new Date().toISOString() }, { merge: true }).catch(() => {});
+      setDoc(doc(db, 'user_wishlists', result.user.uid), { items: [], updatedAt: new Date().toISOString() }, { merge: true }).catch(() => {});
+
       const mapped = mapFirebaseUser(result.user);
       mapped.displayName = name.trim();
       mapped.user_metadata.full_name = name.trim();
@@ -360,12 +385,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signOut = async () => {
     try {
       localStorage.setItem(EXPLICIT_SIGNOUT_KEY, 'true');
+      localStorage.removeItem('kintesi_cart');
+      localStorage.removeItem('kintesi_wishlist');
       await fbSignOut(auth);
     } catch (err) {
       console.warn('SignOut error:', err);
     } finally {
       saveUserToStorage(null);
       saveProfileToStorage(null);
+      window.dispatchEvent(new Event('kintesi_cart_cleared'));
+      window.dispatchEvent(new Event('kintesi_wishlist_cleared'));
       toast.success('Logged out successfully');
     }
   };
