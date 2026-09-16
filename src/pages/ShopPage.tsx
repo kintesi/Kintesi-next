@@ -66,26 +66,26 @@ export const ShopPage: React.FC = () => {
     }
 
     const aliases: Record<string, string[]> = {
-      'womens-fashion': ['women', 'fashion_women', 'womens-fashion-luxury', 'cat-womens-fashion'],
-      'mens-fashion': ['men', 'fashion_men', 'mens-fashion-apparel', 'cat-mens-fashion'],
-      'computer-gaming': ['laptops-computers', 'laptop', 'gaming', 'cat-laptops', 'computer'],
-      'home-living': ['home-kitchen', 'home', 'living', 'cat-home-kitchen'],
-      'groceries-pet-supplies': ['groceries-daily-essentials', 'groceries', 'food', 'cat-groceries'],
-      'health-beauty': ['beauty-skincare', 'beauty', 'skincare', 'cat-beauty', 'menstrual-heating-period-care', 'orthopedic-posture-spine-care', 'beauty-skincare-therapy-gadgets'],
-      'tv-home-appliances': ['appliances', 'tv', 'electronics'],
-      'electronic-accessories': ['audio-headphones', 'gadgets', 'cat-audio', 'accessories'],
-      'watches-bags': ['smart-watches', 'watches', 'bags', 'cat-watches', 'jewelry_watches'],
-      'sports-outdoors': ['sports-fitness', 'sports', 'fitness', 'cat-sports'],
-      'mother-baby': ['health-baby-care', 'baby', 'kids', 'cat-health-baby'],
-      'automotives-motorbikes': ['automotive', 'motorbikes', 'bike'],
-      'phones-accessories': ['smartphones-tablets', 'phones', 'smartphones', 'cat-smartphones'],
+      'womens-fashion': ['womens-fashion', 'women', 'womens', 'womens-clothing', 'womens-fashion-luxury', 'cat-womens-fashion', 'fashion_women'],
+      'mens-fashion': ['mens-fashion', 'men', 'mens', 'mens-clothing', 'mens-fashion-apparel', 'cat-mens-fashion', 'fashion_men'],
+      'computer-gaming': ['computer-gaming', 'laptops-computers', 'laptop', 'gaming', 'cat-laptops', 'computer'],
+      'home-living': ['home-living', 'home-kitchen', 'home', 'living', 'cat-home-kitchen'],
+      'groceries-pet-supplies': ['groceries-pet-supplies', 'groceries-daily-essentials', 'groceries', 'food', 'cat-groceries'],
+      'health-beauty': ['health-beauty', 'beauty-skincare', 'beauty', 'skincare', 'cat-beauty', 'menstrual-heating-period-care', 'orthopedic-posture-spine-care', 'beauty-skincare-therapy-gadgets'],
+      'tv-home-appliances': ['tv-home-appliances', 'appliances', 'tv', 'electronics'],
+      'electronic-accessories': ['electronic-accessories', 'audio-headphones', 'gadgets', 'cat-audio', 'accessories'],
+      'watches-bags': ['watches-bags', 'smart-watches', 'watches', 'bags', 'cat-watches', 'jewelry_watches'],
+      'sports-outdoors': ['sports-outdoors', 'sports-fitness', 'sports', 'fitness', 'cat-sports'],
+      'mother-baby': ['mother-baby', 'health-baby-care', 'baby', 'kids', 'cat-health-baby'],
+      'automotives-motorbikes': ['automotives-motorbikes', 'automotive', 'motorbikes', 'bike'],
+      'phones-accessories': ['phones-accessories', 'smartphones-tablets', 'phones', 'smartphones', 'cat-smartphones'],
     };
 
     for (const [canonical, altList] of Object.entries(aliases)) {
-      if (tCat === canonical && altList.some((alt) => pId.includes(alt) || alt.includes(pId))) {
-        return true;
-      }
-      if (altList.includes(tCat) && (pId === canonical || pId.includes(canonical))) {
+      const allTokens = [canonical, ...altList];
+      const targetMatches = allTokens.includes(tCat);
+      const productMatches = allTokens.includes(pId);
+      if (targetMatches && productMatches) {
         return true;
       }
     }

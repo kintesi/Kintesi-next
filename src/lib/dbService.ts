@@ -411,7 +411,8 @@ export async function resetCategoriesToDefault(): Promise<Category[]> {
     setDoc(doc(db, 'categories', cat.id || cat.slug), cat, { merge: true }).catch(() => {});
     // Save to Supabase
     try {
-      await supabase.from('categories').upsert([cat]);
+      const { subcategories, ...supaCat } = cat;
+      await supabase.from('categories').upsert([supaCat]);
     } catch {}
   }
   window.dispatchEvent(new CustomEvent('kintesi_categories_updated'));
@@ -425,7 +426,8 @@ export async function saveCategoryToDB(category: Category): Promise<void> {
 
   // 1. Primary: Supabase
   try {
-    await supabase.from('categories').upsert([category]);
+    const { subcategories, ...supaCat } = category;
+    await supabase.from('categories').upsert([supaCat]);
   } catch (err) {
     console.warn('Supabase category save warning:', err);
   }
