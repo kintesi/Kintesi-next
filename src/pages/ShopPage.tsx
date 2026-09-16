@@ -407,61 +407,6 @@ export const ShopPage: React.FC = () => {
                 </div>
               </div>
 
-              {/* Subcategories (when category is selected) */}
-              {selectedCategory !== 'all' && currentSubcategories.length > 0 && (
-                <div className="pt-3 border-t border-rose-100">
-                  <h4 className="text-[11px] font-bold uppercase tracking-wider text-rose-600 mb-2 flex items-center justify-between">
-                    <span>Sub-Categories</span>
-                    {selectedSubCategory !== 'all' && (
-                      <button
-                        onClick={() => handleSubCategorySelect('all')}
-                        className="text-[10px] text-gray-400 hover:text-rose-600 lowercase"
-                      >
-                        clear
-                      </button>
-                    )}
-                  </h4>
-                  <div className="space-y-1 max-h-[220px] overflow-y-auto pr-1">
-                    <button
-                      onClick={() => handleSubCategorySelect('all')}
-                      className={`w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-semibold transition flex items-center justify-between ${
-                        selectedSubCategory === 'all'
-                          ? 'bg-rose-600 text-white font-bold'
-                          : 'text-gray-600 hover:bg-rose-50/50'
-                      }`}
-                    >
-                      <span>All Subcategories</span>
-                    </button>
-                    {currentSubcategories.map((sub) => {
-                      const isSel = selectedSubCategory.toLowerCase() === sub.toLowerCase();
-                      const subCount = products.filter(
-                        (p) =>
-                          isCategoryMatch(p.category_id, selectedCategory) &&
-                          (p.sub_category || '').toLowerCase() === sub.toLowerCase()
-                      ).length;
-                      return (
-                        <button
-                          key={sub}
-                          onClick={() => handleSubCategorySelect(sub)}
-                          className={`w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-semibold transition flex items-center justify-between ${
-                            isSel
-                              ? 'bg-rose-600 text-white font-bold'
-                              : 'text-gray-600 hover:bg-rose-50/50'
-                          }`}
-                        >
-                          <span className="truncate pr-1.5">{sub}</span>
-                          {subCount > 0 && (
-                            <span className={`text-[10px] ${isSel ? 'text-rose-200' : 'text-gray-400'}`}>
-                              {subCount}
-                            </span>
-                          )}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-
             </div>
           </aside>
         )}
