@@ -129,6 +129,8 @@ export const AdminBanners: React.FC = () => {
         desktopImage: form.flashSaleDesktopImage || form.flashSaleBgImage || '',
         mobileImage: form.flashSaleMobileImage || form.flashSaleBgImage || '',
         link: form.flashSaleLink || '',
+        productIds: [],
+        pageTitle: '',
         bannerType: form.flashSaleBannerType || 'clickable',
         layoutStyle: form.flashSaleLayoutStyle || 'full',
         showTimer: form.flashSaleShowTimer || false,
@@ -148,6 +150,27 @@ export const AdminBanners: React.FC = () => {
     return catalogProducts.filter((product) => [product.title, product.sku, product.brand].some((value) => value?.toLowerCase().includes(query))).slice(0, 8);
   }, [catalogProducts, featuredSearch]);
 
+  const currentSlideProductIds: string[] = useMemo(() => {
+    if (!currentSlide) return [];
+    if (currentSlide.productIds && currentSlide.productIds.length > 0) {
+      return currentSlide.productIds;
+    }
+    if (currentSlide.productId) {
+      return [currentSlide.productId];
+    }
+    return [];
+  }, [currentSlide]);
+
+  const selectedSlideProducts = useMemo(() => {
+    const idMap = new Map<string, Product>();
+    for (const p of catalogProducts) {
+      if (p?.id) idMap.set(String(p.id), p);
+    }
+    return currentSlideProductIds
+      .map((id) => idMap.get(String(id)))
+      .filter(Boolean) as Product[];
+  }, [catalogProducts, currentSlideProductIds]);
+
   const matchedFlashSlideProducts = useMemo(() => {
     const query = flashSlideSearch.trim().toLowerCase();
     if (!query) return [];
@@ -157,29 +180,60 @@ export const AdminBanners: React.FC = () => {
           value?.toLowerCase().includes(query)
         )
       )
-      .slice(0, 6);
+      .slice(0, 8);
   }, [catalogProducts, flashSlideSearch]);
 
-  const selectFlashSlideProduct = (product: Product) => {
+  const addProductToSlide = (product: Product) => {
+    const existingIds = currentSlideProductIds;
+    if (existingIds.includes(product.id)) {
+      toast.info(`"${product.title}" is already linked to this banner.`);
+      return;
+    }
+
+    hasUserEdited.current = true;
+    setIsSaved(false);
+
+    const nextProductIds = [...existingIds, product.id];
     const defaultProductImage =
       (product.images && product.images.length > 0 ? product.images[0] : '') ||
       (product as any).image ||
       '';
 
-    hasUserEdited.current = true;
-    setIsSaved(false);
+    let autoLink = '';
+    let autoTitle = currentSlide.title;
+    let autoBgImage = currentSlide.bgImage;
+    let autoDesktopImage = currentSlide.desktopImage;
+    let autoMobileImage = currentSlide.mobileImage;
+
+    if (nextProductIds.length === 1) {
+      autoLink = `/product/${product.id}`;
+      // Prefill slide title & image if empty/default
+      if (!currentSlide.title || currentSlide.title === 'Exclusive 24-Hour Super Deals') {
+        autoTitle = product.title;
+      }
+      if (!currentSlide.bgImage) {
+        autoBgImage = defaultProductImage;
+        autoDesktopImage = defaultProductImage;
+        autoMobileImage = defaultProductImage;
+      }
+    } else {
+      autoLink = `/showcase/banner-${currentSlide.id}`;
+    }
+
     setForm((previous) => {
       const currentSlides = previous.flashSaleSlides?.length ? previous.flashSaleSlides : slides;
       const nextSlides = currentSlides.map((slide, index) => {
         if (index !== selectedSlideIndex) return slide;
         return {
           ...slide,
-          title: product.title,
-          bgImage: defaultProductImage,
-          desktopImage: defaultProductImage,
-          mobileImage: defaultProductImage,
-          link: `/product/${product.id}`,
-          productId: product.id,
+          title: autoTitle,
+          bgImage: autoBgImage,
+          desktopImage: autoDesktopImage,
+          mobileImage: autoMobileImage,
+          link: autoLink,
+          productId: nextProductIds.length === 1 ? nextProductIds[0] : undefined,
+          productIds: nextProductIds,
+          pageTitle: slide.pageTitle || (nextProductIds.length > 1 ? (slide.title || 'Flash Sale') : ''),
         };
       });
       return {
@@ -194,8 +248,77 @@ export const AdminBanners: React.FC = () => {
         } : {}),
       };
     });
+
     setFlashSlideSearch('');
-    toast.success(`"${product.title}" selected! Product's default image applied automatically.`);
+    if (nextProductIds.length === 1) {
+      toast.success(`"${product.title}" linked (Single Product: opens product detail directly).`);
+    } else {
+      toast.success(`"${product.title}" added (${nextProductIds.length} products: opens Multi-Product Landing Page).`);
+    }
+  };
+
+  const removeProductFromSlide = (productId: string) => {
+    hasUserEdited.current = true;
+    setIsSaved(false);
+
+    const nextProductIds = currentSlideProductIds.filter((id) => id !== productId);
+    let autoLink = '';
+    if (nextProductIds.length === 1) {
+      autoLink = `/product/${nextProductIds[0]}`;
+    } else if (nextProductIds.length > 1) {
+      autoLink = `/showcase/banner-${currentSlide.id}`;
+    } else {
+      autoLink = '';
+    }
+
+    setForm((previous) => {
+      const currentSlides = previous.flashSaleSlides?.length ? previous.flashSaleSlides : slides;
+      const nextSlides = currentSlides.map((slide, index) => {
+        if (index !== selectedSlideIndex) return slide;
+        return {
+          ...slide,
+          link: autoLink,
+          productId: nextProductIds.length === 1 ? nextProductIds[0] : undefined,
+          productIds: nextProductIds,
+        };
+      });
+      return {
+        ...previous,
+        flashSaleSlides: nextSlides,
+        ...(selectedSlideIndex === 0 ? {
+          flashSaleLink: nextSlides[0].link,
+        } : {}),
+      };
+    });
+    toast.success('Product unlinked from banner.');
+  };
+
+  const useProductAsBannerContent = (product: Product) => {
+    hasUserEdited.current = true;
+    setIsSaved(false);
+    const defaultProductImage =
+      (product.images && product.images.length > 0 ? product.images[0] : '') ||
+      (product as any).image ||
+      '';
+
+    updateSlideFields({
+      title: product.title,
+      bgImage: defaultProductImage,
+      desktopImage: defaultProductImage,
+      mobileImage: defaultProductImage,
+    });
+    toast.success(`Banner title & image updated to match "${product.title}".`);
+  };
+
+  const clearSlideProducts = () => {
+    hasUserEdited.current = true;
+    setIsSaved(false);
+    updateSlideFields({
+      productId: undefined,
+      productIds: [],
+      link: '',
+    });
+    toast.success('All linked products removed from banner.');
   };
 
   const featuredProducts = catalogProducts.filter((product) => product.is_featured);
@@ -387,7 +510,9 @@ export const AdminBanners: React.FC = () => {
       bgImage: '',
       desktopImage: '',
       mobileImage: '',
-      link: '/products',
+      link: '',
+      productIds: [],
+      pageTitle: '',
       bannerType: currentBannerType,
       layoutStyle: (form.flashSaleLayoutStyle || 'full') as any,
       showTimer: false,
@@ -433,6 +558,29 @@ export const AdminBanners: React.FC = () => {
       : (form.showFlashSale && (!form.flashSaleEndsAt || new Date(form.flashSaleEndsAt).getTime() <= Date.now())
         ? new Date(Date.now() + hours * 60 * 60 * 1000).toISOString()
         : form.flashSaleEndsAt);
+
+    const mappedSlides = slides.map((slide) => {
+      const pIds = (slide.productIds && slide.productIds.length > 0)
+        ? slide.productIds
+        : (slide.productId ? [slide.productId] : []);
+
+      let autoLink = slide.link;
+      if (pIds.length === 1) {
+        autoLink = `/product/${pIds[0]}`;
+      } else if (pIds.length > 1) {
+        autoLink = `/showcase/banner-${slide.id}`;
+      }
+
+      return {
+        ...slide,
+        link: autoLink || slide.link || '/products',
+        productId: pIds.length === 1 ? pIds[0] : undefined,
+        productIds: pIds,
+        pageTitle: slide.pageTitle || '',
+        showTimer: Boolean(form.flashSaleShowTimer),
+      };
+    });
+
     const nextForm = {
       ...form,
       topAnnouncementText: cleanAnnouncementText(form.topAnnouncementText),
@@ -441,17 +589,14 @@ export const AdminBanners: React.FC = () => {
       flashSaleShowTimer: Boolean(form.flashSaleShowTimer),
       flashSaleHours: hours,
       flashSaleEndsAt: expiresAt,
-      flashSaleSlides: slides.map((slide) => ({
-        ...slide,
-        showTimer: Boolean(form.flashSaleShowTimer),
-      })),
-      flashSaleTag: slides[0]?.tag || form.flashSaleTag,
-      flashSaleTitle: slides[0]?.title || form.flashSaleTitle,
-      flashSaleSubtitle: slides[0]?.subtitle || form.flashSaleSubtitle,
-      flashSaleBgImage: slides[0]?.bgImage || form.flashSaleBgImage,
-      flashSaleDesktopImage: slides[0]?.desktopImage || slides[0]?.bgImage || form.flashSaleDesktopImage,
-      flashSaleMobileImage: slides[0]?.mobileImage || form.flashSaleMobileImage,
-      flashSaleLink: slides[0]?.link || form.flashSaleLink || '/products',
+      flashSaleSlides: mappedSlides,
+      flashSaleTag: mappedSlides[0]?.tag || form.flashSaleTag,
+      flashSaleTitle: mappedSlides[0]?.title || form.flashSaleTitle,
+      flashSaleSubtitle: mappedSlides[0]?.subtitle || form.flashSaleSubtitle,
+      flashSaleBgImage: mappedSlides[0]?.bgImage || form.flashSaleBgImage,
+      flashSaleDesktopImage: mappedSlides[0]?.desktopImage || mappedSlides[0]?.bgImage || form.flashSaleDesktopImage,
+      flashSaleMobileImage: mappedSlides[0]?.mobileImage || form.flashSaleMobileImage,
+      flashSaleLink: mappedSlides[0]?.link || form.flashSaleLink || '/products',
       showcases: showcases,
       showFeaturedProducts: showcases.find((s) => s.id === 'featured')?.enabled ?? form.showFeaturedProducts,
       featuredProductsTitle: showcases.find((s) => s.id === 'featured')?.title ?? form.featuredProductsTitle,
@@ -816,51 +961,213 @@ export const AdminBanners: React.FC = () => {
               )}
             </div>
 
-            {/* Link a product to this slide */}
+            {/* Link Single or Multiple Products to this slide & Landing Page Configuration */}
             {(form.flashSaleBannerType || 'clickable') === 'clickable' && (
-              <div className="space-y-3 pt-1">
-                <Field label="Link a product to this slide" hint="Search catalog to link slide directly to a product">
-                  <div className="relative">
-                    <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                    <input
-                      value={flashSlideSearch}
-                      onChange={(event) => setFlashSlideSearch(event.target.value)}
-                      className={`w-full pl-10 pr-3.5 py-2.5 border text-sm ${input}`}
-                      placeholder="Search product by name, brand, or SKU to link..."
-                    />
+              <div className={`space-y-4 pt-1 rounded-2xl border p-4 sm:p-5 ${card}`}>
+                {/* Header with Mode Badge */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 border-b border-slate-100 dark:border-gray-800 pb-3.5">
+                  <div>
+                    <h4 className="text-xs font-black text-slate-900 dark:text-white flex items-center gap-1.5">
+                      <Sparkles className="w-3.5 h-3.5 text-rose-600" />
+                      ব্যানার প্রোডাক্ট ও ল্যান্ডিং পেজ লিংক (Banner Product Linking)
+                    </h4>
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                      ১টি প্রোডাক্ট যুক্ত করলে ব্যানার ক্লিক করলে সরাসরি প্রোডাক্ট পেজ ওপেন হবে। একাধিক প্রোডাক্ট যুক্ত করলে কাস্টম টাইটেলসহ স্পেশাল ল্যান্ডিং পেজ ওপেন হবে।
+                    </p>
                   </div>
-                </Field>
-                {matchedFlashSlideProducts.length > 0 && (
-                  <div className="rounded-xl border border-slate-200 divide-y divide-slate-100 overflow-hidden bg-white shadow-sm">
-                    {matchedFlashSlideProducts.map((product) => (
-                      <button
-                        key={product.id}
-                        type="button"
-                        onClick={() => selectFlashSlideProduct(product)}
-                        className="w-full px-3.5 py-2 text-left flex items-center justify-between gap-3 hover:bg-rose-50 transition cursor-pointer"
-                      >
-                        <div className="flex items-center gap-2.5 min-w-0">
-                          {product.images?.[0] ? (
-                            <img
-                              src={product.images[0]}
-                              alt={product.title}
-                              className="w-10 h-10 rounded-lg object-cover border border-slate-200 shrink-0 bg-white"
-                            />
-                          ) : (
-                            <div className="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center shrink-0 text-[10px] text-slate-400 font-bold">
-                              No img
+                  <div className="shrink-0">
+                    {currentSlideProductIds.length === 0 ? (
+                      <span className="inline-flex items-center gap-1 text-[11px] font-bold px-3 py-1 rounded-full bg-slate-100 dark:bg-gray-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-gray-700">
+                        🔗 Custom Link Mode
+                      </span>
+                    ) : currentSlideProductIds.length === 1 ? (
+                      <span className="inline-flex items-center gap-1.5 text-[11px] font-black px-3 py-1 rounded-full bg-rose-50 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-800 shadow-2xs">
+                        <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse" />
+                        🎯 Single Product Mode (Direct Product Page)
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1.5 text-[11px] font-black px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 shadow-2xs">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                        🛍️ Multi-Product Landing Page ({currentSlideProductIds.length} Products)
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Custom Landing Page Title */}
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <Field
+                    label="Landing Page Title (কাস্টম পেজ টাইটেল)"
+                    hint="e.g. Flash Sale, Mega Deal, Eid Collection"
+                  >
+                    <input
+                      value={currentSlide.pageTitle || ''}
+                      onChange={(e) => updateSlide('pageTitle', e.target.value)}
+                      className={`w-full px-3.5 py-2.5 border text-sm ${input}`}
+                      placeholder={currentSlide.title || 'যেমন: Flash Sale অথবা Mega Deal...'}
+                    />
+                  </Field>
+
+                  <Field
+                    label="Click Destination (লিংক গন্তব্য)"
+                    hint={
+                      currentSlideProductIds.length === 1
+                        ? 'Direct Product Route'
+                        : currentSlideProductIds.length > 1
+                        ? 'Custom Showcase Route'
+                        : 'Manual Link Route'
+                    }
+                  >
+                    <input
+                      value={
+                        currentSlideProductIds.length === 1
+                          ? `/product/${currentSlideProductIds[0]}`
+                          : currentSlideProductIds.length > 1
+                          ? `/showcase/banner-${currentSlide.id}`
+                          : currentSlide.link || ''
+                      }
+                      onChange={(e) => updateSlide('link', e.target.value)}
+                      className={`w-full px-3.5 py-2.5 border text-sm ${input}`}
+                      placeholder="e.g. /product/abc-123 or /shop"
+                    />
+                  </Field>
+                </div>
+
+                {/* Search & Add Product to this Banner */}
+                <div className="space-y-2">
+                  <Field label="প্রোডাক্ট খুঁজুন এবং ব্যানারে যুক্ত করুন" hint="Search catalog by name, brand, or SKU">
+                    <div className="relative">
+                      <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                      <input
+                        value={flashSlideSearch}
+                        onChange={(event) => setFlashSlideSearch(event.target.value)}
+                        className={`w-full pl-10 pr-3.5 py-2.5 border text-sm ${input}`}
+                        placeholder="Search product by name, brand, or SKU to link..."
+                      />
+                    </div>
+                  </Field>
+
+                  {matchedFlashSlideProducts.length > 0 && (
+                    <div className="rounded-xl border border-slate-200 dark:border-gray-700 divide-y divide-slate-100 dark:divide-gray-800 overflow-hidden bg-white dark:bg-gray-900 shadow-md max-h-64 overflow-y-auto">
+                      {matchedFlashSlideProducts.map((product) => {
+                        const isSelected = currentSlideProductIds.includes(product.id);
+                        return (
+                          <div
+                            key={product.id}
+                            className="w-full px-3.5 py-2.5 flex items-center justify-between gap-3 hover:bg-slate-50 dark:hover:bg-gray-800/80 transition"
+                          >
+                            <div className="flex items-center gap-2.5 min-w-0">
+                              {product.images?.[0] ? (
+                                <img
+                                  src={product.images[0]}
+                                  alt={product.title}
+                                  className="w-10 h-10 rounded-lg object-cover border border-slate-200 dark:border-gray-700 shrink-0 bg-white"
+                                />
+                              ) : (
+                                <div className="w-10 h-10 rounded-lg bg-slate-100 dark:bg-gray-800 flex items-center justify-center shrink-0 text-[10px] text-slate-400 font-bold">
+                                  No img
+                                </div>
+                              )}
+                              <span className="min-w-0">
+                                <span className="block text-xs font-bold truncate text-slate-800 dark:text-slate-200">
+                                  {product.title}
+                                </span>
+                                <span className="text-[11px] text-slate-500 dark:text-slate-400">
+                                  ৳{product.price} {product.sku ? `• SKU: ${product.sku}` : ''}
+                                </span>
+                              </span>
                             </div>
-                          )}
-                          <span className="min-w-0">
-                            <span className="block text-xs font-bold truncate text-slate-800">{product.title}</span>
-                            <span className="text-[11px] text-slate-500">
-                              ৳{product.price} {product.sku ? `• SKU: ${product.sku}` : ''}
-                            </span>
-                          </span>
-                        </div>
-                        <span className="text-xs font-bold text-rose-600 shrink-0">Use Product</span>
+
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (isSelected) {
+                                  removeProductFromSlide(product.id);
+                                } else {
+                                  addProductToSlide(product);
+                                }
+                              }}
+                              className={`text-xs font-bold px-3 py-1.5 rounded-lg transition shrink-0 cursor-pointer ${
+                                isSelected
+                                  ? 'bg-rose-100 text-rose-700 hover:bg-rose-200 dark:bg-rose-950/60 dark:text-rose-300'
+                                  : 'bg-rose-600 hover:bg-rose-700 text-white shadow-xs'
+                              }`}
+                            >
+                              {isSelected ? '✓ Added (Remove)' : '+ Add to Banner'}
+                            </button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+
+                {/* Selected Products List */}
+                {selectedSlideProducts.length > 0 && (
+                  <div className="space-y-2.5 pt-3 border-t border-slate-100 dark:border-gray-800">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                        <Package className="w-3.5 h-3.5 text-rose-600" />
+                        সংযুক্ত প্রোডাক্টসমূহ ({selectedSlideProducts.length} টি)
+                      </span>
+                      <button
+                        type="button"
+                        onClick={clearSlideProducts}
+                        className="text-[11px] font-bold text-rose-600 hover:text-rose-700 cursor-pointer"
+                      >
+                        সবগুলো আনলিঙ্ক করুন (Clear All)
                       </button>
-                    ))}
+                    </div>
+
+                    <div className="grid gap-2.5 sm:grid-cols-2">
+                      {selectedSlideProducts.map((prod, idx) => (
+                        <div
+                          key={prod.id}
+                          className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50/70 dark:bg-gray-800/80 border border-slate-200/90 dark:border-gray-700 shadow-2xs gap-2.5"
+                        >
+                          <div className="flex items-center gap-2.5 min-w-0">
+                            {prod.images?.[0] ? (
+                              <img
+                                src={prod.images[0]}
+                                alt={prod.title}
+                                className="w-10 h-10 rounded-lg object-cover border border-slate-200 dark:border-gray-700 shrink-0 bg-white"
+                              />
+                            ) : (
+                              <div className="w-10 h-10 rounded-lg bg-slate-100 dark:bg-gray-700 flex items-center justify-center shrink-0 text-[9px] font-bold text-slate-400">
+                                IMG
+                              </div>
+                            )}
+                            <div className="min-w-0">
+                              <p className="text-xs font-bold text-slate-900 dark:text-white truncate">
+                                {idx + 1}. {prod.title}
+                              </p>
+                              <p className="text-[10px] text-slate-500 dark:text-slate-400">
+                                ৳{prod.price} {prod.sku ? `• SKU: ${prod.sku}` : ''}
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-1 shrink-0">
+                            <button
+                              type="button"
+                              onClick={() => useProductAsBannerContent(prod)}
+                              title="Use this product's title and image for this banner slide"
+                              className="px-2 py-1 text-[10px] font-bold rounded-lg bg-white dark:bg-gray-700 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-gray-600 hover:bg-rose-50 hover:text-rose-600 transition cursor-pointer"
+                            >
+                              Use on Banner
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => removeProductFromSlide(prod.id)}
+                              className="w-7 h-7 flex items-center justify-center rounded-lg text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/50 transition cursor-pointer"
+                              title="Remove"
+                            >
+                              <X className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 )}
               </div>
@@ -922,79 +1229,17 @@ export const AdminBanners: React.FC = () => {
                 />
               </Field>
 
-              {(form.flashSaleBannerType || 'clickable') === 'clickable' ? (
-                <>
-                  <Field label="Click destination link" hint="Where clicking this slide takes customers">
-                    <input
-                      value={currentSlide.link || ''}
-                      onChange={(event) => updateSlide('link', event.target.value)}
-                      className={`w-full px-3.5 py-2.5 border text-sm ${input}`}
-                      placeholder="e.g. /product/abc-123 or /products"
-                    />
-                  </Field>
-
-                  <Field label="Slide description (Optional)" hint="Leave empty if banner image already has text">
-                    <textarea
-                      rows={2}
-                      value={currentSlide.subtitle || ''}
-                      onChange={(event) => updateSlide('subtitle', event.target.value)}
-                      className={`w-full px-3.5 py-2.5 border text-sm resize-y ${input}`}
-                      placeholder="Optional brief description"
-                    />
-                  </Field>
-                </>
-              ) : (
-                <div className="sm:col-span-2">
-                  <Field label="Slide description (Optional)" hint="Leave empty if banner image already has text">
-                    <textarea
-                      rows={2}
-                      value={currentSlide.subtitle || ''}
-                      onChange={(event) => updateSlide('subtitle', event.target.value)}
-                      className={`w-full px-3.5 py-2.5 border text-sm resize-y ${input}`}
-                      placeholder="Optional brief description"
-                    />
-                  </Field>
-                </div>
-              )}
-
-              {/* Linked Product Preview Card */}
-              {currentSlide.link && (form.flashSaleBannerType || 'clickable') === 'clickable' && (
-                <div className="sm:col-span-2 flex items-center justify-between p-3 rounded-xl bg-rose-50 border border-rose-100 text-xs text-rose-900 gap-3">
-                  <div className="flex items-center gap-3 min-w-0">
-                    {currentSlide.bgImage ? (
-                      <img
-                        src={currentSlide.bgImage}
-                        alt="Product Default"
-                        className="w-11 h-11 rounded-lg object-cover border border-rose-200 shrink-0 bg-white shadow-2xs"
-                      />
-                    ) : (
-                      <div className="w-11 h-11 rounded-lg bg-rose-100 flex items-center justify-center shrink-0 text-[10px] font-bold text-rose-500">
-                        IMG
-                      </div>
-                    )}
-                    <div className="min-w-0">
-                      <p className="font-black text-slate-900 truncate">
-                        {currentSlide.title || 'Linked Product'}
-                      </p>
-                      <p className="text-[11px] text-rose-700 truncate font-medium">
-                        ✓ Linked destination • {currentSlide.link}
-                      </p>
-                    </div>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      updateSlideFields({
-                        link: '',
-                        productId: undefined,
-                      });
-                    }}
-                    className="text-xs text-rose-600 hover:text-rose-800 font-bold px-3 py-1.5 rounded-lg border border-rose-200 bg-white hover:bg-rose-50 transition shrink-0 cursor-pointer"
-                  >
-                    Unlink
-                  </button>
-                </div>
-              )}
+              <div className="sm:col-span-2">
+                <Field label="Slide description (Optional)" hint="Leave empty if banner image already has text">
+                  <textarea
+                    rows={2}
+                    value={currentSlide.subtitle || ''}
+                    onChange={(event) => updateSlide('subtitle', event.target.value)}
+                    className={`w-full px-3.5 py-2.5 border text-sm resize-y ${input}`}
+                    placeholder="Optional brief description"
+                  />
+                </Field>
+              </div>
 
               {/* Image Uploaders for PC and Mobile */}
               <div className="sm:col-span-2 space-y-4 pt-3 border-t border-slate-100 dark:border-gray-800">

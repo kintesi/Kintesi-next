@@ -153,6 +153,7 @@ export function App() {
                             <Route path="/" element={<HomePage />} />
                             <Route path="/shop" element={<ShopPage />} />
                             <Route path="/showcase/:type" element={<ShowcasePage />} />
+                            <Route path="/showcase/banner/:type" element={<ShowcasePage />} />
                             <Route path="/flash-sale" element={<ShowcasePage showcaseType="flash_sale" />} />
                             <Route path="/trending" element={<ShowcasePage showcaseType="trending" />} />
                             <Route path="/featured" element={<ShowcasePage showcaseType="featured" />} />

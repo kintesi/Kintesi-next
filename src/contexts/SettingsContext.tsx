@@ -14,6 +14,8 @@ export interface FlashSaleSlide {
   mobileImage?: string; // Specific image for Mobile view
   link?: string;
   productId?: string;
+  productIds?: string[]; // Multiple products linked to this banner
+  pageTitle?: string; // Custom landing page title (e.g. Flash Sale / Mega Deal)
   bannerType?: 'normal' | 'clickable'; // 'normal' = full image display only, 'clickable' = clicking navigates to link/product
   layoutStyle?: 'full' | 'split'; // 'full' = full-bleed edge-to-edge image, 'split' = text on left, image on right
   showTimer?: boolean; // toggle countdown timer on this slide

@@ -1900,20 +1900,6 @@ export const AdminProducts: React.FC = () => {
                             </option>
                           </select>
                         )}
-
-                        {/* Live Category > Subcategory Breadcrumb Preview */}
-                        <div className={`flex items-center gap-2 px-3 py-2 rounded-xl text-xs mt-2 border ${
-                          isLight ? 'bg-rose-50/70 border-rose-200 text-rose-950' : 'bg-rose-500/10 border-rose-500/20 text-rose-200'
-                        }`}>
-                          <span className="text-gray-400 font-bold text-[11px]">Hierarchy Preview:</span>
-                          <span className="font-black text-rose-600 dark:text-rose-400">
-                            {currentCatObj?.name || 'Category'}
-                          </span>
-                          <span className="text-gray-400 font-black">&gt;</span>
-                          <span className={`font-black ${formData.sub_category ? 'text-amber-500 dark:text-amber-300' : 'text-gray-400 italic'}`}>
-                            {formData.sub_category || 'No sub-category selected'}
-                          </span>
-                        </div>
                       </div>
                     );
                   })()}

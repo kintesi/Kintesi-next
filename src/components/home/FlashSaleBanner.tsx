@@ -187,6 +187,8 @@ export const FlashSaleBanner: React.FC<FlashSaleBannerProps> = ({
           mobileImage: s.mobileImage || s.bgImage || defaultMobileImage || defaultBgImage || '',
           link: s.link || defaultLink || '',
           productId: s.productId || '',
+          productIds: s.productIds || (s.productId ? [s.productId] : []),
+          pageTitle: s.pageTitle || '',
           bannerType: s.bannerType,
           layoutStyle: s.layoutStyle,
           showTimer: s.showTimer,
@@ -202,6 +204,8 @@ export const FlashSaleBanner: React.FC<FlashSaleBannerProps> = ({
             desktopImage: defaultDesktopImage || defaultBgImage || '',
             mobileImage: defaultMobileImage || defaultBgImage || '',
             link: defaultLink || '',
+            productIds: [],
+            pageTitle: '',
           },
         ];
 
@@ -291,11 +295,23 @@ export const FlashSaleBanner: React.FC<FlashSaleBannerProps> = ({
     const target = e.target as HTMLElement;
     if (target.closest('button')) return;
 
-    const targetLink =
-      currentSlide.link ||
-      (currentSlide.productId ? `/product/${currentSlide.productId}` : '') ||
-      defaultLink ||
-      '/products';
+    const pIds = (currentSlide.productIds && currentSlide.productIds.length > 0)
+      ? currentSlide.productIds
+      : (currentSlide.productId ? [currentSlide.productId] : []);
+
+    let targetLink = '';
+
+    if (pIds.length === 1) {
+      // Single product mode: navigate directly to product detail page
+      targetLink = `/product/${pIds[0]}`;
+    } else if (pIds.length > 1) {
+      // Multi-product landing page mode: navigate to dedicated showcase page
+      targetLink = `/showcase/banner-${currentSlide.id}`;
+    } else if (currentSlide.link && currentSlide.link.trim() !== '') {
+      targetLink = currentSlide.link;
+    } else {
+      targetLink = defaultLink || '/products';
+    }
 
     if (targetLink) {
       if (targetLink.startsWith('http://') || targetLink.startsWith('https://')) {

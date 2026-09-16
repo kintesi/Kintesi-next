@@ -66,8 +66,41 @@ export const ShowcasePage: React.FC<ShowcasePageProps> = ({ showcaseType }) => {
     };
   }, []);
 
-  // Find the showcase configuration from SettingsContext
+  // Find the showcase configuration from SettingsContext or Banner Slides
   const currentShowcase = useMemo(() => {
+    const rawParam = (showcaseType || paramType || 'trending').toLowerCase();
+    const cleanBannerId = rawParam.replace(/^banner[-_]/, '');
+
+    // 1. First check if matching a Banner Slide (e.g. /showcase/banner-1 or /showcase/banner-slide-xxx)
+    const bannerSlides = settings.banners.flashSaleSlides || [];
+    const matchedSlide = bannerSlides.find((s) => {
+      if (!s || !s.id) return false;
+      const sId = String(s.id).toLowerCase();
+      return (
+        sId === cleanBannerId ||
+        sId === rawParam ||
+        `banner-${sId}` === rawParam ||
+        `banner_${sId}` === rawParam
+      );
+    });
+
+    if (matchedSlide) {
+      const pIds = (matchedSlide.productIds && matchedSlide.productIds.length > 0)
+        ? matchedSlide.productIds
+        : (matchedSlide.productId ? [matchedSlide.productId] : []);
+
+      return {
+        id: `banner-${matchedSlide.id}`,
+        type: 'flash_sale' as ShowcaseType,
+        title: matchedSlide.pageTitle?.trim() || matchedSlide.title?.trim() || 'Special Collection',
+        subtitle: matchedSlide.subtitle?.trim() || 'Exclusive curated collection for you',
+        enabled: true,
+        productIds: pIds,
+        isBannerShowcase: true,
+      };
+    }
+
+    // 2. Otherwise check standard showcases
     const list =
       settings.banners.showcases && settings.banners.showcases.length > 0
         ? settings.banners.showcases
@@ -98,9 +131,10 @@ export const ShowcasePage: React.FC<ShowcasePageProps> = ({ showcaseType }) => {
         subtitle: 'Exclusive curated collection for you',
         enabled: true,
         productIds: [],
+        isBannerShowcase: false,
       }
     );
-  }, [settings.banners.showcases, activeSlug]);
+  }, [settings.banners.flashSaleSlides, settings.banners.showcases, activeSlug, paramType, showcaseType]);
 
   // Document Title update
   useEffect(() => {
@@ -120,12 +154,18 @@ export const ShowcasePage: React.FC<ShowcasePageProps> = ({ showcaseType }) => {
       for (const p of allProducts) {
         if (p && p.id) {
           idMap.set(String(p.id), p);
+          if (p.slug) idMap.set(String(p.slug), p);
         }
       }
 
       return currentShowcase.productIds
         .map((id) => idMap.get(String(id)))
         .filter(Boolean) as Product[];
+    }
+
+    // If it is a banner showcase and no products are assigned:
+    if ((currentShowcase as any)?.isBannerShowcase) {
+      return [];
     }
 
     // Smart automatic fallback if admin hasn't explicitly selected specific IDs:
