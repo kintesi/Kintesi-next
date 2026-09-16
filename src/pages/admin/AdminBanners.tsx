@@ -788,8 +788,13 @@ export const AdminBanners: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => {
+                      const hours = Math.max(1, Number(form.flashSaleHours) || 6);
                       setValue('flashSaleDurationType', 'countdown');
                       setValue('flashSaleInfinite', false);
+                      if (!form.flashSaleEndsAt || new Date(form.flashSaleEndsAt).getTime() <= Date.now()) {
+                        setValue('flashSaleHours', hours);
+                        setValue('flashSaleEndsAt', new Date(Date.now() + hours * 60 * 60 * 1000).toISOString());
+                      }
                     }}
                     className={`flex-1 py-1 font-bold rounded-lg transition cursor-pointer text-center text-[11px] ${
                       form.flashSaleDurationType === 'countdown'
@@ -858,6 +863,78 @@ export const AdminBanners: React.FC = () => {
                 </select>
               </div>
             </div>
+
+            {/* Countdown Timer Config Bar (Appears when Timed is selected) */}
+            {form.flashSaleDurationType === 'countdown' && (
+              <div className="flex flex-wrap items-center justify-between gap-3 p-3 rounded-2xl bg-amber-50/80 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 text-xs">
+                <div className="flex items-center gap-3 flex-wrap">
+                  <div className="flex items-center gap-1.5 font-bold text-amber-900 dark:text-amber-200">
+                    <Timer className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
+                    <span>টাইমার সময়কাল:</span>
+                  </div>
+
+                  <div className="flex items-center gap-1.5">
+                    <input
+                      type="number"
+                      min="1"
+                      max="168"
+                      value={form.flashSaleHours || 6}
+                      onChange={(e) => {
+                        const val = Math.max(1, Math.min(168, Number(e.target.value) || 1));
+                        setValue('flashSaleHours', val);
+                      }}
+                      className={`w-16 px-2 py-1 border text-center font-black text-xs rounded-xl ${input}`}
+                    />
+                    <span className="text-slate-600 dark:text-slate-400 font-bold">ঘণ্টা</span>
+
+                    {/* Quick hour presets */}
+                    <div className="inline-flex items-center gap-1 ml-1.5">
+                      {[4, 6, 12, 24, 48].map((h) => (
+                        <button
+                          key={h}
+                          type="button"
+                          onClick={() => {
+                            setValue('flashSaleHours', h);
+                            setForm((prev) => ({
+                              ...prev,
+                              flashSaleHours: h,
+                              flashSaleEndsAt: new Date(Date.now() + h * 60 * 60 * 1000).toISOString(),
+                            }));
+                            toast.info(`Timer set to ${h} hours.`);
+                          }}
+                          className={`px-2 py-0.5 rounded-lg text-[11px] font-bold border transition cursor-pointer ${
+                            (form.flashSaleHours || 6) === h
+                              ? 'bg-amber-600 text-white border-amber-600 shadow-2xs'
+                              : 'bg-white dark:bg-gray-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-gray-700 hover:border-amber-400'
+                          }`}
+                        >
+                          {h}h
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2.5 flex-wrap">
+                  {form.flashSaleEndsAt && (
+                    <span className="text-[11px] text-slate-600 dark:text-slate-400 font-medium">
+                      {new Date(form.flashSaleEndsAt).getTime() > Date.now()
+                        ? `⏱️ শেষ: ${new Date(form.flashSaleEndsAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}, ${new Date(form.flashSaleEndsAt).toLocaleDateString()}`
+                        : '⚠️ সময় শেষ (Expired)'}
+                    </span>
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={resetFlashTimer}
+                    className="px-3 py-1 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs shadow-xs transition cursor-pointer flex items-center gap-1"
+                  >
+                    <RotateCcw className="w-3.5 h-3.5" />
+                    <span>রিস্টার্ট টাইমার (Start from Now)</span>
+                  </button>
+                </div>
+              </div>
+            )}
 
             {/* Slide Navigation & Live Mode Indicator */}
             <div className="flex flex-wrap items-center justify-between gap-2.5 pt-1 border-t border-slate-100 dark:border-gray-800">
