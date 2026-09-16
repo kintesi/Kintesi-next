@@ -29,6 +29,7 @@ export interface Category {
   slug: string;
   description?: string;
   image_url?: string;
+  image?: string;
   icon?: string;
   subcategories?: string[];
 }

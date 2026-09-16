@@ -32,6 +32,7 @@ import { ImageUploader } from '../../components/common/ImageUploader';
 import { Product } from '../../types';
 import { getProductsFromDB, saveProductToDB } from '../../lib/dbService';
 import { formatPrice } from '../../lib/utils';
+import { deleteImagesFromCloudinary } from '../../lib/cloudinary';
 
 const Toggle: React.FC<{ checked: boolean; onChange: (checked: boolean) => void; label: string }> = ({ checked, onChange, label }) => {
   const { isLight } = useAdminTheme();
@@ -484,6 +485,19 @@ export const AdminBanners: React.FC = () => {
     if (slides.length === 1) {
       toast.error('A flash sale needs at least one slide.');
       return;
+    }
+    const slideToRemove = slides[selectedSlideIndex];
+    if (slideToRemove) {
+      const urlsToPurge = [
+        slideToRemove.desktopImage,
+        slideToRemove.mobileImage,
+        slideToRemove.bgImage,
+      ].filter(Boolean) as string[];
+      if (urlsToPurge.length > 0) {
+        deleteImagesFromCloudinary(urlsToPurge).catch((err) =>
+          console.warn('Cloudinary slide image deletion notice:', err)
+        );
+      }
     }
     hasUserEdited.current = true;
     setIsSaved(false);
@@ -942,31 +956,41 @@ export const AdminBanners: React.FC = () => {
                 <span className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mr-1">
                   Slides:
                 </span>
-                {slides.map((slide, index) => (
-                  <button
-                    key={slide.id}
-                    type="button"
-                    onClick={() => setSelectedSlideIndex(index)}
-                    className={`h-8 px-3 rounded-xl text-xs font-bold border cursor-pointer transition flex items-center justify-center gap-1.5 ${
-                      index === selectedSlideIndex
-                        ? 'bg-rose-600 border-rose-600 text-white shadow-xs'
-                        : isLight
-                        ? 'bg-white border-slate-200 text-slate-700 hover:border-rose-300'
-                        : 'bg-gray-900 border-gray-800 text-gray-300'
-                    }`}
-                  >
-                    <span>Slide {index + 1}</span>
-                    {slide.productIds && slide.productIds.length > 0 && (
-                      <span
-                        className={`text-[10px] px-1.5 py-0.5 rounded-full font-black ${
-                          index === selectedSlideIndex ? 'bg-white/25 text-white' : 'bg-rose-100 text-rose-700'
-                        }`}
-                      >
-                        {slide.productIds.length}
-                      </span>
-                    )}
-                  </button>
-                ))}
+                {slides.map((slide, index) => {
+                  const thumb = slide.desktopImage || slide.bgImage || slide.mobileImage;
+                  return (
+                    <button
+                      key={slide.id}
+                      type="button"
+                      onClick={() => setSelectedSlideIndex(index)}
+                      className={`h-9 px-2.5 rounded-xl text-xs font-bold border cursor-pointer transition flex items-center justify-center gap-2 ${
+                        index === selectedSlideIndex
+                          ? 'bg-rose-600 border-rose-600 text-white shadow-xs'
+                          : isLight
+                          ? 'bg-white border-slate-200 text-slate-700 hover:border-rose-300'
+                          : 'bg-gray-900 border-gray-800 text-gray-300'
+                      }`}
+                    >
+                      {thumb ? (
+                        <img src={thumb} alt="" className="w-5 h-5 rounded object-cover border border-white/30" />
+                      ) : (
+                        <span className="w-5 h-5 rounded bg-slate-200 dark:bg-gray-800 text-[9px] flex items-center justify-center font-bold">
+                          {index + 1}
+                        </span>
+                      )}
+                      <span>Slide {index + 1}</span>
+                      {slide.productIds && slide.productIds.length > 0 && (
+                        <span
+                          className={`text-[10px] px-1.5 py-0.5 rounded-full font-black ${
+                            index === selectedSlideIndex ? 'bg-white/25 text-white' : 'bg-rose-100 text-rose-700'
+                          }`}
+                        >
+                          {slide.productIds.length}
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
                 <button
                   type="button"
                   onClick={addSlide}

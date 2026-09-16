@@ -6,7 +6,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { INITIAL_PRODUCTS, INITIAL_CATEGORIES } from '../../data/mockData';
 import { Product, Category, ProductColorOption, ProductCustomAttributeOption } from '../../types';
 import { formatPrice, calculateDiscount } from '../../lib/utils';
-import { uploadToCloudinary } from '../../lib/cloudinary';
+import { uploadToCloudinary, deleteImagesFromCloudinary } from '../../lib/cloudinary';
 import {
   Plus,
   Edit2,
@@ -78,6 +78,8 @@ export const AdminProducts: React.FC = () => {
   const colorFileInputRef = useRef<HTMLInputElement>(null);
   const [showTemplatePicker, setShowTemplatePicker] = useState(false);
   const [templateSearchQuery, setTemplateSearchQuery] = useState('');
+  const [selectedCategoryFilter, setSelectedCategoryFilter] = useState<string>('all');
+  const [selectedStockFilter, setSelectedStockFilter] = useState<'all' | 'in_stock' | 'low_stock' | 'out_of_stock'>('all');
 
   const filteredTemplateProducts = useMemo(() => {
     const q = templateSearchQuery.trim().toLowerCase();
@@ -1236,6 +1238,22 @@ export const AdminProducts: React.FC = () => {
 
     if (!confirm(`Are you sure you want to permanently delete "${prod.title}"?`)) return;
 
+    // 0. Delete images from Cloudinary storage
+    const imagesToPurge: string[] = [];
+    if (Array.isArray(prod.images)) {
+      imagesToPurge.push(...prod.images);
+    }
+    if (Array.isArray(prod.colors)) {
+      prod.colors.forEach((c) => {
+        if (c.image) imagesToPurge.push(c.image);
+      });
+    }
+    if (imagesToPurge.length > 0) {
+      deleteImagesFromCloudinary(imagesToPurge).catch((err) =>
+        console.warn('Cloudinary images delete notice:', err)
+      );
+    }
+
     try {
       // 1. Delete from Supabase Database by ID and Slug
       const isUUID = (str?: string) =>
@@ -1254,7 +1272,7 @@ export const AdminProducts: React.FC = () => {
     }
 
     // 2. Remove permanently from local storage cache and Firestore
-    await deleteProductFromDB(prod.id);
+    await deleteProductFromDB(prod.id, prod);
     const savedCustom: Product[] = JSON.parse(localStorage.getItem('kintesi_custom_products') || '[]');
     const cleanCustom = savedCustom.filter((p) => p.id !== prod.id && p.slug !== prod.slug);
     localStorage.setItem('kintesi_custom_products', JSON.stringify(cleanCustom));
@@ -1268,12 +1286,41 @@ export const AdminProducts: React.FC = () => {
     toast.success(`Product "${prod.title}" permanently deleted!`);
   };
 
-  const filteredProducts = products.filter(
-    (p) =>
-      p.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (p.brand && p.brand.toLowerCase().includes(searchQuery.toLowerCase())) ||
-      (p.sku && p.sku.toLowerCase().includes(searchQuery.toLowerCase()))
-  );
+  const totalCount = products.length;
+  const inStockCount = useMemo(() => products.filter((p) => Number(p.stock) > 5).length, [products]);
+  const lowStockCount = useMemo(() => products.filter((p) => Number(p.stock) > 0 && Number(p.stock) <= 5).length, [products]);
+  const outOfStockCount = useMemo(() => products.filter((p) => Number(p.stock) <= 0).length, [products]);
+
+  const filteredProducts = useMemo(() => {
+    return products.filter((p) => {
+      const q = searchQuery.toLowerCase().trim();
+      const matchesSearch =
+        !q ||
+        p.title.toLowerCase().includes(q) ||
+        (p.brand && p.brand.toLowerCase().includes(q)) ||
+        (p.sku && p.sku.toLowerCase().includes(q)) ||
+        (p.category_id && p.category_id.toLowerCase().includes(q));
+
+      const matchesCategory =
+        selectedCategoryFilter === 'all' ||
+        p.category_id === selectedCategoryFilter ||
+        p.sub_category === selectedCategoryFilter;
+
+      const stockNum = Number(p.stock) || 0;
+      const matchesStock =
+        selectedStockFilter === 'all'
+          ? true
+          : selectedStockFilter === 'in_stock'
+          ? stockNum > 5
+          : selectedStockFilter === 'low_stock'
+          ? stockNum > 0 && stockNum <= 5
+          : selectedStockFilter === 'out_of_stock'
+          ? stockNum <= 0
+          : true;
+
+      return matchesSearch && matchesCategory && matchesStock;
+    });
+  }, [products, searchQuery, selectedCategoryFilter, selectedStockFilter]);
 
   const filteredColorPresets = colorPresets.filter((c) =>
     c.name.toLowerCase().includes(colorPresetSearch.toLowerCase().trim()) ||
@@ -1295,20 +1342,25 @@ export const AdminProducts: React.FC = () => {
 
   return (
     <div className="w-full space-y-6 pb-20">
-      
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-black text-white">Product Catalog & Inventory</h1>
-          <p className="text-xs text-gray-400 mt-1">
-            Manage comprehensive product specifications, variants, multi-image galleries & percentage discounts
+          <h1 className={`text-2xl font-black ${isLight ? 'text-slate-900' : 'text-white'}`}>
+            Product Catalog & Inventory
+          </h1>
+          <p className={`text-xs mt-1 ${isLight ? 'text-slate-500' : 'text-gray-400'}`}>
+            প্রোডাক্ট ক্যাটালগ, স্টক ইনভেন্টরি, ডিসকাউন্ট ও ভ্যারিয়েন্ট ম্যানেজমেন্ট
           </p>
         </div>
         <div className="flex items-center gap-3">
           <button
             type="button"
             onClick={handleClearDemoCache}
-            className="px-4 py-3 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 font-bold rounded-2xl transition flex items-center gap-1.5 text-xs"
+            className={`px-4 py-2.5 rounded-2xl font-bold transition flex items-center gap-1.5 text-xs cursor-pointer ${
+              isLight
+                ? 'bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200'
+                : 'bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20'
+            }`}
             title="Clean mock demo cache"
           >
             <Trash2 className="w-4 h-4" />
@@ -1316,7 +1368,7 @@ export const AdminProducts: React.FC = () => {
           </button>
           <button
             onClick={handleOpenAddModal}
-            className="px-5 py-3 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-2xl transition flex items-center gap-2 text-xs shadow-lg shadow-rose-600/30 active:scale-95"
+            className="px-5 py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-2xl transition flex items-center gap-2 text-xs shadow-lg shadow-rose-600/30 active:scale-95 cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             <span>Add New Product</span>
@@ -1324,29 +1376,209 @@ export const AdminProducts: React.FC = () => {
         </div>
       </div>
 
-      {/* Search Bar */}
-      <div className="bg-gray-900 border border-gray-800 rounded-2xl p-4 flex items-center gap-3">
-        <Search className="w-4 h-4 text-gray-400" />
-        <input
-          type="text"
-          placeholder="Search by title, brand, or SKU..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="bg-transparent border-none text-white text-xs w-full focus:outline-none placeholder:text-gray-500"
-        />
-        {searchQuery && (
-          <button onClick={() => setSearchQuery('')} className="text-gray-400 hover:text-white">
-            <X className="w-4 h-4" />
+      {/* 4 Inventory Stat Cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
+        <button
+          type="button"
+          onClick={() => setSelectedStockFilter('all')}
+          className={`p-4 rounded-2xl border text-left transition cursor-pointer ${
+            selectedStockFilter === 'all'
+              ? 'ring-2 ring-rose-500 shadow-md'
+              : ''
+          } ${
+            isLight
+              ? 'bg-white border-slate-200 hover:border-slate-300'
+              : 'bg-gray-900 border-gray-800 hover:border-gray-700'
+          }`}
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-bold text-slate-500">মোট প্রোডাক্ট</span>
+            <div className="w-7 h-7 rounded-lg bg-blue-500/10 text-blue-500 flex items-center justify-center">
+              <Package className="w-4 h-4" />
+            </div>
+          </div>
+          <p className={`text-2xl font-black mt-2 ${isLight ? 'text-slate-900' : 'text-white'}`}>
+            {totalCount}
+          </p>
+          <span className="text-[10px] text-slate-400 font-medium">All Catalog Items</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setSelectedStockFilter('in_stock')}
+          className={`p-4 rounded-2xl border text-left transition cursor-pointer ${
+            selectedStockFilter === 'in_stock'
+              ? 'ring-2 ring-emerald-500 shadow-md'
+              : ''
+          } ${
+            isLight
+              ? 'bg-white border-slate-200 hover:border-slate-300'
+              : 'bg-gray-900 border-gray-800 hover:border-gray-700'
+          }`}
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-bold text-emerald-600">পর্যাপ্ত স্টক</span>
+            <div className="w-7 h-7 rounded-lg bg-emerald-500/10 text-emerald-500 flex items-center justify-center">
+              <Check className="w-4 h-4" />
+            </div>
+          </div>
+          <p className={`text-2xl font-black mt-2 text-emerald-600`}>
+            {inStockCount}
+          </p>
+          <span className="text-[10px] text-emerald-500 font-medium">&gt; 5 in stock</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setSelectedStockFilter('low_stock')}
+          className={`p-4 rounded-2xl border text-left transition cursor-pointer ${
+            selectedStockFilter === 'low_stock'
+              ? 'ring-2 ring-amber-500 shadow-md'
+              : ''
+          } ${
+            isLight
+              ? 'bg-white border-slate-200 hover:border-slate-300'
+              : 'bg-gray-900 border-gray-800 hover:border-gray-700'
+          }`}
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-bold text-amber-600">কম স্টক</span>
+            <div className="w-7 h-7 rounded-lg bg-amber-500/10 text-amber-500 flex items-center justify-center">
+              <Zap className="w-4 h-4" />
+            </div>
+          </div>
+          <p className={`text-2xl font-black mt-2 text-amber-600`}>
+            {lowStockCount}
+          </p>
+          <span className="text-[10px] text-amber-500 font-medium">1–5 remaining</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setSelectedStockFilter('out_of_stock')}
+          className={`p-4 rounded-2xl border text-left transition cursor-pointer ${
+            selectedStockFilter === 'out_of_stock'
+              ? 'ring-2 ring-rose-500 shadow-md'
+              : ''
+          } ${
+            isLight
+              ? 'bg-white border-slate-200 hover:border-slate-300'
+              : 'bg-gray-900 border-gray-800 hover:border-gray-700'
+          }`}
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-bold text-rose-600">স্টক আউট</span>
+            <div className="w-7 h-7 rounded-lg bg-rose-500/10 text-rose-500 flex items-center justify-center">
+              <Ban className="w-4 h-4" />
+            </div>
+          </div>
+          <p className={`text-2xl font-black mt-2 text-rose-600`}>
+            {outOfStockCount}
+          </p>
+          <span className="text-[10px] text-rose-500 font-medium">0 in stock</span>
+        </button>
+      </div>
+
+      {/* Advanced Filter Toolbar */}
+      <div className={`p-3.5 rounded-2xl border flex flex-col md:flex-row items-stretch md:items-center gap-3 ${
+        isLight ? 'bg-white border-slate-200 shadow-xs' : 'bg-gray-900 border-gray-800'
+      }`}>
+        {/* Search */}
+        <div className="relative flex-1">
+          <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+          <input
+            type="text"
+            placeholder="Search by title, brand, category, or SKU..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className={`w-full pl-10 pr-8 py-2 rounded-xl text-xs font-medium border transition outline-none ${
+              isLight
+                ? 'bg-slate-50 border-slate-200 text-slate-900 focus:bg-white focus:border-rose-500 focus:ring-2 focus:ring-rose-500/10'
+                : 'bg-gray-950 border-gray-800 text-white focus:border-rose-500 focus:ring-2 focus:ring-rose-500/20'
+            }`}
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery('')}
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          )}
+        </div>
+
+        {/* Category Dropdown Filter */}
+        <div className="shrink-0">
+          <select
+            value={selectedCategoryFilter}
+            onChange={(e) => setSelectedCategoryFilter(e.target.value)}
+            className={`py-2 px-3 rounded-xl text-xs font-bold border transition outline-none cursor-pointer ${
+              isLight
+                ? 'bg-slate-50 border-slate-200 text-slate-800 focus:bg-white focus:border-rose-500'
+                : 'bg-gray-950 border-gray-800 text-gray-200 focus:border-rose-500'
+            }`}
+          >
+            <option value="all">📁 All Categories (সব ক্যাটাগরি)</option>
+            {categories.map((c) => (
+              <option key={c.id || c.slug} value={c.slug || c.id}>
+                {c.name}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Stock Filter Pills */}
+        <div className={`inline-flex rounded-xl p-0.5 border text-xs shrink-0 ${
+          isLight ? 'bg-slate-100 border-slate-200' : 'bg-gray-950 border-gray-800'
+        }`}>
+          {[
+            { key: 'all', label: 'All' },
+            { key: 'in_stock', label: 'In Stock' },
+            { key: 'low_stock', label: 'Low Stock' },
+            { key: 'out_of_stock', label: 'Out of Stock' },
+          ].map((item) => (
+            <button
+              key={item.key}
+              type="button"
+              onClick={() => setSelectedStockFilter(item.key as any)}
+              className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition cursor-pointer ${
+                selectedStockFilter === item.key
+                  ? 'bg-rose-600 text-white shadow-2xs'
+                  : isLight
+                  ? 'text-slate-600 hover:text-slate-900'
+                  : 'text-gray-400 hover:text-white'
+              }`}
+            >
+              {item.label}
+            </button>
+          ))}
+        </div>
+
+        {(searchQuery || selectedCategoryFilter !== 'all' || selectedStockFilter !== 'all') && (
+          <button
+            type="button"
+            onClick={() => {
+              setSearchQuery('');
+              setSelectedCategoryFilter('all');
+              setSelectedStockFilter('all');
+            }}
+            className="text-xs text-rose-600 hover:text-rose-700 font-bold px-2 py-1 shrink-0 cursor-pointer"
+          >
+            Reset Filters
           </button>
         )}
       </div>
 
       {/* Product Table */}
-      <div className="bg-gray-900 border border-gray-800 rounded-3xl overflow-hidden shadow-xl">
+      <div className={`rounded-3xl border overflow-hidden ${
+        isLight ? 'bg-white border-slate-200 shadow-sm' : 'bg-gray-900 border-gray-800 shadow-xl'
+      }`}>
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="border-b border-gray-800 bg-gray-950/50 text-[11px] font-black uppercase tracking-wider text-gray-400">
+              <tr className={`border-b text-[11px] font-black uppercase tracking-wider ${
+                isLight ? 'bg-slate-50/80 border-slate-200 text-slate-500' : 'bg-gray-950/60 border-gray-800 text-gray-400'
+              }`}>
                 <th className="p-4">Product Info</th>
                 <th className="p-4">Category & Brand</th>
                 <th className="p-4">Price & Savings</th>
@@ -1355,21 +1587,29 @@ export const AdminProducts: React.FC = () => {
                 <th className="p-4 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-800/60 text-xs">
+            <tbody className={`divide-y text-xs ${
+              isLight ? 'divide-slate-100 text-slate-800' : 'divide-gray-800/60 text-white'
+            }`}>
               {filteredProducts.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="p-16 text-center">
                     <div className="max-w-sm mx-auto space-y-3">
-                      <div className="w-12 h-12 rounded-2xl bg-gray-800 border border-gray-700 text-rose-500 flex items-center justify-center mx-auto">
+                      <div className={`w-12 h-12 rounded-2xl border flex items-center justify-center mx-auto ${
+                        isLight ? 'bg-slate-100 border-slate-200 text-rose-600' : 'bg-gray-800 border-gray-700 text-rose-500'
+                      }`}>
                         <Package className="w-6 h-6" />
                       </div>
-                      <p className="text-sm font-bold text-white">No Products in Store Catalog</p>
-                      <p className="text-xs text-gray-400">
-                        {searchQuery ? 'No products match your search query.' : 'All mock products have been cleared. Click below to add your first real product.'}
+                      <p className={`text-sm font-bold ${isLight ? 'text-slate-900' : 'text-white'}`}>
+                        No Products Found
+                      </p>
+                      <p className={`text-xs ${isLight ? 'text-slate-500' : 'text-gray-400'}`}>
+                        {searchQuery || selectedCategoryFilter !== 'all' || selectedStockFilter !== 'all'
+                          ? 'No products match your current filters.'
+                          : 'No products in the store catalog yet.'}
                       </p>
                       <button
                         onClick={handleOpenAddModal}
-                        className="inline-flex items-center gap-2 px-5 py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl text-xs shadow-lg shadow-rose-600/30 transition"
+                        className="inline-flex items-center gap-2 px-5 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl text-xs shadow-lg shadow-rose-600/30 transition cursor-pointer"
                       >
                         <Plus className="w-4 h-4" />
                         <span>Add New Product</span>
@@ -1381,22 +1621,28 @@ export const AdminProducts: React.FC = () => {
                 filteredProducts.map((prod) => {
                   const discountPercent = calculateDiscount(prod.price, prod.discount_price);
                   return (
-                    <tr key={prod.id} className="hover:bg-gray-800/40 transition">
+                    <tr key={prod.id} className={`transition ${
+                      isLight ? 'hover:bg-slate-50/80' : 'hover:bg-gray-800/40'
+                    }`}>
                       <td className="p-4">
                         <div className="flex items-center gap-3">
                           <img
                             src={prod.images?.[0] || '/logo.webp'}
                             alt={prod.title}
-                            className="w-12 h-12 object-cover rounded-xl bg-gray-800 border border-gray-700 flex-shrink-0"
+                            className={`w-12 h-12 object-cover rounded-xl border flex-shrink-0 ${
+                              isLight ? 'bg-slate-100 border-slate-200' : 'bg-gray-800 border-gray-700'
+                            }`}
                           />
                           <div className="max-w-xs">
-                            <p className="font-bold text-white line-clamp-1">{prod.title}</p>
+                            <p className={`font-bold line-clamp-1 ${isLight ? 'text-slate-900' : 'text-white'}`}>
+                              {prod.title}
+                            </p>
                             <div className="flex items-center gap-1.5 flex-wrap mt-0.5">
-                              <span className="text-[10px] text-gray-400 font-mono">
+                              <span className={`text-[10px] font-mono ${isLight ? 'text-slate-500' : 'text-gray-400'}`}>
                                 SKU: {prod.sku || 'N/A'} • {prod.images?.length || 1} Images
                               </span>
                               {prod.dropshipping_url && (
-                                <span className="text-[9px] font-black bg-indigo-500/20 text-indigo-300 px-1.5 py-0.2 rounded border border-indigo-500/30">
+                                <span className="text-[9px] font-black bg-indigo-500/20 text-indigo-500 px-1.5 py-0.2 rounded border border-indigo-500/30">
                                   🔗 Dropship
                                 </span>
                               )}
@@ -1414,18 +1660,22 @@ export const AdminProducts: React.FC = () => {
                           return (
                             <div className="space-y-0.5">
                               <span
-                                className="inline-flex items-center gap-1 px-2.5 py-1 bg-rose-500/10 text-rose-400 font-bold rounded-lg text-[10px] max-w-[220px] truncate"
+                                className="inline-flex items-center gap-1 px-2.5 py-1 bg-rose-500/10 text-rose-600 dark:text-rose-400 font-bold rounded-lg text-[10px] max-w-[220px] truncate"
                                 title={`${catName} > ${prod.sub_category || 'General'}`}
                               >
                                 <span className="truncate">{catName}</span>
                                 {prod.sub_category && (
                                   <>
-                                    <span className="text-gray-500 font-black">&gt;</span>
-                                    <span className="text-amber-300 truncate font-semibold">{prod.sub_category}</span>
+                                    <span className="text-slate-400 font-black">&gt;</span>
+                                    <span className="text-amber-600 dark:text-amber-300 truncate font-semibold">
+                                      {prod.sub_category}
+                                    </span>
                                   </>
                                 )}
                               </span>
-                              <span className="text-[11px] text-gray-400 mt-1 block">{prod.brand || 'No Brand'}</span>
+                              <span className={`text-[11px] mt-1 block ${isLight ? 'text-slate-500' : 'text-gray-400'}`}>
+                                {prod.brand || 'No Brand'}
+                              </span>
                             </div>
                           );
                         })()}
@@ -1433,13 +1683,13 @@ export const AdminProducts: React.FC = () => {
 
                       <td className="p-4">
                         <div className="space-y-0.5">
-                          <p className="font-black text-white text-sm">
+                          <p className={`font-black text-sm ${isLight ? 'text-slate-900' : 'text-white'}`}>
                             {formatPrice(prod.discount_price || prod.price)}
                           </p>
                           {prod.discount_price && (
                             <div className="flex items-center gap-1.5 text-[10px]">
-                              <span className="line-through text-gray-500">{formatPrice(prod.price)}</span>
-                              <span className="bg-rose-500/20 text-rose-400 font-black px-1.5 py-0.2 rounded">
+                              <span className="line-through text-slate-400">{formatPrice(prod.price)}</span>
+                              <span className="bg-rose-500/20 text-rose-600 dark:text-rose-400 font-black px-1.5 py-0.2 rounded">
                                 -{discountPercent}%
                               </span>
                             </div>
@@ -1452,12 +1702,19 @@ export const AdminProducts: React.FC = () => {
                           {prod.sizes && prod.sizes.length > 0 && (
                             <div className="flex flex-wrap gap-1">
                               {prod.sizes.slice(0, 3).map((s, i) => (
-                                <span key={i} className="px-1.5 py-0.5 bg-gray-800 text-gray-300 rounded text-[9px] font-bold">
+                                <span
+                                  key={i}
+                                  className={`px-1.5 py-0.5 rounded text-[9px] font-bold border ${
+                                    isLight ? 'bg-slate-100 text-slate-700 border-slate-200' : 'bg-gray-800 text-gray-300 border-gray-700'
+                                  }`}
+                                >
                                   {s}
                                 </span>
                               ))}
                               {prod.sizes.length > 3 && (
-                                <span className="text-[9px] text-gray-500 font-bold">+{prod.sizes.length - 3}</span>
+                                <span className="text-[9px] text-slate-400 font-bold">
+                                  +{prod.sizes.length - 3}
+                                </span>
                               )}
                             </div>
                           )}
@@ -1466,7 +1723,7 @@ export const AdminProducts: React.FC = () => {
                               {prod.colors.map((c, i) => (
                                 <span
                                   key={i}
-                                  className="w-3.5 h-3.5 rounded-full border-[1.5px] border-dashed border-slate-500/80 shadow-2xs inline-block shrink-0"
+                                  className="w-3.5 h-3.5 rounded-full border-[1.5px] border-slate-300 dark:border-slate-600 shadow-2xs inline-block shrink-0"
                                   style={{ backgroundColor: c.hex }}
                                   title={c.name}
                                 />
@@ -1478,12 +1735,12 @@ export const AdminProducts: React.FC = () => {
 
                       <td className="p-4">
                         <span
-                          className={`font-black text-xs px-2.5 py-1 rounded-lg ${
-                            prod.stock > 5
-                              ? 'bg-emerald-500/10 text-emerald-400'
-                              : prod.stock > 0
-                              ? 'bg-amber-500/10 text-amber-400'
-                              : 'bg-rose-500/10 text-rose-400'
+                          className={`font-black text-xs px-2.5 py-1 rounded-lg inline-block ${
+                            Number(prod.stock) > 5
+                              ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20'
+                              : Number(prod.stock) > 0
+                              ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20'
+                              : 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20'
                           }`}
                         >
                           {prod.stock} in stock
@@ -1492,36 +1749,55 @@ export const AdminProducts: React.FC = () => {
 
                       <td className="p-4 text-right">
                         <div className="flex items-center justify-end gap-1.5">
+                          {/* Live View Button */}
+                          <Link
+                            to={`/product/${prod.id}`}
+                            target="_blank"
+                            className={`p-2 rounded-xl transition cursor-pointer ${
+                              isLight ? 'hover:bg-slate-100 text-slate-500 hover:text-slate-800' : 'hover:bg-gray-800 text-gray-400 hover:text-white'
+                            }`}
+                            title="ওয়েবসাইটে লাইভ প্রোডাক্ট দেখুন"
+                          >
+                            <Globe className="w-4 h-4" />
+                          </Link>
+
                           {prod.dropshipping_url && (
                             <a
                               href={prod.dropshipping_url}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="px-2.5 py-1.5 bg-indigo-500/15 hover:bg-indigo-500/25 border border-indigo-500/30 text-indigo-300 hover:text-white rounded-xl transition flex items-center gap-1 text-[11px] font-bold shadow-xs"
+                              className="px-2.5 py-1.5 bg-indigo-500/15 hover:bg-indigo-500/25 border border-indigo-500/30 text-indigo-600 dark:text-indigo-300 rounded-xl transition flex items-center gap-1 text-[11px] font-bold shadow-xs"
                               title={`সাপ্লায়ার লিংক ওপেন করুন:\n${prod.dropshipping_url}`}
                             >
-                              <ExternalLink className="w-3.5 h-3.5 text-indigo-400" />
-                              <span className="hidden xl:inline">সাপ্লায়ার লিংক</span>
+                              <ExternalLink className="w-3.5 h-3.5 text-indigo-500" />
+                              <span className="hidden xl:inline">সাপ্লায়ার</span>
                             </a>
                           )}
+
                           <button
                             onClick={() => handleDuplicateProduct(prod)}
-                            className="p-2 hover:bg-gray-800 text-indigo-400 rounded-xl transition cursor-pointer"
+                            className={`p-2 rounded-xl transition cursor-pointer ${
+                              isLight ? 'hover:bg-slate-100 text-indigo-600' : 'hover:bg-gray-800 text-indigo-400'
+                            }`}
                             title="Duplicate Product (ডুপ্লিকেট করে নতুন বানান)"
                           >
                             <Copy className="w-4 h-4" />
                           </button>
+
                           <button
                             onClick={() => handleOpenEditModal(prod)}
-                            className="p-2 hover:bg-gray-800 text-emerald-400 rounded-xl transition"
+                            className={`p-2 rounded-xl transition cursor-pointer ${
+                              isLight ? 'hover:bg-slate-100 text-emerald-600' : 'hover:bg-gray-800 text-emerald-400'
+                            }`}
                             title="Edit Product"
                           >
                             <Edit2 className="w-4 h-4" />
                           </button>
+
                           {isSuperAdmin ? (
                             <button
                               onClick={() => handleDelete(prod)}
-                              className="p-2 hover:bg-rose-500/20 text-rose-400 rounded-xl transition cursor-pointer"
+                              className="p-2 hover:bg-rose-500/20 text-rose-500 rounded-xl transition cursor-pointer"
                               title="Delete Product (Master Admin)"
                             >
                               <Trash2 className="w-4 h-4" />
@@ -1529,7 +1805,7 @@ export const AdminProducts: React.FC = () => {
                           ) : (
                             <button
                               disabled
-                              className="p-2 text-gray-600 opacity-30 cursor-not-allowed rounded-xl"
+                              className="p-2 text-gray-400 opacity-30 cursor-not-allowed rounded-xl"
                               title="Delete restricted to Master Admin / Owner"
                             >
                               <Trash2 className="w-4 h-4" />

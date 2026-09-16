@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { uploadToCloudinary } from '../../lib/cloudinary';
+import { uploadToCloudinary, deleteFromCloudinary } from '../../lib/cloudinary';
 import { UploadCloud, Loader2, X, Image as ImageIcon, CheckCircle2 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -21,6 +21,15 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
   const [isUploading, setIsUploading] = useState(false);
   const [showUrlInput, setShowUrlInput] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleRemove = () => {
+    if (value) {
+      deleteFromCloudinary(value).catch((err) =>
+        console.warn('Cloudinary image removal notice:', err)
+      );
+    }
+    onChange('');
+  };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -69,7 +78,7 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
           {value && (
             <button
               type="button"
-              onClick={() => onChange('')}
+              onClick={handleRemove}
               className="p-2 bg-gray-800 hover:bg-rose-500/20 text-gray-400 hover:text-rose-400 rounded-xl transition"
             >
               <X className="w-4 h-4" />
@@ -120,7 +129,7 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
               <img src={value} alt="Preview" className="w-full h-full object-cover" />
               <button
                 type="button"
-                onClick={() => onChange('')}
+                onClick={handleRemove}
                 className="absolute inset-0 bg-black/60 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition"
                 title="Remove"
               >

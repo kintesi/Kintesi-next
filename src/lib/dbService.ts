@@ -14,6 +14,7 @@ import { db } from './firebase';
 import { supabase } from './supabase';
 import { Product, Category, Order } from '../types';
 import { INITIAL_CATEGORIES } from '../data/mockData';
+import { deleteImagesFromCloudinary, deleteFromCloudinary } from './cloudinary';
 
 // Timeout wrapper so slow network queries failover gracefully without freezing UI
 function withTimeout<T>(promise: PromiseLike<T>, ms: number = 3500): Promise<T> {
@@ -182,9 +183,33 @@ export async function saveProductToDB(product: Product): Promise<void> {
   }
 }
 
-export async function deleteProductFromDB(productId: string): Promise<void> {
-  // 1. Local update
+export async function deleteProductFromDB(productId: string, product?: Product): Promise<void> {
+  // 0. Extract images if product is provided or find from local storage
+  let targetProduct = product;
   const localSaved: Product[] = JSON.parse(localStorage.getItem('kintesi_custom_products') || '[]');
+  if (!targetProduct) {
+    targetProduct = localSaved.find((p) => p.id === productId);
+  }
+
+  // Gather all images to purge from Cloudinary
+  if (targetProduct) {
+    const imagesToPurge: string[] = [];
+    if (Array.isArray(targetProduct.images)) {
+      imagesToPurge.push(...targetProduct.images);
+    }
+    if (Array.isArray(targetProduct.colors)) {
+      targetProduct.colors.forEach((c) => {
+        if (c.image) imagesToPurge.push(c.image);
+      });
+    }
+    if (imagesToPurge.length > 0) {
+      deleteImagesFromCloudinary(imagesToPurge).catch((err) =>
+        console.warn('Cloudinary images purge notice:', err)
+      );
+    }
+  }
+
+  // 1. Local update
   const filtered = localSaved.filter((p) => p.id !== productId);
   localStorage.setItem('kintesi_custom_products', JSON.stringify(filtered));
   window.dispatchEvent(new Event('kintesi_products_updated'));
@@ -442,10 +467,21 @@ export async function saveCategoryToDB(category: Category): Promise<void> {
   window.dispatchEvent(new CustomEvent('kintesi_categories_updated'));
 }
 
-export async function deleteCategoryFromDB(idOrSlug: string): Promise<void> {
-  // 1. Local
+export async function deleteCategoryFromDB(idOrSlug: string, category?: Category): Promise<void> {
+  // 0. Cloudinary cleanup if category image exists
+  let targetCat = category;
   try {
     const localSaved: Category[] = JSON.parse(localStorage.getItem('kintesi_custom_categories') || '[]');
+    if (!targetCat) {
+      targetCat = localSaved.find((c) => c.id === idOrSlug || c.slug === idOrSlug);
+    }
+    const catImage = targetCat?.image || targetCat?.image_url;
+    if (catImage) {
+      deleteFromCloudinary(catImage).catch((err) =>
+        console.warn('Cloudinary category image purge notice:', err)
+      );
+    }
+    // 1. Local
     const updated = localSaved.filter((c) => c.id !== idOrSlug && c.slug !== idOrSlug);
     localStorage.setItem('kintesi_custom_categories', JSON.stringify(updated));
   } catch (err) {
