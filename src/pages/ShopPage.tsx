@@ -262,7 +262,7 @@ export const ShopPage: React.FC = () => {
           {/* Mobile Filter Button */}
           <button
             onClick={() => setIsMobileFilterOpen(true)}
-            className="md:hidden flex items-center gap-1.5 h-8.5 px-3 bg-white hover:bg-gray-50 border border-gray-200/90 text-gray-800 rounded-full text-xs font-bold transition active:scale-95 shadow-xs cursor-pointer"
+            className="md:hidden flex items-center gap-1.5 h-8 px-3 bg-white hover:bg-gray-50 border border-gray-200/90 text-gray-800 rounded-full text-xs font-bold transition active:scale-95 shadow-xs cursor-pointer"
           >
             <SlidersHorizontal className="w-3.5 h-3.5 text-rose-600" />
             <span>Filters</span>
@@ -277,7 +277,7 @@ export const ShopPage: React.FC = () => {
             <span>{isDesktopFilterOpen ? 'Hide Filters' : 'Show Filters'}</span>
           </button>
 
-          <div className="flex items-center gap-1.5 bg-white border border-gray-200/90 rounded-full sm:rounded-xl px-3 h-8.5 sm:h-auto sm:py-2 text-xs font-semibold text-gray-700 shadow-xs sm:shadow-sm">
+          <div className="flex items-center gap-1.5 bg-white border border-gray-200/90 rounded-full sm:rounded-xl px-3 h-8 sm:h-auto sm:py-2 text-xs font-semibold text-gray-700 shadow-xs sm:shadow-sm">
             <ArrowUpDown className="w-3.5 h-3.5 text-gray-400" />
             <span className="text-gray-400 hidden sm:inline">Sort by:</span>
             <select
