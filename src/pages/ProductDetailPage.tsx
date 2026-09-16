@@ -39,8 +39,6 @@ import {
   ChevronRight,
   AlertTriangle,
   Cpu,
-  Headphones,
-  Phone,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -1104,56 +1102,27 @@ export const ProductDetailPage: React.FC = () => {
                 </div>
               )}
 
-              {/* Service Guarantees */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2 border-t border-gray-100 text-center">
-                <div className="p-2 bg-gray-50 rounded-xl space-y-0.5">
-                  <CreditCard className="w-4 h-4 text-emerald-600 mx-auto" />
-                  <p className="text-[11px] font-bold text-gray-800">Cash on Delivery</p>
-                  <p className="text-[9px] text-gray-400">Available</p>
+              {/* Service Guarantees - Compact 4-column layout on mobile */}
+              <div className="grid grid-cols-4 gap-1.5 sm:gap-2 pt-2 border-t border-gray-100 text-center">
+                <div className="py-1.5 px-1 sm:p-2 bg-gray-50/90 rounded-lg sm:rounded-xl flex flex-col items-center justify-center">
+                  <CreditCard className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-600 mx-auto mb-0.5" />
+                  <p className="text-[9px] sm:text-[11px] font-bold text-gray-800 leading-tight">Cash on Delivery</p>
+                  <p className="text-[8px] sm:text-[9px] text-gray-400 leading-tight">Available</p>
                 </div>
-                <div className="p-2 bg-gray-50 rounded-xl space-y-0.5">
-                  <ShieldCheck className="w-4 h-4 text-emerald-600 mx-auto" />
-                  <p className="text-[11px] font-bold text-gray-800">100% Authentic</p>
-                  <p className="text-[9px] text-gray-400">Verified</p>
+                <div className="py-1.5 px-1 sm:p-2 bg-gray-50/90 rounded-lg sm:rounded-xl flex flex-col items-center justify-center">
+                  <ShieldCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-600 mx-auto mb-0.5" />
+                  <p className="text-[9px] sm:text-[11px] font-bold text-gray-800 leading-tight">100% Authentic</p>
+                  <p className="text-[8px] sm:text-[9px] text-gray-400 leading-tight">Verified</p>
                 </div>
-                <div className="p-2 bg-gray-50 rounded-xl space-y-0.5">
-                  <Truck className="w-4 h-4 text-emerald-600 mx-auto" />
-                  <p className="text-[11px] font-bold text-gray-800">Fast Delivery</p>
-                  <p className="text-[9px] text-gray-400">Nationwide</p>
+                <div className="py-1.5 px-1 sm:p-2 bg-gray-50/90 rounded-lg sm:rounded-xl flex flex-col items-center justify-center">
+                  <Truck className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-600 mx-auto mb-0.5" />
+                  <p className="text-[9px] sm:text-[11px] font-bold text-gray-800 leading-tight">Fast Delivery</p>
+                  <p className="text-[8px] sm:text-[9px] text-gray-400 leading-tight">Nationwide</p>
                 </div>
-                <div className="p-2 bg-gray-50 rounded-xl space-y-0.5">
-                  <RotateCcw className="w-4 h-4 text-emerald-600 mx-auto" />
-                  <p className="text-[11px] font-bold text-gray-800">7 Days Return</p>
-                  <p className="text-[9px] text-gray-400">Guarantee</p>
-                </div>
-              </div>
-
-              {/* Customer Care Pre-Purchase Assistance */}
-              <div className="p-3 bg-rose-50/70 border border-rose-100 rounded-2xl flex flex-wrap items-center justify-between gap-2.5 text-xs">
-                <div className="flex items-center gap-2 text-gray-800">
-                  <Headphones className="w-4 h-4 text-rose-600 shrink-0" />
-                  <span className="font-bold text-[11px]">
-                    {language === 'bn' ? 'পণ্যটি সম্পর্কে কোনো প্রশ্ন আছে?' : 'Have questions about this item?'}
-                  </span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <a
-                    href={`https://wa.me/${cleanPhoneForWhatsApp}?text=${encodeURIComponent(
-                      `Hello Kintesi Support, I want to know more about "${product.title}". Is it in stock and can you deliver to my district?`
-                    )}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-[11px] font-bold transition shadow-xs active:scale-95"
-                  >
-                    <span>💬 WhatsApp</span>
-                  </a>
-                  <a
-                    href={`tel:${phone}`}
-                    className="inline-flex items-center gap-1 px-2.5 py-1 bg-white hover:bg-rose-50 text-gray-800 border border-gray-200 rounded-xl text-[11px] font-bold transition shadow-xs active:scale-95"
-                  >
-                    <Phone className="w-3 h-3 text-rose-600" />
-                    <span>{phone}</span>
-                  </a>
+                <div className="py-1.5 px-1 sm:p-2 bg-gray-50/90 rounded-lg sm:rounded-xl flex flex-col items-center justify-center">
+                  <RotateCcw className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-600 mx-auto mb-0.5" />
+                  <p className="text-[9px] sm:text-[11px] font-bold text-gray-800 leading-tight">7 Days Return</p>
+                  <p className="text-[8px] sm:text-[9px] text-gray-400 leading-tight">Guarantee</p>
                 </div>
               </div>
 
@@ -1260,11 +1229,11 @@ export const ProductDetailPage: React.FC = () => {
         if (!shouldShow) return null;
 
         return (
-          <section className="bg-white rounded-3xl border border-gray-100 p-6 sm:p-10 shadow-sm space-y-6">
-            <div className="border-b border-gray-100 pb-4 flex items-center justify-between">
-              <div className="flex items-center gap-3">
+          <section className="bg-white rounded-2xl sm:rounded-3xl border border-gray-100 p-3 sm:p-7 shadow-sm space-y-3 sm:space-y-5">
+            <div className="border-b border-gray-100 pb-2.5 sm:pb-3 flex items-center justify-between">
+              <div className="flex items-center gap-2 sm:gap-2.5">
                 <div
-                  className={`w-10 h-10 rounded-2xl flex items-center justify-center ${
+                  className={`w-7 h-7 sm:w-9 sm:h-9 rounded-lg sm:rounded-xl flex items-center justify-center shrink-0 ${
                     isGadget
                       ? 'bg-cyan-50 text-cyan-600'
                       : isGroceries
@@ -1273,22 +1242,22 @@ export const ProductDetailPage: React.FC = () => {
                   }`}
                 >
                   {isGadget ? (
-                    <Cpu className="w-5 h-5" />
+                    <Cpu className="w-4 h-4" />
                   ) : isGroceries ? (
-                    <Sparkles className="w-5 h-5" />
+                    <Sparkles className="w-4 h-4" />
                   ) : (
-                    <Shirt className="w-5 h-5" />
+                    <Shirt className="w-4 h-4" />
                   )}
                 </div>
                 <div>
-                  <h3 className="text-lg font-black text-gray-900">
+                  <h3 className="text-xs sm:text-base font-black text-gray-900 leading-tight">
                     {isGadget
                       ? 'Technical Specifications & Hardware Details'
                       : isGroceries
                       ? 'Food & Grocery Specifications (খাদ্য ও পুষ্টি বিবরণ)'
                       : 'Specifications & Material Details (পোশাক ও ফ্যাশন বিবরণ)'}
                   </h3>
-                  <p className="text-xs text-gray-500">
+                  <p className="text-[10px] sm:text-xs text-gray-500 mt-0.5">
                     {isGadget
                       ? 'Hardware performance, connectivity & official warranty'
                       : isGroceries
@@ -1301,23 +1270,23 @@ export const ProductDetailPage: React.FC = () => {
 
             {/* 1. GADGET & HARDWARE DETAILS ONLY */}
             {isGadget && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
+              <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-1.5 sm:gap-2.5 text-xs">
                 {isValueNonEmpty(product.warranty) && (
-                  <div className="p-4 bg-cyan-50/40 rounded-2xl space-y-1 border border-cyan-100">
-                    <span className="text-cyan-700 font-bold uppercase text-[10px] tracking-wider">Official Warranty</span>
-                    <p className="font-black text-gray-900 text-sm">{String(product.warranty)}</p>
+                  <div className="p-2 sm:p-2.5 bg-cyan-50/40 rounded-lg sm:rounded-xl space-y-0.5 border border-cyan-100/70">
+                    <span className="text-cyan-700 font-bold uppercase text-[8.5px] sm:text-[9.5px] tracking-wider block">Official Warranty</span>
+                    <p className="font-bold text-gray-900 text-[11px] sm:text-xs truncate">{String(product.warranty)}</p>
                   </div>
                 )}
                 {isValueNonEmpty(product.origin) && (
-                  <div className="p-4 bg-gray-50 rounded-2xl space-y-1 border border-gray-100">
-                    <span className="text-gray-400 font-bold uppercase text-[10px] tracking-wider">Device Origin / Variant</span>
-                    <p className="font-black text-gray-900 text-sm">{String(product.origin)}</p>
+                  <div className="p-2 sm:p-2.5 bg-gray-50/80 rounded-lg sm:rounded-xl space-y-0.5 border border-gray-100/80">
+                    <span className="text-gray-400 font-bold uppercase text-[8.5px] sm:text-[9.5px] tracking-wider block">Device Origin</span>
+                    <p className="font-bold text-gray-900 text-[11px] sm:text-xs truncate">{String(product.origin)}</p>
                   </div>
                 )}
                 {validSpecs.map(([key, val]) => (
-                  <div key={key} className="p-4 bg-gray-50 rounded-2xl space-y-1 border border-gray-100">
-                    <span className="text-gray-400 font-bold uppercase text-[10px] tracking-wider">{key.replace(/_/g, ' ')}</span>
-                    <p className="font-black text-gray-900 text-sm">{typeof val === 'object' ? JSON.stringify(val) : String(val)}</p>
+                  <div key={key} className="p-2 sm:p-2.5 bg-gray-50/80 rounded-lg sm:rounded-xl space-y-0.5 border border-gray-100/80">
+                    <span className="text-gray-400 font-bold uppercase text-[8.5px] sm:text-[9.5px] tracking-wider block">{key.replace(/_/g, ' ')}</span>
+                    <p className="font-bold text-gray-900 text-[11px] sm:text-xs truncate">{typeof val === 'object' ? JSON.stringify(val) : String(val)}</p>
                   </div>
                 ))}
               </div>
@@ -1325,41 +1294,41 @@ export const ProductDetailPage: React.FC = () => {
 
             {/* 2. FASHION & APPAREL DETAILS ONLY */}
             {isFashion && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
+              <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-1.5 sm:gap-2.5 text-xs">
                 {isValueNonEmpty(product.fabric) && (
-                  <div className="p-4 bg-gray-50 rounded-2xl space-y-1 border border-gray-100">
-                    <span className="text-gray-400 font-bold uppercase text-[10px] tracking-wider">Fabric / Material</span>
-                    <p className="font-black text-gray-900 text-sm">{String(product.fabric)}</p>
+                  <div className="p-2 sm:p-2.5 bg-gray-50/80 rounded-lg sm:rounded-xl space-y-0.5 border border-gray-100/80">
+                    <span className="text-gray-400 font-bold uppercase text-[8.5px] sm:text-[9.5px] tracking-wider block">Fabric / Material</span>
+                    <p className="font-bold text-gray-900 text-[11px] sm:text-xs truncate">{String(product.fabric)}</p>
                   </div>
                 )}
                 {isValueNonEmpty(product.fit_type) && (
-                  <div className="p-4 bg-gray-50 rounded-2xl space-y-1 border border-gray-100">
-                    <span className="text-gray-400 font-bold uppercase text-[10px] tracking-wider">Fit Type</span>
-                    <p className="font-black text-gray-900 text-sm">{String(product.fit_type)}</p>
+                  <div className="p-2 sm:p-2.5 bg-gray-50/80 rounded-lg sm:rounded-xl space-y-0.5 border border-gray-100/80">
+                    <span className="text-gray-400 font-bold uppercase text-[8.5px] sm:text-[9.5px] tracking-wider block">Fit Type</span>
+                    <p className="font-bold text-gray-900 text-[11px] sm:text-xs truncate">{String(product.fit_type)}</p>
                   </div>
                 )}
                 {isValueNonEmpty(product.gender) && (
-                  <div className="p-4 bg-gray-50 rounded-2xl space-y-1 border border-gray-100">
-                    <span className="text-gray-400 font-bold uppercase text-[10px] tracking-wider">Department</span>
-                    <p className="font-black text-gray-900 text-sm">{String(product.gender)}</p>
+                  <div className="p-2 sm:p-2.5 bg-gray-50/80 rounded-lg sm:rounded-xl space-y-0.5 border border-gray-100/80">
+                    <span className="text-gray-400 font-bold uppercase text-[8.5px] sm:text-[9.5px] tracking-wider block">Department</span>
+                    <p className="font-bold text-gray-900 text-[11px] sm:text-xs truncate">{String(product.gender)}</p>
                   </div>
                 )}
                 {isValueNonEmpty(product.origin) && (
-                  <div className="p-4 bg-gray-50 rounded-2xl space-y-1 border border-gray-100">
-                    <span className="text-gray-400 font-bold uppercase text-[10px] tracking-wider">Origin</span>
-                    <p className="font-black text-gray-900 text-sm">{String(product.origin)}</p>
+                  <div className="p-2 sm:p-2.5 bg-gray-50/80 rounded-lg sm:rounded-xl space-y-0.5 border border-gray-100/80">
+                    <span className="text-gray-400 font-bold uppercase text-[8.5px] sm:text-[9.5px] tracking-wider block">Origin</span>
+                    <p className="font-bold text-gray-900 text-[11px] sm:text-xs truncate">{String(product.origin)}</p>
                   </div>
                 )}
                 {isValueNonEmpty(product.care_instructions) && (
-                  <div className="p-4 bg-gray-50 rounded-2xl space-y-1 border border-gray-100 sm:col-span-2">
-                    <span className="text-gray-400 font-bold uppercase text-[10px] tracking-wider">Care Instructions</span>
-                    <p className="font-bold text-gray-800 text-xs leading-relaxed">{String(product.care_instructions)}</p>
+                  <div className="p-2 sm:p-2.5 bg-gray-50/80 rounded-lg sm:rounded-xl space-y-0.5 border border-gray-100/80 col-span-2">
+                    <span className="text-gray-400 font-bold uppercase text-[8.5px] sm:text-[9.5px] tracking-wider block">Care Instructions</span>
+                    <p className="font-semibold text-gray-800 text-[11px] sm:text-xs leading-relaxed">{String(product.care_instructions)}</p>
                   </div>
                 )}
                 {validSpecs.map(([key, val]) => (
-                  <div key={key} className="p-4 bg-gray-50 rounded-2xl space-y-1 border border-gray-100">
-                    <span className="text-gray-400 font-bold uppercase text-[10px] tracking-wider">{key.replace(/_/g, ' ')}</span>
-                    <p className="font-black text-gray-900 text-sm">{typeof val === 'object' ? JSON.stringify(val) : String(val)}</p>
+                  <div key={key} className="p-2 sm:p-2.5 bg-gray-50/80 rounded-lg sm:rounded-xl space-y-0.5 border border-gray-100/80">
+                    <span className="text-gray-400 font-bold uppercase text-[8.5px] sm:text-[9.5px] tracking-wider block">{key.replace(/_/g, ' ')}</span>
+                    <p className="font-bold text-gray-900 text-[11px] sm:text-xs truncate">{typeof val === 'object' ? JSON.stringify(val) : String(val)}</p>
                   </div>
                 ))}
               </div>
@@ -1367,41 +1336,41 @@ export const ProductDetailPage: React.FC = () => {
 
             {/* 3. GROCERIES & FOOD DETAILS ONLY */}
             {isGroceries && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
+              <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-1.5 sm:gap-2.5 text-xs">
                 {isValueNonEmpty(product.fabric) && (
-                  <div className="p-4 bg-emerald-50/40 rounded-2xl space-y-1 border border-emerald-100">
-                    <span className="text-emerald-700 font-bold uppercase text-[10px] tracking-wider">Net Weight / Volume</span>
-                    <p className="font-black text-gray-900 text-sm">{String(product.fabric)}</p>
+                  <div className="p-2 sm:p-2.5 bg-emerald-50/40 rounded-lg sm:rounded-xl space-y-0.5 border border-emerald-100/70">
+                    <span className="text-emerald-700 font-bold uppercase text-[8.5px] sm:text-[9.5px] tracking-wider block">Net Weight / Vol</span>
+                    <p className="font-bold text-gray-900 text-[11px] sm:text-xs truncate">{String(product.fabric)}</p>
                   </div>
                 )}
                 {isValueNonEmpty(product.warranty) && (
-                  <div className="p-4 bg-gray-50 rounded-2xl space-y-1 border border-gray-100">
-                    <span className="text-gray-400 font-bold uppercase text-[10px] tracking-wider">Shelf Life / Expiry</span>
-                    <p className="font-black text-gray-900 text-sm">{String(product.warranty)}</p>
+                  <div className="p-2 sm:p-2.5 bg-gray-50/80 rounded-lg sm:rounded-xl space-y-0.5 border border-gray-100/80">
+                    <span className="text-gray-400 font-bold uppercase text-[8.5px] sm:text-[9.5px] tracking-wider block">Shelf Life / Expiry</span>
+                    <p className="font-bold text-gray-900 text-[11px] sm:text-xs truncate">{String(product.warranty)}</p>
                   </div>
                 )}
                 {isValueNonEmpty(product.origin) && (
-                  <div className="p-4 bg-gray-50 rounded-2xl space-y-1 border border-gray-100">
-                    <span className="text-gray-400 font-bold uppercase text-[10px] tracking-wider">Origin / Sourced From</span>
-                    <p className="font-black text-gray-900 text-sm">{String(product.origin)}</p>
+                  <div className="p-2 sm:p-2.5 bg-gray-50/80 rounded-lg sm:rounded-xl space-y-0.5 border border-gray-100/80">
+                    <span className="text-gray-400 font-bold uppercase text-[8.5px] sm:text-[9.5px] tracking-wider block">Origin</span>
+                    <p className="font-bold text-gray-900 text-[11px] sm:text-xs truncate">{String(product.origin)}</p>
                   </div>
                 )}
                 {isValueNonEmpty(product.fit_type) && (
-                  <div className="p-4 bg-gray-50 rounded-2xl space-y-1 border border-gray-100">
-                    <span className="text-gray-400 font-bold uppercase text-[10px] tracking-wider">Certification / Quality</span>
-                    <p className="font-black text-gray-900 text-sm">{String(product.fit_type)}</p>
+                  <div className="p-2 sm:p-2.5 bg-gray-50/80 rounded-lg sm:rounded-xl space-y-0.5 border border-gray-100/80">
+                    <span className="text-gray-400 font-bold uppercase text-[8.5px] sm:text-[9.5px] tracking-wider block">Quality / Cert</span>
+                    <p className="font-bold text-gray-900 text-[11px] sm:text-xs truncate">{String(product.fit_type)}</p>
                   </div>
                 )}
                 {isValueNonEmpty(product.care_instructions) && (
-                  <div className="p-4 bg-gray-50 rounded-2xl space-y-1 border border-gray-100 sm:col-span-2">
-                    <span className="text-gray-400 font-bold uppercase text-[10px] tracking-wider">Storage Instructions</span>
-                    <p className="font-bold text-gray-800 text-xs leading-relaxed">{String(product.care_instructions)}</p>
+                  <div className="p-2 sm:p-2.5 bg-gray-50/80 rounded-lg sm:rounded-xl space-y-0.5 border border-gray-100/80 col-span-2">
+                    <span className="text-gray-400 font-bold uppercase text-[8.5px] sm:text-[9.5px] tracking-wider block">Storage Instructions</span>
+                    <p className="font-semibold text-gray-800 text-[11px] sm:text-xs leading-relaxed">{String(product.care_instructions)}</p>
                   </div>
                 )}
                 {validSpecs.map(([key, val]) => (
-                  <div key={key} className="p-4 bg-gray-50 rounded-2xl space-y-1 border border-gray-100">
-                    <span className="text-gray-400 font-bold uppercase text-[10px] tracking-wider">{key.replace(/_/g, ' ')}</span>
-                    <p className="font-black text-gray-900 text-sm">{typeof val === 'object' ? JSON.stringify(val) : String(val)}</p>
+                  <div key={key} className="p-2 sm:p-2.5 bg-gray-50/80 rounded-lg sm:rounded-xl space-y-0.5 border border-gray-100/80">
+                    <span className="text-gray-400 font-bold uppercase text-[8.5px] sm:text-[9.5px] tracking-wider block">{key.replace(/_/g, ' ')}</span>
+                    <p className="font-bold text-gray-900 text-[11px] sm:text-xs truncate">{typeof val === 'object' ? JSON.stringify(val) : String(val)}</p>
                   </div>
                 ))}
               </div>
@@ -1494,25 +1463,25 @@ export const ProductDetailPage: React.FC = () => {
         </div>
 
         {/* Verified Purchase Policy Note */}
-        <div className="flex items-center gap-3 p-4 bg-emerald-50/80 border border-emerald-200/90 rounded-2xl text-xs text-emerald-950 font-medium">
-          <div className="p-2 bg-emerald-600 text-white rounded-xl shadow-xs shrink-0">
-            <ShieldCheck className="w-4 h-4" />
+        <div className="flex items-center gap-2.5 p-2.5 sm:p-3.5 bg-emerald-50/80 border border-emerald-200/90 rounded-xl sm:rounded-2xl text-xs text-emerald-950 font-medium">
+          <div className="p-1.5 sm:p-2 bg-emerald-600 text-white rounded-lg sm:rounded-xl shadow-xs shrink-0">
+            <ShieldCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
           </div>
           <div>
-            <p className="font-bold text-gray-900 text-xs">100% Verified Buyer Reviews Only</p>
-            <p className="text-[11px] text-gray-500 mt-0.5">
+            <p className="font-bold text-gray-900 text-[11px] sm:text-xs">100% Verified Buyer Reviews Only</p>
+            <p className="text-[10px] sm:text-[11px] text-gray-500 mt-0.5 leading-tight">
               To ensure 100% authenticity, customer reviews can only be submitted after receiving the delivered product from your <strong>My Orders</strong> page.
             </p>
           </div>
         </div>
 
         {/* Reputation & Support Resolution Promise */}
-        <div className="flex items-center justify-between flex-wrap gap-3 p-3.5 bg-amber-50/80 border border-amber-200/90 rounded-2xl text-xs text-amber-950 font-medium">
-          <div className="flex items-center gap-2.5">
-            <span className="text-base">🛡️</span>
+        <div className="flex items-center justify-between flex-wrap gap-2.5 p-2.5 sm:p-3.5 bg-amber-50/80 border border-amber-200/90 rounded-xl sm:rounded-2xl text-xs text-amber-950 font-medium">
+          <div className="flex items-center gap-2 sm:gap-2.5">
+            <span className="text-sm sm:text-base shrink-0">🛡️</span>
             <div>
-              <p className="font-bold text-gray-900 text-xs">100% Satisfaction & Reputation Commitment</p>
-              <p className="text-[11px] text-gray-600 mt-0.5">
+              <p className="font-bold text-gray-900 text-[11px] sm:text-xs">100% Satisfaction & Reputation Commitment</p>
+              <p className="text-[10px] sm:text-[11px] text-gray-600 mt-0.5 leading-tight">
                 Received a damaged, delayed, or mismatched item? Contact our Care Desk on WhatsApp before leaving a review — we promise 100% replacement or refund.
               </p>
             </div>
@@ -1523,7 +1492,7 @@ export const ProductDetailPage: React.FC = () => {
             )}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl transition shadow-xs active:scale-95 flex items-center gap-1 shrink-0"
+            className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] sm:text-xs rounded-lg sm:rounded-xl transition shadow-xs active:scale-95 flex items-center gap-1 shrink-0 ml-auto sm:ml-0"
           >
             <span>💬 WhatsApp Care</span>
           </a>
