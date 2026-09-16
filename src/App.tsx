@@ -117,9 +117,9 @@ const StorefrontLayout = () => {
   const { isAuthModalOpen, closeAuthModal, authModalMode } = useAuth();
 
   return (
-    <div className="min-h-screen flex flex-col bg-white">
+    <div className="min-h-screen flex flex-col bg-white w-full max-w-[100vw] overflow-x-hidden relative">
       <Navbar />
-      <main className="flex-1 pb-24 md:pb-0">
+      <main className="flex-1 pb-24 md:pb-0 w-full max-w-full overflow-x-hidden">
         <React.Suspense fallback={<PageLoader />}>
           <Outlet />
         </React.Suspense>

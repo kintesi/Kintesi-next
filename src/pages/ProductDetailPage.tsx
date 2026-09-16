@@ -575,7 +575,7 @@ export const ProductDetailPage: React.FC = () => {
                   )}
                 </div>
 
-                <div className="shrink-0">
+                <div className="shrink-0 pt-1.5 sm:pt-2">
                   <span className="inline-flex items-center px-2.5 py-1 bg-gray-100 text-gray-600 border border-gray-200/80 rounded-lg text-xs font-bold font-mono tracking-wide">
                     SKU: {product.sku || 'KT-' + product.id.slice(0, 6).toUpperCase()}
                   </span>
@@ -610,7 +610,7 @@ export const ProductDetailPage: React.FC = () => {
                   <span className="text-gray-200">•</span>
 
                   <span className="font-medium text-gray-600">
-                    Brand: <strong className="text-gray-900">{product.brand || 'Kintesi'}</strong>
+                    Brand: <strong className="text-gray-900">{product.brand && product.brand.trim() ? product.brand : 'No Brand'}</strong>
                   </span>
 
                   {product.warranty && (

@@ -74,19 +74,13 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onWishlistTog
       <div className="p-3 sm:p-4 flex flex-col flex-1 bg-white justify-between">
         
         <div className="space-y-1">
-          {/* Brand & Rating */}
-          <div className="flex items-center justify-between text-[11px] text-gray-400">
-            <span className="uppercase font-bold text-rose-700 truncate max-w-[130px]">
-              {product.brand || 'Kintesi'}
-            </span>
-            {Boolean(product.review_count && product.review_count > 0 && product.rating && product.rating > 0) ? (
-              <div className="flex items-center gap-0.5 text-amber-500 font-bold">
-                <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
-                <span>{Number(product.rating).toFixed(1)}</span>
-                <span className="text-gray-400 font-normal text-[10px]">({product.review_count})</span>
-              </div>
-            ) : null}
-          </div>
+          {Boolean(product.review_count && product.review_count > 0 && product.rating && product.rating > 0) && (
+            <div className="flex items-center gap-0.5 text-amber-500 font-bold text-[11px] pb-0.5">
+              <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+              <span>{Number(product.rating).toFixed(1)}</span>
+              <span className="text-gray-400 font-normal text-[10px]">({product.review_count})</span>
+            </div>
+          )}
 
           {/* Title */}
           <Link to={`/product/${product.id}`} className="block">

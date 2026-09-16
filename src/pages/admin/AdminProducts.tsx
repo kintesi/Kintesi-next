@@ -454,7 +454,7 @@ export const AdminProducts: React.FC = () => {
       category_id: prod.category_id || categories[0]?.slug || 'mens-fashion',
       stock: prod.stock ? prod.stock.toString() : '0',
       sku: prod.sku || 'KT-' + prod.id.slice(0, 6).toUpperCase(),
-      brand: prod.brand || 'Kintesi',
+      brand: prod.brand || '',
       warranty: prod.warranty || '',
       delivery_note: prod.delivery_note || '',
       dropshipping_url: prod.dropshipping_url || '',
@@ -951,7 +951,7 @@ export const AdminProducts: React.FC = () => {
         category_id: formData.category_id || categories[0]?.slug || 'mens-fashion',
         stock: effectiveStock,
         images: allImages.length > 0 ? allImages : ['/logo.webp'],
-        brand: String(formData.brand || '').trim() || 'Kintesi',
+        brand: String(formData.brand || '').trim() || 'No Brand',
         sku: String(formData.sku || '').trim() || ('KT-' + (editingProduct?.id || Date.now().toString()).slice(0, 6).toUpperCase()),
         warranty: cleanedWarranty,
         delivery_note: String(formData.delivery_note || '').trim(),
@@ -1222,7 +1222,7 @@ export const AdminProducts: React.FC = () => {
                         <span className="px-2.5 py-1 bg-emerald-500/10 text-emerald-400 font-bold rounded-lg text-[10px] uppercase block w-max">
                           {prod.category_id.replace('-', ' ')}
                         </span>
-                        <span className="text-[11px] text-gray-400 mt-1 block">{prod.brand || 'Kintesi'}</span>
+                        <span className="text-[11px] text-gray-400 mt-1 block">{prod.brand || 'No Brand'}</span>
                       </td>
 
                       <td className="p-4">
