@@ -558,28 +558,39 @@ export const ProductDetailPage: React.FC = () => {
             <div className="bg-white rounded-2xl sm:rounded-3xl border border-gray-100 p-4 sm:p-6 shadow-xs space-y-3">
               
               {/* Price row: Big prominent price + original strikethrough + discount badge on left, SKU on right */}
-              <div className="flex items-center justify-between gap-3">
-                <div className="flex flex-wrap items-baseline gap-2.5 sm:gap-3">
-                  <span className="text-2xl sm:text-3xl font-black text-rose-600">
-                    {formatPrice(currentPrice)}
-                  </span>
-                  {baseRegularPrice > currentPrice && (
-                    <span className="text-sm sm:text-base text-gray-400 line-through font-semibold">
-                      {formatPrice(baseRegularPrice)}
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-baseline gap-2 sm:gap-2.5 flex-wrap">
+                    <span className="text-2xl sm:text-3xl font-black text-rose-600 leading-none">
+                      {formatPrice(currentPrice)}
                     </span>
-                  )}
-                  {discountPercent > 0 && (
+                    {baseRegularPrice > currentPrice && (
+                      <span className="text-sm sm:text-base text-gray-400 line-through font-semibold leading-none">
+                        {formatPrice(baseRegularPrice)}
+                      </span>
+                    )}
+                    {discountPercent > 0 && (
+                      <span className="hidden sm:inline-flex text-xs font-extrabold text-rose-700 bg-rose-50 border border-rose-200/80 px-2 py-0.5 rounded-md leading-tight">
+                        -{discountPercent}% OFF
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="shrink-0 flex items-center">
+                    <span className="inline-flex items-center px-2.5 py-1 bg-gray-100 text-gray-600 border border-gray-200/80 rounded-lg text-xs font-bold font-mono tracking-wide">
+                      SKU: {product.sku || 'KT-' + product.id.slice(0, 6).toUpperCase()}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Mobile Discount Badge (sits cleanly below price so SKU stays level with ৳ Price) */}
+                {discountPercent > 0 && (
+                  <div className="sm:hidden flex items-center gap-2 pt-0.5">
                     <span className="text-xs font-extrabold text-rose-700 bg-rose-50 border border-rose-200/80 px-2 py-0.5 rounded-md">
                       -{discountPercent}% OFF
                     </span>
-                  )}
-                </div>
-
-                <div className="shrink-0 pt-1.5 sm:pt-2">
-                  <span className="inline-flex items-center px-2.5 py-1 bg-gray-100 text-gray-600 border border-gray-200/80 rounded-lg text-xs font-bold font-mono tracking-wide">
-                    SKU: {product.sku || 'KT-' + product.id.slice(0, 6).toUpperCase()}
-                  </span>
-                </div>
+                  </div>
+                )}
               </div>
 
               {/* Product Title */}
