@@ -663,34 +663,7 @@ export const ProductDetailPage: React.FC = () => {
                 )}
               </div>
 
-              {/* Category & Subcategory Hierarchy: Women's Fashion > Sharee */}
-              {product.category_id && (() => {
-                const catObj = INITIAL_CATEGORIES.find(
-                  (c) => c.slug.toLowerCase() === product.category_id.toLowerCase() || c.id.toLowerCase() === product.category_id.toLowerCase()
-                );
-                const catDisplayName = catObj?.name || product.category_id.replace(/[-_]/g, ' ');
-                return (
-                  <div className="inline-flex items-center gap-1.5 text-xs font-bold text-rose-700 bg-rose-50/80 px-2.5 py-1 rounded-lg border border-rose-200/70 w-fit">
-                    <Link
-                      to={`/shop?category=${encodeURIComponent(catObj?.slug || product.category_id)}`}
-                      className="hover:underline text-rose-700"
-                    >
-                      {catDisplayName}
-                    </Link>
-                    {product.sub_category && (
-                      <>
-                        <span className="text-gray-400 font-black">&gt;</span>
-                        <Link
-                          to={`/shop?category=${encodeURIComponent(catObj?.slug || product.category_id)}&sub_category=${encodeURIComponent(product.sub_category)}`}
-                          className="text-gray-800 hover:text-rose-600 font-extrabold"
-                        >
-                          {product.sub_category}
-                        </Link>
-                      </>
-                    )}
-                  </div>
-                );
-              })()}
+
 
               {/* Product Title */}
               <h1 className="text-base sm:text-xl lg:text-2xl font-bold text-gray-900 leading-snug">
