@@ -183,8 +183,8 @@ export const FlashSaleBanner: React.FC<FlashSaleBannerProps> = ({
           title: s.title !== undefined ? s.title : (defaultTitle ?? ''),
           subtitle: s.subtitle !== undefined ? s.subtitle : (defaultSubtitle ?? ''),
           bgImage: s.bgImage || defaultBgImage || '',
-          desktopImage: s.desktopImage || defaultDesktopImage || s.bgImage || defaultBgImage || '',
-          mobileImage: s.mobileImage || defaultMobileImage || s.bgImage || defaultBgImage || '',
+          desktopImage: s.desktopImage || s.bgImage || defaultDesktopImage || defaultBgImage || '',
+          mobileImage: s.mobileImage || s.bgImage || defaultMobileImage || defaultBgImage || '',
           link: s.link || defaultLink || '',
           productId: s.productId || '',
           bannerType: s.bannerType,
@@ -209,16 +209,25 @@ export const FlashSaleBanner: React.FC<FlashSaleBannerProps> = ({
   const [isPaused, setIsPaused] = useState(false);
   const touchStartX = useRef<number | null>(null);
 
-  // Auto-slide transition: 5 seconds
+  // Auto-slide transition: 4 seconds
   useEffect(() => {
     if (activeSlides.length <= 1 || isPaused) return;
 
     const timer = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % activeSlides.length);
-    }, 5000);
+    }, 4000);
 
     return () => clearInterval(timer);
   }, [activeSlides.length, isPaused]);
+
+  // Safety auto-resume so auto-sliding never permanently freezes on hover/touch
+  useEffect(() => {
+    if (!isPaused) return;
+    const timeout = setTimeout(() => {
+      setIsPaused(false);
+    }, 6000);
+    return () => clearTimeout(timeout);
+  }, [isPaused]);
 
   const handlePrev = (e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
@@ -231,10 +240,12 @@ export const FlashSaleBanner: React.FC<FlashSaleBannerProps> = ({
   };
 
   const handleTouchStart = (e: React.TouchEvent) => {
+    setIsPaused(true);
     touchStartX.current = e.touches[0].clientX;
   };
 
   const handleTouchEnd = (e: React.TouchEvent) => {
+    setIsPaused(false);
     if (touchStartX.current === null) return;
     const diff = touchStartX.current - e.changedTouches[0].clientX;
     if (diff > 40) {
@@ -242,6 +253,11 @@ export const FlashSaleBanner: React.FC<FlashSaleBannerProps> = ({
     } else if (diff < -40) {
       handlePrev();
     }
+    touchStartX.current = null;
+  };
+
+  const handleTouchCancel = () => {
+    setIsPaused(false);
     touchStartX.current = null;
   };
 
@@ -301,10 +317,9 @@ export const FlashSaleBanner: React.FC<FlashSaleBannerProps> = ({
           className={`relative w-full h-[155px] xs:h-[170px] sm:h-[190px] overflow-hidden rounded-[20px] sm:rounded-[24px] shadow-lg flex select-none transition-all ${
             isClickable ? 'cursor-pointer active:scale-[0.99]' : 'cursor-default'
           } bg-gradient-to-r ${themeConfig.cardBg} border ${themeConfig.border}`}
-          onMouseEnter={() => setIsPaused(true)}
-          onMouseLeave={() => setIsPaused(false)}
           onTouchStart={handleTouchStart}
           onTouchEnd={handleTouchEnd}
+          onTouchCancel={handleTouchCancel}
         >
           {/* Full-bleed Background Image */}
           {currentImage ? (
@@ -315,7 +330,7 @@ export const FlashSaleBanner: React.FC<FlashSaleBannerProps> = ({
                   src={getSlideImage(slide)}
                   alt={slide.title || 'Banner'}
                   className={`absolute inset-0 w-full h-full object-cover object-center transition-opacity duration-700 ease-in-out ${
-                    idx === safeIndex ? 'opacity-100 z-0' : 'opacity-0 -z-10'
+                    idx === safeIndex ? 'opacity-100 z-[1]' : 'opacity-0 z-0 pointer-events-none'
                   }`}
                 />
               ))}
@@ -430,10 +445,9 @@ export const FlashSaleBanner: React.FC<FlashSaleBannerProps> = ({
         className={`relative w-full h-[155px] xs:h-[170px] sm:h-[190px] overflow-hidden rounded-[22px] sm:rounded-[24px] shadow-xl flex select-none transition-all ${
           isClickable ? 'cursor-pointer' : 'cursor-default'
         } group bg-gradient-to-r ${themeConfig.cardBg} border ${themeConfig.border}`}
-        onMouseEnter={() => setIsPaused(true)}
-        onMouseLeave={() => setIsPaused(false)}
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
+        onTouchCancel={handleTouchCancel}
       >
         {/* Ambient background glow */}
         <div className={`absolute -left-10 -top-10 w-44 h-44 rounded-full blur-2xl pointer-events-none ${themeConfig.glowColor}`} />
@@ -517,7 +531,7 @@ export const FlashSaleBanner: React.FC<FlashSaleBannerProps> = ({
                 src={getSlideImage(slide)}
                 alt={slide.title || 'Product Offer'}
                 className={`absolute inset-0 w-full h-full object-cover object-center transition-opacity duration-700 ease-in-out ${
-                  idx === safeIndex ? 'opacity-100 z-0' : 'opacity-0 -z-10'
+                  idx === safeIndex ? 'opacity-100 z-[1]' : 'opacity-0 z-0 pointer-events-none'
                 }`}
               />
             ))}
@@ -553,7 +567,7 @@ export const FlashSaleBanner: React.FC<FlashSaleBannerProps> = ({
                 src={getSlideImage(slide)}
                 alt={slide.title || 'Banner'}
                 className={`absolute inset-0 w-full h-full object-cover object-center transition-opacity duration-700 ease-in-out ${
-                  idx === safeIndex ? 'opacity-100 z-0' : 'opacity-0 -z-10'
+                  idx === safeIndex ? 'opacity-100 z-[1]' : 'opacity-0 z-0 pointer-events-none'
                 }`}
               />
             ))}
@@ -805,7 +819,7 @@ export const FlashSaleBanner: React.FC<FlashSaleBannerProps> = ({
               src={getSlideImage(slide)}
               alt={slide.title}
               className={`absolute inset-0 w-full h-full object-cover object-center transition-opacity duration-700 ease-in-out ${
-                idx === safeIndex ? 'opacity-100 z-0' : 'opacity-0 -z-10'
+                idx === safeIndex ? 'opacity-100 z-[1]' : 'opacity-0 z-0 pointer-events-none'
               }`}
             />
           ))}
