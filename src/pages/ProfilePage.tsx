@@ -304,27 +304,15 @@ export const ProfilePage: React.FC = () => {
             </div>
           </div>
 
-          {/* Actions: Admin Panel (if admin) + Sign Out */}
-          <div className="flex items-center gap-2 shrink-0">
-            {(isAdmin || isSuperAdmin) && (
-              <Link
-                to="/admin"
-                className="px-3 py-2 text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 rounded-xl flex items-center gap-1.5 transition cursor-pointer shadow-xs active:scale-95"
-              >
-                <ShieldCheck className="w-3.5 h-3.5" />
-                <span>{language === 'bn' ? 'অ্যাডমিন ড্যাশবোর্ড' : 'Admin Panel'}</span>
-              </Link>
-            )}
-
-            <button
-              onClick={handleSignOut}
-              className="px-3.5 py-2 text-xs font-bold text-rose-600 hover:text-white bg-rose-50 hover:bg-rose-600 border border-rose-200/80 rounded-xl flex items-center gap-1.5 transition cursor-pointer active:scale-95"
-              title={t('profile.logout')}
-            >
-              <LogOut className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">{t('profile.logout')}</span>
-            </button>
-          </div>
+          {/* Single, Clear Sign Out Action */}
+          <button
+            onClick={handleSignOut}
+            className="px-3.5 py-2 text-xs font-bold text-rose-600 hover:text-white bg-rose-50 hover:bg-rose-600 border border-rose-200/80 rounded-xl flex items-center gap-1.5 transition cursor-pointer shrink-0 active:scale-95"
+            title={t('profile.logout')}
+          >
+            <LogOut className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">{t('profile.logout')}</span>
+          </button>
         </div>
 
         {/* Quick Navigation Cards */}
