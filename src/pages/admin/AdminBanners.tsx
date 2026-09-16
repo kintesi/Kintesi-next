@@ -152,7 +152,7 @@ export const AdminBanners: React.FC = () => {
 
   const currentSlideProductIds: string[] = useMemo(() => {
     if (!currentSlide) return [];
-    if (currentSlide.productIds && currentSlide.productIds.length > 0) {
+    if (Array.isArray(currentSlide.productIds)) {
       return currentSlide.productIds;
     }
     if (currentSlide.productId) {
@@ -518,7 +518,7 @@ export const AdminBanners: React.FC = () => {
         : form.flashSaleEndsAt);
 
     const mappedSlides = slides.map((slide) => {
-      const pIds = (slide.productIds && slide.productIds.length > 0)
+      const pIds = Array.isArray(slide.productIds)
         ? slide.productIds
         : (slide.productId ? [slide.productId] : []);
 
@@ -527,11 +527,13 @@ export const AdminBanners: React.FC = () => {
         autoLink = `/product/${pIds[0]}`;
       } else if (pIds.length > 1) {
         autoLink = `/showcase/banner-${slide.id}`;
+      } else {
+        autoLink = slide.link && !slide.link.startsWith('/showcase/banner-') ? slide.link : '';
       }
 
       return {
         ...slide,
-        link: autoLink || slide.link || '/products',
+        link: autoLink || slide.link || '',
         productId: pIds.length === 1 ? pIds[0] : undefined,
         productIds: pIds,
         pageTitle: slide.pageTitle || '',
@@ -1040,11 +1042,11 @@ export const AdminBanners: React.FC = () => {
                     </div>
 
                     <div className="relative">
-                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
+                      <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
                       <input
                         value={flashSlideSearch}
                         onChange={(e) => setFlashSlideSearch(e.target.value)}
-                        className={`w-full pl-8.5 pr-3 py-1.5 border text-xs ${input}`}
+                        className={`w-full pl-10 pr-3 py-2 border text-xs ${input}`}
                         placeholder="Search product by name, brand, or SKU to link..."
                       />
                     </div>
