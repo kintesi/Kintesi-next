@@ -219,7 +219,7 @@ export const ShopPage: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 sm:gap-4 pb-4 sm:pb-6 border-b border-gray-200">
         <div>
-          <div className="flex items-center gap-1.5 text-xs text-gray-500 mb-1">
+          <div className="hidden sm:flex items-center gap-1.5 text-xs text-gray-500 mb-1">
             <Link to="/" className="hover:text-rose-600 transition">Home</Link>
             <span>/</span>
             <Link to="/shop" onClick={resetFilters} className="hover:text-rose-600 transition">Shop</Link>

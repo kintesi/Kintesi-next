@@ -521,7 +521,7 @@ export const ProductDetailPage: React.FC = () => {
       <div className="max-w-[1440px] mx-auto px-2.5 sm:px-6 lg:px-8 space-y-3 sm:space-y-8">
         
         {/* Category & Subcategory Breadcrumb: Category > Sub-category */}
-        <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-xs text-gray-500 overflow-x-auto whitespace-nowrap pb-1">
+        <nav aria-label="Breadcrumb" className="hidden sm:flex items-center gap-1.5 text-xs text-gray-500 overflow-x-auto whitespace-nowrap pb-1">
           <Link to="/" className="hover:text-rose-600 transition">Home</Link>
           <span className="text-gray-400">/</span>
           <Link to="/shop" className="hover:text-rose-600 transition">Shop</Link>
