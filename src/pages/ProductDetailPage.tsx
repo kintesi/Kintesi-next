@@ -39,6 +39,8 @@ import {
   ChevronRight,
   AlertTriangle,
   Cpu,
+  Headphones,
+  Phone,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -67,6 +69,9 @@ export const ProductDetailPage: React.FC = () => {
 
   // Review state - Clean verified reviews only
   const [reviews, setReviews] = useState<any[]>([]);
+
+  const phone = settings?.helplinePhone?.trim() || '01902593390';
+  const cleanPhoneForWhatsApp = phone.replace(/\D/g, '').replace(/^0/, '880');
 
   // Delivery & Address Destination (Truthful - No guessed address)
   const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
@@ -1123,6 +1128,35 @@ export const ProductDetailPage: React.FC = () => {
                 </div>
               </div>
 
+              {/* Customer Care Pre-Purchase Assistance */}
+              <div className="p-3 bg-rose-50/70 border border-rose-100 rounded-2xl flex flex-wrap items-center justify-between gap-2.5 text-xs">
+                <div className="flex items-center gap-2 text-gray-800">
+                  <Headphones className="w-4 h-4 text-rose-600 shrink-0" />
+                  <span className="font-bold text-[11px]">
+                    {language === 'bn' ? 'পণ্যটি সম্পর্কে কোনো প্রশ্ন আছে?' : 'Have questions about this item?'}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <a
+                    href={`https://wa.me/${cleanPhoneForWhatsApp}?text=${encodeURIComponent(
+                      `Hello Kintesi Support, I want to know more about "${product.title}". Is it in stock and can you deliver to my district?`
+                    )}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-[11px] font-bold transition shadow-xs active:scale-95"
+                  >
+                    <span>💬 WhatsApp</span>
+                  </a>
+                  <a
+                    href={`tel:${phone}`}
+                    className="inline-flex items-center gap-1 px-2.5 py-1 bg-white hover:bg-rose-50 text-gray-800 border border-gray-200 rounded-xl text-[11px] font-bold transition shadow-xs active:scale-95"
+                  >
+                    <Phone className="w-3 h-3 text-rose-600" />
+                    <span>{phone}</span>
+                  </a>
+                </div>
+              </div>
+
               {/* Custom Delivery Note */}
               {product.delivery_note && (
                 <div className="p-3 bg-amber-50/90 border border-amber-200 rounded-xl space-y-1">
@@ -1470,6 +1504,29 @@ export const ProductDetailPage: React.FC = () => {
               To ensure 100% authenticity, customer reviews can only be submitted after receiving the delivered product from your <strong>My Orders</strong> page.
             </p>
           </div>
+        </div>
+
+        {/* Reputation & Support Resolution Promise */}
+        <div className="flex items-center justify-between flex-wrap gap-3 p-3.5 bg-amber-50/80 border border-amber-200/90 rounded-2xl text-xs text-amber-950 font-medium">
+          <div className="flex items-center gap-2.5">
+            <span className="text-base">🛡️</span>
+            <div>
+              <p className="font-bold text-gray-900 text-xs">100% Satisfaction & Reputation Commitment</p>
+              <p className="text-[11px] text-gray-600 mt-0.5">
+                Received a damaged, delayed, or mismatched item? Contact our Care Desk on WhatsApp before leaving a review — we promise 100% replacement or refund.
+              </p>
+            </div>
+          </div>
+          <a
+            href={`https://wa.me/${cleanPhoneForWhatsApp}?text=${encodeURIComponent(
+              `Hello Kintesi Support, I have an issue with product "${product.title}". Please assist with immediate replacement or refund.`
+            )}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl transition shadow-xs active:scale-95 flex items-center gap-1 shrink-0"
+          >
+            <span>💬 WhatsApp Care</span>
+          </a>
         </div>
 
         {/* Reviews List */}

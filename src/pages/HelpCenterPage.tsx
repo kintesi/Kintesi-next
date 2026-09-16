@@ -11,8 +11,12 @@ import {
   MessageSquare,
   Sparkles,
   ArrowRight,
+  ShieldCheck,
+  Star,
+  Headphones,
 } from 'lucide-react';
 import { useSettings } from '../contexts/SettingsContext';
+import { CustomerFeedbackModal } from '../components/common/CustomerFeedbackModal';
 
 interface FAQItem {
   question: string;
@@ -107,6 +111,8 @@ const CATEGORIES = [
 export const HelpCenterPage: React.FC = () => {
   const { settings } = useSettings();
   const phone = settings?.helplinePhone?.trim() || '01902593390';
+  const cleanPhoneForWhatsApp = phone.replace(/\D/g, '').replace(/^0/, '880');
+  const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
 
   const [activeCategory, setActiveCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -215,16 +221,17 @@ export const HelpCenterPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Contact Support Cards (Phone & Live Chat only - No non-existent email) */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
+        {/* Contact Support Channels (Phone, WhatsApp & Live Chat) */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto mb-12">
+          {/* Phone */}
           <div className="bg-white p-6 rounded-3xl border border-gray-200/80 shadow-xs flex flex-col justify-between">
             <div>
               <div className="w-11 h-11 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center mb-4">
                 <Phone className="w-5 h-5" />
               </div>
-              <h3 className="font-bold text-base text-gray-900">Phone & Helpline Support</h3>
+              <h3 className="font-bold text-base text-gray-900">Phone Helpline</h3>
               <p className="text-xs text-gray-500 mt-1.5 leading-relaxed">
-                Reach our customer care team directly via call or message for instant order and delivery inquiries.
+                Call our direct customer care desk for instant order and delivery inquiries.
               </p>
             </div>
             <a
@@ -239,6 +246,32 @@ export const HelpCenterPage: React.FC = () => {
             </a>
           </div>
 
+          {/* WhatsApp */}
+          <div className="bg-white p-6 rounded-3xl border border-gray-200/80 shadow-xs flex flex-col justify-between">
+            <div>
+              <div className="w-11 h-11 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center mb-4 text-xl">
+                💬
+              </div>
+              <h3 className="font-bold text-base text-gray-900">WhatsApp Support</h3>
+              <p className="text-xs text-gray-500 mt-1.5 leading-relaxed">
+                Direct WhatsApp chat with customer support for parcel tracking, photos, and sizing.
+              </p>
+            </div>
+            <a
+              href={`https://wa.me/${cleanPhoneForWhatsApp}?text=${encodeURIComponent('Hello Kintesi Support, I need assistance regarding my order/shopping.')}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-6 inline-flex items-center justify-between p-3.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 rounded-2xl text-xs font-bold transition border border-emerald-100"
+            >
+              <span className="text-xs font-black">Open WhatsApp</span>
+              <div className="flex items-center gap-1 text-xs">
+                <span>Chat</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </div>
+            </a>
+          </div>
+
+          {/* Live Chat */}
           <div className="bg-white p-6 rounded-3xl border border-gray-200/80 shadow-xs flex flex-col justify-between">
             <div>
               <div className="w-11 h-11 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center mb-4">
@@ -246,19 +279,53 @@ export const HelpCenterPage: React.FC = () => {
               </div>
               <h3 className="font-bold text-base text-gray-900">Live Customer Chat</h3>
               <p className="text-xs text-gray-500 mt-1.5 leading-relaxed">
-                Chat in real time with our support desk right here on the website for immediate responses.
+                Real-time online messaging desk right on our website with immediate responses.
               </p>
             </div>
-            <div className="mt-6 p-3.5 bg-gray-50 rounded-2xl border border-gray-100 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
-                <span className="text-xs font-bold text-gray-800">Support Desk Active</span>
+            <button
+              onClick={() => window.dispatchEvent(new CustomEvent('kintesi_open_chat'))}
+              className="mt-6 w-full inline-flex items-center justify-between p-3.5 bg-gray-900 hover:bg-black text-white rounded-2xl text-xs font-bold transition shadow-xs cursor-pointer active:scale-95"
+            >
+              <span className="text-xs font-bold">Start Live Chat</span>
+              <div className="flex items-center gap-1 text-xs">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                <ArrowRight className="w-3.5 h-3.5" />
               </div>
-              <span className="text-[11px] text-gray-500 font-medium">9 AM - 11 PM</span>
-            </div>
+            </button>
           </div>
         </div>
+
+        {/* Customer Satisfaction & Feedback Banner */}
+        <div className="bg-gradient-to-br from-rose-900 via-rose-950 to-gray-950 text-white rounded-3xl p-6 sm:p-8 shadow-xl max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-6 border border-rose-800/30">
+          <div className="space-y-2 text-center sm:text-left">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 text-rose-300 text-xs font-bold">
+              <ShieldCheck className="w-4 h-4 text-emerald-400" />
+              <span>100% Satisfaction & Reputation Commitment</span>
+            </div>
+            <h3 className="text-xl sm:text-2xl font-black tracking-tight">
+              Have a Complaint, Suggestion or Return Request?
+            </h3>
+            <p className="text-xs text-gray-300 max-w-xl leading-relaxed">
+              We take customer feedback seriously. If anything went wrong with your delivery or product quality, let us know directly so our management team can resolve it immediately.
+            </p>
+          </div>
+
+          <button
+            onClick={() => setIsFeedbackOpen(true)}
+            className="px-6 py-3.5 bg-rose-600 hover:bg-rose-500 text-white rounded-2xl text-xs font-bold transition shadow-lg shadow-rose-600/30 shrink-0 flex items-center gap-2 active:scale-95 cursor-pointer"
+          >
+            <Star className="w-4 h-4 fill-amber-300 text-amber-300" />
+            <span>Share Feedback / Report Issue</span>
+          </button>
+        </div>
       </div>
+
+      {/* Customer Feedback Modal */}
+      <CustomerFeedbackModal
+        isOpen={isFeedbackOpen}
+        onClose={() => setIsFeedbackOpen(false)}
+        initialCategory="suggestion"
+      />
     </div>
   );
 };

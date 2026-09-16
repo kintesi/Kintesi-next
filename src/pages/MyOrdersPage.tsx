@@ -20,10 +20,14 @@ import {
   FileText,
   MessageCircle,
   Lock,
+  Headphones,
+  Phone,
+  ShieldCheck,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import { InvoiceModal } from '../components/invoice/InvoiceModal';
+import { CustomerFeedbackModal } from '../components/common/CustomerFeedbackModal';
 import { useLanguage } from '../contexts/LanguageContext';
 
 const STATUS_STEPS = ['pending', 'processing', 'shipped', 'delivered'];
@@ -42,6 +46,11 @@ export const MyOrdersPage: React.FC = () => {
   const [reviewingItem, setReviewingItem] = useState<{ productId: string; title: string; image: string } | null>(null);
   const [reviewRating, setReviewRating] = useState(5);
   const [reviewComment, setReviewComment] = useState('');
+  const phone = settings?.helplinePhone?.trim() || '01902593390';
+  const cleanPhoneForWhatsApp = phone.replace(/\D/g, '').replace(/^0/, '880');
+  const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
+  const [selectedFeedbackOrder, setSelectedFeedbackOrder] = useState<string>('');
+
   const [reviewedProductIds, setReviewedProductIds] = useState<string[]>(() => {
     try {
       return JSON.parse(localStorage.getItem('kintesi_reviewed_items') || '[]');
@@ -489,6 +498,71 @@ export const MyOrdersPage: React.FC = () => {
                   </div>
                 </div>
 
+                {/* Order Customer Care & Issue Resolution Bar */}
+                <div className="mt-3 pt-3 border-t border-dashed border-gray-200 flex flex-wrap items-center justify-between gap-3 bg-gray-50/70 p-3.5 rounded-2xl">
+                  <div className="flex items-center gap-2 text-xs text-gray-700 font-medium">
+                    <Headphones className="w-4 h-4 text-rose-600 shrink-0" />
+                    <span>
+                      {language === 'bn'
+                        ? 'এই অর্ডার নিয়ে কোনো সমস্যা বা প্রশ্ন? আমরা সাহায্য করতে প্রস্তুত।'
+                        : 'Have any question or issue with this order? Direct help is available.'}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center flex-wrap gap-2">
+                    {/* WhatsApp */}
+                    <a
+                      href={`https://wa.me/${cleanPhoneForWhatsApp}?text=${encodeURIComponent(
+                        `Hello Kintesi Support, I need help regarding Order #${order.order_number} (Item: ${order.items?.[0]?.title || 'Order'}). Delivery Address: ${order.shipping_address}, ${order.city}.`
+                      )}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-[11px] font-bold transition shadow-xs active:scale-95"
+                    >
+                      <span>💬 WhatsApp</span>
+                    </a>
+
+                    {/* Direct Call */}
+                    <a
+                      href={`tel:${phone}`}
+                      className="inline-flex items-center gap-1 px-3 py-1.5 bg-white hover:bg-rose-50 text-gray-800 hover:text-rose-700 border border-gray-200 rounded-xl text-[11px] font-bold transition shadow-xs active:scale-95"
+                    >
+                      <Phone className="w-3 h-3 text-rose-600" />
+                      <span>{language === 'bn' ? 'কল দিন' : 'Call'}</span>
+                    </a>
+
+                    {/* Live Chat with Order Attached */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        openChat({
+                          order: {
+                            orderNumber: order.order_number,
+                            totalAmount: order.total_amount,
+                            status: order.order_status,
+                          },
+                        });
+                      }}
+                      className="inline-flex items-center gap-1 px-3 py-1.5 bg-white hover:bg-rose-50 text-gray-800 hover:text-rose-700 border border-gray-200 rounded-xl text-[11px] font-bold transition shadow-xs active:scale-95"
+                    >
+                      <MessageSquare className="w-3 h-3 text-rose-600" />
+                      <span>{language === 'bn' ? 'লাইভ চ্যাট' : 'Live Chat'}</span>
+                    </button>
+
+                    {/* Report Issue / Feedback */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedFeedbackOrder(order.order_number);
+                        setIsFeedbackModalOpen(true);
+                      }}
+                      className="inline-flex items-center gap-1 px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-800 border border-rose-200 rounded-xl text-[11px] font-bold transition shadow-xs active:scale-95"
+                    >
+                      <span>⚠️ {language === 'bn' ? 'সমস্যা রিপোর্ট' : 'Report Issue'}</span>
+                    </button>
+                  </div>
+                </div>
+
               </div>
             );
           })}
@@ -585,6 +659,14 @@ export const MyOrdersPage: React.FC = () => {
       {selectedInvoiceOrder && (
         <InvoiceModal order={selectedInvoiceOrder} onClose={() => setSelectedInvoiceOrder(null)} />
       )}
+
+      {/* Customer Issue & Feedback Modal */}
+      <CustomerFeedbackModal
+        isOpen={isFeedbackModalOpen}
+        onClose={() => setIsFeedbackModalOpen(false)}
+        initialOrderNumber={selectedFeedbackOrder}
+        initialCategory="wrong_item"
+      />
 
     </div>
   );

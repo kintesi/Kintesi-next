@@ -85,10 +85,23 @@ export const Footer: React.FC = () => {
                 <span>Dhaka, Bangladesh</span>
               </div>
               {phone && (
-                <div className="flex items-center gap-2">
-                  <Phone className="w-4 h-4 text-rose-500 flex-shrink-0" />
-                  <a href={`tel:${phone}`} className="hover:text-rose-600 transition font-medium">{phone}</a>
-                </div>
+                <>
+                  <div className="flex items-center gap-2">
+                    <Phone className="w-4 h-4 text-rose-500 flex-shrink-0" />
+                    <a href={`tel:${phone}`} className="hover:text-rose-600 transition font-medium">{phone}</a>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm">💬</span>
+                    <a
+                      href={`https://wa.me/${phone.replace(/\D/g, '').replace(/^0/, '880')}?text=${encodeURIComponent('Hello Kintesi Support, I have an inquiry.')}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-emerald-700 hover:text-emerald-800 transition font-bold"
+                    >
+                      WhatsApp Care (+880)
+                    </a>
+                  </div>
+                </>
               )}
             </div>
           </div>
@@ -123,6 +136,15 @@ export const Footer: React.FC = () => {
               <li><Link to="/returns" className="text-gray-500 hover:text-rose-600 transition">Return & Refund Policy</Link></li>
               <li><Link to="/terms" className="text-gray-500 hover:text-rose-600 transition">Terms of Service</Link></li>
               <li><Link to="/privacy" className="text-gray-500 hover:text-rose-600 transition">Privacy Policy</Link></li>
+              <li>
+                <button
+                  type="button"
+                  onClick={() => window.dispatchEvent(new CustomEvent('kintesi_open_feedback'))}
+                  className="text-gray-500 hover:text-rose-600 transition text-left cursor-pointer"
+                >
+                  Submit Feedback & Complaints
+                </button>
+              </li>
             </ul>
           </div>
 

@@ -232,15 +232,31 @@ export const AdminLiveChat: React.FC = () => {
                         {new Date(conv.lastTimestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </span>
                     </div>
-                    <p className={`text-[11px] font-semibold truncate mt-0.5 ${
-                      isSelected
-                        ? 'text-rose-100'
-                        : isLight
-                        ? 'text-slate-800'
-                        : 'text-gray-400'
-                    }`}>
-                      {conv.lastMessage}
-                    </p>
+                    <div className="flex items-center gap-1 mt-0.5">
+                      {conv.lastMessage?.includes('[CUSTOMER FEEDBACK') && (
+                        <span className={`px-1.5 py-0.2 rounded text-[9px] font-black shrink-0 ${
+                          isSelected ? 'bg-white text-rose-900' : 'bg-amber-400 text-amber-950'
+                        }`}>
+                          ⭐ FEEDBACK
+                        </span>
+                      )}
+                      {(conv.orderContext || conv.lastMessage?.includes('Order #')) && (
+                        <span className={`px-1.5 py-0.2 rounded text-[9px] font-black shrink-0 ${
+                          isSelected ? 'bg-white text-rose-900' : 'bg-blue-500 text-white'
+                        }`}>
+                          📦 ORDER
+                        </span>
+                      )}
+                      <p className={`text-[11px] font-semibold truncate ${
+                        isSelected
+                          ? 'text-rose-100'
+                          : isLight
+                          ? 'text-slate-800'
+                          : 'text-gray-400'
+                      }`}>
+                        {conv.lastMessage}
+                      </p>
+                    </div>
                   </div>
                 </div>
               );
