@@ -285,79 +285,52 @@ export const Navbar: React.FC = () => {
               </div>
             </div>
           ) : (
-            <div className="md:hidden py-2 flex items-center gap-2">
-              <Link to="/" className="flex items-center shrink-0 group">
-                <img 
-                  src="/navbar-logo.webp" 
-                  alt="Kintesi" 
-                  className="h-6.5 w-auto max-w-[105px] xs:max-w-[120px] object-contain transition-transform group-hover:scale-105" 
-                />
-              </Link>
-
-              {/* Mobile Single-Row Search Input (Directly beside logo) */}
-              <div className="relative flex-1 min-w-0">
-                <form onSubmit={handleSearchSubmit} className="relative w-full flex items-center">
-                  <input
-                    type="text"
-                    placeholder={language === 'bn' ? 'পণ্য খুঁজুন...' : 'Search products, brands...'}
-                    value={searchQuery}
-                    onChange={(e) => {
-                      setSearchQuery(e.target.value);
-                      setShowSearchResults(true);
-                    }}
-                    onFocus={() => setShowSearchResults(true)}
-                    className="w-full pl-7.5 pr-2 py-1.5 bg-gray-50/90 focus:bg-white border border-rose-100 focus:border-rose-500 rounded-full text-xs transition focus:outline-none focus:ring-2 focus:ring-rose-500/20 shadow-2xs"
+            <div className="md:hidden py-2 space-y-2">
+              <div className="flex items-center justify-between gap-2">
+                <Link to="/" className="flex items-center flex-shrink-0 group">
+                  <img 
+                    src="/navbar-logo.webp" 
+                    alt="Kintesi" 
+                    className="h-7 w-auto max-w-[140px] object-contain transition-transform group-hover:scale-105" 
                   />
-                  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none" />
-                </form>
+                </Link>
 
-                {/* Mobile live search dropdown */}
-                {showSearchResults && searchQuery.trim() !== '' && (
-                  <div className="absolute top-full left-0 right-0 mt-1.5 bg-white rounded-xl shadow-2xl border border-rose-100/80 overflow-hidden z-50">
-                    {searchFilteredProducts.length > 0 ? (
-                      <div className="divide-y divide-rose-50/60 max-h-[60vh] overflow-y-auto">
-                        {searchFilteredProducts.slice(0, 5).map((prod) => (
-                          <Link
-                            key={prod.id}
-                            to={`/product/${prod.id}`}
-                            onClick={() => setShowSearchResults(false)}
-                            className="flex items-center gap-2.5 p-2 hover:bg-rose-50/40 transition"
-                          >
-                            <img
-                              src={prod.images[0] || '/logo.webp'}
-                              alt={prod.title}
-                              className="w-9 h-9 object-cover rounded-lg bg-gray-100 shrink-0"
-                            />
-                            <div className="flex-1 min-w-0">
-                              <p className="text-xs font-bold text-gray-800 truncate">{prod.title}</p>
-                              <p className="text-xs text-rose-600 font-black">
-                                {formatPrice(prod.discount_price || prod.price)}
-                              </p>
-                            </div>
-                          </Link>
-                        ))}
-                        <Link
-                          to={`/shop?search=${encodeURIComponent(searchQuery)}`}
-                          onClick={() => setShowSearchResults(false)}
-                          className="block p-2 text-center text-xs font-bold text-rose-600 hover:bg-rose-50 transition"
-                        >
-                          {language === 'bn' ? `"${searchQuery}" এর সব ফলাফল দেখুন` : `View all results for "${searchQuery}"`}
-                        </Link>
-                      </div>
-                    ) : (
-                      <div className="p-3 text-center text-xs text-gray-500">
-                        {language === 'bn' ? 'কোনো পণ্য পাওয়া যায়নি' : 'No products found'}
-                      </div>
+                <div className="flex items-center gap-2">
+                  <Link to="/wishlist" className="p-1.5 text-gray-600 relative">
+                    <Heart className="w-5 h-5" />
+                    {wishlist.length > 0 && (
+                      <span className="absolute 0 top-0 right-0 w-3.5 h-3.5 bg-rose-600 text-white text-[8px] font-bold rounded-full flex items-center justify-center">
+                        {wishlist.length}
+                      </span>
                     )}
-                  </div>
-                )}
+                  </Link>
+                  {isAdmin && (
+                    <Link to="/admin" className="px-2 py-0.5 bg-rose-50 text-rose-700 border border-rose-200/80 rounded-lg text-[10px] font-black uppercase">
+                      Admin
+                    </Link>
+                  )}
+                </div>
               </div>
 
-              {isAdmin && (
-                <Link to="/admin" className="px-2 py-1 bg-rose-50 text-rose-700 border border-rose-200/80 rounded-lg text-[10px] font-black uppercase shrink-0">
-                  Admin
-                </Link>
-              )}
+              {/* Mobile Search Input */}
+              <form onSubmit={handleSearchSubmit} className="relative flex items-center">
+                <div className="relative w-full">
+                  <input
+                    type="text"
+                    placeholder={t('nav.searchPlaceholder')}
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full pl-8 pr-16 py-2 bg-gray-50/80 focus:bg-white border border-rose-100 focus:border-rose-500 rounded-full text-xs transition focus:outline-none focus:ring-2 focus:ring-rose-500/20"
+                  />
+                  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
+                  <button
+                    type="submit"
+                    className="absolute right-1 top-1/2 -translate-y-1/2 px-3 py-1 bg-rose-600 text-white rounded-full text-[11px] font-bold shadow-xs hover:bg-rose-700 transition"
+                  >
+                    {language === 'bn' ? 'খুঁজুন' : 'Search'}
+                  </button>
+                </div>
+              </form>
             </div>
           )}
 
