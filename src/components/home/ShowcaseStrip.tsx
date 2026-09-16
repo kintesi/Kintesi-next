@@ -39,8 +39,10 @@ export const ShowcaseStrip: React.FC<ShowcaseStripProps> = ({
   // If there are 0 products, do not render
   if (!products || products.length === 0) return null;
 
-  // Auto-slide whenever there are 2 or more products so items come one after another continuously
-  const shouldSlide = products.length >= 2;
+  // Mobile: 4 items visible per row -> static if <= 4, auto-slides one after another if > 4
+  // PC / Desktop: 6 items visible per row -> static if <= 6, auto-slides one after another if > 6
+  const threshold = isDesktop ? 6 : 4;
+  const shouldSlide = products.length > threshold;
 
   // Duplicate list enough times so infinite continuous scrolling is completely seamless
   const displayItems = useMemo(() => {
@@ -187,7 +189,7 @@ export const ShowcaseStrip: React.FC<ShowcaseStripProps> = ({
           - Seamless continuous auto-slide one after another
           - Supports touch swiping on mobile and trackpad scrolling */}
       {!shouldSlide ? (
-        <div className="grid grid-cols-4 md:grid-cols-8 gap-2 md:gap-3">
+        <div className="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-8 gap-2 md:gap-3">
           {products.map((product, idx) => (
             <ShowcaseItem key={`${product.id}-${idx}`} product={product} />
           ))}
@@ -206,7 +208,7 @@ export const ShowcaseStrip: React.FC<ShowcaseStripProps> = ({
           {displayItems.map((product, idx) => (
             <div
               key={`${product.id}-${idx}`}
-              className="flex-shrink-0 w-[calc((100%-24px)/4)] md:w-[calc((100%-84px)/8)]"
+              className="flex-shrink-0 w-[calc((100%-24px)/4)] sm:w-[calc((100%-50px)/6)] lg:w-[calc((100%-84px)/8)]"
             >
               <ShowcaseItem product={product} />
             </div>
