@@ -425,7 +425,7 @@ export const ProductDetailPage: React.FC = () => {
 
   const isWishlisted = isInWishlist(product.id);
 
-  const relatedProducts = useMemo(() => {
+  const relatedProducts = (() => {
     if (!allProducts || allProducts.length === 0) return [];
     // 1. Same category items first
     const sameCat = allProducts.filter(
@@ -439,7 +439,7 @@ export const ProductDetailPage: React.FC = () => {
       return [...sameCat, ...remaining].slice(0, 4);
     }
     return sameCat.slice(0, 4);
-  }, [allProducts, product.id, product.category_id]);
+  })();
 
   const customAttrLabels = Object.entries(selectedCustomAttributes)
     .map(([k, v]) => `${k}: ${v}`)
