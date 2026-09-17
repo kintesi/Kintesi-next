@@ -1,6 +1,5 @@
 import React from 'react';
 import { Product } from '../../types';
-import { INITIAL_CATEGORIES } from '../../data/mockData';
 import { useCart } from '../../contexts/CartContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { useWishlist } from '../../contexts/WishlistContext';
@@ -75,27 +74,6 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onWishlistTog
       <div className="p-3 sm:p-4 flex flex-col flex-1 bg-white justify-between">
         
         <div className="space-y-1">
-          {/* Category > Subcategory Tag */}
-          {product.category_id && (() => {
-            const catObj = INITIAL_CATEGORIES.find(
-              (c) =>
-                c.slug.toLowerCase() === product.category_id.toLowerCase() ||
-                c.id.toLowerCase() === product.category_id.toLowerCase()
-            );
-            const catName = catObj?.name || product.category_id.replace(/[-_]/g, ' ');
-            return (
-              <div className="text-[10px] font-bold text-rose-600 truncate flex items-center gap-1">
-                <span className="truncate">{catName}</span>
-                {product.sub_category && (
-                  <>
-                    <span className="text-gray-400 font-black">&gt;</span>
-                    <span className="text-gray-600 font-semibold truncate">{product.sub_category}</span>
-                  </>
-                )}
-              </div>
-            );
-          })()}
-
           {Boolean(product.review_count && product.review_count > 0 && product.rating && product.rating > 0) && (
             <div className="flex items-center gap-0.5 text-amber-500 font-bold text-[11px] pb-0.5">
               <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
