@@ -163,8 +163,8 @@ export const DEFAULT_BANNERS: BannerSettings = {
   topAnnouncementText: '⚡ Welcome to Kintesi! Use coupon KINTESI10 for 10% OFF',
   isCustomAnnouncement: false,
 
-  showHeroSection: true,
-  heroShowOnMobile: true,
+  showHeroSection: false,
+  heroShowOnMobile: false,
   heroBadge: 'PREMIER LIFESTYLE & SHOPPING MARKETPLACE',
   heroTitle: 'Everything You Need for',
   heroHighlightText: 'Life, Fashion & Tech',
@@ -184,7 +184,7 @@ export const DEFAULT_BANNERS: BannerSettings = {
   spotlightSavingsText: '',
   spotlightBtnLink: '/shop',
   showSpotlight: false,
-  spotlightShowOnMobile: true,
+  spotlightShowOnMobile: false,
 
   showFlashSale: false,
   flashSaleBannerType: 'clickable',
@@ -306,7 +306,13 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }
   });
   const [isLoading, setIsLoading] = useState(false);
-  const [isSettingsLoaded, setIsSettingsLoaded] = useState(false);
+  const [isSettingsLoaded, setIsSettingsLoaded] = useState(() => {
+    try {
+      return Boolean(localStorage.getItem('kintesi_store_settings'));
+    } catch {
+      return false;
+    }
+  });
 
   // Load from Supabase (Primary) with Firebase fallback on mount
   useEffect(() => {
@@ -343,21 +349,24 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
               showTopAnnouncement: remoteBanners?.showTopAnnouncement !== undefined
                 ? Boolean(remoteBanners.showTopAnnouncement)
                 : (remoteBanners?.showAnnouncementBar !== undefined ? Boolean(remoteBanners.showAnnouncementBar) : Boolean(prev.banners?.showTopAnnouncement)),
+              showHeroSection: remoteBanners?.showHeroSection !== undefined
+                ? Boolean(remoteBanners.showHeroSection)
+                : Boolean(prev.banners?.showHeroSection),
+              heroShowOnMobile: remoteBanners?.heroShowOnMobile !== undefined
+                ? Boolean(remoteBanners.heroShowOnMobile)
+                : (prev.banners?.heroShowOnMobile !== undefined ? Boolean(prev.banners.heroShowOnMobile) : false),
               showFlashSale: remoteBanners?.showFlashSale !== undefined
                 ? Boolean(remoteBanners.showFlashSale)
                 : Boolean(prev.banners?.showFlashSale),
               showSpotlight: remoteBanners?.showSpotlight !== undefined
                 ? Boolean(remoteBanners.showSpotlight)
                 : Boolean(prev.banners?.showSpotlight),
+              spotlightShowOnMobile: remoteBanners?.spotlightShowOnMobile !== undefined
+                ? Boolean(remoteBanners.spotlightShowOnMobile)
+                : (prev.banners?.spotlightShowOnMobile !== undefined ? Boolean(prev.banners.spotlightShowOnMobile) : false),
               showFeaturedProducts: remoteBanners?.showFeaturedProducts !== undefined
                 ? Boolean(remoteBanners.showFeaturedProducts)
                 : Boolean(prev.banners?.showFeaturedProducts),
-              heroShowOnMobile: remoteBanners?.heroShowOnMobile !== undefined
-                ? Boolean(remoteBanners.heroShowOnMobile)
-                : (prev.banners?.heroShowOnMobile !== undefined ? Boolean(prev.banners.heroShowOnMobile) : true),
-              spotlightShowOnMobile: remoteBanners?.spotlightShowOnMobile !== undefined
-                ? Boolean(remoteBanners.spotlightShowOnMobile)
-                : (prev.banners?.spotlightShowOnMobile !== undefined ? Boolean(prev.banners.spotlightShowOnMobile) : true),
               isCustomAnnouncement: remoteBanners?.isCustomAnnouncement !== undefined
                 ? remoteBanners.isCustomAnnouncement
                 : Boolean(cleanText && cleanText !== '⚡ Welcome to Kintesi! Use coupon KINTESI10 for 10% OFF'),

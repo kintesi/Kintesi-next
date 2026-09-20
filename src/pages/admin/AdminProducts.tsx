@@ -6,7 +6,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { INITIAL_PRODUCTS, INITIAL_CATEGORIES } from '../../data/mockData';
 import { Product, Category, ProductColorOption, ProductCustomAttributeOption } from '../../types';
 import { formatPrice, calculateDiscount, getProductUrl } from '../../lib/utils';
-import { uploadToCloudinary, deleteImagesFromCloudinary } from '../../lib/cloudinary';
+import { uploadToCloudinary } from '../../lib/cloudinary';
 import {
   Plus,
   Edit2,
@@ -1024,39 +1024,40 @@ export const AdminProducts: React.FC = () => {
         }
       }
 
-      // Collect image URLs and compiled colors
+      // Collect image URLs and compiled colors safely
       const allImages: string[] = [];
       const compiledColors: ProductColorOption[] = [];
 
-      if (!formData.hasColorVariants) {
-        // Direct product photos without color variations
-        [formData.imageUrl1, formData.imageUrl2, formData.imageUrl3, formData.imageUrl4].forEach((url) => {
+      // 1. Collect direct product photos
+      [formData.imageUrl1, formData.imageUrl2, formData.imageUrl3, formData.imageUrl4].forEach((url) => {
+        const trimmed = (url || '').trim();
+        if (trimmed && !allImages.includes(trimmed)) {
+          allImages.push(trimmed);
+        }
+      });
+
+      // 2. Collect photos from all color variants
+      (formData.colorVariants || []).forEach((cv) => {
+        [cv.imageUrl1, cv.imageUrl2, cv.imageUrl3, cv.imageUrl4].forEach((url) => {
           const trimmed = (url || '').trim();
           if (trimmed && !allImages.includes(trimmed)) {
             allImages.push(trimmed);
           }
         });
-        // Fallback if user previously had images in colorVariants[0]
-        if (allImages.length === 0 && formData.colorVariants && formData.colorVariants.length > 0) {
-          [formData.colorVariants[0].imageUrl1, formData.colorVariants[0].imageUrl2, formData.colorVariants[0].imageUrl3, formData.colorVariants[0].imageUrl4].forEach((url) => {
-            const trimmed = (url || '').trim();
-            if (trimmed && !allImages.includes(trimmed)) {
-              allImages.push(trimmed);
-            }
-          });
-        }
-      } else {
-        // Collect all valid image URLs across all color variants
-        (formData.colorVariants || []).forEach((cv) => {
-          [cv.imageUrl1, cv.imageUrl2, cv.imageUrl3, cv.imageUrl4].forEach((url) => {
-            const trimmed = (url || '').trim();
-            if (trimmed && !allImages.includes(trimmed)) {
-              allImages.push(trimmed);
-            }
-          });
-        });
+      });
 
-        // Extract color variants with individual 4 photos, custom price, discount & stock
+      // 3. Fallback preservation: NEVER allow an existing product to lose its images
+      if (allImages.length === 0 && editingProduct?.images && editingProduct.images.length > 0) {
+        editingProduct.images.forEach((img) => {
+          const trimmed = (img || '').trim();
+          if (trimmed && !allImages.includes(trimmed)) {
+            allImages.push(trimmed);
+          }
+        });
+      }
+
+      // Extract color variants with individual 4 photos, custom price, discount & stock
+      if (formData.hasColorVariants) {
         (formData.colorVariants || []).forEach((cv) => {
           const name = (cv.colorName || '').trim();
           const colorImages = [cv.imageUrl1, cv.imageUrl2, cv.imageUrl3, cv.imageUrl4]
@@ -1134,7 +1135,9 @@ export const AdminProducts: React.FC = () => {
         discount_price: calculatedDiscountPrice,
         category_id: formData.category_id || categories[0]?.slug || 'mens-fashion',
         stock: effectiveStock,
-        images: allImages.length > 0 ? allImages : ['/logo.webp'],
+        images: allImages.length > 0
+          ? allImages
+          : (editingProduct?.images && editingProduct.images.length > 0 ? editingProduct.images : ['/logo.webp']),
         brand: String(formData.brand || '').trim() || 'No Brand',
         sku: String(formData.sku || '').trim() || ('KT-' + (editingProduct?.id || Date.now().toString()).slice(0, 6).toUpperCase()),
         warranty: cleanedWarranty,
@@ -1237,22 +1240,6 @@ export const AdminProducts: React.FC = () => {
     }
 
     if (!confirm(`Are you sure you want to permanently delete "${prod.title}"?`)) return;
-
-    // 0. Delete images from Cloudinary storage
-    const imagesToPurge: string[] = [];
-    if (Array.isArray(prod.images)) {
-      imagesToPurge.push(...prod.images);
-    }
-    if (Array.isArray(prod.colors)) {
-      prod.colors.forEach((c) => {
-        if (c.image) imagesToPurge.push(c.image);
-      });
-    }
-    if (imagesToPurge.length > 0) {
-      deleteImagesFromCloudinary(imagesToPurge).catch((err) =>
-        console.warn('Cloudinary images delete notice:', err)
-      );
-    }
 
     try {
       // 1. Delete from Supabase Database by ID and Slug
@@ -2480,7 +2467,23 @@ export const AdminProducts: React.FC = () => {
                       <div className={`inline-flex p-1 rounded-xl border shrink-0 ${isLight ? 'bg-slate-100 border-gray-200' : 'bg-gray-950 border-gray-800'}`}>
                         <button
                           type="button"
-                          onClick={() => setFormData((prev) => ({ ...prev, hasColorVariants: false }))}
+                          onClick={() =>
+                            setFormData((prev) => {
+                              const cv0 = prev.colorVariants?.[0];
+                              const img1 = prev.imageUrl1 || cv0?.imageUrl1 || '';
+                              const img2 = prev.imageUrl2 || cv0?.imageUrl2 || '';
+                              const img3 = prev.imageUrl3 || cv0?.imageUrl3 || '';
+                              const img4 = prev.imageUrl4 || cv0?.imageUrl4 || '';
+                              return {
+                                ...prev,
+                                hasColorVariants: false,
+                                imageUrl1: img1,
+                                imageUrl2: img2,
+                                imageUrl3: img3,
+                                imageUrl4: img4,
+                              };
+                            })
+                          }
                           className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
                             !formData.hasColorVariants
                               ? 'bg-rose-600 text-white shadow-xs'
@@ -2492,7 +2495,38 @@ export const AdminProducts: React.FC = () => {
                         </button>
                         <button
                           type="button"
-                          onClick={() => setFormData((prev) => ({ ...prev, hasColorVariants: true }))}
+                          onClick={() =>
+                            setFormData((prev) => {
+                              const updatedVariants = [...(prev.colorVariants || [])];
+                              if (updatedVariants.length === 0) {
+                                updatedVariants.push({
+                                  id: 'cv_1',
+                                  colorName: '',
+                                  colorHex: '#EC4899',
+                                  price: prev.price || '',
+                                  discount_percent: prev.discount_percent || '',
+                                  stock: prev.stock || '',
+                                  imageUrl1: prev.imageUrl1 || '',
+                                  imageUrl2: prev.imageUrl2 || '',
+                                  imageUrl3: prev.imageUrl3 || '',
+                                  imageUrl4: prev.imageUrl4 || '',
+                                });
+                              } else {
+                                updatedVariants[0] = {
+                                  ...updatedVariants[0],
+                                  imageUrl1: updatedVariants[0].imageUrl1 || prev.imageUrl1 || '',
+                                  imageUrl2: updatedVariants[0].imageUrl2 || prev.imageUrl2 || '',
+                                  imageUrl3: updatedVariants[0].imageUrl3 || prev.imageUrl3 || '',
+                                  imageUrl4: updatedVariants[0].imageUrl4 || prev.imageUrl4 || '',
+                                };
+                              }
+                              return {
+                                ...prev,
+                                hasColorVariants: true,
+                                colorVariants: updatedVariants,
+                              };
+                            })
+                          }
                           className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
                             formData.hasColorVariants
                               ? 'bg-rose-600 text-white shadow-xs'

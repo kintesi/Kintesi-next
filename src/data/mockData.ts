@@ -281,7 +281,10 @@ export const INITIAL_CATEGORIES: Category[] = [
       'Phone Repair Kits & Parts',
     ],
   },
-];
+].map((cat) => ({
+  ...cat,
+  image_url: cat.image_url || `/categories/${cat.slug}.webp`,
+}));
 
 // All fake / mock products cleared - Only live products added via Admin Panel will be shown
 export const INITIAL_PRODUCTS: Product[] = [];

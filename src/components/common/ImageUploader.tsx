@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { uploadToCloudinary, deleteFromCloudinary } from '../../lib/cloudinary';
+import { uploadToCloudinary } from '../../lib/cloudinary';
 import { UploadCloud, Loader2, X, Image as ImageIcon, CheckCircle2 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -23,11 +23,8 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleRemove = () => {
-    if (value) {
-      deleteFromCloudinary(value).catch((err) =>
-        console.warn('Cloudinary image removal notice:', err)
-      );
-    }
+    // Only clear input from form state; do NOT delete the underlying CDN asset
+    // to protect cloned products, orders, and avoid accidental data loss!
     onChange('');
   };
 
@@ -126,7 +123,14 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
           {/* Preview Thumbnail */}
           {value && (
             <div className="relative w-14 h-14 rounded-xl overflow-hidden bg-gray-950 border border-gray-700 flex-shrink-0 group">
-              <img src={value} alt="Preview" className="w-full h-full object-cover" />
+              <img
+                src={value}
+                alt="Preview"
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  e.currentTarget.src = '/logo.webp';
+                }}
+              />
               <button
                 type="button"
                 onClick={handleRemove}

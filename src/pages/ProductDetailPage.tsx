@@ -547,36 +547,46 @@ export const ProductDetailPage: React.FC = () => {
       <div className="max-w-[1440px] mx-auto px-2.5 sm:px-6 lg:px-8 space-y-3 sm:space-y-8">
         
         {/* Category & Subcategory Breadcrumb: Category > Sub-category */}
-        <nav aria-label="Breadcrumb" className="hidden sm:flex items-center gap-1.5 text-xs text-gray-500 overflow-x-auto whitespace-nowrap pb-1">
-          <Link to="/" className="hover:text-rose-600 transition">Home</Link>
-          <span className="text-gray-400">/</span>
-          <Link to="/shop" className="hover:text-rose-600 transition">Shop</Link>
+        <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-xs text-gray-500 overflow-x-auto whitespace-nowrap pb-1 no-scrollbar">
+          <span className="hidden sm:inline-flex items-center gap-1.5">
+            <Link to="/" className="hover:text-rose-600 transition">Home</Link>
+            <span className="text-gray-400">/</span>
+            <Link to="/shop" className="hover:text-rose-600 transition">Shop</Link>
+            <span className="text-gray-400">/</span>
+          </span>
           {product.category_id && (() => {
-            const catObj = INITIAL_CATEGORIES.find(
+            let catList = INITIAL_CATEGORIES;
+            try {
+              const saved = localStorage.getItem('kintesi_custom_categories');
+              if (saved) {
+                const parsed = JSON.parse(saved);
+                if (Array.isArray(parsed) && parsed.length > 0) catList = parsed;
+              }
+            } catch {}
+            const catObj = catList.find(
               (c) => c.slug.toLowerCase() === product.category_id.toLowerCase() || c.id.toLowerCase() === product.category_id.toLowerCase()
             );
             const catDisplayName = catObj?.name || product.category_id.replace(/[-_]/g, ' ');
             return (
-              <>
-                <span className="text-gray-400">/</span>
+              <div className="inline-flex items-center gap-1.5 text-[11px] sm:text-xs">
                 <Link
                   to={`/shop?category=${encodeURIComponent(catObj?.slug || product.category_id)}`}
-                  className="hover:text-rose-600 font-bold text-gray-800 transition"
+                  className="hover:text-rose-600 font-semibold text-gray-700 transition"
                 >
                   {catDisplayName}
                 </Link>
                 {product.sub_category && (
                   <>
-                    <span className="text-gray-400 font-bold">&gt;</span>
+                    <ChevronRight className="w-3 h-3 text-gray-400 shrink-0" />
                     <Link
                       to={`/shop?category=${encodeURIComponent(catObj?.slug || product.category_id)}&sub_category=${encodeURIComponent(product.sub_category)}`}
-                      className="text-rose-600 font-extrabold hover:underline"
+                      className="text-rose-600 font-bold hover:underline"
                     >
                       {product.sub_category}
                     </Link>
                   </>
                 )}
-              </>
+              </div>
             );
           })()}
         </nav>
@@ -595,6 +605,10 @@ export const ProductDetailPage: React.FC = () => {
                 src={selectedImage || product.images[0] || '/logo.webp'}
                 alt={product.title}
                 className="w-full h-full object-contain hover:scale-105 transition-transform duration-300 pointer-events-none"
+                onError={(e) => {
+                  e.currentTarget.onerror = null;
+                  e.currentTarget.src = '/logo.webp';
+                }}
               />
               {discountPercent > 0 && (
                 <span className="absolute top-3 left-3 sm:top-4 sm:left-4 px-2.5 py-0.5 sm:px-3 sm:py-1 bg-rose-600 text-white font-extrabold text-[11px] sm:text-xs rounded-full shadow-xs z-10">
@@ -640,7 +654,15 @@ export const ProductDetailPage: React.FC = () => {
                       selectedImage === img ? 'border-emerald-600 shadow-sm scale-95' : 'border-gray-200/80 opacity-70 hover:opacity-100'
                     }`}
                   >
-                    <img src={img} alt="thumbnail" className="w-full h-full object-cover" />
+                    <img
+                      src={img}
+                      alt="thumbnail"
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        e.currentTarget.onerror = null;
+                        e.currentTarget.src = '/logo.webp';
+                      }}
+                    />
                   </button>
                 ))}
               </div>
@@ -653,40 +675,30 @@ export const ProductDetailPage: React.FC = () => {
             {/* Card 1: Pricing, Title & Rating (Daraz-style clean header card) */}
             <div className="bg-white rounded-2xl sm:rounded-3xl border border-gray-100 p-4 sm:p-6 shadow-xs space-y-3">
               
-              {/* Price row: Big prominent price + original strikethrough + discount badge on left, SKU on right */}
-              <div className="space-y-1.5">
-                <div className="flex items-center justify-between gap-3">
-                  <div className="flex items-baseline gap-2 sm:gap-2.5 flex-wrap">
-                    <span className="text-2xl sm:text-3xl font-black text-rose-600 leading-none">
-                      {formatPrice(currentPrice)}
+              {/* Price row: Big prominent price + original strikethrough + discount badge on left, SKU on right (Clean 1-line layout) */}
+              <div className="flex items-center justify-between gap-2 sm:gap-3 flex-nowrap">
+                <div className="flex items-center gap-1.5 sm:gap-2.5 flex-wrap min-w-0">
+                  <span className="text-xl sm:text-3xl font-black text-rose-600 leading-none shrink-0">
+                    {formatPrice(currentPrice)}
+                  </span>
+                  {baseRegularPrice > currentPrice && (
+                    <span className="text-xs sm:text-base text-gray-400 line-through font-semibold leading-none shrink-0">
+                      {formatPrice(baseRegularPrice)}
                     </span>
-                    {baseRegularPrice > currentPrice && (
-                      <span className="text-sm sm:text-base text-gray-400 line-through font-semibold leading-none">
-                        {formatPrice(baseRegularPrice)}
-                      </span>
-                    )}
-                    {discountPercent > 0 && (
-                      <span className="hidden sm:inline-flex text-xs font-extrabold text-rose-700 bg-rose-50 border border-rose-200/80 px-2 py-0.5 rounded-md leading-tight">
-                        -{discountPercent}% OFF
-                      </span>
-                    )}
-                  </div>
-
-                  <div className="shrink-0 flex items-center">
-                    <span className="inline-flex items-center px-2.5 py-1 bg-gray-100 text-gray-600 border border-gray-200/80 rounded-lg text-xs font-bold font-mono tracking-wide">
-                      SKU: {product.sku || 'KT-' + product.id.slice(0, 6).toUpperCase()}
+                  )}
+                  {discountPercent > 0 && (
+                    <span className="inline-flex items-center text-[10px] sm:text-xs font-black text-rose-700 bg-rose-50 border border-rose-200/80 px-1.5 sm:px-2 py-0.5 rounded-md leading-none shrink-0">
+                      <span className="sm:hidden">{discountPercent}%</span>
+                      <span className="hidden sm:inline">-{discountPercent}% OFF</span>
                     </span>
-                  </div>
+                  )}
                 </div>
 
-                {/* Mobile Discount Badge (sits cleanly below price so SKU stays level with ৳ Price) */}
-                {discountPercent > 0 && (
-                  <div className="sm:hidden flex items-center gap-2 pt-0.5">
-                    <span className="text-xs font-extrabold text-rose-700 bg-rose-50 border border-rose-200/80 px-2 py-0.5 rounded-md">
-                      -{discountPercent}% OFF
-                    </span>
-                  </div>
-                )}
+                <div className="shrink-0 flex items-center">
+                  <span className="inline-flex items-center px-2 py-0.5 sm:px-2.5 sm:py-1 bg-gray-100 text-gray-600 border border-gray-200/80 rounded-lg text-[10px] sm:text-xs font-bold font-mono tracking-wide">
+                    SKU: {product.sku || 'KT-' + product.id.slice(0, 6).toUpperCase()}
+                  </span>
+                </div>
               </div>
 
 
@@ -1518,42 +1530,6 @@ export const ProductDetailPage: React.FC = () => {
               </>
             )}
           </div>
-        </div>
-
-        {/* Verified Purchase Policy Note */}
-        <div className="flex items-center gap-2.5 p-2.5 sm:p-3.5 bg-emerald-50/80 border border-emerald-200/90 rounded-xl sm:rounded-2xl text-xs text-emerald-950 font-medium">
-          <div className="p-1.5 sm:p-2 bg-emerald-600 text-white rounded-lg sm:rounded-xl shadow-xs shrink-0">
-            <ShieldCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-          </div>
-          <div>
-            <p className="font-bold text-gray-900 text-[11px] sm:text-xs">100% Verified Buyer Reviews Only</p>
-            <p className="text-[10px] sm:text-[11px] text-gray-500 mt-0.5 leading-tight">
-              To ensure 100% authenticity, customer reviews can only be submitted after receiving the delivered product from your <strong>My Orders</strong> page.
-            </p>
-          </div>
-        </div>
-
-        {/* Reputation & Support Resolution Promise */}
-        <div className="flex items-center justify-between flex-wrap gap-2.5 p-2.5 sm:p-3.5 bg-amber-50/80 border border-amber-200/90 rounded-xl sm:rounded-2xl text-xs text-amber-950 font-medium">
-          <div className="flex items-center gap-2 sm:gap-2.5">
-            <span className="text-sm sm:text-base shrink-0">🛡️</span>
-            <div>
-              <p className="font-bold text-gray-900 text-[11px] sm:text-xs">100% Satisfaction & Reputation Commitment</p>
-              <p className="text-[10px] sm:text-[11px] text-gray-600 mt-0.5 leading-tight">
-                Received a damaged, delayed, or mismatched item? Contact our Care Desk on WhatsApp before leaving a review — we promise 100% replacement or refund.
-              </p>
-            </div>
-          </div>
-          <a
-            href={`https://wa.me/${cleanPhoneForWhatsApp}?text=${encodeURIComponent(
-              `Hello Kintesi Support, I have an issue with product "${product.title}". Please assist with immediate replacement or refund.`
-            )}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] sm:text-xs rounded-lg sm:rounded-xl transition shadow-xs active:scale-95 flex items-center gap-1 shrink-0 ml-auto sm:ml-0"
-          >
-            <span>💬 WhatsApp Care</span>
-          </a>
         </div>
 
         {/* Reviews List */}

@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef, useMemo } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { getCategoriesFromDB, getProductsFromDB } from '../lib/dbService';
 import { Product, Category } from '../types';
@@ -8,7 +8,14 @@ import { ProductCard } from '../components/common/ProductCard';
 import { FlashSaleBanner } from '../components/home/FlashSaleBanner';
 import { ShowcaseStrip } from '../components/home/ShowcaseStrip';
 import { useSettings, ShowcaseSection, DEFAULT_SHOWCASES } from '../contexts/SettingsContext';
-import { getPersonalizedAndRotatedProducts, detectAndSaveSearchIntent } from '../lib/recommendationEngine';
+import {
+  getPersonalizedAndRotatedProducts,
+  detectAndSaveSearchIntent,
+  extractKeywords,
+  getSavedSearchIntent,
+  clearSearchIntent,
+} from '../lib/recommendationEngine';
+import { matchesProductSearch } from '../lib/searchUtils';
 import {
   ArrowRight,
   Sparkles,
@@ -63,7 +70,8 @@ const ICON_MAP: Record<string, any> = {
 };
 
 export const HomePage: React.FC = () => {
-  const { settings } = useSettings();
+  const location = useLocation();
+  const { settings, isSettingsLoaded } = useSettings();
   const banners = settings.banners;
 
   const [products, setProducts] = useState<Product[]>(() => {
@@ -96,8 +104,15 @@ export const HomePage: React.FC = () => {
   // Progressive batch loading / Infinite scroll states
   const [mobileVisibleCount, setMobileVisibleCount] = useState(12);
   const [desktopVisibleCount, setDesktopVisibleCount] = useState(18);
+  const [intentVersion, setIntentVersion] = useState<number>(0);
   const mobileSentinelRef = useRef<HTMLDivElement | null>(null);
   const desktopSentinelRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const handleIntentUpdate = () => setIntentVersion((v) => v + 1);
+    window.addEventListener('kintesi_intent_updated', handleIntentUpdate);
+    return () => window.removeEventListener('kintesi_intent_updated', handleIntentUpdate);
+  }, []);
 
   // Flash sale countdown timer state
   const isInfinite = banners.flashSaleDurationType === 'infinite' || banners.flashSaleInfinite === true;
@@ -134,6 +149,7 @@ export const HomePage: React.FC = () => {
   }, [banners.flashSaleEndsAt, banners.flashSaleHours, banners.flashSaleDurationType, banners.flashSaleInfinite, isInfinite]);
 
   const isFlashSaleActive = Boolean(
+    isSettingsLoaded &&
     banners.showFlashSale === true &&
     (isInfinite || (!timeLeft.isExpired && (!banners.flashSaleEndsAt || new Date(banners.flashSaleEndsAt).getTime() > Date.now())))
   );
@@ -165,6 +181,7 @@ export const HomePage: React.FC = () => {
   }, []);
 
   const hasValidSpotlight = Boolean(
+    isSettingsLoaded &&
     banners.showSpotlight &&
     banners.spotlightTitle &&
     banners.spotlightTitle.trim().length > 0 &&
@@ -176,6 +193,8 @@ export const HomePage: React.FC = () => {
   // Active Showcase sections (Trending, Featured, New Arrival, Flash Sale)
   // ONLY showcases explicitly enabled by admin will be shown.
   const activeShowcases = useMemo(() => {
+    if (!isSettingsLoaded) return [];
+
     const rawList: ShowcaseSection[] = (banners.showcases && banners.showcases.length > 0)
       ? banners.showcases
       : [];
@@ -212,12 +231,20 @@ export const HomePage: React.FC = () => {
         };
       })
       .filter((item) => item.products.length > 0);
-  }, [banners.showcases, products]);
+  }, [isSettingsLoaded, banners.showcases, products]);
+
+  // Detected active search intent for visual confirmation badge
+  const activeIntentBadge = useMemo(() => {
+    const params = new URLSearchParams(location.search);
+    const utm = params.get('utm_term') || params.get('utm_content') || params.get('utm_campaign') || params.get('search');
+    if (utm) return utm;
+    const saved = getSavedSearchIntent();
+    return saved && saved.length > 0 ? saved[0] : null;
+  }, [location.search, intentVersion]);
 
   // 2. Personalized & Rotated Product Feed:
-  // Recommended products (matching search intent / Google search / interests) are ranked 1st at the top!
+  // Recommended products (matching active search intent) are ranked 1st at the top!
   // Followed by all remaining products gradually below.
-  // Featured products are ALSO included in the All Products feed (never hidden from all)!
   const personalizedProducts = useMemo(() => {
     const uniqueMap = new Map<string, Product>();
     for (const p of products) {
@@ -226,8 +253,37 @@ export const HomePage: React.FC = () => {
       }
     }
     const uniquePool = Array.from(uniqueMap.values());
-    return getPersonalizedAndRotatedProducts(uniquePool, 2);
-  }, [products]);
+
+    // 1. Direct High-Priority Intent Match Guarantee:
+    // If user typed in search bar or arrived via ad/campaign (e.g. "fan", "ঘড়ি", "mouse", "watch"),
+    // all matching products are GUARANTEED to be pinned immediately to the top of the grid (#1 spot)!
+    if (activeIntentBadge && activeIntentBadge.trim()) {
+      const matching: Product[] = [];
+      const nonMatching: Product[] = [];
+      for (const p of uniquePool) {
+        if (matchesProductSearch(p, activeIntentBadge)) {
+          matching.push(p);
+        } else {
+          nonMatching.push(p);
+        }
+      }
+      if (matching.length > 0) {
+        const rotatedRest = getPersonalizedAndRotatedProducts(nonMatching, 2);
+        return [...matching, ...rotatedRest];
+      }
+    }
+
+    const activeTerms = activeIntentBadge ? [activeIntentBadge] : undefined;
+    return getPersonalizedAndRotatedProducts(uniquePool, 2, activeTerms);
+  }, [products, intentVersion, location.search, activeIntentBadge]);
+
+  const handleClearIntent = () => {
+    clearSearchIntent();
+    if (location.search) {
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+    setIntentVersion((v) => v + 1);
+  };
 
   // Infinite scroll observer for Mobile
   useEffect(() => {
@@ -284,7 +340,7 @@ export const HomePage: React.FC = () => {
       <div className="block md:hidden bg-white min-h-screen space-y-5 pb-28 pt-2.5">
         
         {/* 1. Mobile Hero Banner (Controlled by showHeroSection & heroShowOnMobile) */}
-        {banners.showHeroSection !== false && banners.heroShowOnMobile !== false && (
+        {isSettingsLoaded && banners.showHeroSection === true && banners.heroShowOnMobile !== false && (
           <div className="px-3">
             <div className="relative rounded-2xl bg-gradient-to-br from-rose-50/70 via-white to-rose-50/40 border border-rose-100/90 p-4 shadow-[0_2px_12px_rgba(225,29,72,0.03)] space-y-2.5">
               <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white border border-rose-200/80 text-rose-700 text-[10px] font-bold">
@@ -455,7 +511,7 @@ export const HomePage: React.FC = () => {
       <div className="hidden md:block space-y-10 sm:space-y-12">
         
         {/* 1. Desktop Hero Banner */}
-        {banners.showHeroSection !== false && (
+        {isSettingsLoaded && banners.showHeroSection === true && (
           <section className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-2">
             <div className="relative rounded-3xl bg-gradient-to-br from-rose-50/40 via-white to-gray-50/70 border border-rose-100/90 shadow-[0_2px_16px_rgba(225,29,72,0.03)] overflow-hidden">
               <div className="relative px-6 sm:px-10 lg:px-12 py-8 lg:py-10">

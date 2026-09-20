@@ -464,3 +464,50 @@ html.admin-light {
 .admin-dark .banner-studio [class*="hover:bg-slate-"]:hover {
   background-color: #334155 !important;
 }
+
+/* Infinite Category 2-Line Marquee */
+@keyframes categoryMarquee {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+  100% {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+.animate-category-marquee {
+  display: flex;
+  width: max-content;
+  will-change: transform;
+  animation: categoryMarquee 60s linear infinite;
+}
+
+.animate-category-marquee-slow {
+  display: flex;
+  width: max-content;
+  will-change: transform;
+  animation: categoryMarquee 68s linear infinite;
+}
+
+.animate-category-marquee-reverse {
+  display: flex;
+  width: max-content;
+  will-change: transform;
+  animation: categoryMarquee 65s linear infinite reverse;
+}
+
+.is-paused,
+.animate-category-marquee:hover,
+.animate-category-marquee-slow:hover,
+.animate-category-marquee-reverse:hover {
+  animation-play-state: paused !important;
+}
+
+@media (hover: none) {
+  .animate-category-marquee:active,
+  .animate-category-marquee-slow:active,
+  .animate-category-marquee-reverse:active {
+    animation-play-state: paused !important;
+  }
+}
+

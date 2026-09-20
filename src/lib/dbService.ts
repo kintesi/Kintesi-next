@@ -14,7 +14,6 @@ import { db } from './firebase';
 import { supabase } from './supabase';
 import { Product, Category, Order } from '../types';
 import { INITIAL_CATEGORIES } from '../data/mockData';
-import { deleteImagesFromCloudinary, deleteFromCloudinary } from './cloudinary';
 
 // Timeout wrapper so slow network queries failover gracefully without freezing UI
 function withTimeout<T>(promise: PromiseLike<T>, ms: number = 3500): Promise<T> {
@@ -51,11 +50,23 @@ export async function getProductsFromDB(): Promise<Product[]> {
     if (!error && supaProducts && supaProducts.length > 0) {
       const clean = supaProducts
         .filter((p: any) => p && p.id && !p.id.startsWith('prod-'))
-        .map((p: any) => ({
-          ...p,
-          spec_mode: p.spec_mode || p.specifications?.spec_mode || 'auto',
-          sub_category: p.sub_category || p.specifications?.sub_category || '',
-        }));
+        .map((p: any) => {
+          let imgs: string[] = Array.isArray(p.images) ? p.images.filter(Boolean) : [];
+          if (imgs.length === 0 && Array.isArray(p.colors)) {
+            p.colors.forEach((c: any) => {
+              if (c.image) imgs.push(c.image);
+              if (Array.isArray(c.images)) imgs.push(...c.images.filter(Boolean));
+            });
+            imgs = Array.from(new Set(imgs));
+          }
+          if (imgs.length === 0) imgs = ['/logo.webp'];
+          return {
+            ...p,
+            images: imgs,
+            spec_mode: p.spec_mode || p.specifications?.spec_mode || 'auto',
+            sub_category: p.sub_category || p.specifications?.sub_category || '',
+          };
+        });
       localStorage.setItem('kintesi_custom_products', JSON.stringify(clean));
 
       // Asynchronously mirror / shadow backup to Firebase
@@ -79,7 +90,25 @@ export async function getProductsFromDB(): Promise<Product[]> {
     const snap = await getDocs(colRef);
     if (!snap.empty) {
       const items = snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) } as Product));
-      const clean = items.filter((p) => p && p.id && !p.id.startsWith('prod-'));
+      const clean = items
+        .filter((p) => p && p.id && !p.id.startsWith('prod-'))
+        .map((p: any) => {
+          let imgs: string[] = Array.isArray(p.images) ? p.images.filter(Boolean) : [];
+          if (imgs.length === 0 && Array.isArray(p.colors)) {
+            p.colors.forEach((c: any) => {
+              if (c.image) imgs.push(c.image);
+              if (Array.isArray(c.images)) imgs.push(...c.images.filter(Boolean));
+            });
+            imgs = Array.from(new Set(imgs));
+          }
+          if (imgs.length === 0) imgs = ['/logo.webp'];
+          return {
+            ...p,
+            images: imgs,
+            spec_mode: p.spec_mode || p.specifications?.spec_mode || 'auto',
+            sub_category: p.sub_category || p.specifications?.sub_category || '',
+          };
+        });
       localStorage.setItem('kintesi_custom_products', JSON.stringify(clean));
       return clean;
     }
@@ -88,7 +117,12 @@ export async function getProductsFromDB(): Promise<Product[]> {
   }
 
   // 3. Fallback: Local Storage cache
-  return localSaved.filter((p) => p && p.id && !p.id.startsWith('prod-'));
+  return localSaved
+    .filter((p) => p && p.id && !p.id.startsWith('prod-'))
+    .map((p: any) => ({
+      ...p,
+      images: Array.isArray(p.images) && p.images.length > 0 ? p.images.filter(Boolean) : ['/logo.webp'],
+    }));
 }
 
 export async function saveProductToDB(product: Product): Promise<void> {
@@ -110,6 +144,22 @@ export async function saveProductToDB(product: Product): Promise<void> {
       .replace(/[^\w\s-]/g, '')
       .replace(/[\s_-]+/g, '-')
       .replace(/^-+|-+$/g, '') || `product-${product.id.slice(0, 8)}`;
+  }
+
+  // Ensure product has a valid, non-empty images array
+  if (!Array.isArray(product.images) || product.images.length === 0) {
+    const fallbackImgs: string[] = [];
+    if (Array.isArray(product.colors)) {
+      product.colors.forEach((c) => {
+        if (c.image) fallbackImgs.push(c.image);
+        if (Array.isArray(c.images)) fallbackImgs.push(...c.images.filter(Boolean));
+      });
+    }
+    product.images = fallbackImgs.length > 0 ? Array.from(new Set(fallbackImgs)) : ['/logo.webp'];
+  } else {
+    // Filter out empty strings or invalid entries
+    product.images = product.images.filter((u) => u && typeof u === 'string' && u.trim().length > 0);
+    if (product.images.length === 0) product.images = ['/logo.webp'];
   }
 
   // 1. Instant local reactivity (0ms) - Only replace if exact same ID matches!
@@ -194,32 +244,8 @@ export async function saveProductToDB(product: Product): Promise<void> {
 }
 
 export async function deleteProductFromDB(productId: string, product?: Product): Promise<void> {
-  // 0. Extract images if product is provided or find from local storage
-  let targetProduct = product;
-  const localSaved: Product[] = JSON.parse(localStorage.getItem('kintesi_custom_products') || '[]');
-  if (!targetProduct) {
-    targetProduct = localSaved.find((p) => p.id === productId);
-  }
-
-  // Gather all images to purge from Cloudinary
-  if (targetProduct) {
-    const imagesToPurge: string[] = [];
-    if (Array.isArray(targetProduct.images)) {
-      imagesToPurge.push(...targetProduct.images);
-    }
-    if (Array.isArray(targetProduct.colors)) {
-      targetProduct.colors.forEach((c) => {
-        if (c.image) imagesToPurge.push(c.image);
-      });
-    }
-    if (imagesToPurge.length > 0) {
-      deleteImagesFromCloudinary(imagesToPurge).catch((err) =>
-        console.warn('Cloudinary images purge notice:', err)
-      );
-    }
-  }
-
   // 1. Local update
+  const localSaved: Product[] = JSON.parse(localStorage.getItem('kintesi_custom_products') || '[]');
   const filtered = localSaved.filter((p) => p.id !== productId);
   localStorage.setItem('kintesi_custom_products', JSON.stringify(filtered));
   window.dispatchEvent(new Event('kintesi_products_updated'));
@@ -484,12 +510,6 @@ export async function deleteCategoryFromDB(idOrSlug: string, category?: Category
     const localSaved: Category[] = JSON.parse(localStorage.getItem('kintesi_custom_categories') || '[]');
     if (!targetCat) {
       targetCat = localSaved.find((c) => c.id === idOrSlug || c.slug === idOrSlug);
-    }
-    const catImage = targetCat?.image || targetCat?.image_url;
-    if (catImage) {
-      deleteFromCloudinary(catImage).catch((err) =>
-        console.warn('Cloudinary category image purge notice:', err)
-      );
     }
     // 1. Local
     const updated = localSaved.filter((c) => c.id !== idOrSlug && c.slug !== idOrSlug);

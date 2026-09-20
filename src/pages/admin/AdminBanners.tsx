@@ -487,19 +487,6 @@ export const AdminBanners: React.FC = () => {
       toast.error('A flash sale needs at least one slide.');
       return;
     }
-    const slideToRemove = slides[selectedSlideIndex];
-    if (slideToRemove) {
-      const urlsToPurge = [
-        slideToRemove.desktopImage,
-        slideToRemove.mobileImage,
-        slideToRemove.bgImage,
-      ].filter(Boolean) as string[];
-      if (urlsToPurge.length > 0) {
-        deleteImagesFromCloudinary(urlsToPurge).catch((err) =>
-          console.warn('Cloudinary slide image deletion notice:', err)
-        );
-      }
-    }
     hasUserEdited.current = true;
     setIsSaved(false);
     const nextSlides = slides.filter((_, index) => index !== selectedSlideIndex);

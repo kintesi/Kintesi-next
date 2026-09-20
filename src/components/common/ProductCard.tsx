@@ -67,6 +67,10 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onWishlistTog
           decoding="async"
           width="300"
           height="300"
+          onError={(e) => {
+            e.currentTarget.onerror = null;
+            e.currentTarget.src = '/logo.webp';
+          }}
         />
       </Link>
 

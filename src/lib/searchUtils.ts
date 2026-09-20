@@ -28,10 +28,65 @@ const SYNONYM_DICTIONARY: Record<string, string[]> = {
   'মোবাইল': ['phone', 'mobile', 'smartphone', 'ফোন'],
   laptop: ['computer', 'ল্যাপটপ', 'ম্যাকবুক', 'macbook', 'notebook'],
   'ল্যাপটপ': ['laptop', 'computer', 'macbook', 'notebook'],
-  watch: ['smartwatch', 'ঘড়ি', 'ঘড়ি', 'হাতের ঘড়ি'],
-  smartwatch: ['watch', 'ঘড়ি', 'ঘড়ি'],
-  'ঘড়ি': ['watch', 'smartwatch', 'ঘড়ি'],
-  'ঘড়ি': ['watch', 'smartwatch', 'ঘড়ি'],
+  // Watch
+  watch: ['watches', 'smartwatch', 'wristwatch', 'ঘড়ি', 'ঘড়ি', 'হাতের ঘড়ি', 'হাত ঘড়ি', 'হাতঘড়ি', 'ঘড়ী'],
+  watches: ['watch', 'smartwatch', 'wristwatch', 'ঘড়ি', 'ঘড়ি'],
+  smartwatch: ['watch', 'wristwatch', 'ঘড়ি', 'ঘড়ি'],
+  wristwatch: ['watch', 'smartwatch', 'ঘড়ি', 'ঘড়ি'],
+  'ঘড়ি': ['watch', 'watches', 'smartwatch', 'wristwatch', 'ঘড়ি', 'হাতের ঘড়ি'],
+  'ঘড়ি': ['watch', 'watches', 'smartwatch', 'wristwatch', 'ঘড়ি', 'হাতের ঘড়ি'],
+  'হাত ঘড়ি': ['watch', 'wristwatch', 'ঘড়ি', 'ঘড়ি'],
+  'হাতঘড়ি': ['watch', 'wristwatch', 'ঘড়ি', 'ঘড়ি'],
+
+  // Fan
+  fan: ['fans', 'turbo fan', 'handheld fan', 'portable fan', 'rechargeable fan', 'mini fan', 'cooler', 'ফ্যান', 'হাত ফ্যান', 'চার্জার ফ্যান', 'রিচার্জেবল ফ্যান'],
+  fans: ['fan', 'turbo fan', 'rechargeable fan', 'ফ্যান'],
+  'turbo fan': ['fan', 'handheld fan', 'ফ্যান', 'টার্বো ফ্যান'],
+  'handheld fan': ['fan', 'portable fan', 'হাত ফ্যান', 'মিনি ফ্যান'],
+  'rechargeable fan': ['fan', 'চার্জার ফ্যান', 'রিচার্জেবল ফ্যান', 'ফ্যান'],
+  'ফ্যান': ['fan', 'fans', 'turbo fan', 'rechargeable fan', 'হাত ফ্যান', 'চার্জার ফ্যান', 'বাতাস'],
+  'হাত ফ্যান': ['fan', 'handheld fan', 'portable fan', 'ফ্যান'],
+  'চার্জার ফ্যান': ['fan', 'rechargeable fan', 'ফ্যান'],
+
+  // Mouse
+  mouse: ['mice', 'wireless mouse', 'gaming mouse', 'bluetooth mouse', 'মাউস', 'ওয়্যারলেস মাউস', 'কম্পিউটার মাউস'],
+  mice: ['mouse', 'wireless mouse', 'মাউস'],
+  'wireless mouse': ['mouse', 'bluetooth mouse', 'ওয়্যারলেস মাউস', 'মাউস'],
+  'মাউস': ['mouse', 'mice', 'wireless mouse', 'gaming mouse', 'ওয়্যারলেস মাউস'],
+  'ওয়্যারলেস মাউস': ['mouse', 'wireless mouse', 'মাউস'],
+
+  // Borka & Abaya
+  borka: ['borkha', 'burqa', 'burkha', 'abaya', 'hijab', 'koti', 'বোরকা', 'বোরখা', 'আবায়া', 'হিজাব', 'কটি'],
+  borkha: ['borka', 'abaya', 'hijab', 'burqa', 'বোরকা', 'বোরখা'],
+  abaya: ['borka', 'borkha', 'hijab', 'burqa', 'আবায়া', 'বোরকা'],
+  burqa: ['borka', 'abaya', 'hijab', 'বোরকা'],
+  hijab: ['borka', 'abaya', 'হিজাব', 'স্কার্ফ'],
+  'বোরকা': ['borka', 'borkha', 'abaya', 'hijab', 'koti', 'burqa', 'বোরখা', 'আবায়া', 'হিজাব'],
+  'বোরখা': ['borka', 'abaya', 'hijab', 'বোরকা', 'আবায়া'],
+  'আবায়া': ['borka', 'abaya', 'hijab', 'বোরকা'],
+  'হিজাব': ['hijab', 'borka', 'abaya', 'বোরকা', 'আবায়া'],
+
+  // Heating Belt
+  belt: ['heating belt', 'period belt', 'waist belt', 'heating pad', 'massager', 'বেল্ট', 'হিটিং বেল্ট', 'কোমর বেল্ট'],
+  'heating belt': ['belt', 'period belt', 'waist belt', 'হিটিং বেল্ট', 'বেল্ট', 'কোমর বেল্ট'],
+  'period belt': ['belt', 'heating belt', 'পিরিয়ড বেল্ট', 'হিটিং বেল্ট'],
+  'বেল্ট': ['belt', 'heating belt', 'কোমর বেল্ট', 'হিটিং বেল্ট'],
+  'হিটিং বেল্ট': ['belt', 'heating belt', 'period belt', 'কোমর বেল্ট', 'বেল্ট'],
+  'কোমর বেল্ট': ['belt', 'heating belt', 'বেল্ট'],
+
+  // Jewellery & Necklace
+  jewellery: ['jewelry', 'necklace', 'earrings', 'bridal', 'ornaments', 'গহনা', 'জুয়েলারি', 'জুয়েলারি', 'নেকলেস', 'হার', 'দুল'],
+  jewelry: ['jewellery', 'necklace', 'earrings', 'bridal', 'ornaments', 'গহনা', 'জুয়েলারি', 'জুয়েলারি', 'নেকলেস', 'হার'],
+  necklace: ['jewellery', 'jewelry', 'গহনা', 'নেকলেস', 'হার', 'গলার হার'],
+  earrings: ['jewellery', 'jewelry', 'কানের দুল', 'দুল'],
+  'গহনা': ['jewellery', 'jewelry', 'necklace', 'earrings', 'জুয়েলারি', 'জুয়েলারি', 'নেকলেস', 'হার'],
+  'জুয়েলারি': ['jewellery', 'jewelry', 'গহনা', 'নেকলেস', 'হার'],
+  'জুয়েলারি': ['jewellery', 'jewelry', 'গহনা', 'নেকলেস', 'হার'],
+  'নেকলেস': ['necklace', 'jewellery', 'jewelry', 'গলার হার', 'হার', 'গহনা'],
+  'হার': ['necklace', 'jewellery', 'নেকলেস', 'গহনা'],
+  'দুল': ['earrings', 'jewellery', 'কানের দুল', 'গহনা'],
+  'কানের দুল': ['earrings', 'jewellery', 'দুল', 'গহনা'],
+
   shoe: ['shoes', 'জুতা', 'জুতো', 'sneakers', 'লোফার', 'sandal'],
   shoes: ['shoe', 'জুতা', 'জুতো', 'sneakers', 'লোফার', 'sandal'],
   'জুতা': ['shoe', 'shoes', 'sneakers', 'স্যান্ডেল'],
@@ -89,6 +144,18 @@ export function matchesProductSearch(product: Product, searchQuery: string): boo
 
   const queryTerms = expandQueryTerms(searchQuery);
 
+  const tagsList = Array.isArray(product.tags)
+    ? product.tags
+    : typeof product.tags === 'string'
+    ? [product.tags]
+    : [];
+
+  const highlightsList = Array.isArray(product.highlights)
+    ? product.highlights
+    : typeof product.highlights === 'string'
+    ? [product.highlights]
+    : [];
+
   // Compile all searchable text from the product
   const searchableTextParts: string[] = [
     product.title || '',
@@ -103,8 +170,8 @@ export function matchesProductSearch(product: Product, searchQuery: string): boo
     product.origin || '',
     product.sku || '',
     product.gender || '',
-    ...(product.tags || []),
-    ...(product.highlights || []),
+    ...tagsList,
+    ...highlightsList,
     ...(product.specifications ? Object.values(product.specifications) : []),
   ];
 
