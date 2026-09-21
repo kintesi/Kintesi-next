@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef, useMemo } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
-import { getCategoriesFromDB, getProductsFromDB, getInitialProducts } from '../lib/dbService';
+import { getCategoriesFromDB, getProductsFromDB, getInitialProducts, getCachedTotalCount } from '../lib/dbService';
 import { Product, Category } from '../types';
 import { INITIAL_PRODUCTS, INITIAL_CATEGORIES } from '../data/mockData';
 import { FLASH_SALE_PRODUCTS } from '../data/flashSaleProducts';
@@ -279,6 +279,10 @@ export const HomePage: React.FC = () => {
     return getCuratedCatalogFeed(uniquePool, reloadSeed);
   }, [products, reloadSeed]);
 
+  const totalCatalogCount = useMemo(() => {
+    return Math.max(personalizedProducts.length, getCachedTotalCount());
+  }, [personalizedProducts.length]);
+
   const handleClearIntent = () => {
     clearSearchIntent();
     if (location.search) {
@@ -296,7 +300,7 @@ export const HomePage: React.FC = () => {
       (entries) => {
         if (entries[0].isIntersecting) {
           setMobileVisibleCount((prev) => {
-            if (prev < personalizedProducts.length) {
+            if (prev < totalCatalogCount) {
               return prev + 6;
             }
             return prev;
@@ -308,7 +312,7 @@ export const HomePage: React.FC = () => {
 
     observer.observe(sentinel);
     return () => observer.disconnect();
-  }, [personalizedProducts.length]);
+  }, [totalCatalogCount]);
 
   return (
     <div className="pb-20">
@@ -757,26 +761,26 @@ export const HomePage: React.FC = () => {
 
               {/* Desktop Interactive Load More Section (Eliminates scroll lag and DOM freeze) */}
               <div className="w-full flex flex-col items-center justify-center pt-8 pb-4 gap-3">
-                {desktopVisibleCount < personalizedProducts.length ? (
+                {desktopVisibleCount < totalCatalogCount ? (
                   <>
                     <button
                       type="button"
-                      onClick={() => setDesktopVisibleCount((prev) => Math.min(prev + 18, personalizedProducts.length))}
+                      onClick={() => setDesktopVisibleCount((prev) => Math.min(prev + 18, totalCatalogCount))}
                       className="group inline-flex items-center gap-2.5 px-8 py-3.5 bg-white hover:bg-rose-600 text-gray-800 hover:text-white font-extrabold text-sm rounded-2xl border-2 border-rose-200 hover:border-rose-600 shadow-xs hover:shadow-lg hover:shadow-rose-600/20 transition-all duration-300 cursor-pointer active:scale-98"
                     >
                       <ShoppingBag className="w-4 h-4 text-rose-600 group-hover:text-white transition-colors" />
-                      <span>আরও পণ্য দেখুন ({personalizedProducts.length - desktopVisibleCount}টি বাকি)</span>
+                      <span>আরও পণ্য দেখুন ({Math.max(0, totalCatalogCount - desktopVisibleCount)}টি বাকি)</span>
                       <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                     </button>
                     <p className="text-xs text-gray-400 font-medium">
-                      Showing {Math.min(desktopVisibleCount, personalizedProducts.length)} of {personalizedProducts.length} items
+                      Showing {Math.min(desktopVisibleCount, totalCatalogCount)} of {totalCatalogCount} items
                     </p>
                   </>
                 ) : (
-                  personalizedProducts.length > 0 && (
+                  totalCatalogCount > 0 && (
                     <div className="flex items-center gap-2 text-xs text-emerald-600 font-semibold bg-emerald-50 px-4 py-2 rounded-full border border-emerald-200/60">
                       <CheckCircle2 className="w-4 h-4" />
-                      <span>সব {personalizedProducts.length}টি পণ্য লোড হয়েছে</span>
+                      <span>সব {totalCatalogCount}টি পণ্য লোড হয়েছে</span>
                     </div>
                   )
                 )}

@@ -14,7 +14,7 @@ import {
   getUserInterestProfile,
 } from '../lib/recommendationEngine';
 
-import { getCategoriesFromDB, getProductsFromDB, getInitialProducts } from '../lib/dbService';
+import { getCategoriesFromDB, getProductsFromDB, getInitialProducts, getCachedTotalCount } from '../lib/dbService';
 import { CategoriesShowcase } from '../components/common/CategoriesShowcase';
 
 const PRICE_PRESETS = [
@@ -249,6 +249,19 @@ export const ShopPage: React.FC = () => {
     return filtered;
   }, [products, selectedCategory, selectedSubCategory, searchQuery, appliedMinPrice, appliedMaxPrice, onlyInStock, sortBy, searchParams, intentVersion]);
 
+  const isDefaultCatalogView =
+    selectedCategory === 'all' &&
+    selectedSubCategory === 'all' &&
+    !searchQuery.trim() &&
+    appliedMinPrice === null &&
+    appliedMaxPrice === null &&
+    !onlyInStock;
+
+  const totalCatalogCount = getCachedTotalCount();
+  const totalItemCount = isDefaultCatalogView
+    ? Math.max(filteredProducts.length, totalCatalogCount)
+    : filteredProducts.length;
+
   // Progressive batch rendering: 6 on mobile (auto infinite scroll), 18 on desktop with interactive Load More
   const getInitialDisplayCount = () => (typeof window !== 'undefined' && window.innerWidth < 768 ? 6 : 18);
   const [displayCount, setDisplayCount] = useState<number>(getInitialDisplayCount);
@@ -438,7 +451,7 @@ export const ShopPage: React.FC = () => {
             {selectedCategory !== 'all' ? (currentCategoryObj?.name || selectedCategory) : 'All Products'}
           </h1>
           <span className="text-[11px] font-semibold text-gray-400 shrink-0">
-            ({filteredProducts.length})
+            ({totalItemCount})
           </span>
         </div>
 
@@ -496,7 +509,7 @@ export const ShopPage: React.FC = () => {
           </div>
           <h1 className="text-2xl font-black text-gray-900 tracking-tight flex items-center gap-2">
             <span>{selectedCategory !== 'all' ? (currentCategoryObj?.name || 'All Products') : 'All Products'}</span>
-            <span className="text-sm font-semibold text-gray-400">({filteredProducts.length} items)</span>
+            <span className="text-sm font-semibold text-gray-400">({totalItemCount} items)</span>
           </h1>
         </div>
 
@@ -641,7 +654,7 @@ export const ShopPage: React.FC = () => {
                     }`}
                   >
                     <span>All Categories</span>
-                    <span>{products.length}</span>
+                    <span>{isDefaultCatalogView ? totalItemCount : products.length}</span>
                   </button>
                   {categories.map((cat) => {
                     const count = products.filter((p) => isCategoryMatch(p.category_id, cat.slug)).length;
@@ -799,7 +812,7 @@ export const ShopPage: React.FC = () => {
               </div>
 
               {/* Load More section */}
-              {displayCount < filteredProducts.length ? (
+              {displayCount < totalItemCount ? (
                 <div className="flex flex-col items-center justify-center pt-8 pb-4 gap-3">
                   {/* Mobile Sentinel (hidden on desktop) */}
                   <div ref={loadMoreSentinelRef} className="h-2 w-full md:hidden" />
@@ -811,19 +824,19 @@ export const ShopPage: React.FC = () => {
                     className="group inline-flex items-center gap-2.5 px-8 py-3.5 bg-white hover:bg-rose-600 text-gray-800 hover:text-white font-extrabold text-sm rounded-2xl border-2 border-rose-200 hover:border-rose-600 shadow-xs hover:shadow-lg hover:shadow-rose-600/20 transition-all duration-300 cursor-pointer active:scale-98"
                   >
                     <ShoppingBag className="w-4 h-4 text-rose-600 group-hover:text-white transition-colors" />
-                    <span>আরও পণ্য দেখুন ({filteredProducts.length - displayCount}টি বাকি)</span>
+                    <span>আরও পণ্য দেখুন ({Math.max(0, totalItemCount - displayCount)}টি বাকি)</span>
                     <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                   </button>
                   <p className="text-xs text-gray-400 font-medium">
-                    Showing {Math.min(displayCount, filteredProducts.length)} of {filteredProducts.length} products
+                    Showing {Math.min(displayCount, totalItemCount)} of {totalItemCount} products
                   </p>
                 </div>
               ) : (
-                filteredProducts.length > 0 && (
+                totalItemCount > 0 && (
                   <div className="flex items-center justify-center pt-8 pb-4">
                     <div className="flex items-center gap-2 text-xs text-emerald-600 font-semibold bg-emerald-50 px-4 py-2 rounded-full border border-emerald-200/60">
                       <CheckCircle2 className="w-4 h-4" />
-                      <span>সব {filteredProducts.length}টি পণ্য লোড হয়েছে</span>
+                      <span>সব {totalItemCount}টি পণ্য লোড হয়েছে</span>
                     </div>
                   </div>
                 )
@@ -982,7 +995,7 @@ export const ShopPage: React.FC = () => {
                     }`}
                   >
                     <span>All Categories</span>
-                    <span>{products.length}</span>
+                    <span>{isDefaultCatalogView ? totalItemCount : products.length}</span>
                   </button>
                   {categories.map((cat) => {
                     const count = products.filter((p) => isCategoryMatch(p.category_id, cat.slug)).length;

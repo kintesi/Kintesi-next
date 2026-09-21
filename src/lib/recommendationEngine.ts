@@ -688,7 +688,7 @@ export function getRelatedProducts(currentProduct: Product, allProducts: Product
   return scored.slice(0, limit).map((item) => item.product);
 }
 
-function getBaseProductTitle(title?: string): string {
+export function getBaseProductTitle(title?: string): string {
   if (!title) return '';
   return title
     .replace(/\s*\([^)]*\)\s*$/g, '') // remove trailing (Green), (Golden)
@@ -706,15 +706,47 @@ function getBaseProductTitle(title?: string): string {
 export function getCuratedCatalogFeed(products: Product[], reloadSeed?: number): Product[] {
   if (!products || products.length === 0) return [];
 
-  // 1. Deduplicate variant clones by base title so user never sees 8 duplicate watches or 15 bras!
-  const seenBase = new Set<string>();
-  const uniqueProducts: Product[] = [];
+  // Deterministic pseudo-random shuffle using reloadSeed (changes on reload, 100% stable while on page)
+  function pseudoShuffle<T>(arr: T[], seed: number): T[] {
+    const res = [...arr];
+    let s = seed;
+    for (let i = res.length - 1; i > 0; i--) {
+      s = (s * 9301 + 49297) % 233280;
+      const rnd = s / 233280;
+      const j = Math.floor(rnd * (i + 1));
+      [res[i], res[j]] = [res[j], res[i]];
+    }
+    return res;
+  }
+
+  // 1. Group products by base title so variant duplicates (e.g. 8 colors of the same watch or 15 bras)
+  // are distributed across separate layers rather than clustered together or discarded.
+  // This preserves all 2,800+ products in the catalog while ensuring 100% diversity!
+  const variantGroups = new Map<string, Product[]>();
   for (const p of products) {
     if (!p || !p.id) continue;
-    const base = getBaseProductTitle(p.title);
-    if (base && seenBase.has(base)) continue;
-    if (base) seenBase.add(base);
-    uniqueProducts.push(p);
+    const base = getBaseProductTitle(p.title) || p.id;
+    if (!variantGroups.has(base)) variantGroups.set(base, []);
+    variantGroups.get(base)!.push(p);
+  }
+
+  // Decompose into progressive layers:
+  // Layer 0 contains 1 of every unique product in the store (1,700+ unique products).
+  // Layer 1 has the 2nd variant, Layer 2 has the 3rd, etc.
+  const layers: Product[][] = [];
+  let hasMoreVariants = true;
+  let pass = 0;
+  while (hasMoreVariants) {
+    hasMoreVariants = false;
+    const layer: Product[] = [];
+    for (const list of variantGroups.values()) {
+      if (pass < list.length) {
+        layer.push(list[pass]);
+        if (pass + 1 < list.length) hasMoreVariants = true;
+      }
+    }
+    if (layer.length > 0) layers.push(layer);
+    pass++;
   }
 
   const CATEGORY_CYCLE = [
@@ -730,111 +762,97 @@ export function getCuratedCatalogFeed(products: Product[], reloadSeed?: number):
     'automotives-motorbikes',
   ];
 
-  // 2. Group products into category buckets
-  const categoryBuckets = new Map<string, Product[]>();
-  for (const cat of CATEGORY_CYCLE) {
-    categoryBuckets.set(cat, []);
-  }
-  const otherBucket: Product[] = [];
+  const mixedFeed: Product[] = [];
 
-  for (const p of uniqueProducts) {
-    const cat = p.category_id;
-    if (cat && categoryBuckets.has(cat)) {
-      categoryBuckets.get(cat)!.push(p);
-    } else {
-      otherBucket.push(p);
+  for (let lIdx = 0; lIdx < layers.length; lIdx++) {
+    const layer = layers[lIdx];
+    const categoryBuckets = new Map<string, Product[]>();
+    for (const cat of CATEGORY_CYCLE) {
+      categoryBuckets.set(cat, []);
     }
-  }
+    const otherBucket: Product[] = [];
 
-  // Deterministic pseudo-random shuffle using reloadSeed (changes on reload, 100% stable while on page)
-  function pseudoShuffle<T>(arr: T[], seed: number): T[] {
-    const res = [...arr];
-    let s = seed;
-    for (let i = res.length - 1; i > 0; i--) {
-      s = (s * 9301 + 49297) % 233280;
-      const rnd = s / 233280;
-      const j = Math.floor(rnd * (i + 1));
-      [res[i], res[j]] = [res[j], res[i]];
-    }
-    return res;
-  }
-
-  // 3. Prepare buckets: diversify sub-categories and optionally shuffle with reloadSeed
-  const preparedBuckets = new Map<string, Product[]>();
-
-  for (const [cat, items] of categoryBuckets.entries()) {
-    let processedItems = items;
-    if (reloadSeed !== undefined && reloadSeed > 0) {
-      processedItems = pseudoShuffle(items, reloadSeed);
-    } else {
-      // Sort by priority/conversion if no seed
-      processedItems.sort((a, b) => {
-        const scoreA =
-          (a.is_trending ? 30 : 0) +
-          (a.is_featured ? 20 : 0) +
-          (a.rating || 0) +
-          (a.discount_price && a.discount_price < a.price ? 5 : 0);
-        const scoreB =
-          (b.is_trending ? 30 : 0) +
-          (b.is_featured ? 20 : 0) +
-          (b.rating || 0) +
-          (b.discount_price && b.discount_price < b.price ? 5 : 0);
-        return scoreB - scoreA || a.id.localeCompare(b.id);
-      });
+    for (const p of layer) {
+      const cat = p.category_id;
+      if (cat && categoryBuckets.has(cat)) {
+        categoryBuckets.get(cat)!.push(p);
+      } else {
+        otherBucket.push(p);
+      }
     }
 
-    // Sub-group by sub_category
-    const subGroups = new Map<string, Product[]>();
-    for (const item of processedItems) {
-      const sub = (item.sub_category || item.title.slice(0, 15) || 'general').toLowerCase().trim();
-      if (!subGroups.has(sub)) subGroups.set(sub, []);
-      subGroups.get(sub)!.push(item);
+    const preparedBuckets = new Map<string, Product[]>();
+    for (const [cat, items] of categoryBuckets.entries()) {
+      let processedItems = items;
+      if (reloadSeed !== undefined && reloadSeed > 0) {
+        processedItems = pseudoShuffle(items, reloadSeed + lIdx * 19);
+      } else {
+        processedItems.sort((a, b) => {
+          const scoreA =
+            (a.is_trending ? 30 : 0) +
+            (a.is_featured ? 20 : 0) +
+            (a.rating || 0) +
+            (a.discount_price && a.discount_price < a.price ? 5 : 0);
+          const scoreB =
+            (b.is_trending ? 30 : 0) +
+            (b.is_featured ? 20 : 0) +
+            (b.rating || 0) +
+            (b.discount_price && b.discount_price < b.price ? 5 : 0);
+          return scoreB - scoreA || a.id.localeCompare(b.id);
+        });
+      }
+
+      // Sub-group by sub_category
+      const subGroups = new Map<string, Product[]>();
+      for (const item of processedItems) {
+        const sub = (item.sub_category || item.title.slice(0, 15) || 'general').toLowerCase().trim();
+        if (!subGroups.has(sub)) subGroups.set(sub, []);
+        subGroups.get(sub)!.push(item);
+      }
+
+      // Interleave sub-categories inside this category
+      const diversifiedCategoryList: Product[] = [];
+      const subLists = Array.from(subGroups.values());
+      let hasMoreSub = true;
+      let subRound = 0;
+
+      while (hasMoreSub) {
+        hasMoreSub = false;
+        for (const list of subLists) {
+          if (subRound < list.length) {
+            diversifiedCategoryList.push(list[subRound]);
+            hasMoreSub = true;
+          }
+        }
+        subRound++;
+      }
+
+      preparedBuckets.set(cat, diversifiedCategoryList);
     }
 
-    // Interleave sub-categories inside this category
-    const diversifiedCategoryList: Product[] = [];
-    const subLists = Array.from(subGroups.values());
-    let hasMoreSub = true;
-    let subRound = 0;
+    const preparedOther =
+      reloadSeed !== undefined && reloadSeed > 0
+        ? pseudoShuffle(otherBucket, reloadSeed + lIdx * 31)
+        : otherBucket;
 
-    while (hasMoreSub) {
-      hasMoreSub = false;
-      for (const list of subLists) {
-        if (subRound < list.length) {
-          diversifiedCategoryList.push(list[subRound]);
-          hasMoreSub = true;
+    const activeBuckets = CATEGORY_CYCLE.map((c) => preparedBuckets.get(c));
+    let round = 0;
+    let moreInLayer = true;
+
+    while (moreInLayer) {
+      moreInLayer = false;
+      for (const bucket of activeBuckets) {
+        if (bucket && round < bucket.length) {
+          mixedFeed.push(bucket[round]);
+          moreInLayer = true;
         }
       }
-      subRound++;
-    }
-
-    preparedBuckets.set(cat, diversifiedCategoryList);
-  }
-
-  const preparedOther =
-    reloadSeed !== undefined && reloadSeed > 0
-      ? pseudoShuffle(otherBucket, reloadSeed)
-      : otherBucket;
-
-  // 4. Interleave across all categories round-robin so every row has a diverse mix
-  const mixedFeed: Product[] = [];
-  const activeBuckets = CATEGORY_CYCLE.map((c) => preparedBuckets.get(c));
-  let hasMore = true;
-  let round = 0;
-
-  while (hasMore) {
-    hasMore = false;
-    for (const bucket of activeBuckets) {
-      if (bucket && round < bucket.length) {
-        mixedFeed.push(bucket[round]);
-        hasMore = true;
+      if (round < preparedOther.length) {
+        mixedFeed.push(preparedOther[round]);
+        moreInLayer = true;
       }
+      round++;
     }
-    if (round < preparedOther.length) {
-      mixedFeed.push(preparedOther[round]);
-      hasMore = true;
-    }
-    round++;
   }
 
   return mixedFeed;

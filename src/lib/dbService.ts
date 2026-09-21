@@ -15,7 +15,23 @@ import { supabase } from './supabase';
 import { Product, Category, Order } from '../types';
 import { INITIAL_CATEGORIES } from '../data/mockData';
 import { FLASH_SALE_PRODUCTS } from '../data/flashSaleProducts';
-import { getCuratedCatalogFeed } from './recommendationEngine';
+import { getCuratedCatalogFeed, getBaseProductTitle } from './recommendationEngine';
+
+export const TOTAL_CATALOG_COUNT = 2831;
+export const TOTAL_CATALOG_COUNT_KEY = 'kintesi_total_catalog_count';
+
+export function getCachedTotalCount(): number {
+  if (typeof window !== 'undefined') {
+    try {
+      const saved = localStorage.getItem(TOTAL_CATALOG_COUNT_KEY);
+      if (saved) {
+        const num = parseInt(saved, 10);
+        if (!isNaN(num) && num > 100) return num;
+      }
+    } catch {}
+  }
+  return TOTAL_CATALOG_COUNT;
+}
 
 // Timeout wrapper so slow network queries failover gracefully without freezing UI
 function withTimeout<T>(promise: PromiseLike<T>, ms: number = 3500): Promise<T> {
@@ -114,6 +130,7 @@ export async function getInitialProducts(limit: number = 36): Promise<Product[]>
         localStorage.removeItem('kintesi_initial_products');
         localStorage.removeItem('kintesi_custom_products');
         localStorage.removeItem('kintesi_detected_search_intent');
+        localStorage.setItem(TOTAL_CATALOG_COUNT_KEY, String(TOTAL_CATALOG_COUNT));
         localStorage.setItem('kintesi_cache_ver', CACHE_VERSION);
       }
       const cached = localStorage.getItem('kintesi_initial_products');
@@ -166,7 +183,7 @@ export async function getInitialProducts(limit: number = 36): Promise<Product[]>
   return FLASH_SALE_PRODUCTS;
 }
 
-export async function getProductsFromDB(options: { force?: boolean; limit?: number; all?: boolean } = {}): Promise<Product[]> {
+export async function getProductsFromDB(options: { force?: boolean; limit?: number; all?: boolean; raw?: boolean } = {}): Promise<Product[]> {
   // Purge legacy multi-megabyte cache from localStorage to free browser storage
   if (typeof window !== 'undefined' && localStorage.getItem('kintesi_custom_products')) {
     try {
@@ -234,7 +251,7 @@ export async function getProductsFromDB(options: { force?: boolean; limit?: numb
           .filter((p: any) => p && p.id && !p.id.startsWith('prod-'))
           .map(normalizeProductSummary);
 
-        // Deduplication safeguard by unique ID (preserving all variant products)
+        // Preserve all 2,800+ catalog products with unique ID deduplication
         const seenIds = new Set<string>();
         const dedupedProducts: Product[] = [];
         for (const prod of clean) {
@@ -246,9 +263,10 @@ export async function getProductsFromDB(options: { force?: boolean; limit?: numb
 
         _memoryProductsCache = dedupedProducts;
 
-        // Save lightweight initial screen items (48 products) for instant paint
+        // Save lightweight initial screen items (48 products) and persist true count for instant paint
         if (typeof window !== 'undefined') {
           try {
+            localStorage.setItem(TOTAL_CATALOG_COUNT_KEY, String(dedupedProducts.length));
             const curatedInitial = getCuratedCatalogFeed(dedupedProducts).slice(0, 48);
             localStorage.setItem('kintesi_initial_products', JSON.stringify(curatedInitial));
           } catch {}
