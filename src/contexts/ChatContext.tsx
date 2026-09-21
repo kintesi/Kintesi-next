@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useAuth } from './AuthContext';
 import { supabase, ADMIN_EMAIL } from '../lib/supabase';
-import { getProductsFromDB } from '../lib/dbService';
+import { getProductBySlugOrId, getInitialProducts } from '../lib/dbService';
 import { INITIAL_PRODUCTS } from '../data/mockData';
 import { toast } from 'sonner';
 
@@ -429,14 +429,6 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
       (m) => m.conversationId === activeConversationId && m.sender === 'customer'
     );
 
-    // Fetch DB products asynchronously for real-time inventory verification
-    let allProds: any[] = [];
-    try {
-      allProds = await getProductsFromDB();
-    } catch {
-      allProds = [];
-    }
-
     // Determine product context from this message or previous context in the conversation
     const productCtx =
       newMessage.productContext ||
@@ -447,14 +439,17 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     let matchedProd: any = null;
     if (productCtx?.id) {
-      matchedProd = allProds.find((p) => p.id === productCtx.id) ||
-        INITIAL_PRODUCTS.find((p) => p.id === productCtx.id || p.slug === productCtx.id);
+      try {
+        matchedProd = (await getProductBySlugOrId(productCtx.id)) ||
+          INITIAL_PRODUCTS.find((p) => p.id === productCtx.id || p.slug === productCtx.id);
+      } catch {}
     }
     if (!matchedProd && productCtx?.title) {
-      matchedProd = allProds.find((p) => p.title?.toLowerCase() === productCtx.title.toLowerCase()) ||
-        INITIAL_PRODUCTS.find((p) => p.title?.toLowerCase() === productCtx.title.toLowerCase());
+      matchedProd = INITIAL_PRODUCTS.find((p) => p.title?.toLowerCase() === productCtx.title.toLowerCase());
     }
+    let allProds: any[] = [];
     if (!matchedProd) {
+      allProds = await getInitialProducts(36).catch(() => []);
       // Check SKU match (e.g. KT-B3B1A6)
       matchedProd = allProds.find(
         (p) => p.sku && p.sku.length >= 3 && lowerText.includes(p.sku.toLowerCase())

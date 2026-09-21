@@ -1,8 +1,9 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Product } from '../types';
 import { getProductsFromDB } from '../lib/dbService';
 import { useSettings, DEFAULT_SHOWCASES, ShowcaseType } from '../contexts/SettingsContext';
+import { FLASH_SALE_PRODUCTS } from '../data/flashSaleProducts';
 import { ProductCard } from '../components/common/ProductCard';
 import {
   ArrowLeft,
@@ -42,7 +43,7 @@ export const ShowcasePage: React.FC<ShowcasePageProps> = ({ showcaseType }) => {
     async function loadData() {
       try {
         setIsLoading(true);
-        const prods = await getProductsFromDB();
+        const prods = await getProductsFromDB({ all: true });
         if (isMounted && prods) {
           setAllProducts(prods);
         }
@@ -159,7 +160,7 @@ export const ShowcasePage: React.FC<ShowcasePageProps> = ({ showcaseType }) => {
       }
 
       return currentShowcase.productIds
-        .map((id) => idMap.get(String(id)))
+        .map((id) => idMap.get(String(id)) || FLASH_SALE_PRODUCTS.find((p) => p.id === id || p.slug === id))
         .filter(Boolean) as Product[];
     }
 
@@ -168,7 +169,7 @@ export const ShowcasePage: React.FC<ShowcasePageProps> = ({ showcaseType }) => {
       return [];
     }
 
-    // Smart automatic fallback if admin hasn't explicitly selected specific IDs:
+    // Smart automatic fallback: ONLY for non-flash-sale showcases
     if (currentShowcase?.type === 'trending') {
       const trending = allProducts.filter((p) => p.is_trending);
       return trending.length > 0 ? trending : allProducts.slice(0, 18);
@@ -178,8 +179,8 @@ export const ShowcasePage: React.FC<ShowcasePageProps> = ({ showcaseType }) => {
     } else if (currentShowcase?.type === 'new_arrival') {
       return [...allProducts].reverse().slice(0, 24);
     } else if (currentShowcase?.type === 'flash_sale') {
-      const sale = allProducts.filter((p) => p.discount_price && p.discount_price < p.price);
-      return sale.length > 0 ? sale : allProducts.slice(0, 18);
+      // Flash sale strictly shows only the genuine flash sale products
+      return FLASH_SALE_PRODUCTS;
     }
 
     return [];
@@ -197,6 +198,29 @@ export const ShowcasePage: React.FC<ShowcasePageProps> = ({ showcaseType }) => {
     }
     return list;
   }, [rawShowcaseProducts, sortBy]);
+
+  // Progressive batch rendering to relieve screen load
+  const [displayCount, setDisplayCount] = useState<number>(24);
+  const loadMoreSentinelRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    setDisplayCount(24);
+  }, [sortBy, activeSlug]);
+
+  useEffect(() => {
+    const sentinel = loadMoreSentinelRef.current;
+    if (!sentinel) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) {
+          setDisplayCount((prev) => prev + 24);
+        }
+      },
+      { rootMargin: '400px' }
+    );
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [finalProducts.length, displayCount]);
 
   return (
     <div className="min-h-screen bg-gray-50/50 pb-20">
@@ -282,11 +306,23 @@ export const ShowcasePage: React.FC<ShowcasePageProps> = ({ showcaseType }) => {
             </div>
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-4 lg:gap-4.5">
-            {finalProducts.map((product) => (
-              <ProductCard key={product.id} product={product} />
-            ))}
-          </div>
+          <>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-4 lg:gap-4.5">
+              {finalProducts.slice(0, displayCount).map((product) => (
+                <ProductCard key={product.id} product={product} />
+              ))}
+            </div>
+
+            {/* Viewport On-demand Load Sentinel */}
+            {displayCount < finalProducts.length && (
+              <div ref={loadMoreSentinelRef} className="py-6 flex justify-center">
+                <div className="flex items-center gap-2 text-xs text-gray-500 bg-white px-5 py-2.5 rounded-full border border-gray-200/80 shadow-2xs">
+                  <div className="w-4 h-4 rounded-full border-2 border-rose-500 border-t-transparent animate-spin" />
+                  <span>আরও প্রোডাক্ট লোড হচ্ছে...</span>
+                </div>
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>

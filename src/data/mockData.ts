@@ -1,4 +1,5 @@
 import { Category, Product } from '../types';
+import { FLASH_SALE_PRODUCTS } from './flashSaleProducts';
 
 export const INITIAL_CATEGORIES: Category[] = [
   {
@@ -286,5 +287,750 @@ export const INITIAL_CATEGORIES: Category[] = [
   image_url: cat.image_url || `/categories/${cat.slug}.webp`,
 }));
 
-// All fake / mock products cleared - Only live products added via Admin Panel will be shown
-export const INITIAL_PRODUCTS: Product[] = [];
+// Initial seed products for instant paint and offline recall
+export const INITIAL_PRODUCTS: Product[] = [
+  ...FLASH_SALE_PRODUCTS,
+  {
+    "id": "00000000-0000-4000-8000-000000003002",
+    "title": "X01 Full Charge Separator – Type-C Auto Power Cut-Off Charging Protector with Mechanical Pop-Out Feature & Fast Charging Support",
+    "slug": "x01-full-charge-separator-type-c-ds-3002",
+    "description": "রাতে ফোন চার্জে দিয়ে ঘুমিয়ে যাওয়ার পর দীর্ঘক্ষণ ফুল চার্জ হয়ে থাকার কারণে ফোনের ব্যাটারি নষ্ট হওয়ার ঝুঁকি নিয়ে কি আপনি চিন্তিত? এই সমস্যার স্থায়ী ও দারুণ এক সমাধান হলো X01 Full Charge Separator – Type-C Auto Power Cut-Off Charging Protector। উদ্ভাবনী মেকানিক্যাল প্রযুক্তির এই ডিভাইসটি আপনার মূল্যবান গ্যাজেটের ব্যাটারি শতভাগ সুরক্ষিত রাখতে অত্যন্ত কার্যকর।মূল বৈশিষ্ট্য ও সুবিধাসমূহ:অটো পাওয়ার কাট-অফ মেকানিজম: ফোন বা যেকোনো ডিভাইস ১০০% ফুল চার্জ হয়ে গেলে এই ডিভাইসটি মেকানিক্যালি ধাক্কা দিয়ে স্প্রিংয়ের মতো পপ-আউট (Pop-out) বা ইজেক্ট হয়ে যায়। ফলে আপনার ফোন থেকে চার্জিং লাইনের ফিজিক্যাল কানেকশন পুরোপুরি বিচ্ছিন্ন হয়ে যায়।ওভারহিটিং ও ব্যাটারি সুরক্ষা: আমরা অনেকেই রাতে ফোন চার্জে দিয়ে ঘুমিয়ে পড়ি। দীর্ঘ সময় ফুল চার্জ হয়ে থাকা বা অতিরিক্ত ওভারহিটিং (Overheating) থেকে ব্যাটারিকে রক্ষা করতে এটি অসাধারণ কাজ করে।ইউনিভার্সাল টাইপ-সি কম্প্যাটিবিলিটি: এটি যেকোনো ধরনের Type-C সাপোর্টেড ডিভাইস—যেমন স্মার্টফোন, ট্যাব, ল্যাপটপ, পাওয়ার ব্যাংক কিংবা ব্লুটুথ ইয়ারফোনের সাথে চমৎকারভাবে কাজ করে।হাই-স্পিড ফাস্ট চার্জিং সাপোর্ট: পাওয়ার লস বা স্পিড কমার কোনো ঝামেলা ছাড়াই এটি হাই-স্পিড বা ফাস্ট চার্জিং সমর্থন করে।কেন এটি ব্যবহার করবেন?ব্যাটারির দীর্ঘস্থায়িত্ব: ওভারচার্জিং রোধ করে ব্যাটারির হেলথ ভালো রাখে এবং দীর্ঘস্থায়ী করে।পূর্ণ নিরাপত্তা: ওভারহিটিং এবং শর্ট সার্কিট থেকে ডিভাইসকে সুরক্ষিত রাখে।বিদ্যুৎ সাশ্রয়: ফুল চার্জ হওয়ার পর সংযোগ বিচ্ছিন্ন হওয়ায় অপ্রয়োজনীয় বিদ্যুৎ খরচ বা সাশ্রয় নিশ্চিত হয়।সার্বজনীন ব্যবহার: যেকোনো টাইপ-সি ডিভাইসের সাথে অনায়াসে মানানসই।আপনার সাধের স্মার্টফোন বা গ্যাজেটের ব্যাটারির আয়ু বাড়াতে এবং ওভারচার্জিংয়ের ঝুঁকি এড়াতে আজই ব্যবহার করুন X01 ফুল চার্জ সেপারেটর প্রটেক্টরটিs!",
+    "price": 795,
+    "discount_price": 720,
+    "category_id": "electronic-accessories",
+    "sub_category": "Cables, Converters & Hubs",
+    "stock": 50,
+    "images": [
+      "https://mohasagor.com.bd/public/storage/images/products/4BQ47gb7HC1anqjNVtyUAhgBukNWBFcYKXCXDIyj.png"
+    ],
+    "rating": 4.8,
+    "review_count": 12,
+    "is_featured": true,
+    "is_trending": true,
+    "brand": "Kintesi",
+    "sku": "DS-3002",
+    "tags": [
+      "x01",
+      "full",
+      "charge",
+      "separator",
+      "type-c",
+      "auto",
+      "power",
+      "cut-off"
+    ],
+    "dropshipping_url": "https://dropshipping.com.bd/product/mens-winter-hoodie-3002"
+  },
+  {
+    "id": "00000000-0000-4000-8000-000000003015",
+    "title": "Universal Rechargeable Battery Charger – Multi-Functional Wall AC Fast Smart Charger with Auto-Stop, LED Indicator for 18650, 14500, 16340 & More Lithium-Ion Batteries",
+    "slug": "rechargeable-battery-charger",
+    "description": "বিভিন্ন সাইজের রিচার্জেবল ব্যাটারি নিরাপদে এবং দ্রুত চার্জ করার জন্য একটি নির্ভরযোগ্য মাল্টি-ফাংশনাল চার্জার অত্যন্ত জরুরি। বাসা-বাড়ি কিংবা ভ্রমণের সময় ব্যবহারের জন্য নিয়ে এলাম প্রিমিয়াম মানের Universal Rechargeable Battery Charger। অটো-স্টপ টেকনোলজি এবং স্মার্ট এলইডি ইন্ডিকেটরযুক্ত এই চার্জারটি আপনার ব্যাটারিগুলোর দীর্ঘস্থায়িত্ব ও নিরাপত্তা নিশ্চিত করে।⚡ স্মার্ট অটো-স্টপ ও ডুয়াল কালার এলইডি ইন্ডিকেটর—ইউনিভার্সাল ব্যাটারি চার্জার দিয়ে আপনার রিচার্জেবল ব্যাটারিগুলো চার্জ করুন সম্পূর্ণ নিরাপদে!মূল বৈশিষ্ট্য ও সুবিধাসমূহ:স্বয়ংক্রয় চার্জ বন্ধ (Auto Stop): ব্যাটারি ফুল চার্জ হয়ে গেলে এটি স্বয়ংক্রয়ভাবে চার্জিং বন্ধ করে দেয়, ফলে ওভারচার্জিংয়ের কোনো ঝুঁকি থাকে না।স্মার্ট এলইডি ইন্ডিকেটর লাইট: চার্জিংয়ের সময় রেড (Red) লাইট জ্বলে এবং ফুল চার্জ হয়ে গেলে গ্রিন (Green) লাইট জ্বলে ওঠে, যা দেখে সহজেই ব্যাটারির স্ট্যাটাস বোঝা যায়।প্রশস্ত ব্যাটারি কম্প্যাটিবিলিটি: এটি ১০৪৪0, ১৪৫০০, ১৬৩৪০, ১৭৩৩৫, ১৭৫০০, ১৭৬৭০, ১৮৫০০ এবং ১৮৬৫0 (10440, 14500, 16340, 17335, 17500, 17670, 18500, 18650) সহ বিভিন্ন জনপ্রিয় লিথিয়াম-আয়ন ব্যাটারি চার্জ করতে সক্ষম।হোম ও ট্রাভেল ফ্রেন্ডলি: কমপ্যাক্ট সাইজ ও ইউনিভার্সাল ইনপুট ভোল্টেজ থাকার কারণে এটি ঘরে বা বাইরে ভ্রমণের সময় বহন করা অত্যন্ত সহজ।টেকনিক্যাল স্পেসিফিকেশন হাইলাইট:ইনপুট: AC100-240V / 47-63HZআউটপুট: 3.7V / 450mAপণ্যর মাত্রা (ডাইমেনশন): 3.7D x 9.5W x 3H সেন্টিমিটারওজন: ২০০ গ্রাম (200 Grams)আপনার বিভিন্ন গ্যাজেটের রিচার্জেবল ব্যাটারিগুলোর দ্রুত ও নিরাপদ চার্জিং নিশ্চিত করতে আজই সংগ্রহ করুন এই Universal Battery Charger-টি!",
+    "price": 335,
+    "discount_price": 300,
+    "category_id": "automotives-motorbikes",
+    "sub_category": "Bike Lights & LED Indicators",
+    "stock": 1,
+    "images": [
+      "https://mohasagor.com.bd/public/storage/images/products/GseLlSOFjGdTdRJk7KvAKcVMyWL0aGio8Q2jD1N2.png"
+    ],
+    "rating": 4.8,
+    "review_count": 12,
+    "is_featured": true,
+    "is_trending": false,
+    "brand": "Kintesi",
+    "sku": "DS-3015",
+    "tags": [
+      "universal",
+      "rechargeable",
+      "battery",
+      "charger",
+      "multi-functional",
+      "wall",
+      "ac",
+      "fast"
+    ],
+    "dropshipping_url": "https://dropshipping.com.bd/product/rechargeable-battery-charger-3015"
+  },
+  {
+    "id": "00000000-0000-4000-8000-000000003016",
+    "title": "Apache Luminous (Batmen Edition)",
+    "slug": "testing-products",
+    "description": "আপনার স্টাইল ও ব্যক্তিত্বকে আরও এক ধাপ এগিয়ে নিতে নিয়ে এলাম অত্যাধুনিক ডিজাইনের Apache ঘড়ি। স্কেলেটন ডায়াল, উন্নত মেকানিক্যাল মুভমেন্ট এবং প্রিমিয়াম লেদার স্ট্র্যাপ—সবকিছুই একসাথে। অফিস, পার্টি কিংবা ক্যাজুয়াল, যেকোনো লুকে মানিয়ে যাবে অনায়াসে। এখনই অর্ডার করুন এবং নিজের সংগ্রহে যোগ করুন অনন্য ঘড়ির ছোঁয়া!Product's Details:Apache luminous (Batmen Edition)- Apache batman sports series-Skeleton Analog watches-Quartz Movement-Hard mineral glass-Original Artificial leather strap-Luminous Dial 42 mm-Embossed lock-Dial Case Zinc Alloy-Back Transparent Glass",
+    "price": 840,
+    "discount_price": 780,
+    "category_id": "home-living",
+    "sub_category": "Home & Kitchen Essentials",
+    "stock": 1,
+    "images": [
+      "https://mohasagor.com.bd/public/storage/images/products/PdEfSErWKhtCdOdd2Q2GcLmBzrlIGTlX3rKDoKof.jpg"
+    ],
+    "rating": 4.8,
+    "review_count": 12,
+    "is_featured": true,
+    "is_trending": false,
+    "brand": "Kintesi",
+    "sku": "DS-3016",
+    "tags": [
+      "apache",
+      "luminous",
+      "batmen",
+      "home living",
+      "home & kitchen essentials",
+      "অনলাইন শপিং",
+      "ক্যাশ অন ডেলিভারি",
+      "Kintesi"
+    ],
+    "dropshipping_url": "https://dropshipping.com.bd/product/testing-products-3016"
+  },
+  {
+    "id": "00000000-0000-4000-8000-000000003017",
+    "title": "Rechargeable Electric Water Dispenser Pump – Universal Wireless Smart Drinking Water Bottle Pump with USB Charging, 360-Degree Rotation & One-Touch Operation",
+    "slug": "rechargeable-electric-water-dispenser-pump-universal-ds-3017",
+    "description": "অফিস, বাসা, স্কুল কিংবা যেকোনো স্থানে ভারী জারের পানি তোলা নিয়ে ঝামেলা এড়াতে নিয়ে এলাম আধুনিক ও স্মার্ট Rechargeable Electric Water Dispenser Pump। সনাতন পদ্ধতির পাম্প করার ঝামেলা ছাড়াই মাত্র একটি বোতাম প্রেস করে এখন খুব সহজেই গ্লাস, কাপ বা কেটলিতে পানি নিতে পারবেন।⚡ একটি মাত্র প্রেস আর স্মার্ট ওয়াটার ফ্লো—রিচার্জেবল অটোমেটিক ওয়াটার ডিসপেন্সার দিয়ে পানি পাম্প করা এখন আরও সহজ!মূল বৈশিষ্ট্য ও সুবিধাসমূহ:সহজ ও ওয়ান-টাচ অপারেশন: বোতাম প্রেস করলেই স্বয়ংক্রয়ভাবে পানি পড়তে শুরু করে এবং প্রয়োজন শেষে বন্ধ করে দেওয়া যায়; এটি প্রতি প্রেসারে একবারে প্রায় ৪০০ মিলি পানি দেয় এবং ম্যানুয়ালি আরও পানি নেওয়া যায়।ইউনিভার্সাল ফিটিং: স্ট্যান্ডার্ড সাইজের এই পাম্পটি যেকোনো ব্র্যান্ডের জারের মুখে নিখুঁতভাবে ফিট হয়ে যায়।ইউএসবি রিচার্জেবল ব্যাটারি: এতে রয়েছে বিল্ট-ইন ১২০০ এমএএইচ (1200mAh) ব্যাটারি, যা অ্যান্ড্রয়েড সিস্টেমের মোবাইল ইউএসবি কেবলের মাধ্যমে খুব সহজেই চার্জ করা যায়। মাত্র ৩ থেকে ৪ ঘণ্টা চার্জ দিয়ে এটি দিয়ে প্রায় ৪ থেকে ৬টি ৫-গ্যালনের জার পানি পাম্প করা সম্ভব।স্মার্ট ও রোটেটিং ডিজাইন: এটি ৩৬০ ডিগ্রি ফ্রি রোটেশন এবং ডুয়াল-স্লট ডিজাইনে তৈরি, যা ইনস্টল করা সহজ এবং অত্যন্ত স্থিতিশীল।নিরাপদ ও টেকসই উপাদান: উচ্চমানের পরিবেশবান্ধব এবিএস প্লাস্টিক (ABS Plastic), সিলিকন এবং স্টেইনলেস স্টিল দিয়ে এটি তৈরি, যা সম্পূর্ণ নিরাপদ ও টেকসই।টেকনিক্যাল স্পেসিফিকেশন হাইলাইট:ম্যাটেরিয়াল: ABS Plastic, Silicon এবং Stainless Steelরেটেড পাওয়ার ও ভোল্টেজ: 4 Watt, DC 5Vব্যাটারি ক্যাপাসিটি: 1200mahডাইমেনশন: ১৩ x ৭ x ৭ সেমি (আউটলেট পাইপ ছাড়া)পাইপের দৈর্ঘ্য: ইনার পাইপ ৫৫ সেমি এবং আউটলেট দৈর্ঘ্য ১১ সেমিবক্সে যা থাকছে: ইলেকট্রিক ওয়াটার পাম্প, ইউএসবি চার্জিং কেব্ঝল, ট্রান্সপারেন্ট ইনার সফট টিউব, স্টেইনলেস স্টিল আউটলেট পাইপ এবং ইউজার ম্যানুয়াল।আপনার দৈনন্দিন পানি পানের অভিজ্ঞতাকে আরও আরামদায়ক ও ঝামেলমুক্ত করতে আজই সংগ্রহ করুন এই Rechargeable Electric Water Dispenser Pump-টি!",
+    "price": 880,
+    "discount_price": 810,
+    "category_id": "tv-home-appliances",
+    "sub_category": "Water Purifiers & Filters",
+    "stock": 1,
+    "images": [
+      "https://mohasagor.com.bd/public/storage/images/products/ZASB51oXpZpUBguxcKN1AZXUOnfhBhpbHK8ccsij.png"
+    ],
+    "rating": 4.8,
+    "review_count": 12,
+    "is_featured": true,
+    "is_trending": false,
+    "brand": "Kintesi",
+    "sku": "DS-3017",
+    "tags": [
+      "rechargeable",
+      "electric",
+      "water",
+      "dispenser",
+      "pump",
+      "universal",
+      "wireless",
+      "smart"
+    ],
+    "dropshipping_url": "https://dropshipping.com.bd/product/test-product-পরীক্ষামূলক-পণ্য-3017"
+  },
+  {
+    "id": "00000000-0000-4000-8000-000000003018",
+    "title": "TP-Link Archer C6 AC1200 Dual-Band Gigabit Wi-Fi Router – MU-MIMO, Beamforming, Access Point Mode & OneMesh Support for Whole-Home Coverage",
+    "slug": "shahjahan-ahmed",
+    "description": "বাসা বা অফিসের জন্য হাই-স্পিড ইন্টারনেট এবং নিরবচ্ছিন্ন ওয়াইফাই কভারেজ নিশ্চিত করতে নিয়ে এলাম বিশ্বখ্যাত ব্র্যান্ড টি-লিংকের অত্যন্ত জনপ্রিয় একটি রাউটার—Archer C6 AC1200 Wireless MU-MIMO Gigabit Router। ডুয়াল-ব্যান্ড কানেক্টিভিটি এবং গিগাবিট পোর্টের সমন্বয়ে তৈরি এই রাউটারটি আপনার অনলাইন গেমিং, স্ট্রিমিং ও ব্রাউজিং অভিজ্ঞতাকে করবে আরও গতিশীল ও নির্ভরযোগ্য।⚡ ডুয়াল-ব্যান্ড ১২০০ এমবিপিএস স্পিড ও এমইউ-মিমো টেকনোলজি—আর্চার সি৬ রাউটার দিয়ে উপভোগ করুন ল্যাগ-ফ্রি হাই-স্পিড ইন্টারনেট!মূল বৈশিষ্ট্য ও সুবিধাসমূহ:ডুয়াল-ব্যান্ড হাই স্পিড ব্যান্ডউইথ: এটি যুগপৎ ২.৪ গিগাহার্জ (৩০০ এমবিপিএস) এবং ৫ গিগাহার্জ (৮৬৭ এমবিপিএস) সংযোগ সমর্থন করে, যার মোট ব্যান্ডউইথ ১২০০ এমবিপিএস (AC1200)।উন্নত কভারেজ ও বিমফর্মিং: এর ৪টি এক্সটার্নাল এবং ১টি ইন্টারনাল অ্যান্টেনা সিগন্যালকে শক্তিশালী করে। এছাড়া বিমফর্মিং টেকনোলজি নির্দিষ্ট ডিভাইসের দিকে ওয়াইফাই সিগন্যাল ফোকাস করে ওয়্যারলেস পরিসর আরও বাড়িয়ে দেয়।এমইউ-মিমো (MU-MIMO) প্রযুক্তি: এটি একই সাথে একাধিক ডিভাইসের সাথে যোগাযোগ করে দ্বিগুণ কার্যকারিতা (2X efficiency) নিশ্চিত করে।গিগাবিট ইথারনেট পোর্ট: এতে রয়েছে ১টি গিগাবিট ডব্লিউএএন (WAN) পোর্ট এবং ৪টি গিগাবিট ল্যান (LAN) পোর্ট, যা ওয়্যারড সংযোগেও দেয় সুপার ফাস্ট স্পিড।ওয়ানমেশ (OneMesh™) সাপোর্ট: কোনো নতুন ডিভাইস বা ঝামেলা ছাড়াই ঘরের পুরো এলাকায় একটি ফ্লেক্সিবল ও শক্তিশালী ওয়াইফাই নেটওয়ার্ক তৈরি করতে সাহায্য করে।অ্যাক্সেস পয়েন্ট ও অন্যান্য মোড: এটি রাউটার মোডের পাশাপাশি নতুন ওয়াইফাই অ্যাক্সেস পয়েন্ট তৈরি করতে অ্যাক্সেস পয়েন্ট মোড (Access Point mode) সমর্থন করে।টেকনিক্যাল স্পেসিফিকেশন হাইলাইট:ওয়াইফাই স্ট্যান্ডার্ড: Wi-Fi 5 (IEEE 802.11ac/n/a 5 GHz, IEEE 802.11n/b/g 2.4 GHz)প্রসেসর: ডুয়াল-কোর সিপিইউ (Dual-Core CPU)পোর্টের বিবরণ: ১x গিগাবিট ডব্লিউএএন পোর্ট, ৪x গিগাবিট ল্যান পোর্ট এবং ১x ইউএসবি ২.০ পোর্ট (সাপোর্ট করে FTP, Media, ও Samba সার্ভার)ম্যানেজমেন্ট: TP-Link Tether অ্যাপ বা ওয়েব পেজের মাধ্যমে খুব সহজেই নেটওয়ার্ক ম্যানেজ করা যায়।আপনার ডিজিটাল লাইফকে আরও গতিশীল ও সুরক্ষিত করতে আজই সংগ্রহ করুন TP-Link Archer C6 AC1200 Gigabit Router-টি!",
+    "price": 3935,
+    "discount_price": 3580,
+    "category_id": "computer-gaming",
+    "sub_category": "Routers & Networking Gear",
+    "stock": 50,
+    "images": [
+      "https://mohasagor.com.bd/public/storage/images/products/bjRBtSU8DuVgoeK8FOUMK2Y47u7Q6FJQZk12goff.png"
+    ],
+    "rating": 4.8,
+    "review_count": 12,
+    "is_featured": true,
+    "is_trending": false,
+    "brand": "Kintesi",
+    "sku": "DS-3018",
+    "tags": [
+      "tp-link",
+      "archer",
+      "c6",
+      "ac1200",
+      "dual-band",
+      "gigabit",
+      "wi-fi",
+      "router"
+    ],
+    "dropshipping_url": "https://dropshipping.com.bd/product/shahjahan-ahmed-3018"
+  },
+  {
+    "id": "00000000-0000-4000-8000-000000003019",
+    "title": "Touch Lamp Portable Bluetooth Speaker – Smart Touch Color-Changing Night Light, 3 Brightness Levels, 3W Speaker, TF Card & AUX Support with 800mAh Battery",
+    "slug": "test-gadgets-item",
+    "description": "মনোরম আলো এবং চমৎকার মিউজিকের এক অপূর্ব সংমিশ্রণ—Touch Lamp Portable Bluetooth Speaker with Smart Colour Changing Touch Mode Night Lamp। আপনার শোবার ঘর, পড়ার টেবিল কিংবা বেডসাইড টেবিলে আরামদায়ক পরিবেশ তৈরি করতে এবং একই সাথে প্রিয় গান উপভোগ করতে এই মাল্টিফাংশনাল ল্যাম্প স্পিকারটি একটি দারুণ পছন্দ।ডিভাইসটির মূল স্পেসিফিকেশন ও ফিচারসমূহ:স্মার্ট টাচ কালার-চেঞ্জিং ল্যাম্প: এর টপ সারফেসে টাচ করে সহজেই ল্যাম্পের আলো নিয়ন্ত্রণ করা যায়। এতে রয়েছে নরম ওয়ার্ম-হোয়াইট (Warm-white) আলোসহ আকর্ষণীয় ৫টি ভিন্ন রঙের কালার-চেঞ্জিং মোড।৩ লেভেলের ব্রাইটনেস: প্রয়োজন অনুযায়ী আলোর উজ্জ্বলতা সেট করার জন্য এতে রয়েছে ৩টি ভিন্ন ব্রাইটনেস লেভেল (Brightness levels: 3), যা নাইট ল্যাম্প বা রিডিং লাইট হিসেবে অত্যন্ত উপযোগী।৩ ওয়াট স্পিকার আউটপুট: ল্যাম্পের পাশাপাশি এতে রয়েছে ৩ ওয়াটের (3W) প্রিমিয়াম অডিও স্পিকার আউটপুট এবং ৫০ হার্জ থেকে ২০ কিলোহার্জ (50Hz - 20KHz) ফ্রিকোয়েন্সি রেঞ্জ, যা থেকে স্পষ্ট ও ঝকঝকে সাউন্ড পাওয়া যায়।নির্ভরযোগ্য ব্লুটুথ ৪.১: ব্লুটুথ ৪.১ প্রযুক্তির সাহায্যে আপনার স্মার্টফোন বা যেকোনো ডিভাইসের সাথে এটি দ্রুত ও সহজে ওয়্যারলেসভাবে কানেক্ট করা যায়।বহুমুখী প্লেব্যাক মোড: ব্লুটুথের পাশাপাশি গান শোনার সুবিধার জন্য এতে রয়েছে টিএফ/এসডি মেমরি কার্ড (TF/SD card) সাপোর্ট এবং অক্স (AUX) ইনপুট ফাংশন।রিচার্জেবল ব্যাটারি ও লং লাস্টিং: ডিভাইসটিতে রয়েছে বিল্ট-ইন ৩.৭ভি/৮০০ এমএএইচ (800mAh) রিচার্জেবল লি-আয়ন ব্যাটারি। এটি ডিসি ৫ভি/৫০০এমএএইচ ইনপুটে প্রায় ৪ ঘণ্টায় সম্পূর্ণ চার্জ হয় এবং ব্রাইটনেস ও ভলিউমের ওপর ভিত্তি করে দীর্ঘ সময় (প্রায় ১০ ঘণ্টা পর্যন্ত) ব্যাকআপ দিতে সক্ষম।প্যাকেজে যা যা থাকছে:১টি সেন্সর ল্যাম্প উইথ ওয়্যারলেস স্পিকার১টি ইউএসবি চার্জিং ক্যাবল১টি অক্স ক্যাবল১টি ইউজার ম্যানুয়ালকেন এই টাচ ল্যাম্প স্পিকারটি আপনার কেনা উচিত:একই সাথে নাইট ল্যাম্প, কালার-চেঞ্জিং লাইট এবং ব্লুটুথ স্পিকারের তিনমুখী সুবিধা পাওয়া যায়।স্পর্শের মাধ্যমে আলো নিয়ন্ত্রণের আধুনিক প্রযুক্তি ব্যবহার অভিজ্ঞতাকে করে তোলে আরও সহজ ও আনন্দদায়ক।নান্দনিক ডিজাইন ও সুন্দর আলো ঘরকে করে তোলে আরও প্রাণবন্ত এবং এটি উপহার দেওয়ার জন্যও একটি আদর্শ গ্যাজেট।আপনার ঘরকে মনোরম আলো ও সুরের ছায়ায় ঘিরে রাখতে আজই সংগ্রহ করুন এই Touch Lamp Portable Bluetooth Speaker-টি!",
+    "price": 810,
+    "discount_price": 729,
+    "category_id": "home-living",
+    "sub_category": "Home Decor, Lights & Lamps",
+    "stock": 50,
+    "images": [
+      "https://mohasagor.com.bd/public/storage/images/products/cd9xlIbQrp0NpkroAt0bkEkdOUHRQIWZvi38l8G8.png"
+    ],
+    "rating": 4.8,
+    "review_count": 12,
+    "is_featured": true,
+    "is_trending": false,
+    "brand": "Kintesi",
+    "sku": "DS-3019",
+    "tags": [
+      "touch",
+      "lamp",
+      "portable",
+      "bluetooth",
+      "speaker",
+      "smart",
+      "color-changing",
+      "night"
+    ],
+    "dropshipping_url": "https://dropshipping.com.bd/product/test-gadgets-item-3019"
+  },
+  {
+    "id": "00000000-0000-4000-8000-000000003020",
+    "title": "Men's Winter Only Hoodie",
+    "slug": "mens-winter-only-hoodie-camo-cargo",
+    "description": "Men's Winter Hoodie Solid Colorfabric: Cotton+fleece (inside brush)Size: M, L, XL,M=Chest-38, Length-27L=Chest-40, Length-28XL=Chest-42, Length-29",
+    "price": 400,
+    "discount_price": 370,
+    "category_id": "mens-fashion",
+    "sub_category": "Jackets, Hoodies & Winterwear",
+    "stock": 50,
+    "images": [
+      "https://mohasagor.com.bd/public/storage/images/products/l4mQu1nruNUikkD6cEMKKPF8jHw6xX48qmufJOqu.jpg"
+    ],
+    "rating": 4.8,
+    "review_count": 12,
+    "is_featured": true,
+    "is_trending": false,
+    "brand": "Kintesi",
+    "sku": "DS-3020",
+    "tags": [
+      "men",
+      "winter",
+      "only",
+      "hoodie",
+      "mens fashion",
+      "jackets, hoodies & winterwear",
+      "hoodies",
+      "winterwear"
+    ],
+    "dropshipping_url": "https://dropshipping.com.bd/product/mens-winter-only-hoodie-camo-cargo-3020"
+  },
+  {
+    "id": "00000000-0000-4000-8000-000000003021",
+    "title": "iCon Mobile i202 Magic",
+    "slug": "icon-mobile-i202-magic-ds-3021",
+    "description": "আকর্ষণীয় গোল্ডেন ডিজাইন, কমপ্যাক্ট সাইজ এবং চমৎকার সব স্মার্ট ফিচারের এক অনন্য সমন্বয় হলো iCon Mobile i202 Magic মিনি ফোন। যারা একটি স্টাইলিশ সেকেন্ডারি বা ব্যাকআপ ফোন খুঁজছেন যা দেখতে প্রিমিয়াম এবং ব্যবহারে অত্যন্ত কার্যক্ষম, তাদের জন্য এই মিনি ফোনটি একটি দারুণ পছন্দ।মূল বৈশিষ্ট্য ও সুবিধাসমূহ:আকর্ষণীয় রাউন্ড ডিসপ্লে ও ডিজাইন: প্রিমিয়াম গোল্ডেন ফিনিশের এই ফোনটিতে রয়েছে ১.৩৯ ইঞ্চির একটি আকর্ষণীয় গোলাকার এলসিডি (LCD) ডিসপ্লে, যা এর লুকে এনে দিয়েছে ভিন্ন মাত্রা।ম্যাজিক ভয়েস ফিচার (Voice Changer): ফোনটির অন্যতম আকর্ষণীয় দিক হলো এর ম্যাজিক ভয়েস টেকনোলজি। কল করার সময় আপনি খুব সহজেই নিজের কণ্ঠস্বর পরিবর্তন করে (যেমন: ছোট বাচ্চা বা ভিন্ন কন্ঠে) কথা বলার মজাদার অভিজ্ঞতা উপভোগ করতে পারবেন।বিটি ডায়ালার (BT Dialer): ব্লুটুথের মাধ্যমে আপনার মূল বড় স্মার্টফোনটির সাথে এই ফোনটি কানেক্ট করে সরাসরি এই মিনি ফোন দিয়েই কল ডায়াল বা রিসিভ করা সম্ভব।ডুয়াল সিম ও কার্যক্ষম চিপসেট: একসাথে দুটি সিম কার্ড ব্যবহারের সুবিধার পাশাপাশি নির্ভরযোগ্য মিডিয়াটেক (MTK) চিপসেট এর দৈনন্দিন ব্যবহারকে করে তোলে আরও মসৃণ।টাইপ-সি চার্জিং ও ব্যাটারি: আধুনিক যুগের সাথে তাল মিলিয়ে এতে দেওয়া হয়েছে ফাস্ট ও সহজ টাইপ-সি (Type-C) চার্জিং পোর্ট এবং দীর্ঘ সময় ব্যাকআপ দেওয়ার জন্য ১০৫০mAh ক্ষমতার একটি শক্তিশালী ব্যাটারি।অটো কল রেকর্ড ও অন্যান্য: যেকোনো গুরুত্বপূর্ণ কথোপকথন নিরাপদে সংরক্ষণ করতে রয়েছে স্বয়ংক্রিয় অটো কল রেকর্ডিং সুবিধা। এছাড়া পেছনে ছোট ক্যামেরা, ফ্ল্যাশলাইট, ব্লুটুথ কানেক্টিভিটি এবং পাওয়ার সেভিং মোড তো রয়েছেই।আপনার দৈনন্দিন যোগাযোগকে আরও স্টাইলিশ, সহজ এবং আনন্দদায়ক করতে আজই সংগ্রহ করুন iCon i202 Magic মিনি ফোনটি!",
+    "price": 3340,
+    "discount_price": 3070,
+    "category_id": "home-living",
+    "sub_category": "Home & Kitchen Essentials",
+    "stock": 1,
+    "images": [
+      "https://mohasagor.com.bd/public/storage/images/products/Pe5PuuhVK7nbnIN1jDNWOUExmRziYaoCNrI99xd4.png"
+    ],
+    "rating": 4.8,
+    "review_count": 12,
+    "is_featured": true,
+    "is_trending": false,
+    "brand": "Kintesi",
+    "sku": "DS-3021",
+    "tags": [
+      "icon",
+      "mobile",
+      "i202",
+      "magic",
+      "home living",
+      "home & kitchen essentials",
+      "অনলাইন শপিং",
+      "ক্যাশ অন ডেলিভারি"
+    ],
+    "dropshipping_url": "https://dropshipping.com.bd/product/mens-winter-hoodie-ox-3021"
+  },
+  {
+    "id": "00000000-0000-4000-8000-000000003027",
+    "title": "Men's winter hoodie (Ibadah)",
+    "slug": "mens-winter-hoodie-ibadah",
+    "description": "Men's winter hoodiefabric: Cotton+fleece (inside brush)Fabric & Print Color GuaranteedSize: M, L, XL, XXLM=Chest-38, Length-27L=Chest-40, Length-28XL=Chest-42, Length-29XXL=Chest-45, Length-30",
+    "price": 800,
+    "discount_price": 720,
+    "category_id": "mens-fashion",
+    "sub_category": "Jackets, Hoodies & Winterwear",
+    "stock": 2,
+    "images": [
+      "https://mohasagor.com.bd/public/storage/images/products/O2ApzXor0ES6xzlS7JQl96GEJrX7pXsbEgfGMIHm.jpg"
+    ],
+    "rating": 4.8,
+    "review_count": 12,
+    "is_featured": true,
+    "is_trending": false,
+    "brand": "Kintesi",
+    "sku": "DS-3027",
+    "tags": [
+      "men",
+      "winter",
+      "hoodie",
+      "ibadah",
+      "mens fashion",
+      "jackets, hoodies & winterwear",
+      "hoodies",
+      "winterwear"
+    ],
+    "dropshipping_url": "https://dropshipping.com.bd/product/mens-winter-hoodie-ibadah-3027"
+  },
+  {
+    "id": "00000000-0000-4000-8000-000000003028",
+    "title": "Men's winter hoodie Alex",
+    "slug": "mens-winter-hoodie-alex",
+    "description": "Men's winter hoodiefabric: Cotton+fleece (inside brush)Fabric & Print Color GuaranteedSize: M, L, XL, XXLM=Chest-38, Length-27L=Chest-40, Length-28XL=Chest-42, Length-29XXL=Chest-45, Length-30",
+    "price": 775,
+    "discount_price": 720,
+    "category_id": "mens-fashion",
+    "sub_category": "Jackets, Hoodies & Winterwear",
+    "stock": 6,
+    "images": [
+      "https://mohasagor.com.bd/public/storage/images/products/bLNIKDQTeHuX0GpoEzcryJKFdlgM3zO7te9qUKIH.jpg"
+    ],
+    "rating": 4.8,
+    "review_count": 12,
+    "is_featured": true,
+    "is_trending": false,
+    "brand": "Kintesi",
+    "sku": "DS-3028",
+    "tags": [
+      "men",
+      "winter",
+      "hoodie",
+      "alex",
+      "mens fashion",
+      "jackets, hoodies & winterwear",
+      "hoodies",
+      "winterwear"
+    ],
+    "dropshipping_url": "https://dropshipping.com.bd/product/mens-winter-hoodie-alex-3028"
+  },
+  {
+    "id": "00000000-0000-4000-8000-000000003029",
+    "title": "240W 5A Fast Charging & Sync USB-C to USB-C Cable – Braided Cord with Built-in Folding Phone Stand for Landscape & Portrait Viewing",
+    "slug": "240w-5a-fast-charging-sync-usb-ds-3029",
+    "description": "চার্জিং এবং ডেটা সিঙ্কের ধারণাকে সম্পূর্ণ বদলে দিতে নিয়ে এলাম উদ্ভাবনী ফিচারের 240W Fast Charging & Sync USB-C to USB-C Cable। হাই-স্পিড পাওয়ার ডেলিভারির পাশাপাশি এর সাথে যুক্ত রয়েছে একটি আকর্ষণীয় বিল্ট-ইন ফোল্ডিং স্ট্যান্ড, যা আপনার দৈনন্দিন গেজেট ব্যবহারের অভিজ্ঞতাকে করবে আরও অনেক বেশি স্বাচ্ছন্দ্যময়।মূল বৈশিষ্ট্য ও সুবিধাসমূহ:২৪০W ৫A ম্যাক্স ফাস্ট চার্জিং: এটি সর্বোচ্চ ২৪০W এবং ৫A পর্যন্ত সুপার ফাস্ট চার্জিং ও ডেটা সিঙ্ক সাপোর্ট করে, যা ল্যাপটপ, ট্যাবলেটসহ যেকোনো হেভি-ডিউটি ডিভাইস দ্রুত চার্জ করতে সক্ষম।বিল্ট-ইন ফোল্ডিং ফোন স্ট্যান্ড: কেবলের কানেক্টরে অভিনব উপায়ে যুক্ত রয়েছে একটি বিল্ট-ইন ফোন স্ট্যান্ড। এটি ল্যান্ডস্কেপ (Landscape) এবং পোর্ট্রেট (Portrait) উভয় ওরিয়েন্টেশনেই ব্যবহার করা যায় এবং বিভিন্ন অ্যাঙ্গেলে অ্যাডজাস্ট করা যায়।ভিডিও দেখার সুবিধা: চার্জিংয়ের পাশাপাশি ফোন স্ট্যান্ডে রেখে খুব সহজেই কোনো ঝামেলা ছাড়াই ভিডিও বা মুভি উপভোগ করা যায়।প্রিমিয়াম ব্রেইডেড ডিজাইন: দীর্ঘস্থায়ী স্থায়িত্ব ও সহজে জট পাকানো রোধ করতে এটি উচ্চমানের ব্রেইডেড ফাইবার ম্যাটেরিয়াল দিয়ে তৈরি করা হয়েছে।অপ্রতিরোধ্য গতি এবং পোর্টেবল স্ট্যান্ডের দুর্দান্ত এই কম্বো ক্যাবলটি আপনার ডেস্কে বা ট্রাভেলিংয়ের সময় কাজের গতি বাড়িয়ে দিতে অনন্য এক সল্যুশন। আজই সংগ্রহ করুন!",
+    "price": 785,
+    "discount_price": 720,
+    "category_id": "electronic-accessories",
+    "sub_category": "Cables, Converters & Hubs",
+    "stock": 50,
+    "images": [
+      "https://mohasagor.com.bd/public/storage/images/products/Qtl3w4LH2dQ1eQTN69DxVQP6uk7Gz9Gg0APK6m55.png"
+    ],
+    "rating": 4.8,
+    "review_count": 12,
+    "is_featured": true,
+    "is_trending": true,
+    "brand": "Kintesi",
+    "sku": "DS-3029",
+    "tags": [
+      "240w",
+      "5a",
+      "fast",
+      "charging",
+      "sync",
+      "usb-c",
+      "to",
+      "cable"
+    ],
+    "dropshipping_url": "https://dropshipping.com.bd/product/mens-winter-hoodieblack-anther-3029"
+  },
+  {
+    "id": "00000000-0000-4000-8000-000000003033",
+    "title": "HY300 Android Smart Mini Projector – 720P Portable WiFi & Bluetooth Projector with 180° Rotation, Auto Keystone Correction, 130\" Screen & Built-in Apps",
+    "slug": "hy300-android-smart-mini-projector-720p-ds-3033",
+    "description": "আপনার ঘরের বেডরুম, লিভিং রুম কিংবা আউটডোর ক্যাম্পিংয়ে বড় পর্দায় সিনেমা দেখার অভিজ্ঞতাকে অন্য মাত্রায় নিয়ে যেতে নিয়ে এলাম জনপ্রিয় HY300 Android Smart Mini Projector। চমৎকার সব স্মার্ট ফিচার ও আকর্ষণীয় ডিজাইনের এই মিনি প্রজেক্টরটি আপনার ঘরের কোণকেই নিমিষেই বানিয়ে তুলবে একটি প্রাইভেট থিয়েটার।⚡ পকেটে রাখুন মিনি থিয়েটার—স্মার্ট অ্যান্ড্রয়েড প্রজেক্টরে যেকোনো দেওয়াল বা ছাদকে বানিয়ে ফেলুন বিশাল বড় স্ক্রিন!মূল বৈশিষ্ট্য ও সুবিধাসমূহ:স্মার্ট পারফরম্যান্স ও স্টোরেজ: এটি ইউনিক ডিজাইন এবং শক্তিশালী Hi-chip A3100 চিপসেট দ্বারা চালিত। এতে রয়েছে ১জিবি র‍্যাম এবং ৮জিবি রম (1GB+8GB ROM) স্টোরেজ, যার মাধ্যমে মুভি, শো বা মিউজিক স্ট্রিমিং করা যায় খুব সহজেই।ডুয়াল ব্যান্ড ওয়াইফাই ও ব্লুটুথ ৫.০: দ্রুতগতির ২.৪জি এবং ৫জি ওয়াইফাই (2.4/5G WiFi) এবং ব্লুটুথ ৫.০ (BT 5.0) সাপোর্টের মাধ্যমে যেকোনো মোবাইল বা ল্যাপটপের সাথে ওয়্যারলেস স্ক্রিন শেয়ারিং এবং ব্লুটুথ স্পিকার কানেক্ট করার সুবিধা রয়েছে।অটো কি স্টোন কারেকশন: এতে অটো কি স্টোন কারেকশন (Auto keystone correction) ফিচার থাকায় যেকোনো অ্যাঙ্গেল থেকে খুব সহজে নিখুঁত ও সোজা ইমেজ অ্যালাইনমেন্ট পাওয়া যায়।১৮০° রোটেট ও ১৩০ ইঞ্চি ডিসপ্লে: অত্যন্ত পোর্টেবল ও হালকা (মাত্র ১.৪৬ পাউন্ড) এই প্রজেক্টরটি ১৮০ ডিগ্রি পর্যন্ত ঘুরানো যায়, যা দিয়ে ছাদে বা দেওয়ালে বড় ১৩০ ইঞ্চি পর্যন্ত বিশাল স্ক্রিন উপভোগ করা সম্ভব।এইচডি ডিসপ্লে রেজোলিউশন: ১২৮০ x ৭২০ (1280x720) ডিসপ্লে রেজোলিউশনের সুবাদে প্রতিটি ছবি ও ভিডিও আসে চমৎকার স্পষ্টতা ও উজ্জ্বলতা নিয়ে।আপনার মুভি নাইট, প্রেজেন্টেশন বা বিনোদনের জগতকে আরও আকর্ষণীয় করতে আজই সংগ্রহ করুন এই HY300 স্মার্ট মিনি প্রজেক্টরটি!",
+    "price": 5470,
+    "discount_price": 5030,
+    "category_id": "computer-gaming",
+    "sub_category": "Routers & Networking Gear",
+    "stock": 1,
+    "images": [
+      "https://mohasagor.com.bd/public/storage/images/products/pmOa6Stx0vb74Tc9hKO5TbKniWOJpJP4EuxMnMrM.png"
+    ],
+    "rating": 4.8,
+    "review_count": 12,
+    "is_featured": true,
+    "is_trending": false,
+    "brand": "Kintesi",
+    "sku": "DS-3033",
+    "tags": [
+      "hy300",
+      "android",
+      "smart",
+      "projector",
+      "720p",
+      "portable",
+      "wifi",
+      "bluetooth"
+    ],
+    "dropshipping_url": "https://dropshipping.com.bd/product/mens-winter-hoodie-red-hood-3033"
+  },
+  {
+    "id": "00000000-0000-4000-8000-000000003035",
+    "title": "Men's Gabardine Pant",
+    "slug": "mens-gabardine-pant-black-color-3035",
+    "description": "Men's Gabardine PantMain Material: TwillStretch: StretchableWash & Care: Machine WashWaist: Mid-riseQuality: 98% Cotton 2% SpandexButtery smooth chinos made with soft twill and washed to perfectionStylish and FashionableZip flyPocket: 2 Side pocket, 2 Back pocketGender: Men100% ComfortableMeasurement:Size: 32, Waist: 32, Length: 41Size: 34, Waist: 34, Length: 41.5Size: 36, Waist: 36, Length: 42",
+    "price": 800,
+    "discount_price": 720,
+    "category_id": "home-living",
+    "sub_category": "Home & Kitchen Essentials",
+    "stock": 4,
+    "images": [
+      "https://mohasagor.com.bd/public/storage/images/products/K51TYNWv1zy4KmlKKwXSlZAWKWef6ELqEP1qer18.jpg"
+    ],
+    "rating": 4.8,
+    "review_count": 12,
+    "is_featured": true,
+    "is_trending": false,
+    "brand": "Kintesi",
+    "sku": "DS-3035",
+    "tags": [
+      "men",
+      "gabardine",
+      "pant",
+      "home living",
+      "home & kitchen essentials",
+      "অনলাইন শপিং",
+      "ক্যাশ অন ডেলিভারি",
+      "Kintesi"
+    ],
+    "dropshipping_url": "https://dropshipping.com.bd/product/mens-gabardine-pant-black-color-3035"
+  },
+  {
+    "id": "00000000-0000-4000-8000-000000003036",
+    "title": "Men's Gabardine Pant (Navy Blue)",
+    "slug": "mens-gabardine-pant-navy-color-3036",
+    "description": "Men's Gabardine PantMain Material: TwillStretch: StretchableWash & Care: Machine WashWaist: Mid-riseQuality: 98% Cotton 2% SpandexButtery smooth chinos made with soft twill and washed to perfectionStylish and FashionableZip flyPocket: 2 Side pocket, 2 Back pocketGender: Men100% ComfortableMeasurement:Size: 32, Waist: 32, Length: 41Size: 34, Waist: 34, Length: 41.5Size: 36, Waist: 36, Length: 42",
+    "price": 775,
+    "discount_price": 720,
+    "category_id": "home-living",
+    "sub_category": "Home & Kitchen Essentials",
+    "stock": 10,
+    "images": [
+      "https://mohasagor.com.bd/public/storage/images/products/pXeM9GSVqwlLtXGKS6ar52fINBgVZNwnDbJ26b0p.jpg"
+    ],
+    "rating": 4.8,
+    "review_count": 12,
+    "is_featured": true,
+    "is_trending": false,
+    "brand": "Kintesi",
+    "sku": "DS-3036",
+    "tags": [
+      "men",
+      "gabardine",
+      "pant",
+      "navy",
+      "blue",
+      "home living",
+      "home & kitchen essentials",
+      "অনলাইন শপিং"
+    ],
+    "dropshipping_url": "https://dropshipping.com.bd/product/mens-gabardine-pant-navy-color-3036"
+  },
+  {
+    "id": "00000000-0000-4000-8000-000000003041",
+    "title": "Men's Gabardine Pant (Ash)",
+    "slug": "mens-gabardine-pant-ash-color-3041",
+    "description": "Men's Gabardine PantMain Material: TwillStretch: StretchableWash & Care: Machine WashWaist: Mid-riseQuality: 98% Cotton 2% SpandexButtery smooth chinos made with soft twill and washed to perfectionStylish and FashionableZip flyPocket: 2 Side pocket, 2 Back pocketGender: Men100% ComfortableMeasurement:Size: 32, Waist: 32, Length: 41Size: 34, Waist: 34, Length: 41.5Size: 36, Waist: 36, Length: 42",
+    "price": 785,
+    "discount_price": 720,
+    "category_id": "home-living",
+    "sub_category": "Home & Kitchen Essentials",
+    "stock": 4,
+    "images": [
+      "https://mohasagor.com.bd/public/storage/images/products/585Dsq7WYvxgItsVtdRTu4v5htZZnJtzZewMplVP.webp"
+    ],
+    "rating": 4.8,
+    "review_count": 12,
+    "is_featured": true,
+    "is_trending": false,
+    "brand": "Kintesi",
+    "sku": "DS-3041",
+    "tags": [
+      "men",
+      "gabardine",
+      "pant",
+      "ash",
+      "home living",
+      "home & kitchen essentials",
+      "অনলাইন শপিং",
+      "ক্যাশ অন ডেলিভারি"
+    ],
+    "dropshipping_url": "https://dropshipping.com.bd/product/mens-gabardine-pant-ash-color-3041"
+  },
+  {
+    "id": "00000000-0000-4000-8000-000000003039",
+    "title": "Casual Men's Sweatpant Trouser",
+    "slug": "casual-mens-sweatpant-trouser-black-red",
+    "description": "\"নতুন স্টাইলে আরামদায়ক ক্যাজুয়াল মেনস্‌ সুইটপ্যান্ট - যা আপনাকে দিবে স্টাইল ও কমফোর্ট একসাথে!\"আপনার প্রতিদিনের স্টাইল এবং আরামের সঙ্গী হতে আসছে ক্যাজুয়াল মেনস্‌ সুইটপ্যান্ট ট্রাউজার। উন্নত টেরি কটন ফেব্রিক দিয়ে তৈরি এই প্যান্টগুলো আপনার ফ্যাশন আর আরামের মেলবন্ধন ঘটাবে। 👉কেন এই টাওজার ক্রয় করবেন? মসৃণ টেক্সচার: নরম ও আরামদায়ক টেরি কটন যা সর্বোচ্চ আরাম নিশ্চিত করে। রপ্তানি মানের গুণগত মান: প্রতিটি প্যান্টই তৈরি হয়েছে উচ্চমানের উপকরণ ব্যবহার করে। স্মার্ট জিপার ডিজাইন: পায়ের নিচের জিপার স্টাইল যোগ করায় দেয় বাড়তি ব্যবহারিক সুবিধা। কেনার উপযুক্ত সময় এখনই! শীত ,গরম কিংবা বসন্ত, যেকোনো সময়েই এটি আপনার লুককে করবে আরও স্মার্ট।\"\"তাই আপনার স্টাইলকে নতুন মাত্রা দিতে আজই অর্ডার করুন!\"\"#sweatpant.#trouser.#casual-trouser. Casual Men's Sweatpants TrouserFabric: Terry CottonExport QualitySize: M, L, XL, XXLZippered in bottomSoft & ComfortableMeasurements:M=Waist-30-32, Length-37L=Waist-32-34, Length-38XL=Waist-34-36, Length-39XXL=Waist-36-38, Length-40",
+    "price": 470,
+    "discount_price": 420,
+    "category_id": "home-living",
+    "sub_category": "Home & Kitchen Essentials",
+    "stock": 69,
+    "images": [
+      "https://mohasagor.com.bd/public/storage/images/products/SMso1qHQ5pgUItWQoIAj7JKGWAGlvw1oeemBuRyz.jpg"
+    ],
+    "rating": 4.8,
+    "review_count": 12,
+    "is_featured": true,
+    "is_trending": false,
+    "brand": "Kintesi",
+    "sku": "DS-3039",
+    "tags": [
+      "casual",
+      "men",
+      "sweatpant",
+      "trouser",
+      "home living",
+      "home & kitchen essentials",
+      "অনলাইন শপিং",
+      "ক্যাশ অন ডেলিভারি"
+    ],
+    "dropshipping_url": "https://dropshipping.com.bd/product/casual-mens-sweatpant-trouser-black-red-3039"
+  },
+  {
+    "id": "00000000-0000-4000-8000-000000003051",
+    "title": "Premium Jersey Set (Brazil)",
+    "slug": "mens-full-sleeve-sweatshirt-muslim-theme",
+    "description": "প্রিমিয়াম মেস (Mesh) ফেব্রিক: উন্নত মানের মেস কাপড় দিয়ে তৈরি, যা অত্যন্ত আরামদায়ক এবং বাতাস চলাচলে সাহায্য করে। ফলে খেলার সময় ঘাম হলেও শরীর থাকবে ঠান্ডা। অফিসিয়াল লুক ও ব্যাজ: জার্সিতে রয়েছে ব্রাজিলের ঐতিহ্যবাহী ৫-স্টার আইকনিক ক্রেইস্ট এবং নিখুঁতভাবে বসানো ফিফা ফুটবল লোগো, যা দেবে একদম রিয়াল প্লেয়ারদের মতো ফিল। কমপ্লিট সেট: টি-শার্টের সাথে থাকছে ম্যাচিং হাফপ্যান্ট । পারফেক্ট ফিটিং: ছোটদের শরীরের গঠন অনুযায়ী সুন্দর কাটিং এবং নিখুঁত ফিনিশিং।(Only t-shirt and pant ) Size Chest (Half) Body Length Shoulder Sleeve Length 1Y 11\" 15\" 9\" 4.5\" 2Y 12\" 16\" 9.5\" 5\" 4Y 13\" 18\" 10.5\" 5.5\" 6Y 14\" 20\" 11.5\" 6\" 8Y 15\" 22\" 12.5\" 6.5\" 10Y 16\" 24\" 13.5\" 7\" 12Y 17\" 26\" 14.5\" 7.5\" হাফ প্যান্ট ফিনিশিং গ্রেডিং Size Waist (Relax) Hip Outseam 1Y 8\" 13\" 10\" 2Y 8.5\" 14\" 11\" 4Y 9\" 15\" 12\" 6Y 9.5\" 16\" 13\" 8Y 10\" 17\" 14\" 10Y 10.5\" 18\" 15\" 12Y 11\" 19\" 16\"",
+    "price": 690,
+    "discount_price": 620,
+    "category_id": "mens-fashion",
+    "sub_category": "Activewear & Sportswear",
+    "stock": 50,
+    "images": [
+      "https://mohasagor.com.bd/public/storage/images/products/UpG8zJxrUofDm6wzCVE1WUVWvoxz7nNdIiFk8xoK.jpg"
+    ],
+    "rating": 4.8,
+    "review_count": 12,
+    "is_featured": true,
+    "is_trending": false,
+    "brand": "Kintesi",
+    "sku": "DS-3051",
+    "tags": [
+      "jersey",
+      "brazil",
+      "mens fashion",
+      "activewear & sportswear",
+      "অনলাইন শপিং",
+      "ক্যাশ অন ডেলিভারি",
+      "Kintesi"
+    ],
+    "dropshipping_url": "https://dropshipping.com.bd/product/mens-full-sleeve-sweatshirt-muslim-theme-3051"
+  },
+  {
+    "id": "00000000-0000-4000-8000-000000003064",
+    "title": "Men's Cotton Katua",
+    "slug": "mens-cotton-katuapaste",
+    "description": "Men's Cotton KatuaFabrics: CottonSoft & ComfortablesSize: M, L, XL, XXLMeasurements:M=Chest-40, Length-27L=Chest-42, Length-28XL=Chest-44, Length-29XXL=Chest-46, Length-30",
+    "price": 560,
+    "discount_price": 520,
+    "category_id": "mens-fashion",
+    "sub_category": "Panjabi & Payjama",
+    "stock": 35,
+    "images": [
+      "https://mohasagor.com.bd/public/storage/images/products/POHCnr8h5y2xcNxEk4q342OMXee6qMLvvFkpmJxa.jpg"
+    ],
+    "rating": 4.8,
+    "review_count": 12,
+    "is_featured": true,
+    "is_trending": false,
+    "brand": "Kintesi",
+    "sku": "DS-3064",
+    "tags": [
+      "men",
+      "cotton",
+      "katua",
+      "mens fashion",
+      "panjabi & payjama",
+      "অনলাইন শপিং",
+      "ক্যাশ অন ডেলিভারি",
+      "Kintesi"
+    ],
+    "dropshipping_url": "https://dropshipping.com.bd/product/mens-cotton-katuapaste-3064"
+  },
+  {
+    "id": "00000000-0000-4000-8000-000000003066",
+    "title": "Premium Stainless Steel Manual Nose Hair Trimmer – Painless, Battery-Free, Washable & Portable Ear & Nose Grooming Clipper Tool for Men & Women",
+    "slug": "indian-cotton-semi-formal-shirt",
+    "description": "নাকের অবাঞ্ছিত লোম পরিষ্কার করা এখন আর কোনো কষ্টকর বা ঝামেলার কাজ নয়! আমাদের প্রিমিয়াম Manual Nose Hair Trimmer-এর সাহায্যে খুব সহজেই, নিরাপদে এবং কোনো রকম ব্যথা ছাড়াই নাকের ও কানের লোম কাটতে পারবেন। সম্পূর্ণ স্টেইনলেস স্টিলের তৈরি এই ব্যাটারি-ফ্রি ট্রিমারটি আপনার দৈনন্দিন গ্রুমিং রুটিনকে করবে আরও সহজ ও স্বাচ্ছন্দ্যময়।⚡ ব্যাটারি বা বিদ্যুতের ঝামেলা ছাড়াই শতভাগ ব্যথামুক্ত ট্রিম—স্টেইনলেস স্টিল ম্যানুয়াল নোজ ট্রিমার দিয়ে গ্রুমিং হোক একদম নিখুঁত!মূল ফিচারসমূহ (Key Features):শতভাগ নিরাপদ ও ব্যথামুক্ত: এর 'রাউন্ডেড কর্নার' (Rounded corner) ডিজাইন ত্বকে কোনো আঘাত লাগতে দেয় না। এতে থাকা ১২-দাঁতের রিফাইন্ড ব্লেড লোম টেনে ধরে না (No pulling), বরং অত্যন্ত মসৃণ ও নিখুঁতভাবে কেটে ফেলে।ব্যাটারি বা বিদ্যুতের ঝামেলা নেই: এটি সম্পূর্ণ ম্যানুয়াল। 'ওয়ান-হ্যান্ড প্রেস' (One-handed press) মেকানিজমের মাধ্যমে শুধুমাত্র এক হাতের হালকা চাপেই খুব সহজে ট্রিম করা যায়, ফলে চার্জ ফুরিয়ে যাওয়ার কোনো চিন্তাই নেই।প্রিমিয়াম ম্যাটেরিয়াল ও দীর্ঘস্থায়িত্ব: সম্পূর্ণ বডি প্রিমিয়াম কোয়ালিটির স্টেইনলেস স্টিল (Full body stainless steel) দিয়ে তৈরি হওয়ায় এটি অত্যন্ত টেকসই এবং এতে কখনোই মরিচা পড়ে না।সহজে পরিষ্কারযোগ্য (Washable): ব্যবহার শেষে এর যন্ত্রাংশ খুলে খুব সহজেই পানি দিয়ে ধুয়ে ফেলা যায় এবং সাথে থাকা ছোট ক্লিনিং ব্রাশ দিয়ে এটি পরিষ্কার রাখা আরও সহজ হয়।পোর্টেবল ও ট্রাভেল ফ্রেন্ডলি: ছোট, হালকা এবং কমপ্যাক্ট ডিজাইনের কারণে এটি পকেটে, পার্সে বা ট্রাভেল ব্যাগে করে যেকোনো জায়গায় খুব সহজে বহন করা যায়।কেন এই ট্রিমারটি বেছে নেবেন?ইলেকট্রিক ট্রিমারের মটরের শব্দ বা চার্জিংয়ের ঝামেলা এড়াতে এবং যেকোনো সময় সম্পূর্ণ ব্যথামুক্ত ও নিরাপদ গ্রুমিং নিশ্চিত করতে এই ম্যানুয়াল ট্রিমারটি একটি সেরা পছন্দ।নিজেকে পরিপাটি রাখতে এবং স্মার্ট গ্রুমিংয়ের অভিজ্ঞতা পেতে আজই সংগ্রহ করুন এই Manual Nose Hair Trimmer-টি!",
+    "price": 330,
+    "discount_price": 300,
+    "category_id": "health-beauty",
+    "sub_category": "Hair Care, Shampoos & Oils",
+    "stock": 50,
+    "images": [
+      "https://mohasagor.com.bd/public/storage/images/products/Uc5I4LEMoKs0Q6fzZ01czazkgaZ8Io5PoSzawDf5.png"
+    ],
+    "rating": 4.8,
+    "review_count": 12,
+    "is_featured": true,
+    "is_trending": false,
+    "brand": "Kintesi",
+    "sku": "DS-3066",
+    "tags": [
+      "stainless",
+      "steel",
+      "manual",
+      "nose",
+      "hair",
+      "trimmer",
+      "painless",
+      "battery-free"
+    ],
+    "dropshipping_url": "https://dropshipping.com.bd/product/indian-cotton-semi-formal-shirt-3066"
+  },
+  {
+    "id": "00000000-0000-4000-8000-000000003068",
+    "title": "SWS Hi-Tech Ceramic Cartidge Water Purifier",
+    "slug": "indian-cotton-semi-formal-shirt-1",
+    "description": "💦 এইটা একটা ওয়াটার পিউরিফায়ার! 💧 আপনার রান্নাঘরের কলের সাথে সহজেই লাগিয়ে নিন আর পান করুন একদম পরিষ্কার জল। 😋 নোংরা জল আর নয়, এই পিউরিফায়ার দেবে আপনাকে জীবাণুমুক্ত পানীয় জল যা আপনার স্বাস্থ্যকে রাখবে সুরক্ষিত। ✅এই ছোট্ট ডিভাইসটি কিন্তু কাজের বেলায় দারুণ! 💪 এর মধ্যে থাকা বিশেষ ফিল্টারগুলো জলের ক্ষতিকর উপাদান যেমন - কাদা, ধুলো, মরিচা এবং অন্যান্য দূষিত পদার্থ সরিয়ে ফেলে। 🛡️ তাই আপনি যখনই জল পান করছেন, পাচ্ছেন একদম ফ্রেশ আর স্বাস্থ্যকর জল। 🌿ব্যবহার করাও খুব সহজ! 👍 জাস্ট কলের মুখে এটা লাগিয়ে দিন, আর যখন প্রয়োজন তখন লিভার ঘুরিয়ে বিশুদ্ধ জল নিন। 🔄 কোনো ঝামেলা নেই, কোনো অতিরিক্ত যন্ত্রপাতির দরকার নেই। 🛠️যারা স্বাস্থ্য সচেতন, তাদের জন্য এটা মাস্ট-হ্যাভ! 💯 বিশেষ করে বাচ্চাদের জন্য তো বটেই। 👶🍼 পরিষ্কার জল তাদের শরীরকে রাখবে রোগমুক্ত আর সতেজ। 😊শুধু তাই নয়, এই ওয়াটার পিউরিফায়ার আপনার কষ্টের টাকাও বাঁচাবে। 💰 বারবার জল ফুটিয়ে ঠান্ডা করার ঝামেলা শেষ, আর বাজারের বোতলজাত জলের খরচ থেকেও মুক্তি। 🥳 এক কথায়, এটা আপনার জীবনকে আরও সহজ আর স্বাস্থ্যকর করে তুলবে। ✨ তাহলে আর দেরি কেন? আজই নিয়ে আসুন এই ওয়াটার পিউরিফায়ার আর উপভোগ করুন বিশুদ্ধ জলের স্বাদ! 🏡❤️",
+    "price": 840,
+    "discount_price": 780,
+    "category_id": "tv-home-appliances",
+    "sub_category": "Water Purifiers & Filters",
+    "stock": 1,
+    "images": [
+      "https://mohasagor.com.bd/public/storage/images/products/WYUnHFJjlOnP9YYsWsOLMgeWewG9WaYDIUEJ6jzk.png"
+    ],
+    "rating": 4.8,
+    "review_count": 12,
+    "is_featured": true,
+    "is_trending": false,
+    "brand": "Kintesi",
+    "sku": "DS-3068",
+    "tags": [
+      "sws",
+      "hi-tech",
+      "ceramic",
+      "cartidge",
+      "water",
+      "purifier",
+      "tv home appliances",
+      "water purifiers & filters"
+    ],
+    "dropshipping_url": "https://dropshipping.com.bd/product/indian-cotton-semi-formal-shirt-3068"
+  },
+  {
+    "id": "00000000-0000-4000-8000-000000003071",
+    "title": "Creative Silicone Folding Water Cup – 600ml Portable & Scalable Leak-Proof Travel Bottle with Lid & Handle for Sports, Gym, Office & School (Multi-Color)",
+    "slug": "mens-full-sleeve-sweatshirt",
+    "description": "যারা সবসময় বাইরে বা ট্রাভেলে থাকেন, তাদের হাইড্রেটেড থাকার অভ্যাসকে আরও সহজ ও ঝঞ্ঝাটমুক্ত করতে নিয়ে এলাম আধুনিক ও ক্রিয়েটিভ Silicone Folding Water Cup। যখন পানি প্রয়োজন, তখন বোতলটি বড় করে নিন; আর পানির তৃষ্ণা মিটে গেলে এটি সহজেই ভাঁজ করে ছোট করে আপনার ব্যাগে রেখে দিতে পারেন। এটি আপনার ব্যাগের সামান্য জায়গাই দখল করে!মূল বৈশিষ্ট্য ও সুবিধাসমূহ:ফোল্ডেবল ও স্কেলেবল ডিজাইন: এর অভিনব ফোল্ডিং প্রযুক্তির কারণে ব্যবহার শেষে এটি কুঁচকে ছোট করে ফেলা যায়, ফলে বহন করা অত্যন্ত সহজ।নিরাপদ ও টেকসই সিলিকন উপাদান: এটি উচ্চমানের ফুড-গ্রেড সিলিকন দিয়ে তৈরি, যা ওজনে অত্যন্ত হালকা, টেকসই, সহজে ভাঙে না এবং ১০০% লিক-প্রুফ।যথেষ্ট ধারণক্ষমতা: প্রতিটি বোতলের ধারণক্ষমতা ৬০০ মিলি (600ml), যা আপনার দৈনন্দিন প্রয়োজনের একটি বড় সময় জুড়ে পানি পানের চাহিদা মেটাতে সক্ষম।হ্যান্ডেল ও ঢাকনা সহ: বোতলের সাথে সুরক্ষিত ঢাকনা এবং একটি কুশলী হ্যান্ডেল রয়েছে, যা হাত দিয়ে ধরে বহন করতে বা ব্যাগের সাথে ঝুলিয়ে রাখতে দারুণ সুবিধা দেয়।পরিবেশবান্ধব ও সাশ্রয়ী: বারবার ওয়ান-টাইম প্লাস্টিকের বোতল ব্যবহার না করে এই ইকো-ফ্রেন্ডলি বোতলটি দীর্ঘদিন ব্যবহার করা যায়, যা পকেট এবং পরিবেশ দুটোই বাঁচায়।কোথায় ব্যবহার উপযোগী?আউটোডোর ট্রিপ, ক্যাম্পিং, জিম ওয়ার্কআউট, অফিস বা স্কুল—সব জায়গার জন্যই এটি সমানভাবে উপযোগী। ওজনে হালকা হওয়ায় ছোট বাচ্চাদের স্কুলেও এটি অনায়াসে ব্যবহার করা যায়।আপনার বা আপনার প্রিয়জনের একটিভ লাইফস্টাইলকে আরও স্মার্ট ও পরিপাটি করতে আজই সংগ্রহ করুন এই মাল্টি-কালার সিলিকন ফোল্ডিং ওয়াটার কাপটি!",
+    "price": 925,
+    "discount_price": 830,
+    "category_id": "home-living",
+    "sub_category": "Dinnerware & Cutlery",
+    "stock": 50,
+    "images": [
+      "https://mohasagor.com.bd/public/storage/images/products/i6GE7SeEv96oOWvdezV4IoxWgT2SUd4Syzk6PhwY.png"
+    ],
+    "rating": 4.8,
+    "review_count": 12,
+    "is_featured": true,
+    "is_trending": true,
+    "brand": "Kintesi",
+    "sku": "DS-3071",
+    "tags": [
+      "creative",
+      "silicone",
+      "folding",
+      "water",
+      "cup",
+      "600ml",
+      "portable",
+      "scalable"
+    ],
+    "dropshipping_url": "https://dropshipping.com.bd/product/mens-full-sleeve-sweatshirt-3071"
+  },
+  {
+    "id": "00000000-0000-4000-8000-000000003073",
+    "title": "Adjustable Power Exercise Gripper Strengthener Hand Grip with Counter 5kg to 60kg Presser 1 pc",
+    "slug": "mens-high-quality-kabli-single",
+    "description": "Adjustable Power Exercise Gripper Strengthener – ৫ কেজি থেকে ৬০ কেজি, কাউন্টারসহপণ্যের সারসংক্ষেপএই উন্নত মানের হ্যান্ড গ্রিপ এক্সারসাইজারটি ডিজাইন করা হয়েছে হাত, কব্জি ও পূর্ব বাহুর পেশী শক্তিশালী করতে। প্রতিদিনের ফিটনেস রুটিন, পুনর্বাসন বা সাধারণ গ্রিপ উন্নয়নে এটি একটি কার্যকর টুল। এর ইন-বিল্ট কাউন্টার, সমন্বয়যোগ্য চাপ ও আরামদায়ক হ্যান্ডেল আপনাকে আরও বেশি নিয়ন্ত্রিত ও ফলপ্রসূ অনুশীলনের অভিজ্ঞতা দেয়।প্রধান বৈশিষ্ট্যসমূহচাপ নিয়ন্ত্রণযোগ্য (৫ – ৬০ কেজি):চাহিদা অনুযায়ী প্রেসার বাড়ানো বা কমানোর সুবিধা, যা নতুন ও অভিজ্ঞ ব্যবহারকারীদের জন্য উপযোগী।ইন-বিল্ট রিপ কাউন্টার:প্রতিটি প্রেস গণনা করে, অনুশীলনের অগ্রগতি পর্যবেক্ষণ করা সহজ করে তোলে।আরগনোমিক নন-স্লিপ হ্যান্ডেল:হাতের গঠন অনুযায়ী ডিজাইন করা, যা দৃঢ় গ্রিপ ও দীর্ঘক্ষণ ব্যায়ামে আরামদায়ক অভিজ্ঞতা নিশ্চিত করে।টেকসই নির্মাণ:উচ্চমানের স্টেইনলেস স্টিল স্প্রিং ও শক্ত প্লাস্টিক বডি, যা দীর্ঘমেয়াদি ব্যবহারে টেকসই ও নির্ভরযোগ্য।কমপ্যাক্ট ও বহনযোগ্য:সহজে বহনযোগ্য ডিজাইন, অফিস, ভ্রমণ কিংবা বাড়িতে যেকোনো সময় ব্যবহার করা যায়।শব্দহীন অপারেশন:মসৃণ ও নীরব কাজ করার ক্ষমতা, যা পরিবেশে বিঘ্ন না ঘটিয়ে অনুশীলন করতে সহায়ক।ব্যবহার উপযোগিতাফিটনেস অনুশীলন:দৈনন্দিন ব্যায়ামে হাত ও কব্জির পেশী শক্তিশালী করতে সহায়ক।পুনর্বাসন:কব্জি বা আঙুলের আঘাত থেকে ধীরে ধীরে সেরে উঠতে সহায়তা করে।মিউজিক বা স্পোর্টস প্র্যাকটিস:আঙুলের ফ্লেক্সিবিলিটি বাড়িয়ে বাদ্যযন্ত্র বাজানো বা ক্রীড়ানৈপুণ্য উন্নত করে।দৈনন্দিন প্রয়োগ:জিনিসপত্র তোলা, বোতল খোলা কিংবা হাতের সাধারণ কাজকর্ম আরও সহজ করে।প্রযুক্তিগত বিবরণফিচারতথ্যচাপ নিয়ন্ত্রণ৫ কেজি – ৬০ কেজি (সামঞ্জস্যযোগ্য)কাউন্টারইন-বিল্ট রিপ কাউন্টারনির্মাণ উপাদানস্টেইনলেস স্টিল স্প্রিং, প্লাস্টিক বডিহ্যান্ডেল ডিজাইনআরগনোমিক, নন-স্লিপবহনযোগ্যতাহালকা ও কমপ্যাক্টশব্দমাত্রাশান্ত ও মসৃণ অপারেশনকেন এটি বেছে নেবেন?ধাপে ধাপে অনুশীলনের জন্য চাপ নিয়ন্ত্রণের সুবিধাঅগ্রগতি পর্যবেক্ষণের জন্য ইন-বিল্ট কাউন্টারদীর্ঘমেয়াদি ও আরামদায়ক ব্যবহারের জন্য উন্নত গ্রিপবহুমুখী ব্যবহারের উপযোগী – ফিটনেস, পুনর্বাসন, বা সাধারণ দৈনন্দিন প্রয়োগেযেকোনো বয়স ও দক্ষতার মানুষের জন্য উপযোগীউপসংহারAdjustable Hand Grip Strengthener আপনার হাতের পেশী গঠনে একটি কার্যকর, সহজ ও নির্ভরযোগ্য সঙ্গী। এটি শুধু একটি ব্যায়ামের যন্ত্র নয়—বরং একটি দৈনন্দিন ফিটনেস সল্যুশন। নিজেকে আরও শক্তিশালী এবং সচল রাখতে আজই এটি আপনার ব্যায়ামের তালিকায় যুক্ত করুন।",
+    "price": 295,
+    "discount_price": 270,
+    "category_id": "computer-gaming",
+    "sub_category": "PC Components & Graphics Cards",
+    "stock": 14,
+    "images": [
+      "https://mohasagor.com.bd/public/storage/images/products/iZN2WstREjkxhAU9PMEkJU1iVMk98wa6theV7vSd.webp"
+    ],
+    "rating": 4.8,
+    "review_count": 12,
+    "is_featured": true,
+    "is_trending": false,
+    "brand": "Kintesi",
+    "sku": "DS-3073",
+    "tags": [
+      "adjustable",
+      "power",
+      "exercise",
+      "gripper",
+      "strengthener",
+      "hand",
+      "grip",
+      "counter"
+    ],
+    "dropshipping_url": "https://dropshipping.com.bd/product/mens-high-quality-kabli-single-3073"
+  },
+  {
+    "id": "00000000-0000-4000-8000-000000003075",
+    "title": "Men's winter Hoodie & Trouser Full Set",
+    "slug": "mens-winter-hoodie-trouserblack-meroon-full-set",
+    "description": "শীতের দিনে স্টাইল ও আরামের সেরা সমন্বয় – হুডি এবং ট্রাউজারের প্রিমিয়াম কম্বো সেট!শীতকালের জন্য বিশেষভাবে তৈরি এই হুডি ও ট্রাউজার সেটে রয়েছে গুণগত মানের কাপড়, আধুনিক ডিজাইন, এবং অনবদ্য ফিনিশিং। এটি শুধু আরামদায়কই নয়, বরং আপনার স্টাইলেও যোগ করবে নতুন মাত্রা। হুডি:-ফ্যাব্রিক: কটন ও ফ্লিস (ভিতরে নরম ব্রাশ)।শীতে উষ্ণতা ও আরামের নিখুঁত সমন্বয়।সাইজ ও মাপ:M: বুক 38\", লম্বা 27\"।L: বুক 40\", লম্বা 28\"।XL: বুক 42\", লম্বা 29\"।XXL: বুক 44\", লম্বা 30\"। ট্রাউজার:-ফ্যাব্রিক: উন্নতমানের টেরি কাপড়।শীতে আরামদায়ক ফ্যাব্রিকের সঙ্গে পারফেক্ট ফিনিশিং।সাইজ ও মাপ:M: কোমর ৩০-৩২\", লম্বা ৩৭\"।L: কোমর ৩২-৩৪\", লম্বা ৩৮\"।XL: কোমর ৩৪-৩৬\", লম্বা ৩৯\"।XXL: কোমর ৩৮-৪০\", লম্বা ৪১\" 👉এটির বিশেষ বৈশিষ্ট্য:-ফ্যাব্রিক ও প্রিন্টের রঙের গ্যারান্টি।প্রতিদিনের ব্যবহারের জন্য আরামদায়ক এবং টেকসই।সিজনাল ট্রেন্ডের সঙ্গে মানানসই স্টাইলিশ ডিজাইন।একাধিক সাইজে সহজে ফিট করার সুবিধা। 👉আপনার শীতকালীন পোশাকের সংগ্রহে আনুন এই প্রিমিয়াম হুডি ও ট্রাউজার সেট। আজই অর্ডার করুন এবং শীতে থাকুন উষ্ণ, আরামদায়ক ও স্টাইলিশ!#hoodie-trouserset.#full-set.#For-winter. Men's winter Hoodie & TrouserHoodie Fabrics: Cotton & Fleece (inside brush)Trouser Fabrics: Terry FabricFabric & Print Colour GuaranteedSize: M, L, XLHoodie Measurement:M=Chest-38, Length-27L=Chest-40, Length-28XL=Chest-42, Length-29XXL = Chest 44, Length 30Trouser Measurement:M= Waist : 30-32, Length - 37L= Waist : 32 - 34, Length - 38XL= Waist : 34 - 36, Length - 39XL= Waist : 36 - 38, Length - 40xxl= waist : 38- 40 , Length - 41",
+    "price": 915,
+    "discount_price": 820,
+    "category_id": "mens-fashion",
+    "sub_category": "Jeans, Chinos & Trousers",
+    "stock": 66,
+    "images": [
+      "https://mohasagor.com.bd/public/storage/images/products/Xl8qDDlWPpBlzYKEnh3EVag1ym56XZp2EnChG3J4.jpg"
+    ],
+    "rating": 4.8,
+    "review_count": 12,
+    "is_featured": true,
+    "is_trending": false,
+    "brand": "Kintesi",
+    "sku": "DS-3075",
+    "tags": [
+      "men",
+      "winter",
+      "hoodie",
+      "trouser",
+      "full",
+      "mens fashion",
+      "jeans, chinos & trousers",
+      "hoodies"
+    ],
+    "dropshipping_url": "https://dropshipping.com.bd/product/mens-winter-hoodie-trouserblack-meroon-full-set-3075"
+  },
+  {
+    "id": "00000000-0000-4000-8000-000000003076",
+    "title": "ZT Rechargeable Folding Desktop Fan with Integrated LED Light – Portable Foldable Pocket Cooling Fan with Adjustable Speed, USB Charging & Silent Operation",
+    "slug": "zt-rechargeable-folding-desktop-fan-with-ds-3076",
+    "description": "লোকারণ্য বাস, অফিস ডেস্ক কিংবা দীর্ঘক্ষণ বিদ্যুৎ না থাকার মতো বিরক্তিকর পরিস্থিতিতে ঠান্ডা বাতাসের নির্ভরযোগ্য সমাধান নিয়ে এলাম আধুনিক ডিজাইনের ZT Rechargeable Folding Desktop Fan with an Integrated LED Light। পোর্টেবল ও ফোল্ডিং ডিজাইনের এই চমৎকার ফ্যানটি আপনার পকেট বা ব্যাগে খুব সহজেই বহনযোগ্য, যা যেকোনো সময় ও যেকোনো জায়গায় আপনাকে দেবে শীতলতার পরশ।⚡ ইন্টিগ্রেটেড এলইডি লাইট ও ফোল্ডেবল ডিজাইন—জেটি রিচার্জেবল ফ্যান দিয়ে প্রচণ্ড গরমেও নিজেকে রাখুন সতেজ ও স্বাচ্ছন্দ্যে!মূল বৈশিষ্ট্যসমূহ ও সুবিধাসমূহ (Key Features):পোর্টেবল ও ফোল্ডিং ডিজাইন: অত্যন্ত চমৎকার এই ফ্যানটি খুব সহজেই ভাঁজ করে ব্যাগে বা পকেটে রাখা যায়, ফলে ট্রাভেল, অফিস বা আউটডোরের জন্য এটি একদম পারফেক্ট।ইন্টিগ্রেটেড LED লাইট: ফ্যানটির সাথে সংযুক্ত রয়েছে বিল্ট-ইন এলইডি লাইট, যা বাতাসের পাশাপাশি অন্ধকার বা লোডশেডিংয়ের সময় পর্যাপ্ত আলোর জোগান দেয়।শক্তিশালী রিচার্জেবল ব্যাটারি: একবার চার্জ দিলে এটি দীর্ঘক্ষণ ব্যাকআপ প্রদান করে, ফলে লোডশেডিংয়ের কথা ভেবে আর দুশ্চিন্তা করতে হবে না।অ্যাডজাস্টেবল স্পিড ও অ্যাঙ্গেল: আপনার প্রয়োজন অনুযায়ী বাতাসের গতি নিয়ন্ত্রণ এবং ফ্যানটিকে যেকোনো পছন্দসই দিকে ঘুরিয়ে ব্যবহার করা সম্ভব।ইউএসবি চার্জিং সুবিধা: আধুনিক ইউএসবি ইন্টারফেসের মাধ্যমে পাওয়ার ব্যাংক, ল্যাপটপ বা মোবাইল অ্যাডাপ্টার দিয়ে এটি খুব সহজেই চার্জ দেওয়া যায়।শান্ত ও আরামদায়ক বাতাস (Silent Operation): এটি চলার সময় একদম শব্দহীন বা নীরব থাকে, তাই পড়াশোনা, অফিসের কাজ বা ঘুমের সময় কোনো ধরনের বিরক্তি সৃষ্টি করে না।বিশেষত্বসমূহ:স্লিক এবং প্রিমিয়াম লুক যা যেকোনো ডেস্কে দারুণ মানিয়ে যায়।হালকা ওজন এবং টেকসই মজবুত বডি।সহজে ব্যবহার উপযোগী কন্ট্রোল বাটন।গ্রীষ্মের প্রচণ্ড তাপদাহে স্বস্তি পেতে এবং নিজের নিত্যদিনের কাজকে সহজ করতে আজই সংগ্রহ করুন এই ZT Rechargeable Folding Fan with LED Light-টি!",
+    "price": 1800,
+    "discount_price": 1670,
+    "category_id": "tv-home-appliances",
+    "sub_category": "Ceiling & Standing Fans",
+    "stock": 50,
+    "images": [
+      "https://mohasagor.com.bd/public/storage/images/products/oEyRoL5B7qb9D4N5KDGwXVaDr0RTNYr1SCJYzdmy.png"
+    ],
+    "rating": 4.8,
+    "review_count": 12,
+    "is_featured": true,
+    "is_trending": false,
+    "brand": "Kintesi",
+    "sku": "DS-3076",
+    "tags": [
+      "zt",
+      "rechargeable",
+      "folding",
+      "desktop",
+      "fan",
+      "integrated",
+      "led",
+      "light"
+    ],
+    "dropshipping_url": "https://dropshipping.com.bd/product/mens-winter-hoodie-3076"
+  }
+];

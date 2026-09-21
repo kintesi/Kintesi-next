@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { Product } from '../types';
 import { INITIAL_PRODUCTS, INITIAL_CATEGORIES } from '../data/mockData';
-import { getProductsFromDB } from '../lib/dbService';
+import { getProductBySlugOrId, PRODUCT_SUMMARY_FIELDS } from '../lib/dbService';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { useCart } from '../contexts/CartContext';
@@ -10,7 +10,7 @@ import { useWishlist } from '../contexts/WishlistContext';
 import { useAddress } from '../contexts/AddressContext';
 import { useSettings } from '../contexts/SettingsContext';
 import { useChat } from '../contexts/ChatContext';
-import { formatPrice, calculateDiscount } from '../lib/utils';
+import { formatPrice, calculateDiscount, optimizeImageUrl } from '../lib/utils';
 import { ProductCard } from '../components/common/ProductCard';
 import { ShowcaseStrip } from '../components/home/ShowcaseStrip';
 import { trackProductView } from '../lib/recommendationEngine';
@@ -39,6 +39,7 @@ import {
   ChevronRight,
   AlertTriangle,
   Cpu,
+  ExternalLink,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -46,7 +47,7 @@ import { useLanguage } from '../contexts/LanguageContext';
 export const ProductDetailPage: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
-  const { user, openAuthModal } = useAuth();
+  const { user, openAuthModal, isAdmin } = useAuth();
   const { addToCart } = useCart();
   const { toggleWishlist, isInWishlist } = useWishlist();
   const { defaultAddress, addresses } = useAddress();
@@ -55,10 +56,14 @@ export const ProductDetailPage: React.FC = () => {
   const { t, language } = useLanguage();
 
   const [product, setProduct] = useState<Product | null>(null);
-  const [allProducts, setAllProducts] = useState<Product[]>(INITIAL_PRODUCTS);
+  const [relatedProductsList, setRelatedProductsList] = useState<Product[]>([]);
+  const [loadingRelated, setLoadingRelated] = useState<boolean>(true);
   const [selectedImage, setSelectedImage] = useState<string>('');
+  const [displayedImage, setDisplayedImage] = useState<string>('');
+  const [isImageTransitioning, setIsImageTransitioning] = useState<boolean>(false);
   const [selectedSize, setSelectedSize] = useState<string>('');
   const [selectedColor, setSelectedColor] = useState<string>('');
+  const [selectedColorSku, setSelectedColorSku] = useState<string>('');
   const [selectedCustomAttributes, setSelectedCustomAttributes] = useState<Record<string, string>>({});
   const [quantity, setQuantity] = useState(1);
   const [loading, setLoading] = useState(true);
@@ -82,17 +87,80 @@ export const ProductDetailPage: React.FC = () => {
   const [touchStartX, setTouchStartX] = useState<number | null>(null);
   const [touchStartY, setTouchStartY] = useState<number | null>(null);
 
+  const normalizedColors = useMemo(() => {
+    if (!product) return [];
+    let rawCols: any = product.colors;
+    if (typeof rawCols === 'string') {
+      try { rawCols = JSON.parse(rawCols); } catch { rawCols = []; }
+    }
+    if (!Array.isArray(rawCols) || rawCols.length === 0) {
+      const specVariants = (product.specifications as any)?.color_variants;
+      if (specVariants && typeof specVariants === 'object') {
+        rawCols = Object.entries(specVariants).map(([cName, cData]: [string, any]) => ({
+          name: cName,
+          hex: '#1E293B',
+          price: product.price,
+          discount_price: product.discount_price,
+          sku: cData?.sku,
+          dropshipping_url: cData?.dropshipping_url,
+          image: product.images?.[0] || '/logo.webp',
+          images: product.images || [],
+        }));
+      } else {
+        return [];
+      }
+    }
+
+    // Deduplicate variants that share the exact same SKU or dropshipping URL
+    const seenSkus = new Set<string>();
+    const cleanList: any[] = [];
+    for (const c of rawCols) {
+      if (!c) continue;
+      const key = (c.sku || c.dropshipping_url || c.name || '').trim();
+      if (key && seenSkus.has(key)) continue;
+      if (key) seenSkus.add(key);
+      cleanList.push(c);
+    }
+    return cleanList;
+  }, [product]);
+
   const isRealColorList = Boolean(
-    product?.colors &&
-    product.colors.length > 0 &&
-    !product.colors.every((c) => !c || !c.name || (typeof c.name === 'string' && c.name.toLowerCase() === 'default'))
+    normalizedColors.length > 0 &&
+    !normalizedColors.every((c) => !c || !c.name || (typeof c.name === 'string' && c.name.toLowerCase() === 'default'))
   );
 
-  const activeColorObj = isRealColorList ? product?.colors?.find((c) => c && c.name === selectedColor) : null;
+  const activeColorObj = useMemo(() => {
+    if (!isRealColorList || normalizedColors.length === 0) return null;
+    if (selectedColorSku) {
+      const bySku = normalizedColors.find((c) => c && c.sku === selectedColorSku);
+      if (bySku) return bySku;
+    }
+    if (selectedColor) {
+      const byName = normalizedColors.find((c) => c && c.name && c.name.toLowerCase() === selectedColor.toLowerCase());
+      if (byName) return byName;
+    }
+    return normalizedColors[0] || null;
+  }, [isRealColorList, normalizedColors, selectedColorSku, selectedColor]);
+
   const colorSpecificImages = (activeColorObj?.images && activeColorObj.images.length > 0)
     ? activeColorObj.images
     : (activeColorObj?.image ? [activeColorObj.image] : null);
-  const productImages = colorSpecificImages || (product?.images && product.images.length > 0 ? product.images : [selectedImage || '/logo.webp']);
+
+  const productImages = useMemo(() => {
+    const list: string[] = [];
+    if (colorSpecificImages && colorSpecificImages.length > 0) {
+      list.push(...colorSpecificImages);
+    }
+    if (product?.images && product.images.length > 0) {
+      for (const img of product.images) {
+        if (img && !list.includes(img)) list.push(img);
+      }
+    }
+    if (list.length === 0 && selectedImage) list.push(selectedImage);
+    if (list.length === 0) list.push('/logo.webp');
+    return list;
+  }, [colorSpecificImages, product?.images, selectedImage]);
+
   const currentImageIndex = productImages.indexOf(selectedImage) !== -1 ? productImages.indexOf(selectedImage) : 0;
 
   const handleNextImage = () => {
@@ -196,73 +264,83 @@ export const ProductDetailPage: React.FC = () => {
   const effectiveDeliveryFee = isFreeDeliveryEligible ? 0 : standardDeliveryFee;
 
   useEffect(() => {
+    let isCancelled = false;
+
     async function loadProduct() {
       try {
-        const savedCustom: Product[] = JSON.parse(localStorage.getItem('kintesi_custom_products') || '[]');
-        const customMatch = savedCustom.find(
-          (p) => (p.slug === slug || p.id === slug) && !p.id?.startsWith('prod-')
-        );
-        const initialMatch = INITIAL_PRODUCTS.find((p) => p.slug === slug || p.id === slug);
-        const localProd = customMatch || initialMatch;
-
-        if (localProd) {
-          setProduct(localProd);
-          trackProductView(localProd);
-          if (localProd.slug && slug !== localProd.slug) {
-            navigate(`/product/${localProd.slug}${window.location.search}`, { replace: true });
-          }
-          setSelectedImage(localProd.images?.[0] || '/logo.webp');
-          if (localProd.sizes && localProd.sizes.length > 0) setSelectedSize(localProd.sizes[0]);
-          const hasRealColorsLocal = Boolean(
-            localProd.colors &&
-            localProd.colors.length > 0 &&
-            !localProd.colors.every((c) => !c || !c.name || (typeof c.name === 'string' && c.name.toLowerCase() === 'default'))
-          );
-          if (hasRealColorsLocal && localProd.colors && localProd.colors.length > 0) {
-            setSelectedColor(localProd.colors[0]?.name || '');
-            if (localProd.colors[0]?.image) setSelectedImage(localProd.colors[0].image);
-          } else {
-            setSelectedColor('');
-          }
-          const customAttrs: any[] = localProd.custom_attributes || (localProd.specifications as any)?.custom_attributes || [];
-          if (customAttrs.length > 0) {
-            const initialAttrs: Record<string, string> = {};
-            customAttrs.forEach((a) => {
-              if (a?.attributeName && !initialAttrs[a.attributeName]) {
-                initialAttrs[a.attributeName] = a.name;
-              }
-            });
-            setSelectedCustomAttributes(initialAttrs);
-          }
-          setLoading(false);
-        } else {
+        if (!product || (product.id !== slug && product.slug !== slug)) {
           setLoading(true);
         }
+        const found = await getProductBySlugOrId(slug || '');
+        if (isCancelled) return;
 
-        const allProds = await getProductsFromDB();
-        const found = allProds.find((p) => (p.slug === slug || p.id === slug) && !p.id?.startsWith('prod-'));
         if (found) {
           setProduct(found);
+          setLoading(false);
           trackProductView(found);
           if (found.slug && slug !== found.slug) {
-            navigate(`/product/${found.slug}${window.location.search}`, { replace: true });
+            window.history.replaceState(window.history.state, '', `/product/${found.slug}${window.location.search}`);
           }
-          setSelectedImage(found.images?.[0] || '/logo.webp');
           if (found.sizes && found.sizes.length > 0) setSelectedSize(found.sizes[0]);
+
+          const urlParams = new URLSearchParams(window.location.search);
+          const requestedColor = urlParams.get('color');
+          const requestedSku = urlParams.get('sku');
+
           const hasRealColorsFound = Boolean(
             found.colors &&
             found.colors.length > 0 &&
             !found.colors.every((c) => !c || !c.name || (typeof c.name === 'string' && c.name.toLowerCase() === 'default'))
           );
+          let initialImg = found.images?.[0] || '/logo.webp';
           if (hasRealColorsFound && found.colors && found.colors.length > 0) {
-            setSelectedColor(found.colors[0]?.name || '');
-            const firstColorImg = (found.colors[0]?.images && found.colors[0].images.length > 0)
-              ? found.colors[0].images[0]
-              : found.colors[0]?.image;
-            if (firstColorImg) setSelectedImage(firstColorImg);
+            let matchedColor = null;
+            if (requestedSku) {
+              matchedColor = found.colors.find((c: any) => c.sku === requestedSku);
+            }
+            if (!matchedColor && requestedColor) {
+              matchedColor = found.colors.find((c: any) => c.name && c.name.toLowerCase() === requestedColor.toLowerCase());
+            }
+            if (!matchedColor) {
+              matchedColor = found.colors[0];
+            }
+            setSelectedColor(matchedColor?.name || '');
+            setSelectedColorSku(matchedColor?.sku || '');
+            const firstColorImg = (matchedColor?.images && matchedColor.images.length > 0)
+              ? matchedColor.images[0]
+              : matchedColor?.image;
+            if (firstColorImg) {
+              initialImg = firstColorImg;
+            }
+
+            // Preload all product and variant images in compressed WebP format for 0ms instant switching
+            const imagesToPreload = new Set<string>();
+            if (found.images && Array.isArray(found.images)) {
+              found.images.forEach((img: string) => img && imagesToPreload.add(img));
+            }
+            if (found.colors && Array.isArray(found.colors)) {
+              found.colors.forEach((c: any) => {
+                if (c?.image) imagesToPreload.add(c.image);
+                if (Array.isArray(c?.images)) {
+                  c.images.forEach((img: string) => img && imagesToPreload.add(img));
+                }
+              });
+            }
+            imagesToPreload.forEach((imgUrl) => {
+              if (imgUrl && typeof window !== 'undefined') {
+                const fullImg = new Image();
+                fullImg.src = optimizeImageUrl(imgUrl, 900);
+                const thumbImg = new Image();
+                thumbImg.src = optimizeImageUrl(imgUrl, 180);
+              }
+            });
           } else {
             setSelectedColor('');
+            setSelectedColorSku('');
           }
+          setSelectedImage(initialImg);
+          setDisplayedImage(initialImg);
+
           const customAttrs: any[] = found.custom_attributes || (found.specifications as any)?.custom_attributes || [];
           if (customAttrs.length > 0) {
             const initialAttrs: Record<string, string> = {};
@@ -273,27 +351,93 @@ export const ProductDetailPage: React.FC = () => {
             });
             setSelectedCustomAttributes(initialAttrs);
           }
-        }
-        setAllProducts(allProds);
 
-        const targetId = found?.id || localProd?.id;
-        if (targetId) {
-          const savedCustomReviews = JSON.parse(localStorage.getItem(`kintesi_reviews_${targetId}`) || '[]');
-          setReviews(savedCustomReviews);
+          // Fast targeted related products query: only 8 items from the exact same category (~15ms, ~10KB)
+          if (found.category_id) {
+            setLoadingRelated(true);
+            Promise.resolve(
+              supabase
+                .from('products')
+                .select(PRODUCT_SUMMARY_FIELDS)
+                .eq('category_id', found.category_id)
+                .neq('id', found.id)
+                .limit(8)
+            )
+              .then(({ data }: any) => {
+                if (!isCancelled) {
+                  if (data && data.length > 0) {
+                    setRelatedProductsList(data as unknown as Product[]);
+                  }
+                  setLoadingRelated(false);
+                }
+              })
+              .catch(() => {
+                if (!isCancelled) setLoadingRelated(false);
+              });
+          } else {
+            setLoadingRelated(false);
+          }
+
+          // Load custom reviews for this target product
+          try {
+            const savedCustomReviews = JSON.parse(localStorage.getItem(`kintesi_reviews_${found.id}`) || '[]');
+            setReviews(savedCustomReviews);
+          } catch {
+            setReviews([]);
+          }
         } else {
-          setReviews([]);
+          setLoading(false);
         }
       } catch (err) {
         console.warn('Product load error:', err);
       } finally {
-        setLoading(false);
+        if (!isCancelled) setLoading(false);
       }
     }
 
     loadProduct();
-    window.addEventListener('kintesi_products_updated', loadProduct);
-    return () => window.removeEventListener('kintesi_products_updated', loadProduct);
+    return () => {
+      isCancelled = true;
+    };
   }, [slug]);
+
+  // Zero-flicker image transition: keep current image rendered until new image finishes loading
+  useEffect(() => {
+    if (!selectedImage) return;
+    if (!displayedImage) {
+      setDisplayedImage(selectedImage);
+      return;
+    }
+    if (selectedImage === displayedImage) return;
+
+    let active = true;
+    const targetUrl = optimizeImageUrl(selectedImage, 900);
+    const img = new Image();
+    img.src = targetUrl;
+
+    if (img.complete) {
+      setDisplayedImage(selectedImage);
+      setIsImageTransitioning(false);
+    } else {
+      setIsImageTransitioning(true);
+      img.onload = () => {
+        if (active) {
+          setDisplayedImage(selectedImage);
+          setIsImageTransitioning(false);
+        }
+      };
+      img.onerror = () => {
+        if (active) {
+          setDisplayedImage(selectedImage);
+          setIsImageTransitioning(false);
+        }
+      };
+    }
+
+    return () => {
+      active = false;
+    };
+  }, [selectedImage, displayedImage]);
 
   // Set document title and canonical link for SEO
   useEffect(() => {
@@ -368,13 +512,22 @@ export const ProductDetailPage: React.FC = () => {
   }, [product]);
 
   const activeVariantImage = activeColorObj?.image || product?.images?.[0] || '/logo.webp';
+  const activeStock = typeof activeColorObj?.stock === 'number' ? activeColorObj.stock : (product ? (product.stock ?? 0) : 0);
 
   const handleSelectColor = (c: any) => {
-    setSelectedColor(c.name);
+    if (!c) return;
+    setSelectedColor(c.name || '');
+    setSelectedColorSku(c.sku || '');
     const firstImg = (c.images && c.images.length > 0) ? c.images[0] : c.image;
     if (firstImg) {
       setSelectedImage(firstImg);
     }
+    try {
+      const url = new URL(window.location.href);
+      if (c.name) url.searchParams.set('color', c.name);
+      if (c.sku) url.searchParams.set('sku', c.sku);
+      window.history.replaceState(window.history.state, '', url.pathname + url.search);
+    } catch {}
   };
 
   const handleSelectCustomAttr = (attrName: string, opt: any) => {
@@ -386,6 +539,15 @@ export const ProductDetailPage: React.FC = () => {
       setSelectedImage(opt.image);
     }
   };
+
+  const similarShowcaseConfig = useMemo(() => ({
+    id: 'similar',
+    type: 'trending' as const,
+    title: language === 'bn' ? 'অনুরূপ পণ্যসমূহ (Similar Items)' : 'Similar Items You May Like',
+    subtitle: language === 'bn' ? 'একই কালেকশনের অন্যান্য পণ্য' : 'Related items from this collection',
+    enabled: true,
+    productIds: [],
+  }), [language]);
 
   // Automatically attach product context for Live Chat (Called at top-level before early returns)
   useEffect(() => {
@@ -437,13 +599,13 @@ export const ProductDetailPage: React.FC = () => {
           </Link>
         </div>
 
-        {allProducts && allProducts.length > 0 && (
+        {relatedProductsList && relatedProductsList.length > 0 && (
           <div className="text-left border-t border-gray-100 pt-10">
             <h3 className="text-lg font-bold text-gray-900 mb-6">
               {language === 'bn' ? 'অন্যান্য জনপ্রিয় পণ্যসমূহ' : 'Popular Trending Products'}
             </h3>
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-              {allProducts.slice(0, 4).map((p) => (
+              {relatedProductsList.slice(0, 4).map((p) => (
                 <ProductCard key={p.id} product={p} />
               ))}
             </div>
@@ -454,41 +616,7 @@ export const ProductDetailPage: React.FC = () => {
   }
 
   const isWishlisted = isInWishlist(product.id);
-
-  const relatedProducts = (() => {
-    if (!product || !allProducts || allProducts.length === 0) return [];
-    
-    // Strictly find genuinely similar products from the SAME category
-    const sameCat = allProducts.filter(
-      (p) => p.id !== product.id && p.category_id && p.category_id === product.category_id
-    );
-
-    if (sameCat.length === 0) return [];
-
-    // Sort by title & tag similarity so the most relevant matching items appear first
-    const currentTags = (product.tags || []).map((t: string) => t.toLowerCase().trim());
-    const currentTitleWords = product.title.toLowerCase().split(/[\s–—,-]+/).filter((w: string) => w.length > 3);
-
-    return [...sameCat].sort((a, b) => {
-      let scoreA = 0;
-      let scoreB = 0;
-
-      const tagsA = (a.tags || []).map((t: string) => t.toLowerCase().trim());
-      const tagsB = (b.tags || []).map((t: string) => t.toLowerCase().trim());
-      const titleA = a.title.toLowerCase();
-      const titleB = b.title.toLowerCase();
-
-      tagsA.forEach((t) => { if (currentTags.includes(t)) scoreA += 2; });
-      tagsB.forEach((t) => { if (currentTags.includes(t)) scoreB += 2; });
-
-      currentTitleWords.forEach((word) => {
-        if (titleA.includes(word)) scoreA += 3;
-        if (titleB.includes(word)) scoreB += 3;
-      });
-
-      return scoreB - scoreA;
-    }).slice(0, 16);
-  })();
+  const relatedProducts = relatedProductsList;
 
   const customAttrLabels = Object.entries(selectedCustomAttributes)
     .map(([k, v]) => `${k}: ${v}`)
@@ -602,9 +730,14 @@ export const ProductDetailPage: React.FC = () => {
               className="aspect-square bg-white rounded-2xl sm:rounded-3xl border border-gray-100 overflow-hidden shadow-xs p-4 sm:p-6 flex items-center justify-center relative select-none touch-pan-y group"
             >
               <img
-                src={selectedImage || product.images[0] || '/logo.webp'}
+                src={optimizeImageUrl(displayedImage || selectedImage || product.images[0] || '/logo.webp', 900)}
                 alt={product.title}
-                className="w-full h-full object-contain hover:scale-105 transition-transform duration-300 pointer-events-none"
+                loading="eager"
+                fetchPriority="high"
+                decoding="sync"
+                className={`w-full h-full object-contain hover:scale-105 transition-all duration-200 pointer-events-none ${
+                  isImageTransitioning ? 'opacity-85 scale-[0.99]' : 'opacity-100 scale-100'
+                }`}
                 onError={(e) => {
                   e.currentTarget.onerror = null;
                   e.currentTarget.src = '/logo.webp';
@@ -655,8 +788,9 @@ export const ProductDetailPage: React.FC = () => {
                     }`}
                   >
                     <img
-                      src={img}
+                      src={optimizeImageUrl(img, 180)}
                       alt="thumbnail"
+                      loading="lazy"
                       className="w-full h-full object-cover"
                       onError={(e) => {
                         e.currentTarget.onerror = null;
@@ -696,7 +830,7 @@ export const ProductDetailPage: React.FC = () => {
 
                 <div className="shrink-0 flex items-center">
                   <span className="inline-flex items-center px-2 py-0.5 sm:px-2.5 sm:py-1 bg-gray-100 text-gray-600 border border-gray-200/80 rounded-lg text-[10px] sm:text-xs font-bold font-mono tracking-wide">
-                    SKU: {product.sku || 'KT-' + product.id.slice(0, 6).toUpperCase()}
+                    SKU: {((activeColorObj?.sku || product.sku || 'KT-' + product.id.slice(0, 6).toUpperCase())).replace(/^DS-/i, 'KT-')}
                   </span>
                 </div>
               </div>
@@ -747,7 +881,11 @@ export const ProductDetailPage: React.FC = () => {
                   {product.gender && product.gender.trim() && (
                     <>
                       <span className="text-gray-200 hidden sm:inline">•</span>
-                      <span className="text-[11px] font-bold text-pink-700 bg-pink-50 px-2 py-0.5 rounded border border-pink-200/60 hidden sm:inline-flex items-center gap-1">
+                      <span className={`text-[11px] font-bold px-2 py-0.5 rounded border hidden sm:inline-flex items-center gap-1 ${
+                        product.gender.toLowerCase() === 'women'
+                          ? 'text-pink-700 bg-pink-50 border-pink-200/60'
+                          : 'text-indigo-700 bg-indigo-50 border-indigo-200/60'
+                      }`}>
                         <span>{product.gender}</span>
                       </span>
                     </>
@@ -804,30 +942,71 @@ export const ProductDetailPage: React.FC = () => {
             {/* Card 2: Variations (Color, Size, Custom Attributes), Quantity & Purchase Actions */}
             <div className="bg-white rounded-2xl sm:rounded-3xl border border-gray-100 p-4 sm:p-6 shadow-xs space-y-4">
               
-              {/* Color Selection */}
-              {isRealColorList && product.colors && product.colors.length > 0 && (
-                <div className="space-y-2.5">
-                  <div className="flex items-center justify-between text-xs font-bold">
-                    <span className="text-gray-500 uppercase tracking-wider text-[11px]">Color:</span>
-                    <span className="text-gray-900 font-extrabold">{selectedColor}</span>
+              {/* Admin Supplier Link Banner */}
+              {isAdmin && (activeColorObj?.dropshipping_url || product.dropshipping_url) && (
+                <div className="p-3 bg-gradient-to-r from-rose-50 to-orange-50 dark:from-rose-950/40 dark:to-orange-950/20 border border-rose-200/80 dark:border-rose-900/60 rounded-xl flex flex-wrap items-center justify-between gap-2.5 text-xs shadow-2xs">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse shrink-0" />
+                    <div className="flex flex-col min-w-0">
+                      <span className="font-bold text-gray-900 dark:text-gray-100 text-xs flex items-center gap-1.5">
+                        <span>সাপ্লায়ার লিংক (Admin Only)</span>
+                        {activeColorObj?.name && (
+                          <span className="text-[10px] px-1.5 py-0.2 rounded bg-rose-100 dark:bg-rose-900/60 text-rose-700 dark:text-rose-300 font-extrabold">
+                            {activeColorObj.name}
+                          </span>
+                        )}
+                      </span>
+                      <span className="text-[11px] text-gray-500 font-mono truncate max-w-[240px] sm:max-w-xs">
+                        {activeColorObj?.dropshipping_url || product.dropshipping_url}
+                      </span>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2.5 flex-wrap pt-0.5">
-                    {product.colors.map((c) => {
-                      const isSelected = selectedColor === c.name;
+                  <a
+                    href={activeColorObj?.dropshipping_url || product.dropshipping_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-lg font-bold flex items-center gap-1.5 shadow-xs transition active:scale-95 text-xs shrink-0 cursor-pointer"
+                  >
+                    <span>সাপ্লায়ার সাইটে দেখুন</span>
+                    <ExternalLink className="w-3.5 h-3.5" />
+                  </a>
+                </div>
+              )}
+
+              {/* Color Selection - Modern Minimalist Round Swatches */}
+              {isRealColorList && normalizedColors.length > 0 && (
+                <div className="space-y-2.5">
+                  <div className="flex items-center gap-2 text-xs font-bold">
+                    <span className="text-gray-500 uppercase tracking-wider text-[11px]">COLOR:</span>
+                    <span className="text-rose-600 font-extrabold text-xs">{activeColorObj?.name || selectedColor}</span>
+                  </div>
+                  <div className="flex items-center gap-3 flex-wrap pt-0.5">
+                    {normalizedColors.map((c, idx) => {
+                      const isSelected = selectedColorSku
+                        ? c.sku === selectedColorSku
+                        : (selectedColor ? c.name?.toLowerCase() === selectedColor.toLowerCase() : idx === 0);
+                      const isLight = !c.hex || ['#ffffff', '#fff', '#f5f5dc', '#faf9f6', '#fffdd0'].includes(c.hex.toLowerCase());
                       return (
                         <button
-                          key={c.name}
+                          key={c.sku || `${c.name}-${idx}`}
                           type="button"
                           onClick={() => handleSelectColor(c)}
-                          className={`relative w-6 h-6 rounded-full border-[1.5px] border-dashed border-slate-400/80 transition-all duration-150 cursor-pointer shrink-0 ${
+                          className={`relative w-8 h-8 rounded-full transition-all duration-150 cursor-pointer flex items-center justify-center ${
                             isSelected
-                              ? 'ring-2 ring-offset-2 ring-rose-600 scale-110 shadow-xs'
-                              : 'hover:scale-105 opacity-90 hover:opacity-100 ring-1 ring-black/10'
+                              ? 'ring-2 ring-rose-600 ring-offset-2 scale-110 shadow-xs'
+                              : 'hover:scale-105 border border-black/15 shadow-2xs opacity-85 hover:opacity-100'
                           }`}
-                          style={{ backgroundColor: c.hex }}
+                          style={{ backgroundColor: c.hex || '#1E293B' }}
                           title={c.name}
                           aria-label={c.name}
-                        />
+                        >
+                          {isSelected && (
+                            <span className={`w-2 h-2 rounded-full ${isLight ? 'bg-gray-950' : 'bg-white'}`} />
+                          )}
+                          {isLight && !isSelected && (
+                            <span className="absolute inset-0 rounded-full border border-gray-300 pointer-events-none" />
+                          )}
+                        </button>
                       );
                     })}
                   </div>
@@ -929,8 +1108,8 @@ export const ProductDetailPage: React.FC = () => {
                       <span className="px-3.5 text-xs font-bold text-gray-800">{quantity}</span>
                       <button
                         type="button"
-                        onClick={() => setQuantity(Math.min(product.stock, quantity + 1))}
-                        disabled={quantity >= product.stock}
+                        onClick={() => setQuantity(Math.min(activeStock, quantity + 1))}
+                        disabled={quantity >= activeStock}
                         className="p-2 hover:bg-gray-100 text-gray-600 transition cursor-pointer disabled:opacity-30"
                         aria-label="Increase quantity"
                       >
@@ -941,10 +1120,10 @@ export const ProductDetailPage: React.FC = () => {
 
                   <div className="text-right">
                     <span className="text-[11px] font-bold uppercase tracking-wider text-gray-500 block">Availability</span>
-                    {product.stock > 0 ? (
+                    {activeStock > 0 ? (
                       <span className="text-xs font-bold text-emerald-700 flex items-center gap-1.5 justify-end mt-1">
                         <span className="w-2 h-2 bg-emerald-500 rounded-full inline-block" />
-                        <span>In Stock ({product.stock} units)</span>
+                        <span>In Stock ({activeStock} units)</span>
                       </span>
                     ) : (
                       <span className="text-xs font-bold text-rose-600 mt-1 block">Out of Stock</span>
@@ -967,7 +1146,7 @@ export const ProductDetailPage: React.FC = () => {
                   <button
                     type="button"
                     onClick={handleAddToCart}
-                    disabled={product.stock <= 0}
+                    disabled={activeStock <= 0}
                     className={`py-3 px-4 font-bold rounded-xl transition-all duration-300 shadow-sm flex items-center justify-center gap-2 disabled:opacity-50 active:scale-95 text-xs sm:text-sm cursor-pointer ${
                       isAddedAnimation
                         ? 'bg-emerald-600 text-white shadow-emerald-600/30 ring-2 ring-emerald-500 scale-[1.02]'
@@ -994,7 +1173,7 @@ export const ProductDetailPage: React.FC = () => {
                   <button
                     type="button"
                     onClick={handleBuyNow}
-                    disabled={product.stock <= 0}
+                    disabled={activeStock <= 0}
                     className="py-3 px-4 bg-gradient-to-r from-rose-600 to-rose-700 hover:from-rose-500 hover:to-rose-600 text-white font-bold rounded-xl transition shadow-md shadow-rose-600/20 flex items-center justify-center gap-2 disabled:opacity-50 active:scale-95 text-xs sm:text-sm cursor-pointer"
                   >
                     <Zap className="w-4 h-4 fill-current" />
@@ -1195,21 +1374,32 @@ export const ProductDetailPage: React.FC = () => {
         </div>
 
       {/* Related Products Showcase Strip (Similar Items You May Like - Placed Above Description) */}
-      {relatedProducts.length > 0 && (
-        <section className="bg-white rounded-2xl sm:rounded-3xl border border-gray-100 p-3.5 sm:p-7 shadow-sm">
-          <ShowcaseStrip
-            showcase={{
-              id: 'similar',
-              type: 'trending',
-              title: language === 'bn' ? 'অনুরূপ পণ্যসমূহ (Similar Items)' : 'Similar Items You May Like',
-              subtitle: language === 'bn' ? 'একই কালেকশনের অন্যান্য পণ্য' : 'Related items from this collection',
-              enabled: true,
-              productIds: [],
-            }}
-            products={relatedProducts}
-            viewAllLink={product.category_id ? `/shop?category=${encodeURIComponent(product.category_id)}` : '/shop'}
-            icon={<Sparkles className="w-4 h-4 text-rose-600" />}
-          />
+      {(relatedProducts.length > 0 || loadingRelated) && (
+        <section className="bg-white rounded-2xl sm:rounded-3xl border border-gray-100 p-3.5 sm:p-7 shadow-sm min-h-[160px]">
+          {loadingRelated ? (
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="h-4 w-48 bg-gray-100 rounded-md animate-pulse" />
+                <div className="h-3 w-16 bg-gray-100 rounded-md animate-pulse" />
+              </div>
+              <div className="flex gap-2 sm:gap-3 overflow-hidden">
+                {[1, 2, 3, 4, 5, 6].map((i) => (
+                  <div
+                    key={i}
+                    className="flex-shrink-0 w-[calc((100%-24px)/4)] sm:w-[calc((100%-50px)/6)] lg:w-[calc((100%-84px)/8)] aspect-square bg-gray-50 rounded-2xl border border-gray-100 animate-pulse"
+                  />
+                ))}
+              </div>
+            </div>
+          ) : (
+            <ShowcaseStrip
+              showcase={similarShowcaseConfig}
+              products={relatedProducts}
+              viewAllLink={product.category_id ? `/shop?category=${encodeURIComponent(product.category_id)}` : '/shop'}
+              icon={<Sparkles className="w-4 h-4 text-rose-600" />}
+              autoSlide={false}
+            />
+          )}
         </section>
       )}
 
@@ -1577,7 +1767,7 @@ export const ProductDetailPage: React.FC = () => {
           {/* Mini product thumbnail & price */}
           <div className="flex items-center gap-2 min-w-0 flex-1">
             <img
-              src={selectedImage || activeVariantImage || product.images?.[0] || '/logo.webp'}
+              src={optimizeImageUrl(displayedImage || selectedImage || activeVariantImage || product.images?.[0] || '/logo.webp', 100)}
               alt={product.title}
               className="w-9 h-9 rounded-full object-cover bg-gray-50 border border-gray-200/90 p-0.5 shrink-0 shadow-xs"
             />
@@ -1613,8 +1803,8 @@ export const ProductDetailPage: React.FC = () => {
             </span>
             <button
               type="button"
-              onClick={() => setQuantity(Math.min(product.stock, quantity + 1))}
-              disabled={quantity >= product.stock}
+              onClick={() => setQuantity(Math.min(activeStock, quantity + 1))}
+              disabled={quantity >= activeStock}
               className="w-5 h-5 rounded-full flex items-center justify-center text-gray-600 hover:text-gray-900 hover:bg-white transition active:scale-90 disabled:opacity-30 cursor-pointer"
               aria-label="Increase quantity"
             >
@@ -1627,7 +1817,7 @@ export const ProductDetailPage: React.FC = () => {
             <button
               type="button"
               onClick={handleAddToCart}
-              disabled={product.stock <= 0}
+              disabled={activeStock <= 0}
               className={`w-8 h-8 rounded-full flex items-center justify-center active:scale-95 transition disabled:opacity-40 border shadow-xs cursor-pointer ${
                 isAddedAnimation
                   ? 'bg-emerald-600 text-white border-emerald-600 shadow-emerald-600/30'
@@ -1644,11 +1834,11 @@ export const ProductDetailPage: React.FC = () => {
             <button
               type="button"
               onClick={handleBuyNow}
-              disabled={product.stock <= 0}
+              disabled={activeStock <= 0}
               className="h-8 px-3.5 bg-gradient-to-r from-rose-600 to-rose-700 hover:from-rose-500 hover:to-rose-600 text-white font-extrabold rounded-full text-xs flex items-center justify-center gap-1 active:scale-95 transition disabled:opacity-40 shadow-md shadow-rose-600/30 cursor-pointer"
             >
               <Zap className="w-3 h-3 fill-current" />
-              <span>{product.stock > 0 ? (language === 'bn' ? 'কিনুন' : 'Buy Now') : (language === 'bn' ? 'স্টক আউট' : 'Sold Out')}</span>
+              <span>{activeStock > 0 ? (language === 'bn' ? 'কিনুন' : 'Buy Now') : (language === 'bn' ? 'স্টক আউট' : 'Sold Out')}</span>
             </button>
           </div>
         </aside>

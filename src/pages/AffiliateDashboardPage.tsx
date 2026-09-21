@@ -116,7 +116,7 @@ export const AffiliateDashboardPage: React.FC = () => {
   const loadData = async () => {
     try {
       const [prods, affs, withs, allOrders] = await Promise.all([
-        getProductsFromDB(),
+        getProductsFromDB({ all: true }),
         getAffiliatesFromDB(),
         getWithdrawalsFromDB(),
         getOrdersFromDB(),

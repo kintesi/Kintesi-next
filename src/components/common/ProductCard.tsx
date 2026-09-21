@@ -3,16 +3,17 @@ import { Product } from '../../types';
 import { useCart } from '../../contexts/CartContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { useWishlist } from '../../contexts/WishlistContext';
-import { formatPrice, calculateDiscount, getProductUrl } from '../../lib/utils';
+import { formatPrice, calculateDiscount, getProductUrl, optimizeImageUrl } from '../../lib/utils';
 import { ShoppingCart, Heart, Star } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 interface ProductCardProps {
   product: Product;
   onWishlistToggle?: (product: Product, e: React.MouseEvent) => void;
+  priority?: boolean;
 }
 
-export const ProductCard: React.FC<ProductCardProps> = ({ product, onWishlistToggle }) => {
+export const ProductCard: React.FC<ProductCardProps> = React.memo(({ product, onWishlistToggle, priority = false }) => {
   const { user, openAuthModal } = useAuth();
   const { addToCart } = useCart();
   const { toggleWishlist, isInWishlist } = useWishlist();
@@ -20,6 +21,21 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onWishlistTog
   const discountPercent = calculateDiscount(product.price, product.discount_price);
   const isWishlisted = isInWishlist(product.id);
   const currentPrice = product.discount_price || product.price;
+  const [cardImage, setCardImage] = React.useState<string | null>(null);
+  const [selectedColorSku, setSelectedColorSku] = React.useState<string | null>(null);
+  const [selectedColorName, setSelectedColorName] = React.useState<string | null>(null);
+  const [imageLoaded, setImageLoaded] = React.useState(false);
+
+  const productUrl = React.useMemo(() => {
+    const base = getProductUrl(product);
+    if (selectedColorSku || selectedColorName) {
+      const p = new URLSearchParams();
+      if (selectedColorName) p.set('color', selectedColorName);
+      if (selectedColorSku) p.set('sku', selectedColorSku);
+      return `${base}?${p.toString()}`;
+    }
+    return base;
+  }, [product, selectedColorSku, selectedColorName]);
 
   return (
     <div className="group bg-white rounded-2xl border border-rose-100/80 hover:border-rose-300 shadow-[0_2px_8px_rgba(225,29,72,0.04)] hover:shadow-[0_8px_20px_rgba(225,29,72,0.08)] transition-all flex flex-col overflow-hidden relative">
@@ -56,18 +72,26 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onWishlistTog
 
       {/* Product Image */}
       <Link
-        to={getProductUrl(product)}
-        className="block relative aspect-square bg-white border-b border-rose-50 overflow-hidden p-3"
+        to={productUrl}
+        className="block relative aspect-square bg-slate-50/60 border-b border-rose-50 overflow-hidden p-3"
       >
+        {!imageLoaded && (
+          <div className="absolute inset-0 bg-gradient-to-r from-slate-100 via-slate-50 to-slate-100 animate-pulse" />
+        )}
         <img
-          src={product.images?.[0] || '/logo.webp'}
+          src={optimizeImageUrl(cardImage || product.images?.[0], 400)}
           alt={product.title}
-          className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
-          loading="lazy"
+          className={`w-full h-full object-contain group-hover:scale-105 transition-all duration-300 ${
+            imageLoaded ? 'opacity-100' : 'opacity-0'
+          }`}
+          loading={priority ? 'eager' : 'lazy'}
+          fetchPriority={priority ? 'high' : 'low'}
           decoding="async"
           width="300"
           height="300"
+          onLoad={() => setImageLoaded(true)}
           onError={(e) => {
+            setImageLoaded(true);
             e.currentTarget.onerror = null;
             e.currentTarget.src = '/logo.webp';
           }}
@@ -87,7 +111,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onWishlistTog
           )}
 
           {/* Title */}
-          <Link to={getProductUrl(product)} className="block">
+          <Link to={productUrl} className="block">
             <h3 className="font-bold text-gray-900 text-xs sm:text-sm leading-snug line-clamp-2 hover:text-rose-600 transition">
               {product.title}
             </h3>
@@ -95,19 +119,44 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onWishlistTog
 
           {/* Color & Size Variant Hints */}
           {( (product.colors && product.colors.length > 0) || (product.sizes && product.sizes.length > 0) ) && (
-            <div className="flex items-center justify-between pt-1 text-[10px] text-gray-400">
+            <div className="flex items-center justify-between pt-1.5 text-[10px] text-gray-500 gap-1 flex-wrap">
               {product.colors && product.colors.length > 0 && (
-                <div className="flex items-center gap-1">
-                  {product.colors.slice(0, 3).map((c, i) => (
-                    <span
-                      key={i}
-                      className="w-2.5 h-2.5 rounded-full border border-gray-300 shadow-xs"
-                      style={{ backgroundColor: c.hex }}
-                      title={c.name}
-                    />
-                  ))}
-                  {product.colors.length > 3 && (
-                    <span className="text-[9px] text-gray-400 font-bold">+{product.colors.length - 3}</span>
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <div className="flex items-center gap-1">
+                    {product.colors.slice(0, 5).map((c, i) => {
+                      const isSelected = selectedColorSku
+                        ? c.sku === selectedColorSku
+                        : cardImage ? (cardImage === c.image || cardImage === c.images?.[0]) : i === 0;
+                      return (
+                        <button
+                          key={c.sku || `${c.name}-${i}`}
+                          type="button"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            const img = c.image || c.images?.[0];
+                            if (img) setCardImage(img);
+                            setSelectedColorName(c.name || null);
+                            setSelectedColorSku(c.sku || null);
+                          }}
+                          className={`w-3.5 h-3.5 rounded-full border transition transform hover:scale-125 cursor-pointer ${
+                            isSelected
+                              ? 'ring-2 ring-rose-500 ring-offset-1 scale-110 border-rose-500 shadow-xs'
+                              : 'border-gray-300 opacity-80 hover:opacity-100'
+                          }`}
+                          style={{ backgroundColor: c.hex }}
+                          title={c.name}
+                        />
+                      );
+                    })}
+                    {product.colors.length > 5 && (
+                      <span className="text-[9px] text-gray-400 font-bold">+{product.colors.length - 5}</span>
+                    )}
+                  </div>
+                  {product.colors.length > 1 && (
+                    <span className="text-[9px] font-black text-rose-600 bg-rose-50 px-1.5 py-0.5 rounded border border-rose-200/60">
+                      {product.colors.length} Colors
+                    </span>
                   )}
                 </div>
               )}
@@ -152,4 +201,6 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onWishlistTog
 
     </div>
   );
-};
+});
+
+ProductCard.displayName = 'ProductCard';

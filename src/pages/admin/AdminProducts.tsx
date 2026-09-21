@@ -40,6 +40,10 @@ import {
   Loader2,
   Sliders,
   Share2,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -47,6 +51,12 @@ import { ImageUploader } from '../../components/common/ImageUploader';
 import { CategoryTagExplorer } from '../../components/admin/CategoryTagExplorer';
 import { DEFAULT_COLOR_PRESETS, DEFAULT_SIZE_PRESETS, ColorPresetItem } from './AdminPresets';
 import { useAdminTheme } from '../../contexts/AdminThemeContext';
+import { DropshippingProductPickerModal } from '../../components/admin/DropshippingProductPickerModal';
+import {
+  DropshippingProduct,
+  fetchDropshippingProductByCode,
+  convertDropshippingToKintesiProduct,
+} from '../../lib/dropshippingService';
 
 export interface ColorVariantSection {
   id: string;
@@ -80,6 +90,9 @@ export const AdminProducts: React.FC = () => {
   const [templateSearchQuery, setTemplateSearchQuery] = useState('');
   const [selectedCategoryFilter, setSelectedCategoryFilter] = useState<string>('all');
   const [selectedStockFilter, setSelectedStockFilter] = useState<'all' | 'in_stock' | 'low_stock' | 'out_of_stock'>('all');
+  const [isDropshipPickerOpen, setIsDropshipPickerOpen] = useState(false);
+  const [quickDropshipCode, setQuickDropshipCode] = useState('');
+  const [isQuickFetchingDropship, setIsQuickFetchingDropship] = useState(false);
 
   const filteredTemplateProducts = useMemo(() => {
     const q = templateSearchQuery.trim().toLowerCase();
@@ -259,7 +272,7 @@ export const AdminProducts: React.FC = () => {
   const loadProducts = async () => {
     try {
       const [prods, cats] = await Promise.all([
-        getProductsFromDB(),
+        getProductsFromDB({ all: true }),
         getCategoriesFromDB()
       ]);
       setProducts(prods);
@@ -389,6 +402,133 @@ export const AdminProducts: React.FC = () => {
     });
     setActiveModalTab('general');
     setIsModalOpen(true);
+  };
+
+  const handleApplyDropshippingToForm = (converted: Partial<Product>, raw?: DropshippingProduct) => {
+    const imgList = converted.images || [];
+    const catId = converted.category_id || 'mens-fashion';
+    setSpecMode(getCategorySpecMode(catId));
+
+    let discPercent = '0';
+    if (converted.price && converted.discount_price && converted.price > converted.discount_price) {
+      discPercent = String(Math.round(((converted.price - converted.discount_price) / converted.price) * 100));
+    }
+
+    setFormData((prev) => ({
+      ...prev,
+      title: converted.title || prev.title,
+      description: converted.description || prev.description,
+      price: converted.price ? String(converted.price) : prev.price,
+      discount_percent: discPercent !== '0' ? discPercent : prev.discount_percent,
+      category_id: catId,
+      sub_category: converted.sub_category || prev.sub_category,
+      sku: converted.sku || prev.sku,
+      brand: converted.brand || 'Dropshipping BD',
+      stock: converted.stock ? String(converted.stock) : '100',
+      dropshipping_url: converted.dropshipping_url || prev.dropshipping_url,
+      imageUrl1: imgList[0] || prev.imageUrl1,
+      imageUrl2: imgList[1] || prev.imageUrl2,
+      imageUrl3: imgList[2] || prev.imageUrl3,
+      imageUrl4: imgList[3] || prev.imageUrl4,
+      customAttributes: (converted.custom_attributes && converted.custom_attributes.length > 0)
+        ? converted.custom_attributes
+        : prev.customAttributes,
+      tags: converted.tags ? converted.tags.join(', ') : prev.tags,
+    }));
+
+    if (converted.sub_category) {
+      setIsCustomSubCategory(true);
+    }
+
+    setIsModalOpen(true);
+    setActiveModalTab('general');
+    toast.success(`"${converted.title}" loaded from Dropshipping BD! Review and save.`);
+  };
+
+  const handleQuickDropshipCodeFetch = async () => {
+    const code = quickDropshipCode.trim();
+    if (!code) {
+      toast.error('Please enter a Dropshipping BD product code (e.g. 3002)');
+      return;
+    }
+    setIsQuickFetchingDropship(true);
+    const toastId = toast.loading(`Searching Dropshipping BD for code #${code}...`);
+    try {
+      const product = await fetchDropshippingProductByCode(code);
+      if (!product) {
+        toast.error(`No product found with code #${code} in Dropshipping BD.`, { id: toastId });
+        return;
+      }
+      const converted = convertDropshippingToKintesiProduct(product);
+      handleApplyDropshippingToForm(converted, product);
+      setQuickDropshipCode('');
+      toast.success(`Loaded "${product.name}" (#${product.product_code})!`, { id: toastId });
+    } catch (err: any) {
+      toast.error('Failed to fetch product: ' + (err?.message || 'Network error'), { id: toastId });
+    } finally {
+      setIsQuickFetchingDropship(false);
+    }
+  };
+
+  const handleDirectImportDropshippingProduct = async (productData: Partial<Product>) => {
+    const toastId = toast.loading(`Importing "${productData.title}" directly into catalog...`);
+    try {
+      const targetId = typeof crypto !== 'undefined' && crypto.randomUUID
+        ? crypto.randomUUID()
+        : ('00000000-0000-4000-8000-' + Date.now().toString(16).padStart(12, '0'));
+
+      const completeProduct: Product = {
+        id: targetId,
+        title: productData.title || 'Dropshipping Product',
+        slug: productData.slug || `dropship-${Date.now()}`,
+        description: productData.description || '',
+        price: Number(productData.price) || 0,
+        discount_price: productData.discount_price ? Number(productData.discount_price) : undefined,
+        category_id: productData.category_id || 'mens-fashion',
+        sub_category: productData.sub_category || '',
+        stock: Number(productData.stock) || 100,
+        sku: productData.sku || `DS-${Date.now().toString().slice(-6)}`,
+        brand: productData.brand || 'Dropshipping BD',
+        images: productData.images && productData.images.length > 0 ? productData.images : ['/logo.webp'],
+        dropshipping_url: productData.dropshipping_url || '',
+        allowed_payment_methods: ['cod', 'bkash', 'nagad', 'rocket', 'bank'],
+        sizes: productData.sizes || [],
+        colors: productData.colors || [],
+        custom_attributes: productData.custom_attributes || [],
+        tags: productData.tags || [],
+        is_featured: false,
+        is_trending: false,
+        is_affiliate_enabled: false,
+        affiliate_commission_rate: 0,
+        rating: 5,
+        review_count: 0,
+        created_at: new Date().toISOString(),
+      };
+
+      try {
+        const savedCustom: Product[] = JSON.parse(localStorage.getItem('kintesi_custom_products') || '[]');
+        const updatedCustom = [completeProduct, ...savedCustom];
+        localStorage.setItem('kintesi_custom_products', JSON.stringify(updatedCustom));
+        window.dispatchEvent(new Event('kintesi_products_updated'));
+      } catch (e) {
+        console.warn('localStorage note:', e);
+      }
+
+      setProducts((prev) => [completeProduct, ...prev]);
+
+      // Cloud save in background
+      Promise.resolve().then(async () => {
+        try {
+          await saveProductToDB(completeProduct);
+        } catch (cloudErr) {
+          console.warn('Cloud sync note:', cloudErr);
+        }
+      });
+
+      toast.success(`"${completeProduct.title}" imported successfully!`, { id: toastId });
+    } catch (err: any) {
+      toast.error(`Import failed: ${err?.message || 'Unknown error'}`, { id: toastId });
+    }
   };
 
   const handleOpenEditModal = (prod: Product) => {
@@ -1309,6 +1449,20 @@ export const AdminProducts: React.FC = () => {
     });
   }, [products, searchQuery, selectedCategoryFilter, selectedStockFilter]);
 
+  // High-performance pagination for admin catalog (smooth UI, no DOM overload)
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(25);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, selectedCategoryFilter, selectedStockFilter]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredProducts.length / pageSize));
+  const paginatedProducts = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return filteredProducts.slice(start, start + pageSize);
+  }, [filteredProducts, currentPage, pageSize]);
+
   const filteredColorPresets = colorPresets.filter((c) =>
     c.name.toLowerCase().includes(colorPresetSearch.toLowerCase().trim()) ||
     c.hex.toLowerCase().includes(colorPresetSearch.toLowerCase().trim())
@@ -1352,6 +1506,15 @@ export const AdminProducts: React.FC = () => {
           >
             <Trash2 className="w-4 h-4" />
             <span>Clear Demo Cache</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setIsDropshipPickerOpen(true)}
+            className="px-4 py-2.5 bg-gradient-to-r from-rose-600 via-pink-600 to-amber-500 hover:opacity-95 text-white font-black rounded-2xl transition flex items-center gap-2 text-xs shadow-md shadow-rose-600/20 active:scale-95 cursor-pointer"
+            title="Browse & import 2,951+ live products from Dropshipping BD"
+          >
+            <Zap className="w-4 h-4 text-amber-300 fill-amber-300 animate-pulse" />
+            <span>Dropshipping BD (2,951+)</span>
           </button>
           <button
             onClick={handleOpenAddModal}
@@ -1605,7 +1768,7 @@ export const AdminProducts: React.FC = () => {
                   </td>
                 </tr>
               ) : (
-                filteredProducts.map((prod) => {
+                paginatedProducts.map((prod) => {
                   const discountPercent = calculateDiscount(prod.price, prod.discount_price);
                   return (
                     <tr key={prod.id} className={`transition ${
@@ -1634,6 +1797,26 @@ export const AdminProducts: React.FC = () => {
                                 </span>
                               )}
                             </div>
+                            {prod.colors && prod.colors.length > 0 && (
+                              <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+                                <div className="flex items-center gap-1">
+                                  {prod.colors.slice(0, 5).map((c, idx) => (
+                                    <span
+                                      key={idx}
+                                      className="w-2.5 h-2.5 rounded-full border border-gray-400/60 shadow-xs"
+                                      style={{ backgroundColor: c.hex }}
+                                      title={`${c.name} (${c.sku || prod.sku})`}
+                                    />
+                                  ))}
+                                  {prod.colors.length > 5 && (
+                                    <span className="text-[9px] text-gray-400 font-bold">+{prod.colors.length - 5}</span>
+                                  )}
+                                </div>
+                                <span className="text-[10px] font-bold text-rose-600 dark:text-rose-400 bg-rose-500/10 px-1.5 py-0.5 rounded border border-rose-500/20">
+                                  {prod.colors.length} Colors
+                                </span>
+                              </div>
+                            )}
                           </div>
                         </div>
                       </td>
@@ -1807,6 +1990,139 @@ export const AdminProducts: React.FC = () => {
             </tbody>
           </table>
         </div>
+
+        {/* Responsive Pagination Bar */}
+        {filteredProducts.length > 0 && (
+          <div className={`px-6 py-4 border-t flex flex-col sm:flex-row items-center justify-between gap-4 ${
+            isLight ? 'bg-slate-50/70 border-slate-200' : 'bg-gray-950/40 border-gray-800'
+          }`}>
+            <div className="flex items-center gap-3 text-xs flex-wrap justify-center sm:justify-start">
+              <span className={`font-medium ${isLight ? 'text-slate-600' : 'text-gray-400'}`}>
+                Showing <span className={`font-bold ${isLight ? 'text-slate-900' : 'text-white'}`}>{(currentPage - 1) * pageSize + 1}</span> to{' '}
+                <span className={`font-bold ${isLight ? 'text-slate-900' : 'text-white'}`}>
+                  {Math.min(currentPage * pageSize, filteredProducts.length)}
+                </span>{' '}
+                of <span className={`font-bold ${isLight ? 'text-slate-900' : 'text-white'}`}>{filteredProducts.length}</span> products
+              </span>
+
+              <div className="flex items-center gap-1.5 ml-2">
+                <span className={`text-[11px] ${isLight ? 'text-slate-500' : 'text-gray-400'}`}>Show:</span>
+                <select
+                  value={pageSize}
+                  onChange={(e) => {
+                    setPageSize(Number(e.target.value));
+                    setCurrentPage(1);
+                  }}
+                  className={`text-xs px-2 py-1 rounded-lg border font-semibold outline-none cursor-pointer ${
+                    isLight
+                      ? 'bg-white border-slate-200 text-slate-800 focus:border-rose-500'
+                      : 'bg-gray-800 border-gray-700 text-white focus:border-rose-500'
+                  }`}
+                >
+                  <option value={15}>15</option>
+                  <option value={25}>25</option>
+                  <option value={50}>50</option>
+                  <option value={100}>100</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Page Navigation Buttons */}
+            <div className="flex items-center gap-1.5">
+              <button
+                onClick={() => setCurrentPage(1)}
+                disabled={currentPage <= 1}
+                className={`p-1.5 rounded-lg border transition ${
+                  currentPage <= 1
+                    ? 'opacity-30 cursor-not-allowed border-transparent'
+                    : isLight
+                    ? 'hover:bg-slate-200 border-slate-200 text-slate-700 cursor-pointer'
+                    : 'hover:bg-gray-800 border-gray-700 text-gray-300 cursor-pointer'
+                }`}
+                title="First Page"
+              >
+                <ChevronsLeft className="w-4 h-4" />
+              </button>
+
+              <button
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                disabled={currentPage <= 1}
+                className={`p-1.5 rounded-lg border transition ${
+                  currentPage <= 1
+                    ? 'opacity-30 cursor-not-allowed border-transparent'
+                    : isLight
+                    ? 'hover:bg-slate-200 border-slate-200 text-slate-700 cursor-pointer'
+                    : 'hover:bg-gray-800 border-gray-700 text-gray-300 cursor-pointer'
+                }`}
+                title="Previous Page"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+
+              <div className="flex items-center gap-1">
+                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                  let pageNum: number;
+                  if (totalPages <= 5) {
+                    pageNum = i + 1;
+                  } else if (currentPage <= 3) {
+                    pageNum = i + 1;
+                  } else if (currentPage >= totalPages - 2) {
+                    pageNum = totalPages - 4 + i;
+                  } else {
+                    pageNum = currentPage - 2 + i;
+                  }
+
+                  const isActive = pageNum === currentPage;
+                  return (
+                    <button
+                      key={pageNum}
+                      onClick={() => setCurrentPage(pageNum)}
+                      className={`min-w-[32px] h-8 px-2 text-xs font-bold rounded-lg transition cursor-pointer ${
+                        isActive
+                          ? 'bg-rose-600 text-white shadow-md shadow-rose-600/30'
+                          : isLight
+                          ? 'hover:bg-slate-100 text-slate-700 border border-slate-200'
+                          : 'hover:bg-gray-800 text-gray-300 border border-gray-700'
+                      }`}
+                    >
+                      {pageNum}
+                    </button>
+                  );
+                })}
+              </div>
+
+              <button
+                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                disabled={currentPage >= totalPages}
+                className={`p-1.5 rounded-lg border transition ${
+                  currentPage >= totalPages
+                    ? 'opacity-30 cursor-not-allowed border-transparent'
+                    : isLight
+                    ? 'hover:bg-slate-200 border-slate-200 text-slate-700 cursor-pointer'
+                    : 'hover:bg-gray-800 border-gray-700 text-gray-300 cursor-pointer'
+                }`}
+                title="Next Page"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+
+              <button
+                onClick={() => setCurrentPage(totalPages)}
+                disabled={currentPage >= totalPages}
+                className={`p-1.5 rounded-lg border transition ${
+                  currentPage >= totalPages
+                    ? 'opacity-30 cursor-not-allowed border-transparent'
+                    : isLight
+                    ? 'hover:bg-slate-200 border-slate-200 text-slate-700 cursor-pointer'
+                    : 'hover:bg-gray-800 border-gray-700 text-gray-300 cursor-pointer'
+                }`}
+                title="Last Page"
+              >
+                <ChevronsRight className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* ========================================================
@@ -1908,6 +2224,15 @@ export const AdminProducts: React.FC = () => {
                   )}
                 </div>
               )}
+              <button
+                type="button"
+                onClick={() => setIsDropshipPickerOpen(true)}
+                className="px-3.5 py-2 bg-gradient-to-r from-rose-600 to-pink-600 hover:from-rose-700 hover:to-pink-700 text-white font-bold rounded-xl text-xs transition flex items-center gap-1.5 cursor-pointer shadow-xs active:scale-95"
+                title="Dropshipping BD থেকে প্রোডাক্ট তথ্য অটোফিল করুন"
+              >
+                <Zap className="w-3.5 h-3.5 text-amber-300 fill-amber-300" />
+                <span className="hidden sm:inline">Dropshipping BD</span>
+              </button>
               <button
                 type="button"
                 onClick={() => setIsModalOpen(false)}
@@ -2014,6 +2339,76 @@ export const AdminProducts: React.FC = () => {
                         <span>অন্য প্রোডাক্ট থেকে কপি করুন</span>
                       </button>
                     )}
+                  </div>
+
+                  {/* Dropshipping BD Instant Import & Code Search Bar */}
+                  <div className={`p-4 rounded-2xl border flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3.5 ${
+                    isLight
+                      ? 'bg-gradient-to-r from-rose-50/80 via-pink-50/50 to-amber-50/60 border-rose-200/80 shadow-xs'
+                      : 'bg-gradient-to-r from-rose-950/25 via-pink-950/20 to-amber-950/20 border-rose-800/40 shadow-md'
+                  }`}>
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-rose-500 to-pink-600 text-white flex items-center justify-center shrink-0 shadow-md shadow-rose-500/25">
+                        <Zap className="w-5 h-5 text-amber-300 fill-amber-300" />
+                      </div>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className={`text-xs font-black ${isLight ? 'text-slate-900' : 'text-white'}`}>
+                            Dropshipping BD লাইভ ইন্টিগ্রেশন
+                          </span>
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/20">
+                            ২,৯৫০+ প্রোডাক্টস
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5 truncate">
+                          কোড দিয়ে সরাসরি খুঁজুন অথবা সম্পূর্ণ লাইভ ক্যাটালগ থেকে ১-ক্লিকে তথ্য অটোফিল করুন
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2 shrink-0">
+                      <div className="relative flex items-center">
+                        <input
+                          type="text"
+                          value={quickDropshipCode}
+                          onChange={(e) => setQuickDropshipCode(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault();
+                              handleQuickDropshipCodeFetch();
+                            }
+                          }}
+                          placeholder="Product Code (e.g. 3002)"
+                          className={`w-36 sm:w-44 px-3 py-2 text-xs rounded-xl border font-mono ${
+                            isLight
+                              ? 'bg-white border-rose-200 text-slate-900 placeholder:text-slate-400 focus:border-rose-500'
+                              : 'bg-gray-900 border-gray-700 text-white placeholder:text-gray-500 focus:border-rose-500'
+                          } focus:outline-none`}
+                        />
+                      </div>
+                      <button
+                        type="button"
+                        onClick={handleQuickDropshipCodeFetch}
+                        disabled={isQuickFetchingDropship}
+                        className="px-3.5 py-2 bg-rose-600 hover:bg-rose-700 disabled:opacity-50 text-white font-bold rounded-xl text-xs transition flex items-center gap-1.5 cursor-pointer shadow-sm active:scale-95 shrink-0"
+                        title="Fetch product by code from Dropshipping BD"
+                      >
+                        {isQuickFetchingDropship ? (
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        ) : (
+                          <Search className="w-3.5 h-3.5" />
+                        )}
+                        <span>Fetch & Fill</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setIsDropshipPickerOpen(true)}
+                        className="px-3.5 py-2 bg-gradient-to-r from-rose-600 to-pink-600 hover:from-rose-700 hover:to-pink-700 text-white font-bold rounded-xl text-xs transition flex items-center gap-1.5 cursor-pointer shadow-sm active:scale-95 shrink-0"
+                      >
+                        <Zap className="w-3.5 h-3.5 text-amber-300 fill-amber-300" />
+                        <span>Browse Catalog</span>
+                      </button>
+                    </div>
                   </div>
 
                   {/* Section 1: Basic Identifiers */}
@@ -3925,6 +4320,18 @@ export const AdminProducts: React.FC = () => {
         </div>,
         document.body
       )}
+
+      {/* Dropshipping BD Live Catalog Picker Modal */}
+      <DropshippingProductPickerModal
+        isOpen={isDropshipPickerOpen}
+        onClose={() => setIsDropshipPickerOpen(false)}
+        onSelectProduct={(converted, raw) => {
+          handleApplyDropshippingToForm(converted, raw);
+          setIsDropshipPickerOpen(false);
+        }}
+        onDirectImport={handleDirectImportDropshippingProduct}
+        isLight={isLight}
+      />
 
     </div>
   );

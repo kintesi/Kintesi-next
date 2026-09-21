@@ -98,7 +98,7 @@ export const AdminCategories: React.FC = () => {
     try {
       const [cats, prods] = await Promise.all([
         getCategoriesFromDB(),
-        getProductsFromDB(),
+        getProductsFromDB({ all: true }),
       ]);
       if (cats && cats.length > 0) setCategories(cats);
       if (prods && prods.length > 0) setProducts(prods);

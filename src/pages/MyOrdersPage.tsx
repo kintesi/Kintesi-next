@@ -430,7 +430,7 @@ export const MyOrdersPage: React.FC = () => {
                   <div className="divide-y divide-gray-200">
                     {order.items?.map((item: any, idx: number) => {
                       const alreadyReviewed = reviewedProductIds.includes(item.productId);
-                      const skuOrId = item.sku || item.product_id || ('CF-' + (item.id || order.id || 'ITEM').slice(0, 6).toUpperCase());
+                      const skuOrId = (item.sku || item.product_id || ('KT-' + (item.id || order.id || 'ITEM').slice(0, 6).toUpperCase())).replace(/^DS-/i, 'KT-');
 
                       return (
                         <div key={idx} className="pt-3 first:pt-0 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">

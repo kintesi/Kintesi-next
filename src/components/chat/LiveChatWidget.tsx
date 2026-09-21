@@ -1,4 +1,4 @@
-﻿import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useChat } from '../../contexts/ChatContext';
 import { useAuth } from '../../contexts/AuthContext';
@@ -6,7 +6,7 @@ import { useLanguage } from '../../contexts/LanguageContext';
 import { useSettings } from '../../contexts/SettingsContext';
 import { formatPrice } from '../../lib/utils';
 import { INITIAL_PRODUCTS } from '../../data/mockData';
-import { getProductsFromDB } from '../../lib/dbService';
+import { getProductBySlugOrId } from '../../lib/dbService';
 import { CustomerFeedbackModal } from '../common/CustomerFeedbackModal';
 import {
   MessageCircle,
@@ -80,9 +80,8 @@ export const LiveChatWidget: React.FC = () => {
           sku: localMatch.sku,
         });
       } else {
-        getProductsFromDB()
-          .then((prods) => {
-            const found = prods.find((p) => p.slug === slug || p.id === slug);
+        getProductBySlugOrId(slug)
+          .then((found) => {
             if (found) {
               setActiveProductContext({
                 id: found.id,

@@ -103,7 +103,7 @@ export const AdminBanners: React.FC = () => {
   useEffect(() => {
     const loadCatalog = async () => {
       try {
-        setCatalogProducts(await getProductsFromDB());
+        setCatalogProducts(await getProductsFromDB({ all: true }));
       } catch (error) {
         console.warn('Could not load product catalog:', error);
       }

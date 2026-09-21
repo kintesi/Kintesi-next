@@ -1,9 +1,10 @@
 import React, { useEffect, useState, useRef, useMemo } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
-import { getCategoriesFromDB, getProductsFromDB } from '../lib/dbService';
+import { getCategoriesFromDB, getProductsFromDB, getInitialProducts } from '../lib/dbService';
 import { Product, Category } from '../types';
 import { INITIAL_PRODUCTS, INITIAL_CATEGORIES } from '../data/mockData';
+import { FLASH_SALE_PRODUCTS } from '../data/flashSaleProducts';
 import { ProductCard } from '../components/common/ProductCard';
 import { FlashSaleBanner } from '../components/home/FlashSaleBanner';
 import { ShowcaseStrip } from '../components/home/ShowcaseStrip';
@@ -76,14 +77,19 @@ export const HomePage: React.FC = () => {
 
   const [products, setProducts] = useState<Product[]>(() => {
     try {
-      const saved = localStorage.getItem('kintesi_custom_products');
+      const saved = localStorage.getItem('kintesi_initial_products') || localStorage.getItem('kintesi_custom_products');
       if (saved) {
         const parsed = JSON.parse(saved);
-        return parsed.filter((p: any) => p && p.id && !p.id.startsWith('prod-'));
+        const valid = parsed.filter((p: any) => p && p.id && !p.id.startsWith('prod-'));
+        if (valid.length > 0) {
+          const existingIds = new Set(valid.map((p: any) => p.id));
+          const missingFlash = FLASH_SALE_PRODUCTS.filter((p) => !existingIds.has(p.id));
+          return [...missingFlash, ...valid];
+        }
       }
-      return [];
+      return INITIAL_PRODUCTS;
     } catch {
-      return [];
+      return INITIAL_PRODUCTS;
     }
   });
 
@@ -101,8 +107,8 @@ export const HomePage: React.FC = () => {
 
   const [isLoadingData, setIsLoadingData] = useState(false);
 
-  // Progressive batch loading / Infinite scroll states
-  const [mobileVisibleCount, setMobileVisibleCount] = useState(12);
+  // Progressive batch loading: 6 on mobile, 18 on desktop (3 complete rows of 6)
+  const [mobileVisibleCount, setMobileVisibleCount] = useState(6);
   const [desktopVisibleCount, setDesktopVisibleCount] = useState(18);
   const [intentVersion, setIntentVersion] = useState<number>(0);
   const mobileSentinelRef = useRef<HTMLDivElement | null>(null);
@@ -155,26 +161,42 @@ export const HomePage: React.FC = () => {
   );
 
   useEffect(() => {
+    let isCancelled = false;
+
     async function loadData() {
       try {
-        setIsLoadingData(true);
+        // Fast Phase 1: If no products rendered yet, immediately fetch initial screen batch (36 products) in ~40ms
+        if (products.length === 0) {
+          setIsLoadingData(true);
+          const initialBatch = await getInitialProducts(36);
+          if (!isCancelled && initialBatch && initialBatch.length > 0) {
+            setProducts(initialBatch);
+            setIsLoadingData(false);
+          }
+        }
+
+        // Fast Phase 2: Stream categories and curated catalog in background without blocking UI
         const [cats, prods] = await Promise.all([
           getCategoriesFromDB(),
-          getProductsFromDB(),
+          getProductsFromDB({ all: true }),
         ]);
-        if (cats && cats.length > 0) setCategories(cats);
-        setProducts(prods);
+        if (!isCancelled) {
+          if (cats && cats.length > 0) setCategories(cats);
+          if (prods && prods.length > 0) setProducts(prods);
+        }
       } catch (err) {
         console.warn('Home page data note:', err);
       } finally {
-        setIsLoadingData(false);
+        if (!isCancelled) setIsLoadingData(false);
       }
     }
+
     loadData();
     detectAndSaveSearchIntent();
     window.addEventListener('kintesi_products_updated', loadData);
     window.addEventListener('kintesi_categories_updated', loadData);
     return () => {
+      isCancelled = true;
       window.removeEventListener('kintesi_products_updated', loadData);
       window.removeEventListener('kintesi_categories_updated', loadData);
     };
@@ -193,11 +215,9 @@ export const HomePage: React.FC = () => {
   // Active Showcase sections (Trending, Featured, New Arrival, Flash Sale)
   // ONLY showcases explicitly enabled by admin will be shown.
   const activeShowcases = useMemo(() => {
-    if (!isSettingsLoaded) return [];
-
     const rawList: ShowcaseSection[] = (banners.showcases && banners.showcases.length > 0)
       ? banners.showcases
-      : [];
+      : DEFAULT_SHOWCASES;
 
     return rawList
       .filter((s) => Boolean(s.enabled) === true)
@@ -205,25 +225,24 @@ export const HomePage: React.FC = () => {
         let showcaseProds: Product[] = [];
         if (s.productIds && s.productIds.length > 0) {
           showcaseProds = s.productIds
-            .map((id) => products.find((p) => p.id === id))
+            .map((id) => products.find((p) => p.id === id) || FLASH_SALE_PRODUCTS.find((p) => p.id === id))
             .filter(Boolean) as Product[];
         }
 
-        // Automatic smart fallback if no specific products were manually selected:
-        if (showcaseProds.length === 0) {
+        // Automatic smart fallback: ONLY if no specific products were manually selected AND type is NOT flash_sale
+        // Strict rule: Flash Sale NEVER adds random fallback products!
+        if (showcaseProds.length === 0 && (!s.productIds || s.productIds.length === 0)) {
           if (s.type === 'trending') {
-            showcaseProds = products.filter((p) => p.is_trending);
+            showcaseProds = products.filter((p) => p.is_trending).slice(0, 16);
             if (showcaseProds.length === 0) showcaseProds = products.slice(0, 16);
           } else if (s.type === 'featured') {
-            showcaseProds = products.filter((p) => p.is_featured);
+            showcaseProds = products.filter((p) => p.is_featured).slice(0, 16);
             if (showcaseProds.length === 0) showcaseProds = products.slice(0, 16);
           } else if (s.type === 'new_arrival') {
             showcaseProds = [...products].reverse().slice(0, 16);
-          } else if (s.type === 'flash_sale') {
-            showcaseProds = products.filter((p) => p.discount_price && p.discount_price < p.price);
-            if (showcaseProds.length === 0) showcaseProds = products.slice(0, 16);
           }
         }
+        showcaseProds = showcaseProds.slice(0, 16);
 
         return {
           showcase: s,
@@ -231,7 +250,7 @@ export const HomePage: React.FC = () => {
         };
       })
       .filter((item) => item.products.length > 0);
-  }, [isSettingsLoaded, banners.showcases, products]);
+  }, [banners.showcases, products]);
 
   // Detected active search intent for visual confirmation badge
   const activeIntentBadge = useMemo(() => {
@@ -285,7 +304,7 @@ export const HomePage: React.FC = () => {
     setIntentVersion((v) => v + 1);
   };
 
-  // Infinite scroll observer for Mobile
+  // Infinite scroll observer for Mobile (loads 6 items per batch strictly on viewport approach)
   useEffect(() => {
     const sentinel = mobileSentinelRef.current;
     if (!sentinel) return;
@@ -295,36 +314,13 @@ export const HomePage: React.FC = () => {
         if (entries[0].isIntersecting) {
           setMobileVisibleCount((prev) => {
             if (prev < personalizedProducts.length) {
-              return prev + 12;
+              return prev + 6;
             }
             return prev;
           });
         }
       },
-      { rootMargin: '350px' }
-    );
-
-    observer.observe(sentinel);
-    return () => observer.disconnect();
-  }, [personalizedProducts.length]);
-
-  // Infinite scroll observer for Desktop
-  useEffect(() => {
-    const sentinel = desktopSentinelRef.current;
-    if (!sentinel) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting) {
-          setDesktopVisibleCount((prev) => {
-            if (prev < personalizedProducts.length) {
-              return prev + 18;
-            }
-            return prev;
-          });
-        }
-      },
-      { rootMargin: '350px' }
+      { rootMargin: '100px' }
     );
 
     observer.observe(sentinel);
@@ -477,8 +473,8 @@ export const HomePage: React.FC = () => {
             <>
               {/* Product Grid Loaded in Progressive Batches */}
               <div className="grid grid-cols-2 gap-2.5">
-                {personalizedProducts.slice(0, mobileVisibleCount).map((product) => (
-                  <ProductCard key={product.id} product={product} />
+                {personalizedProducts.slice(0, mobileVisibleCount).map((product, idx) => (
+                  <ProductCard key={product.id} product={product} priority={idx < 4} />
                 ))}
               </div>
 
@@ -766,23 +762,34 @@ export const HomePage: React.FC = () => {
             <>
               {/* Product Grid Loaded in Progressive Batches (6 items per row on PC) */}
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-4 lg:gap-4.5">
-                {personalizedProducts.slice(0, desktopVisibleCount).map((product) => (
-                  <ProductCard key={product.id} product={product} />
+                {personalizedProducts.slice(0, desktopVisibleCount).map((product, idx) => (
+                  <ProductCard key={product.id} product={product} priority={idx < 6} />
                 ))}
               </div>
 
-              {/* Desktop Infinite Scroll Sentinel & Indicator */}
-              <div ref={desktopSentinelRef} className="w-full flex items-center justify-center pt-4">
+              {/* Desktop Interactive Load More Section (Eliminates scroll lag and DOM freeze) */}
+              <div className="w-full flex flex-col items-center justify-center pt-8 pb-4 gap-3">
                 {desktopVisibleCount < personalizedProducts.length ? (
-                  <div className="flex items-center gap-2 text-xs text-gray-500 bg-gray-50 px-5 py-2.5 rounded-full border border-gray-200/60 shadow-2xs">
-                    <div className="w-4 h-4 rounded-full border-2 border-rose-500 border-t-transparent animate-spin" />
-                    <span>Loading more curated products...</span>
-                  </div>
-                ) : (
-                  personalizedProducts.length > 16 && (
-                    <p className="text-xs text-gray-400 text-center py-2">
-                      ✓ All {personalizedProducts.length} items loaded
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => setDesktopVisibleCount((prev) => Math.min(prev + 18, personalizedProducts.length))}
+                      className="group inline-flex items-center gap-2.5 px-8 py-3.5 bg-white hover:bg-rose-600 text-gray-800 hover:text-white font-extrabold text-sm rounded-2xl border-2 border-rose-200 hover:border-rose-600 shadow-xs hover:shadow-lg hover:shadow-rose-600/20 transition-all duration-300 cursor-pointer active:scale-98"
+                    >
+                      <ShoppingBag className="w-4 h-4 text-rose-600 group-hover:text-white transition-colors" />
+                      <span>আরও পণ্য দেখুন ({personalizedProducts.length - desktopVisibleCount}টি বাকি)</span>
+                      <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                    </button>
+                    <p className="text-xs text-gray-400 font-medium">
+                      Showing {Math.min(desktopVisibleCount, personalizedProducts.length)} of {personalizedProducts.length} items
                     </p>
+                  </>
+                ) : (
+                  personalizedProducts.length > 0 && (
+                    <div className="flex items-center gap-2 text-xs text-emerald-600 font-semibold bg-emerald-50 px-4 py-2 rounded-full border border-emerald-200/60">
+                      <CheckCircle2 className="w-4 h-4" />
+                      <span>সব {personalizedProducts.length}টি পণ্য লোড হয়েছে</span>
+                    </div>
                   )
                 )}
               </div>

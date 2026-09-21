@@ -4,7 +4,7 @@ import { getOrdersFromDB, updateOrderInDB } from '../../lib/dbService';
 import { confirmAffiliateCommissionOnDelivery, revokeAffiliateCommissionOnCancellation } from '../../lib/affiliateService';
 import { Order } from '../../types';
 import { formatPrice } from '../../lib/utils';
-import { Package, Truck, CheckCircle2, Clock, XCircle, Search, Eye, Printer, Trash2, Copy, Check, CreditCard, Landmark, Share2 } from 'lucide-react';
+import { Package, Truck, CheckCircle2, Clock, XCircle, Search, Eye, Printer, Trash2, Copy, Check, CreditCard, Landmark, Share2, ExternalLink } from 'lucide-react';
 import { toast } from 'sonner';
 import { InvoiceModal } from '../../components/invoice/InvoiceModal';
 
@@ -540,7 +540,35 @@ export const AdminOrders: React.FC = () => {
                       />
                       <div>
                         <p className="font-bold text-white">{item.title}</p>
-                        <p className="text-gray-400">Qty: {item.quantity}</p>
+                        <div className="flex flex-wrap items-center gap-2 mt-1 text-gray-400">
+                          <span>Qty: {item.quantity}</span>
+                          {item.selectedColor && (
+                            <span className="px-2 py-0.5 rounded bg-pink-500/20 text-pink-300 font-bold text-[10px] border border-pink-500/30">
+                              Color: {item.selectedColor}
+                            </span>
+                          )}
+                          {item.selectedSize && (
+                            <span className="px-2 py-0.5 rounded bg-blue-500/20 text-blue-300 font-bold text-[10px] border border-blue-500/30">
+                              Size: {item.selectedSize}
+                            </span>
+                          )}
+                          {item.sku && (
+                            <span className="text-[10px] text-gray-500 font-mono">
+                              SKU: {item.sku}
+                            </span>
+                          )}
+                        </div>
+                        {item.dropshipping_url && (
+                          <a
+                            href={item.dropshipping_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 text-[11px] font-bold text-rose-400 hover:text-rose-300 hover:underline mt-1.5"
+                          >
+                            <ExternalLink className="w-3 h-3" />
+                            <span>Supplier Order Link {item.selectedColor ? `(${item.selectedColor})` : ''}</span>
+                          </a>
+                        )}
                       </div>
                     </div>
                     <span className="font-bold text-rose-500">{formatPrice(item.price * item.quantity)}</span>

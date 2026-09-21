@@ -3,9 +3,9 @@ import { useSearchParams, Link } from 'react-router-dom';
 import { Product, Category } from '../types';
 import { INITIAL_PRODUCTS, INITIAL_CATEGORIES } from '../data/mockData';
 import { ProductCard } from '../components/common/ProductCard';
-import { Filter, SlidersHorizontal, ArrowUpDown, X, Check, RotateCcw } from 'lucide-react';
+import { Filter, SlidersHorizontal, ArrowUpDown, X, Check, RotateCcw, ShoppingBag, ChevronRight, CheckCircle2 } from 'lucide-react';
 import { formatPrice } from '../lib/utils';
-import { matchesProductSearch } from '../lib/searchUtils';
+import { matchesProductSearch, calculateSearchScore } from '../lib/searchUtils';
 import {
   trackSearchQuery,
   trackCategoryView,
@@ -14,7 +14,7 @@ import {
   getUserInterestProfile,
 } from '../lib/recommendationEngine';
 
-import { getCategoriesFromDB, getProductsFromDB } from '../lib/dbService';
+import { getCategoriesFromDB, getProductsFromDB, getInitialProducts } from '../lib/dbService';
 import { CategoriesShowcase } from '../components/common/CategoriesShowcase';
 
 const PRICE_PRESETS = [
@@ -31,7 +31,16 @@ export const ShopPage: React.FC = () => {
   const subCategoryParam = searchParams.get('sub_category') || 'all';
   const searchParam = searchParams.get('search') || '';
 
-  const [products, setProducts] = useState<Product[]>(INITIAL_PRODUCTS);
+  const [products, setProducts] = useState<Product[]>(() => {
+    try {
+      const saved = localStorage.getItem('kintesi_initial_products') || localStorage.getItem('kintesi_custom_products');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch {}
+    return INITIAL_PRODUCTS;
+  });
   const [categories, setCategories] = useState<Category[]>(INITIAL_CATEGORIES);
   const [selectedCategory, setSelectedCategory] = useState<string>(categoryParam);
   const [selectedSubCategory, setSelectedSubCategory] = useState<string>(subCategoryParam);
@@ -67,14 +76,24 @@ export const ShopPage: React.FC = () => {
   }, []);
 
   useEffect(() => {
+    let isCancelled = false;
     async function loadData() {
       try {
+        // Fast Phase 1: If current products list is mock data, fetch initial 36 products in ~40ms
+        const initialBatch = await getInitialProducts(36);
+        if (!isCancelled && initialBatch && initialBatch.length > 0) {
+          setProducts(initialBatch);
+        }
+
+        // Fast Phase 2: Stream categories and full catalog in background without blocking
         const [cats, prods] = await Promise.all([
           getCategoriesFromDB(),
-          getProductsFromDB(),
+          getProductsFromDB({ all: true }),
         ]);
-        if (cats && cats.length > 0) setCategories(cats);
-        setProducts(prods);
+        if (!isCancelled) {
+          if (cats && cats.length > 0) setCategories(cats);
+          if (prods && prods.length > 0) setProducts(prods);
+        }
       } catch (err) {
         console.warn('Shop page data notice:', err);
       }
@@ -83,6 +102,7 @@ export const ShopPage: React.FC = () => {
     window.addEventListener('kintesi_products_updated', loadData);
     window.addEventListener('kintesi_categories_updated', loadData);
     return () => {
+      isCancelled = true;
       window.removeEventListener('kintesi_products_updated', loadData);
       window.removeEventListener('kintesi_categories_updated', loadData);
     };
@@ -151,7 +171,7 @@ export const ShopPage: React.FC = () => {
   const filteredProducts = useMemo(() => {
     const isFeatured = searchParams.get('featured') === 'true';
 
-    return products
+    const filtered = products
       .filter((product) => {
         // Featured only filter
         if (isFeatured && !product.is_featured) {
@@ -182,28 +202,85 @@ export const ShopPage: React.FC = () => {
         if (onlyInStock && product.stock <= 0) return false;
 
         return true;
-      })
-      .sort((a, b) => {
-        const priceA = a.discount_price || a.price;
-        const priceB = b.discount_price || b.price;
-
-        if (sortBy === 'price-low') return priceA - priceB;
-        if (sortBy === 'price-high') return priceB - priceA;
-        if (sortBy === 'rating') return (b.rating || 0) - (a.rating || 0);
-        if (sortBy === 'newest') return (b.created_at || '').localeCompare(a.created_at || '');
-        if (sortBy === 'featured') {
-          const intentTerms = getSavedSearchIntent();
-          const profile = getUserInterestProfile();
-          const scoreA = calculateProductRelevanceScore(a, intentTerms, profile);
-          const scoreB = calculateProductRelevanceScore(b, intentTerms, profile);
-          if (scoreB !== scoreA) {
-            return scoreB - scoreA;
-          }
-          return (b.is_featured ? 1 : 0) - (a.is_featured ? 1 : 0);
-        }
-        return 0;
       });
+
+    if (sortBy === 'price-low') {
+      return filtered.sort((a, b) => (a.discount_price || a.price) - (b.discount_price || b.price));
+    }
+    if (sortBy === 'price-high') {
+      return filtered.sort((a, b) => (b.discount_price || b.price) - (a.discount_price || a.price));
+    }
+    if (sortBy === 'rating') {
+      return filtered.sort((a, b) => (b.rating || 0) - (a.rating || 0));
+    }
+    if (sortBy === 'newest') {
+      return filtered.sort((a, b) => (b.created_at || '').localeCompare(a.created_at || ''));
+    }
+    if (sortBy === 'featured') {
+      if (searchQuery.trim() !== '') {
+        return filtered.sort((a, b) => {
+          const diff = calculateSearchScore(b, searchQuery) - calculateSearchScore(a, searchQuery);
+          if (diff !== 0) return diff;
+          return (b.is_featured ? 1 : 0) - (a.is_featured ? 1 : 0);
+        });
+      }
+      const intentTerms = getSavedSearchIntent();
+      const profile = getUserInterestProfile();
+      const termSet = new Set<string>();
+      if (intentTerms && intentTerms.length > 0) {
+        for (const t of intentTerms) {
+          if (!t) continue;
+          const clean = t.toLowerCase().trim();
+          termSet.add(clean);
+        }
+      }
+      // Pre-calculate relevance scores once per product in O(N) map
+      const scoreMap = new Map<string, number>();
+      for (const p of filtered) {
+        scoreMap.set(p.id, calculateProductRelevanceScore(p, termSet, profile));
+      }
+      return filtered.sort((a, b) => {
+        const diff = (scoreMap.get(b.id) || 0) - (scoreMap.get(a.id) || 0);
+        if (diff !== 0) return diff;
+        return (b.is_featured ? 1 : 0) - (a.is_featured ? 1 : 0);
+      });
+    }
+
+    return filtered;
   }, [products, selectedCategory, selectedSubCategory, searchQuery, appliedMinPrice, appliedMaxPrice, onlyInStock, sortBy, searchParams, intentVersion]);
+
+  // Progressive batch rendering: 6 on mobile (auto infinite scroll), 18 on desktop with interactive Load More
+  const getInitialDisplayCount = () => (typeof window !== 'undefined' && window.innerWidth < 768 ? 6 : 18);
+  const [displayCount, setDisplayCount] = useState<number>(getInitialDisplayCount);
+  const loadMoreSentinelRef = React.useRef<HTMLDivElement | null>(null);
+
+  // Reset batch count when filters or sorting change
+  useEffect(() => {
+    setDisplayCount(getInitialDisplayCount());
+  }, [selectedCategory, selectedSubCategory, searchQuery, sortBy, appliedMinPrice, appliedMaxPrice, onlyInStock]);
+
+  // Progressive infinite scroll strictly on mobile; desktop uses interactive Load More button to eliminate PC scroll lag
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.innerWidth >= 768) {
+      return; // PC uses explicit button, zero background scroll thrashing
+    }
+    const sentinel = loadMoreSentinelRef.current;
+    if (!sentinel) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) {
+          setDisplayCount((prev) => prev + 6);
+        }
+      },
+      { rootMargin: '100px' }
+    );
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [filteredProducts.length, displayCount]);
+
+  const visibleProducts = useMemo(() => {
+    return filteredProducts.slice(0, displayCount);
+  }, [filteredProducts, displayCount]);
 
   const currentCategoryObj = categories.find(
     (c) => c.slug === selectedCategory || c.id === selectedCategory || c.name.toLowerCase() === selectedCategory.toLowerCase()
@@ -710,14 +787,47 @@ export const ShopPage: React.FC = () => {
               </button>
             </div>
           ) : (
-            <div className={`grid gap-2.5 sm:gap-3.5 lg:gap-4 ${
-              isDesktopFilterOpen
-                ? 'grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6'
-                : 'grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6'
-            }`}>
-              {filteredProducts.map((product) => (
-                <ProductCard key={product.id} product={product} />
-              ))}
+            <div className="space-y-6">
+              <div className={`grid gap-2.5 sm:gap-3.5 lg:gap-4 ${
+                isDesktopFilterOpen
+                  ? 'grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6'
+                  : 'grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6'
+              }`}>
+                {visibleProducts.map((product, idx) => (
+                  <ProductCard key={product.id} product={product} priority={idx < 6} />
+                ))}
+              </div>
+
+              {/* Load More section */}
+              {displayCount < filteredProducts.length ? (
+                <div className="flex flex-col items-center justify-center pt-8 pb-4 gap-3">
+                  {/* Mobile Sentinel (hidden on desktop) */}
+                  <div ref={loadMoreSentinelRef} className="h-2 w-full md:hidden" />
+
+                  {/* Interactive Load More Button */}
+                  <button
+                    type="button"
+                    onClick={() => setDisplayCount((prev) => prev + (typeof window !== 'undefined' && window.innerWidth < 768 ? 12 : 18))}
+                    className="group inline-flex items-center gap-2.5 px-8 py-3.5 bg-white hover:bg-rose-600 text-gray-800 hover:text-white font-extrabold text-sm rounded-2xl border-2 border-rose-200 hover:border-rose-600 shadow-xs hover:shadow-lg hover:shadow-rose-600/20 transition-all duration-300 cursor-pointer active:scale-98"
+                  >
+                    <ShoppingBag className="w-4 h-4 text-rose-600 group-hover:text-white transition-colors" />
+                    <span>আরও পণ্য দেখুন ({filteredProducts.length - displayCount}টি বাকি)</span>
+                    <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                  </button>
+                  <p className="text-xs text-gray-400 font-medium">
+                    Showing {Math.min(displayCount, filteredProducts.length)} of {filteredProducts.length} products
+                  </p>
+                </div>
+              ) : (
+                filteredProducts.length > 0 && (
+                  <div className="flex items-center justify-center pt-8 pb-4">
+                    <div className="flex items-center gap-2 text-xs text-emerald-600 font-semibold bg-emerald-50 px-4 py-2 rounded-full border border-emerald-200/60">
+                      <CheckCircle2 className="w-4 h-4" />
+                      <span>সব {filteredProducts.length}টি পণ্য লোড হয়েছে</span>
+                    </div>
+                  </div>
+                )
+              )}
             </div>
           )}
         </main>

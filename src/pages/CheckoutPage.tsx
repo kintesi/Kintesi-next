@@ -366,15 +366,23 @@ export const CheckoutPage: React.FC = () => {
       ? `${address.trim()}, Thana: ${selectedThanaName}`
       : address.trim();
 
-    const orderItems = checkoutItems.map((item) => ({
-      productId: item.product.id,
-      title: item.product.title,
-      price: (item as any).customPrice || item.product.discount_price || item.product.price,
-      quantity: item.quantity,
-      image: (item as any).variantImage || item.product.images[0] || '',
-      selectedColor: item.selectedColor,
-      selectedSize: item.selectedSize,
-    }));
+    const orderItems = checkoutItems.map((item) => {
+      const colorObj = item.product?.colors?.find((c) => c.name === item.selectedColor);
+      const dropshipUrl = colorObj?.dropshipping_url || item.dropshipping_url || item.product?.dropshipping_url || (item.product?.specifications as any)?.color_variants?.[item.selectedColor || '']?.dropshipping_url || '';
+      const itemSku = colorObj?.sku || item.sku || item.product?.sku;
+
+      return {
+        productId: item.product.id,
+        title: item.product.title,
+        price: (item as any).customPrice || item.product.discount_price || item.product.price,
+        quantity: item.quantity,
+        image: (item as any).variantImage || colorObj?.image || item.product.images[0] || '',
+        selectedColor: item.selectedColor,
+        selectedSize: item.selectedSize,
+        sku: itemSku,
+        dropshipping_url: dropshipUrl,
+      };
+    });
 
     // Calculate Affiliate Commission with STRICT rules
     // Calculate Affiliate Commission

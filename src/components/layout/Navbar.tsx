@@ -23,9 +23,9 @@ import {
 } from 'lucide-react';
 import { INITIAL_PRODUCTS, INITIAL_CATEGORIES } from '../../data/mockData';
 import { formatPrice, getProductUrl } from '../../lib/utils';
-import { matchesProductSearch, getAllLiveProducts } from '../../lib/searchUtils';
+import { matchesProductSearch, getAllLiveProducts, rankAndFilterProducts } from '../../lib/searchUtils';
 import { Product, Category } from '../../types';
-import { getCategoriesFromDB } from '../../lib/dbService';
+import { getCategoriesFromDB, getInitialProducts, getProductsFromDB, getCachedProducts } from '../../lib/dbService';
 import { useSettings } from '../../contexts/SettingsContext';
 import { trackSearchQuery } from '../../lib/recommendationEngine';
 import { useLanguage } from '../../contexts/LanguageContext';
@@ -43,7 +43,10 @@ export const Navbar: React.FC = () => {
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [showSearchResults, setShowSearchResults] = useState(false);
-  const [liveProducts, setLiveProducts] = useState<Product[]>(() => getAllLiveProducts(INITIAL_PRODUCTS));
+  const [liveProducts, setLiveProducts] = useState<Product[]>(() => {
+    const cached = getCachedProducts();
+    return getAllLiveProducts(cached);
+  });
   const [showAnnouncement, setShowAnnouncement] = useState(() => {
     try {
       const saved = localStorage.getItem('kintesi_store_settings');
@@ -177,18 +180,40 @@ export const Navbar: React.FC = () => {
   };
 
   useEffect(() => {
+    let isMounted = true;
+
+    // Step 1: Rapid load initial products from memory / localStorage (0-30ms)
+    getInitialProducts(60).then((items) => {
+      if (isMounted && items && items.length > 0) {
+        setLiveProducts(getAllLiveProducts(items));
+      }
+    });
+
+    // Step 2: Stream complete catalog (all 2,831 items) in background for 100% search recall
+    getProductsFromDB({ all: true }).then((fullList) => {
+      if (isMounted && fullList && fullList.length > 0) {
+        setLiveProducts(getAllLiveProducts(fullList));
+      }
+    });
+
     const refreshProducts = () => {
-      setLiveProducts(getAllLiveProducts(INITIAL_PRODUCTS));
+      const mem = getCachedProducts();
+      if (mem && mem.length > 0) {
+        setLiveProducts(getAllLiveProducts(mem));
+      }
     };
-    refreshProducts();
+
     window.addEventListener('kintesi_products_updated', refreshProducts);
-    return () => window.removeEventListener('kintesi_products_updated', refreshProducts);
+    return () => {
+      isMounted = false;
+      window.removeEventListener('kintesi_products_updated', refreshProducts);
+    };
   }, []);
 
-  // Smart Search filter using multi-attribute and bilingual synonyms
+  // Smart Search filter & ranking using multi-attribute and bilingual synonyms
   const searchFilteredProducts = searchQuery.trim() === ''
     ? []
-    : liveProducts.filter((p) => matchesProductSearch(p, searchQuery)).slice(0, 6);
+    : rankAndFilterProducts(liveProducts, searchQuery).slice(0, 8);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -206,13 +231,13 @@ export const Navbar: React.FC = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Real-time zero-latency search intent capture as the user types
+  // Debounced search intent capture to keep UI completely silky smooth while typing
   useEffect(() => {
     const q = searchQuery.trim();
-    if (!q || q.length < 2) return;
+    if (!q || q.length < 3) return;
     const timer = setTimeout(() => {
       trackSearchQuery(q);
-    }, 100);
+    }, 500);
     return () => clearTimeout(timer);
   }, [searchQuery]);
 

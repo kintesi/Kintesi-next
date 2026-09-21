@@ -3,7 +3,7 @@ import { useCart } from '../../contexts/CartContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { AuthModal } from '../auth/AuthModal';
 import { X, Trash2, Plus, Minus, ShoppingBag, ArrowRight, Tag } from 'lucide-react';
-import { formatPrice } from '../../lib/utils';
+import { formatPrice, optimizeImageUrl } from '../../lib/utils';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 
 export const CartDrawer: React.FC = () => {
@@ -97,7 +97,7 @@ export const CartDrawer: React.FC = () => {
                     className="flex gap-4 p-3.5 bg-gray-50/80 rounded-2xl border border-gray-100 hover:border-gray-200 transition"
                   >
                     <img
-                      src={(item as any).variantImage || item.product.images[0] || '/logo.webp'}
+                      src={optimizeImageUrl((item as any).variantImage || item.product.images[0] || '/logo.webp', 160)}
                       alt={item.product.title}
                       className="w-20 h-20 object-cover rounded-xl bg-white border border-gray-100 flex-shrink-0"
                     />

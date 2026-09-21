@@ -90,6 +90,9 @@ export interface Product {
   sizes?: string[];
   colors?: ProductColorOption[];
   custom_attributes?: ProductCustomAttributeOption[];
+  warranty_badge_enabled?: boolean;
+  embedding?: any;
+  updated_at?: string;
   created_at?: string;
 }
 
@@ -102,6 +105,8 @@ export interface ProductColorOption {
   image?: string | null;
   images?: string[];
   stock?: number | null;
+  sku?: string;
+  dropshipping_url?: string;
 }
 
 export interface ProductCustomAttributeOption {
@@ -120,6 +125,8 @@ export interface CartItem {
   selectedSize?: string;
   customPrice?: number;
   variantImage?: string;
+  dropshipping_url?: string;
+  sku?: string;
 }
 
 export interface OrderItem {
@@ -130,6 +137,8 @@ export interface OrderItem {
   image: string;
   selectedColor?: string;
   selectedSize?: string;
+  sku?: string;
+  dropshipping_url?: string;
 }
 
 export interface Order {
