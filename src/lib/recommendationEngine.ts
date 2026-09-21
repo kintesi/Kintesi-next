@@ -215,7 +215,9 @@ export function trackInteractionEvent(
   }
   if (product.brand) {
     const b = product.brand.toLowerCase().trim();
-    profile.brands[b] = (profile.brands[b] || 0) + weight;
+    if (b !== 'no brand' && b !== 'generic' && b !== 'kintesi') {
+      profile.brands[b] = (profile.brands[b] || 0) + weight;
+    }
   }
   if (product.title) {
     const words = extractKeywords(product.title);

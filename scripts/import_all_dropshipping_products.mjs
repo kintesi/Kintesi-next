@@ -406,13 +406,56 @@ async function main() {
     const { category_id, sub_category } = mapCategory(raw.category, raw.name);
 
     // Brand detection
-    const lowerName = raw.name.toLowerCase();
-    let detectedBrand = 'Kintesi';
-    const knownBrands = ['Sony', 'Apple', 'Nike', 'Adidas', 'Xiaomi', 'Samsung', 'Lenovo', 'Remax', 'Havit', 'Baseus', 'Anker', 'Realme', 'Casio', 'Curren', 'Naviforce'];
-    for (const b of knownBrands) {
-      if (lowerName.includes(b.toLowerCase())) {
-        detectedBrand = b;
-        break;
+    const KNOWN_BRANDS_LIST = [
+      'Pagani Design', 'Arctic Hunter', 'Anaya Hoor', 'Ali Leather', 'Mark Ryden',
+      'Mini Focus', 'Hannah Martin', 'Charles Delon', 'Under Armour', 'New Balance',
+      'Louis Vuitton', 'Tommy Hilfiger', 'Calvin Klein', 'Royal Kludge', 'Cooler Master',
+      'SteelSeries', 'Golden Field', 'VEN-DENS', 'TP-Link', 'Western Digital', 'Bin Saeed',
+      'Gul Ahmed', 'North Edge', 'Fire-Boltt', 'SoundPEATS', 'Zero Lifestyle',
+      'OLEVS', 'Poedagar', 'Curren', 'Naviforce', 'Casio', 'SKMEI', 'Binbond', 'LIGE', 'Benyar',
+      'Megir', 'Chenxi', 'Sanda', 'WWOOR', 'SMAEL', 'Kademan', 'Sinobi', 'Crnaira', 'Nibosi',
+      'Bidigo', 'Fastrack', 'Fossil', 'Titan', 'Citizen', 'Seiko', 'Tissot', 'Rolex', 'Rado',
+      'Omega', 'Hublot', 'Zeblaze', 'Colmi', 'Amazfit', 'boAt', 'Dizo', 'Kospet',
+      'Apple', 'Samsung', 'Xiaomi', 'Realme', 'OnePlus', 'Infinix', 'Tecno', 'Vivo', 'Oppo',
+      'Sony', 'Lenovo', 'Remax', 'Havit', 'Baseus', 'Anker', 'Oraimo', 'Awei', 'Joyroom',
+      'LDNIO', 'Hoco', 'Borofone', 'WiWU', 'Mcdodo', 'Usams', 'Ugreen', 'Vention', 'Orico',
+      'Choetech', 'Essager', 'Kuulaa', 'Toocki', 'Haylou', 'QCY', 'Sanag', 'Celebrat', 'Yison',
+      'Plextone', 'Edifier', 'Microlab', 'F&D', 'Jmary', 'Yunteng', 'Boya', 'Maxline', 'Joykaly',
+      'Defender', 'Gree', 'Haier', 'Midea', 'G-Tide', 'Kisonli', 'Zealot', 'Tronsmart',
+      'Logitech', 'Fantech', 'A4Tech', 'Rapoo', 'Redragon', 'Meetion', 'Motospeed', 'Dareu',
+      'Ajazz', 'Keychron', 'Corsair', 'Razer', 'HyperX', 'Asus', 'MSI', 'Gigabyte', 'HP',
+      'Dell', 'Acer', 'Tenda', 'Mercusys', 'D-Link', 'Netgear', 'V380', 'Hikvision', 'Dahua',
+      'Imou', 'Ezviz', 'SanDisk', 'Kingston', 'Transcend', 'Lexar', 'Netac', 'Seagate',
+      'Kemei', 'VGR', 'Gemei', 'HTC', 'Nova', 'Philips', 'Panasonic', 'Braun', 'Enchen',
+      'ShowSee', 'Miyako', 'Walton', 'Singer', 'Bajaj', 'Jaipan', 'Prestige', 'Hawkins',
+      'Geepas', 'Bange', 'Tigernu', 'Bullcaptain', 'Baellerry', 'Wildcraft', 'Samsonite',
+      'Nike', 'Adidas', 'Puma', 'Reebok', 'Vans', 'Converse', 'Gucci', 'Zara', 'H&M',
+      'Tawakkal', 'Bata', 'Apex', 'Lotto', 'Kaizar', 'Rezzel', 'SnowSoft'
+    ];
+    let detectedBrand = 'No Brand';
+    const descMatch = (raw.details || '').match(/(?:brand|ব্র্যান্ড|Brand Name)\s*[:：\-–]\s*([^\r\n,<|.]+)/i);
+    if (descMatch) {
+      const rawB = descMatch[1].trim().split(/(?:model|sku|color|colour|material|origin|size|movement|dial|water|type|made|quality)/i)[0].trim();
+      if (!/no\s*brand|non[\s-]*brand|china|kintesi/i.test(rawB)) {
+        for (const b of KNOWN_BRANDS_LIST) {
+          if (new RegExp('^' + b.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&') + '$', 'i').test(rawB) ||
+              new RegExp('\\b' + b.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&') + '\\b', 'i').test(rawB)) {
+            detectedBrand = b;
+            break;
+          }
+        }
+      }
+    }
+    if (detectedBrand === 'No Brand') {
+      for (const b of KNOWN_BRANDS_LIST) {
+        const escaped = b.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&');
+        const regex = new RegExp('(?:^|[\\s\\[\\(\\/\\-_])' + escaped + '(?:$|[\\s\\]\\)\\/\\-_:,])', 'i');
+        if (regex.test(raw.name)) {
+          if (b.toLowerCase() === 'vision' && /night\s+vision|clear\s+vision/i.test(raw.name)) continue;
+          if (b.toLowerCase() === 'nova' && /super\s+nova/i.test(raw.name)) continue;
+          detectedBrand = b;
+          break;
+        }
       }
     }
 

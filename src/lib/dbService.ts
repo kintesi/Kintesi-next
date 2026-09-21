@@ -123,7 +123,7 @@ export async function getInitialProducts(limit: number = 36): Promise<Product[]>
     return _memoryProductsCache.slice(0, limit);
   }
 
-  const CACHE_VERSION = 'v25_accurate_categories_and_sizes';
+  const CACHE_VERSION = 'v26_accurate_brands';
   if (typeof window !== 'undefined') {
     try {
       if (localStorage.getItem('kintesi_cache_ver') !== CACHE_VERSION) {
