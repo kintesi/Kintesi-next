@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { Product } from '../types';
 import { INITIAL_PRODUCTS, INITIAL_CATEGORIES } from '../data/mockData';
-import { getProductBySlugOrId, PRODUCT_SUMMARY_FIELDS } from '../lib/dbService';
+import { getProductBySlugOrId, getProductsFromDB, PRODUCT_SUMMARY_FIELDS } from '../lib/dbService';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { useCart } from '../contexts/CartContext';
@@ -13,6 +13,8 @@ import { useChat } from '../contexts/ChatContext';
 import { formatPrice, calculateDiscount, optimizeImageUrl } from '../lib/utils';
 import { ProductCard } from '../components/common/ProductCard';
 import { ShowcaseStrip } from '../components/home/ShowcaseStrip';
+import { RelatedProductsShelf } from '../components/product/RelatedProductsShelf';
+import { RecentlyViewedShelf } from '../components/home/RecentlyViewedShelf';
 import { trackProductView } from '../lib/recommendationEngine';
 import {
   Star,
@@ -82,6 +84,15 @@ export const ProductDetailPage: React.FC = () => {
 
   // Ref for the on-page Buy Actions block (Quantity, Add to Cart, Buy Now)
   const buyActionsRef = useRef<HTMLDivElement | null>(null);
+  const [allCatalogProducts, setAllCatalogProducts] = useState<Product[]>([]);
+
+  useEffect(() => {
+    getProductsFromDB().then((prods) => {
+      if (prods && prods.length > 0) {
+        setAllCatalogProducts(prods);
+      }
+    });
+  }, []);
 
   // Touch Swipe Gesture State for Product Images
   const [touchStartX, setTouchStartX] = useState<number | null>(null);
@@ -1755,6 +1766,16 @@ export const ProductDetailPage: React.FC = () => {
           </div>
         )}
       </section>
+
+        {/* Amazon / Daraz Style: Related Products Shelf */}
+        {product && allCatalogProducts.length > 0 && (
+          <RelatedProductsShelf currentProduct={product} allProducts={allCatalogProducts} />
+        )}
+
+        {/* Amazon / Daraz Style: Recently Viewed Shelf */}
+        {allCatalogProducts.length > 0 && (
+          <RecentlyViewedShelf products={allCatalogProducts} />
+        )}
 
       </div>
 

@@ -522,23 +522,6 @@ export async function trackRecommendationTelemetry(
 export const fetchVectorRecommendations = fetchHybridRecommendations;
 export const trackRecommendationAction = trackRecommendationTelemetry;
 
-/**
- * ---------------------------------------------------------------------------
- * 8. ZERO-LATENCY FALLBACK & INSTANT UI HYBRID ROTATOR
- * ---------------------------------------------------------------------------
- */
-function getPseudoHash(str: string, seed: number): number {
-  let h = seed;
-  for (let i = 0; i < str.length; i++) {
-    h = (Math.imul(31, h) + str.charCodeAt(i)) | 0;
-  }
-  return Math.abs(h);
-}
-
-/**
- * Calculates a comprehensive relevance score for a product based on active search intent
- * and the user's historical interaction profile.
- */
 export function calculateProductRelevanceScore(
   prod: Product,
   intentTerms: string[] | Set<string> = getSavedSearchIntent(),
@@ -546,97 +529,327 @@ export function calculateProductRelevanceScore(
 ): number {
   if (!prod) return 0;
   let score = 0;
-  // ⚡ 100x Faster O(1) Search text lookup
-  const text = (prod as any)._searchKey || (
-    `${prod.title || ''} ${prod.sub_category || ''} ${prod.category_id || ''} ${prod.brand || ''} ${prod.slug || ''} ${Array.isArray(prod.tags) ? prod.tags.join(' ') : (prod.tags || '')}`
+  const text = (
+    (prod as any)._searchKey ||
+    `${prod.title || ''} ${prod.sub_category || ''} ${prod.category_id || ''} ${prod.brand || ''} ${Array.isArray(prod.tags) ? prod.tags.join(' ') : (prod.tags || '')}`
   ).toLowerCase();
 
-  // 1. Explicit search intent boost (Top priority - overrides all default rankings)
   if (intentTerms) {
     const isSet = intentTerms instanceof Set;
     const termSet = isSet ? (intentTerms as Set<string>) : new Set<string>();
     if (!isSet) {
-      for (const t of (intentTerms as string[])) {
+      for (const t of intentTerms as string[]) {
         if (!t) continue;
         const clean = t.toLowerCase().trim();
         termSet.add(clean);
         expandQueryTerms(clean).forEach((e) => termSet.add(e.toLowerCase().trim()));
       }
     }
-
-    let matchCount = 0;
     for (const t of termSet) {
-      if (t && text.includes(t)) matchCount++;
-    }
-    if (matchCount > 0) {
-      score += 100000 + matchCount * 5000;
+      if (t && text.includes(t)) score += 500;
     }
   }
 
-  // 2. Keyword profile match
-  if (profile.keywords) {
-    for (const [kw, weight] of Object.entries(profile.keywords)) {
-      if (kw && text.includes(kw.toLowerCase())) {
-        score += weight * 150;
-      }
-    }
+  if (prod.category_id && profile.categories[prod.category_id]) {
+    score += profile.categories[prod.category_id] * 50;
   }
-
-  // 3. Category match
-  if (prod.category_id && profile.categories && profile.categories[prod.category_id]) {
-    score += profile.categories[prod.category_id] * 80;
+  if (prod.brand && profile.brands[prod.brand.toLowerCase().trim()]) {
+    score += profile.brands[prod.brand.toLowerCase().trim()] * 30;
   }
-
-  // 4. Brand match
-  if (prod.brand && profile.brands && profile.brands[prod.brand.toLowerCase().trim()]) {
-    score += profile.brands[prod.brand.toLowerCase().trim()] * 60;
-  }
-
   return score;
 }
 
 /**
- * Returns instantaneous personalized product list for UI render (0ms),
- * preserving existing contract and signature for callers in HomePage.tsx.
+ * Amazon / Daraz Style: "Recommended For You" (আপনার পছন্দ হতে পারে)
+ * Personalizes specifically based on the user's browsing history, category affinities,
+ * and search keywords, or falls back to top-converting trending deals for new visitors.
  */
-export function getPersonalizedAndRotatedProducts(
-  products: Product[],
-  rotationIntervalHours = 2,
-  explicitIntentTerms?: string[]
-): Product[] {
-  if (!products || products.length === 0) return [];
-
-  const activeIntentTerms = explicitIntentTerms && explicitIntentTerms.length > 0
-    ? explicitIntentTerms
-    : getSavedSearchIntent();
+export function getRecommendedForYou(allProducts: Product[], limit = 12): Product[] {
+  if (!allProducts || allProducts.length === 0) return [];
   const profile = getUserInterestProfile();
+  const hasInterests =
+    Object.keys(profile.categories).length > 0 ||
+    Object.keys(profile.keywords).length > 0 ||
+    profile.viewedProductIds.length > 0;
 
-  // Pre-expand query terms ONCE for the entire batch (massive performance speedup)
-  const termSet = new Set<string>();
-  if (activeIntentTerms && activeIntentTerms.length > 0) {
-    for (const t of activeIntentTerms) {
-      if (!t) continue;
-      const clean = t.toLowerCase().trim();
-      termSet.add(clean);
-      expandQueryTerms(clean).forEach((e) => termSet.add(e.toLowerCase().trim()));
+  const viewedSet = new Set(profile.viewedProductIds);
+
+  if (hasInterests) {
+    // Score products based on user's demonstrated category, brand & keyword interests
+    const scored = allProducts
+      .filter((p) => p && p.id && !viewedSet.has(p.id)) // Recommend items they haven't viewed yet
+      .map((p) => {
+        let score = 0;
+        if (p.category_id && profile.categories[p.category_id]) {
+          score += profile.categories[p.category_id] * 50;
+        }
+        if (p.brand && profile.brands[p.brand.toLowerCase().trim()]) {
+          score += profile.brands[p.brand.toLowerCase().trim()] * 30;
+        }
+        const text = ((p as any)._searchKey || `${p.title || ''} ${p.tags || ''} ${p.sub_category || ''}`).toLowerCase();
+        for (const [kw, w] of Object.entries(profile.keywords)) {
+          if (text.includes(kw.toLowerCase())) score += w * 25;
+        }
+        if (p.is_trending) score += 15;
+        if (p.is_featured) score += 10;
+        if (p.rating && p.rating >= 4.5) score += 10;
+        if (p.discount_price && p.discount_price < p.price) score += 5;
+        return { product: p, score };
+      })
+      .filter((item) => item.score > 20);
+
+    if (scored.length >= 4) {
+      scored.sort((a, b) => b.score - a.score || a.product.id.localeCompare(b.product.id));
+      return scored.slice(0, limit).map((item) => item.product);
     }
   }
 
-  const timeSeed = Math.floor(Date.now() / (1000 * 60 * 60 * rotationIntervalHours));
+  // Cold-start fallback: Top trending, high-rated deals across popular categories
+  const topPicks = [...allProducts]
+    .filter((p) => p.is_trending || p.is_featured || (p.rating && p.rating >= 4.5))
+    .sort((a, b) => {
+      const scoreA = (a.rating || 4.5) * 10 + (a.is_trending ? 15 : 0) + (a.is_featured ? 10 : 0);
+      const scoreB = (b.rating || 4.5) * 10 + (b.is_trending ? 15 : 0) + (b.is_featured ? 10 : 0);
+      return scoreB - scoreA || a.id.localeCompare(b.id);
+    });
 
-  const ranked = products.map((prod) => {
-    let score = calculateProductRelevanceScore(prod, termSet, profile);
+  return topPicks.slice(0, limit);
+}
 
-    // High conversion factors
-    if (prod.is_trending) score += 4;
-    if (prod.is_featured) score += 3;
-    if (prod.discount_price && prod.discount_price < prod.price) score += 2.5;
+/**
+ * Amazon / Daraz Style: "Recently Viewed Items" (সম্প্রতি দেখা পণ্য)
+ * Preserves the exact chronological order of products the user explored.
+ */
+export function getRecentlyViewedProducts(allProducts: Product[], limit = 12): Product[] {
+  if (!allProducts || allProducts.length === 0) return [];
+  const profile = getUserInterestProfile();
+  if (!profile.viewedProductIds || profile.viewedProductIds.length === 0) return [];
 
-    // Subtle rotation
-    const rotationFactor = (getPseudoHash(prod.id, timeSeed) % 100) / 10;
-    return { product: prod, score: score * 2.5 + rotationFactor };
-  });
+  const productMap = new Map<string, Product>();
+  for (const p of allProducts) {
+    if (p && p.id) productMap.set(p.id, p);
+  }
 
-  ranked.sort((a, b) => b.score - a.score);
-  return ranked.map((item) => item.product);
+  const result: Product[] = [];
+  for (const id of profile.viewedProductIds) {
+    const prod = productMap.get(id);
+    if (prod) {
+      result.push(prod);
+      if (result.length >= limit) break;
+    }
+  }
+  return result;
+}
+
+/**
+ * Amazon / Daraz Style: "Customers Who Viewed This Also Viewed" (সম্পর্কিত পণ্য)
+ * Computes deep relevance against the active product using subcategory, tags, and category match.
+ */
+export function getRelatedProducts(currentProduct: Product, allProducts: Product[], limit = 10): Product[] {
+  if (!currentProduct || !allProducts || allProducts.length === 0) return [];
+
+  const currentTags = new Set(
+    (Array.isArray(currentProduct.tags) ? currentProduct.tags : [])
+      .map((t) => t.toLowerCase().trim())
+  );
+  const currentSubCat = (currentProduct.sub_category || '').toLowerCase().trim();
+
+  const scored = allProducts
+    .filter((p) => p && p.id && p.id !== currentProduct.id)
+    .map((p) => {
+      let score = 0;
+      const subCat = (p.sub_category || '').toLowerCase().trim();
+      if (currentSubCat && subCat && currentSubCat === subCat) {
+        score += 120; // Exact sub-category match is the strongest signal
+      }
+      if (p.category_id && currentProduct.category_id && p.category_id === currentProduct.category_id) {
+        score += 40;
+      }
+      if (Array.isArray(p.tags)) {
+        for (const t of p.tags) {
+          if (currentTags.has(t.toLowerCase().trim())) score += 25;
+        }
+      }
+      if (p.is_trending) score += 10;
+      if (p.is_featured) score += 5;
+      if (p.rating && p.rating >= 4.5) score += 5;
+
+      // Price range proximity bonus (±40% price bracket)
+      if (p.price && currentProduct.price) {
+        const ratio = p.price / currentProduct.price;
+        if (ratio >= 0.6 && ratio <= 1.4) score += 15;
+      }
+
+      return { product: p, score };
+    })
+    .filter((item) => item.score > 0);
+
+  scored.sort((a, b) => b.score - a.score || a.product.id.localeCompare(b.product.id));
+  return scored.slice(0, limit).map((item) => item.product);
+}
+
+function getBaseProductTitle(title?: string): string {
+  if (!title) return '';
+  return title
+    .replace(/\s*\([^)]*\)\s*$/g, '') // remove trailing (Green), (Golden)
+    .replace(/\s*–\s*.*$/g, '') // remove trailing subtitle
+    .toLowerCase()
+    .trim();
+}
+
+/**
+ * Amazon / Daraz Style: Rich Mixed & Diverse Catalog Feed ("Just For You" / "সকল পণ্য")
+ * 1. Base-title deduplication: Prevents 8 copies of the same watch or 15 copies of the same bra.
+ * 2. Reload-seeded freshness: Reloading the page produces a fresh mix, but while on the page, the order is 100% frozen.
+ * 3. Round-robin category interleaving: Every row has a diverse mix of all categories.
+ */
+export function getCuratedCatalogFeed(products: Product[], reloadSeed?: number): Product[] {
+  if (!products || products.length === 0) return [];
+
+  // 1. Deduplicate variant clones by base title so user never sees 8 duplicate watches or 15 bras!
+  const seenBase = new Set<string>();
+  const uniqueProducts: Product[] = [];
+  for (const p of products) {
+    if (!p || !p.id) continue;
+    const base = getBaseProductTitle(p.title);
+    if (base && seenBase.has(base)) continue;
+    if (base) seenBase.add(base);
+    uniqueProducts.push(p);
+  }
+
+  const CATEGORY_CYCLE = [
+    'electronic-accessories',
+    'womens-fashion',
+    'home-living',
+    'mens-fashion',
+    'watches-bags',
+    'computer-gaming',
+    'mother-baby',
+    'health-beauty',
+    'tv-home-appliances',
+    'automotives-motorbikes',
+  ];
+
+  // 2. Group products into category buckets
+  const categoryBuckets = new Map<string, Product[]>();
+  for (const cat of CATEGORY_CYCLE) {
+    categoryBuckets.set(cat, []);
+  }
+  const otherBucket: Product[] = [];
+
+  for (const p of uniqueProducts) {
+    const cat = p.category_id;
+    if (cat && categoryBuckets.has(cat)) {
+      categoryBuckets.get(cat)!.push(p);
+    } else {
+      otherBucket.push(p);
+    }
+  }
+
+  // Deterministic pseudo-random shuffle using reloadSeed (changes on reload, 100% stable while on page)
+  function pseudoShuffle<T>(arr: T[], seed: number): T[] {
+    const res = [...arr];
+    let s = seed;
+    for (let i = res.length - 1; i > 0; i--) {
+      s = (s * 9301 + 49297) % 233280;
+      const rnd = s / 233280;
+      const j = Math.floor(rnd * (i + 1));
+      [res[i], res[j]] = [res[j], res[i]];
+    }
+    return res;
+  }
+
+  // 3. Prepare buckets: diversify sub-categories and optionally shuffle with reloadSeed
+  const preparedBuckets = new Map<string, Product[]>();
+
+  for (const [cat, items] of categoryBuckets.entries()) {
+    let processedItems = items;
+    if (reloadSeed !== undefined && reloadSeed > 0) {
+      processedItems = pseudoShuffle(items, reloadSeed);
+    } else {
+      // Sort by priority/conversion if no seed
+      processedItems.sort((a, b) => {
+        const scoreA =
+          (a.is_trending ? 30 : 0) +
+          (a.is_featured ? 20 : 0) +
+          (a.rating || 0) +
+          (a.discount_price && a.discount_price < a.price ? 5 : 0);
+        const scoreB =
+          (b.is_trending ? 30 : 0) +
+          (b.is_featured ? 20 : 0) +
+          (b.rating || 0) +
+          (b.discount_price && b.discount_price < b.price ? 5 : 0);
+        return scoreB - scoreA || a.id.localeCompare(b.id);
+      });
+    }
+
+    // Sub-group by sub_category
+    const subGroups = new Map<string, Product[]>();
+    for (const item of processedItems) {
+      const sub = (item.sub_category || item.title.slice(0, 15) || 'general').toLowerCase().trim();
+      if (!subGroups.has(sub)) subGroups.set(sub, []);
+      subGroups.get(sub)!.push(item);
+    }
+
+    // Interleave sub-categories inside this category
+    const diversifiedCategoryList: Product[] = [];
+    const subLists = Array.from(subGroups.values());
+    let hasMoreSub = true;
+    let subRound = 0;
+
+    while (hasMoreSub) {
+      hasMoreSub = false;
+      for (const list of subLists) {
+        if (subRound < list.length) {
+          diversifiedCategoryList.push(list[subRound]);
+          hasMoreSub = true;
+        }
+      }
+      subRound++;
+    }
+
+    preparedBuckets.set(cat, diversifiedCategoryList);
+  }
+
+  const preparedOther =
+    reloadSeed !== undefined && reloadSeed > 0
+      ? pseudoShuffle(otherBucket, reloadSeed)
+      : otherBucket;
+
+  // 4. Interleave across all categories round-robin so every row has a diverse mix
+  const mixedFeed: Product[] = [];
+  const activeBuckets = CATEGORY_CYCLE.map((c) => preparedBuckets.get(c));
+  let hasMore = true;
+  let round = 0;
+
+  while (hasMore) {
+    hasMore = false;
+    for (const bucket of activeBuckets) {
+      if (bucket && round < bucket.length) {
+        mixedFeed.push(bucket[round]);
+        hasMore = true;
+      }
+    }
+    if (round < preparedOther.length) {
+      mixedFeed.push(preparedOther[round]);
+      hasMore = true;
+    }
+    round++;
+  }
+
+  return mixedFeed;
+}
+
+/**
+ * Backwards compatible stable feed generator.
+ * If reloadSeed is passed, applies fresh deterministic mix on reload.
+ * When on the page, seed remains static so products NEVER change while user is browsing.
+ */
+export function getPersonalizedAndRotatedProducts(
+  products: Product[],
+  _rotationIntervalHours = 2,
+  _explicitIntentTerms?: string[],
+  reloadSeed?: number
+): Product[] {
+  return getCuratedCatalogFeed(products, reloadSeed);
 }

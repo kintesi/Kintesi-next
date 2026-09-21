@@ -301,7 +301,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     "sub_category": "Cables, Converters & Hubs",
     "stock": 50,
     "images": [
-      "https://mohasagor.com.bd/public/storage/images/products/4BQ47gb7HC1anqjNVtyUAhgBukNWBFcYKXCXDIyj.png"
+      "https://res.cloudinary.com/dv8woouru/image/upload/v1789950367/4BQ47gb7HC1anqjNVtyUAhgBukNWBFcYKXCXDIyj.png"
     ],
     "rating": 4.8,
     "review_count": 12,
@@ -332,7 +332,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     "sub_category": "Bike Lights & LED Indicators",
     "stock": 1,
     "images": [
-      "https://mohasagor.com.bd/public/storage/images/products/GseLlSOFjGdTdRJk7KvAKcVMyWL0aGio8Q2jD1N2.png"
+      "https://res.cloudinary.com/dv8woouru/image/upload/v1789977507/GseLlSOFjGdTdRJk7KvAKcVMyWL0aGio8Q2jD1N2.webp"
     ],
     "rating": 4.8,
     "review_count": 12,
@@ -363,7 +363,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     "sub_category": "Home & Kitchen Essentials",
     "stock": 1,
     "images": [
-      "https://mohasagor.com.bd/public/storage/images/products/PdEfSErWKhtCdOdd2Q2GcLmBzrlIGTlX3rKDoKof.jpg"
+      "https://res.cloudinary.com/dv8woouru/image/upload/v1789977507/PdEfSErWKhtCdOdd2Q2GcLmBzrlIGTlX3rKDoKof.webp"
     ],
     "rating": 4.8,
     "review_count": 12,
@@ -394,7 +394,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     "sub_category": "Water Purifiers & Filters",
     "stock": 1,
     "images": [
-      "https://mohasagor.com.bd/public/storage/images/products/ZASB51oXpZpUBguxcKN1AZXUOnfhBhpbHK8ccsij.png"
+      "https://res.cloudinary.com/dv8woouru/image/upload/v1789977507/ZASB51oXpZpUBguxcKN1AZXUOnfhBhpbHK8ccsij.webp"
     ],
     "rating": 4.8,
     "review_count": 12,
@@ -425,7 +425,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     "sub_category": "Routers & Networking Gear",
     "stock": 50,
     "images": [
-      "https://mohasagor.com.bd/public/storage/images/products/bjRBtSU8DuVgoeK8FOUMK2Y47u7Q6FJQZk12goff.png"
+      "https://res.cloudinary.com/dv8woouru/image/upload/v1789977507/bjRBtSU8DuVgoeK8FOUMK2Y47u7Q6FJQZk12goff.webp"
     ],
     "rating": 4.8,
     "review_count": 12,
@@ -456,7 +456,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     "sub_category": "Home Decor, Lights & Lamps",
     "stock": 50,
     "images": [
-      "https://mohasagor.com.bd/public/storage/images/products/cd9xlIbQrp0NpkroAt0bkEkdOUHRQIWZvi38l8G8.png"
+      "https://res.cloudinary.com/dv8woouru/image/upload/v1789977554/cd9xlIbQrp0NpkroAt0bkEkdOUHRQIWZvi38l8G8.webp"
     ],
     "rating": 4.8,
     "review_count": 12,
@@ -487,7 +487,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     "sub_category": "Jackets, Hoodies & Winterwear",
     "stock": 50,
     "images": [
-      "https://mohasagor.com.bd/public/storage/images/products/l4mQu1nruNUikkD6cEMKKPF8jHw6xX48qmufJOqu.jpg"
+      "https://res.cloudinary.com/dv8woouru/image/upload/v1789977553/l4mQu1nruNUikkD6cEMKKPF8jHw6xX48qmufJOqu.webp"
     ],
     "rating": 4.8,
     "review_count": 12,
@@ -518,7 +518,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     "sub_category": "Home & Kitchen Essentials",
     "stock": 1,
     "images": [
-      "https://mohasagor.com.bd/public/storage/images/products/Pe5PuuhVK7nbnIN1jDNWOUExmRziYaoCNrI99xd4.png"
+      "https://res.cloudinary.com/dv8woouru/image/upload/v1789977554/Pe5PuuhVK7nbnIN1jDNWOUExmRziYaoCNrI99xd4.webp"
     ],
     "rating": 4.8,
     "review_count": 12,
@@ -549,7 +549,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     "sub_category": "Jackets, Hoodies & Winterwear",
     "stock": 2,
     "images": [
-      "https://mohasagor.com.bd/public/storage/images/products/O2ApzXor0ES6xzlS7JQl96GEJrX7pXsbEgfGMIHm.jpg"
+      "https://res.cloudinary.com/dv8woouru/image/upload/v1789977553/O2ApzXor0ES6xzlS7JQl96GEJrX7pXsbEgfGMIHm.webp"
     ],
     "rating": 4.8,
     "review_count": 12,
@@ -580,7 +580,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     "sub_category": "Jackets, Hoodies & Winterwear",
     "stock": 6,
     "images": [
-      "https://mohasagor.com.bd/public/storage/images/products/bLNIKDQTeHuX0GpoEzcryJKFdlgM3zO7te9qUKIH.jpg"
+      "https://res.cloudinary.com/dv8woouru/image/upload/v1789977554/bLNIKDQTeHuX0GpoEzcryJKFdlgM3zO7te9qUKIH.webp"
     ],
     "rating": 4.8,
     "review_count": 12,
@@ -611,7 +611,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     "sub_category": "Cables, Converters & Hubs",
     "stock": 50,
     "images": [
-      "https://mohasagor.com.bd/public/storage/images/products/Qtl3w4LH2dQ1eQTN69DxVQP6uk7Gz9Gg0APK6m55.png"
+      "https://res.cloudinary.com/dv8woouru/image/upload/v1789977554/Qtl3w4LH2dQ1eQTN69DxVQP6uk7Gz9Gg0APK6m55.webp"
     ],
     "rating": 4.8,
     "review_count": 12,
@@ -642,7 +642,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     "sub_category": "Routers & Networking Gear",
     "stock": 1,
     "images": [
-      "https://mohasagor.com.bd/public/storage/images/products/pmOa6Stx0vb74Tc9hKO5TbKniWOJpJP4EuxMnMrM.png"
+      "https://res.cloudinary.com/dv8woouru/image/upload/v1789977554/pmOa6Stx0vb74Tc9hKO5TbKniWOJpJP4EuxMnMrM.webp"
     ],
     "rating": 4.8,
     "review_count": 12,
@@ -673,7 +673,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     "sub_category": "Home & Kitchen Essentials",
     "stock": 4,
     "images": [
-      "https://mohasagor.com.bd/public/storage/images/products/K51TYNWv1zy4KmlKKwXSlZAWKWef6ELqEP1qer18.jpg"
+      "https://res.cloudinary.com/dv8woouru/image/upload/v1789977554/K51TYNWv1zy4KmlKKwXSlZAWKWef6ELqEP1qer18.webp"
     ],
     "rating": 4.8,
     "review_count": 12,
@@ -704,7 +704,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     "sub_category": "Home & Kitchen Essentials",
     "stock": 10,
     "images": [
-      "https://mohasagor.com.bd/public/storage/images/products/pXeM9GSVqwlLtXGKS6ar52fINBgVZNwnDbJ26b0p.jpg"
+      "https://res.cloudinary.com/dv8woouru/image/upload/v1789977554/pXeM9GSVqwlLtXGKS6ar52fINBgVZNwnDbJ26b0p.webp"
     ],
     "rating": 4.8,
     "review_count": 12,
@@ -735,7 +735,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     "sub_category": "Home & Kitchen Essentials",
     "stock": 4,
     "images": [
-      "https://mohasagor.com.bd/public/storage/images/products/585Dsq7WYvxgItsVtdRTu4v5htZZnJtzZewMplVP.webp"
+      "https://res.cloudinary.com/dv8woouru/image/upload/v1789977554/585Dsq7WYvxgItsVtdRTu4v5htZZnJtzZewMplVP.webp"
     ],
     "rating": 4.8,
     "review_count": 12,
@@ -766,7 +766,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     "sub_category": "Home & Kitchen Essentials",
     "stock": 69,
     "images": [
-      "https://mohasagor.com.bd/public/storage/images/products/SMso1qHQ5pgUItWQoIAj7JKGWAGlvw1oeemBuRyz.jpg"
+      "https://res.cloudinary.com/dv8woouru/image/upload/v1789977554/SMso1qHQ5pgUItWQoIAj7JKGWAGlvw1oeemBuRyz.webp"
     ],
     "rating": 4.8,
     "review_count": 12,
@@ -797,7 +797,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     "sub_category": "Activewear & Sportswear",
     "stock": 50,
     "images": [
-      "https://mohasagor.com.bd/public/storage/images/products/UpG8zJxrUofDm6wzCVE1WUVWvoxz7nNdIiFk8xoK.jpg"
+      "https://res.cloudinary.com/dv8woouru/image/upload/v1789977554/UpG8zJxrUofDm6wzCVE1WUVWvoxz7nNdIiFk8xoK.webp"
     ],
     "rating": 4.8,
     "review_count": 12,
@@ -827,7 +827,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     "sub_category": "Panjabi & Payjama",
     "stock": 35,
     "images": [
-      "https://mohasagor.com.bd/public/storage/images/products/POHCnr8h5y2xcNxEk4q342OMXee6qMLvvFkpmJxa.jpg"
+      "https://res.cloudinary.com/dv8woouru/image/upload/v1789977555/POHCnr8h5y2xcNxEk4q342OMXee6qMLvvFkpmJxa.webp"
     ],
     "rating": 4.8,
     "review_count": 12,
@@ -858,7 +858,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     "sub_category": "Hair Care, Shampoos & Oils",
     "stock": 50,
     "images": [
-      "https://mohasagor.com.bd/public/storage/images/products/Uc5I4LEMoKs0Q6fzZ01czazkgaZ8Io5PoSzawDf5.png"
+      "https://res.cloudinary.com/dv8woouru/image/upload/v1789977555/Uc5I4LEMoKs0Q6fzZ01czazkgaZ8Io5PoSzawDf5.webp"
     ],
     "rating": 4.8,
     "review_count": 12,
@@ -889,7 +889,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     "sub_category": "Water Purifiers & Filters",
     "stock": 1,
     "images": [
-      "https://mohasagor.com.bd/public/storage/images/products/WYUnHFJjlOnP9YYsWsOLMgeWewG9WaYDIUEJ6jzk.png"
+      "https://res.cloudinary.com/dv8woouru/image/upload/v1789977555/WYUnHFJjlOnP9YYsWsOLMgeWewG9WaYDIUEJ6jzk.webp"
     ],
     "rating": 4.8,
     "review_count": 12,
@@ -920,7 +920,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     "sub_category": "Dinnerware & Cutlery",
     "stock": 50,
     "images": [
-      "https://mohasagor.com.bd/public/storage/images/products/i6GE7SeEv96oOWvdezV4IoxWgT2SUd4Syzk6PhwY.png"
+      "https://res.cloudinary.com/dv8woouru/image/upload/v1789977555/i6GE7SeEv96oOWvdezV4IoxWgT2SUd4Syzk6PhwY.webp"
     ],
     "rating": 4.8,
     "review_count": 12,
@@ -951,7 +951,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     "sub_category": "PC Components & Graphics Cards",
     "stock": 14,
     "images": [
-      "https://mohasagor.com.bd/public/storage/images/products/iZN2WstREjkxhAU9PMEkJU1iVMk98wa6theV7vSd.webp"
+      "https://res.cloudinary.com/dv8woouru/image/upload/v1789977555/iZN2WstREjkxhAU9PMEkJU1iVMk98wa6theV7vSd.webp"
     ],
     "rating": 4.8,
     "review_count": 12,
@@ -982,7 +982,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     "sub_category": "Jeans, Chinos & Trousers",
     "stock": 66,
     "images": [
-      "https://mohasagor.com.bd/public/storage/images/products/Xl8qDDlWPpBlzYKEnh3EVag1ym56XZp2EnChG3J4.jpg"
+      "https://res.cloudinary.com/dv8woouru/image/upload/v1789977555/Xl8qDDlWPpBlzYKEnh3EVag1ym56XZp2EnChG3J4.webp"
     ],
     "rating": 4.8,
     "review_count": 12,
@@ -1013,7 +1013,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     "sub_category": "Ceiling & Standing Fans",
     "stock": 50,
     "images": [
-      "https://mohasagor.com.bd/public/storage/images/products/oEyRoL5B7qb9D4N5KDGwXVaDr0RTNYr1SCJYzdmy.png"
+      "https://res.cloudinary.com/dv8woouru/image/upload/v1789977555/oEyRoL5B7qb9D4N5KDGwXVaDr0RTNYr1SCJYzdmy.webp"
     ],
     "rating": 4.8,
     "review_count": 12,

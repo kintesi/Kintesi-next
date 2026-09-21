@@ -76,7 +76,13 @@ export function optimizeImageUrl(url?: string | null, width = 400): string {
     return url;
   }
 
-  // 2. Direct high-speed origin delivery (eliminates slow third-party proxy latency)
+  // 2. Legacy unmigrated Mohasagor raw storage: on-the-fly WebP compression & edge caching
+  // Compresses 1.8MB raw PNGs down to ~20KB WebP via Cloudflare global edge
+  if (url.includes('mohasagor.com.bd')) {
+    return `https://wsrv.nl/?url=${encodeURIComponent(url)}&w=${width}&q=80&output=webp`;
+  }
+
+  // 3. Direct origin fallback
   return url;
 }
 

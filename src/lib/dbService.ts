@@ -15,6 +15,7 @@ import { supabase } from './supabase';
 import { Product, Category, Order } from '../types';
 import { INITIAL_CATEGORIES } from '../data/mockData';
 import { FLASH_SALE_PRODUCTS } from '../data/flashSaleProducts';
+import { getCuratedCatalogFeed } from './recommendationEngine';
 
 // Timeout wrapper so slow network queries failover gracefully without freezing UI
 function withTimeout<T>(promise: PromiseLike<T>, ms: number = 3500): Promise<T> {
@@ -106,12 +107,13 @@ export async function getInitialProducts(limit: number = 36): Promise<Product[]>
     return _memoryProductsCache.slice(0, limit);
   }
 
-  const CACHE_VERSION = 'v21_flash_sale_instant_sync';
+  const CACHE_VERSION = 'v24_mixed_diverse_catalog';
   if (typeof window !== 'undefined') {
     try {
       if (localStorage.getItem('kintesi_cache_ver') !== CACHE_VERSION) {
         localStorage.removeItem('kintesi_initial_products');
         localStorage.removeItem('kintesi_custom_products');
+        localStorage.removeItem('kintesi_detected_search_intent');
         localStorage.setItem('kintesi_cache_ver', CACHE_VERSION);
       }
       const cached = localStorage.getItem('kintesi_initial_products');
@@ -120,7 +122,8 @@ export async function getInitialProducts(limit: number = 36): Promise<Product[]>
         if (Array.isArray(parsed) && parsed.length > 0) {
           const existingIds = new Set(parsed.map((p: any) => p.id));
           const missingFlash = FLASH_SALE_PRODUCTS.filter((p) => !existingIds.has(p.id));
-          return [...missingFlash, ...parsed].slice(0, limit);
+          const curated = getCuratedCatalogFeed([...missingFlash, ...parsed]);
+          return curated.slice(0, limit);
         }
       }
     } catch {}
@@ -128,12 +131,13 @@ export async function getInitialProducts(limit: number = 36): Promise<Product[]>
 
   // Fast fetch from Supabase
   try {
+    const fetchRange = Math.max(limit * 3, 120);
     const { data, error } = await withTimeout<any>(
       supabase
         .from('products')
         .select(PRODUCT_SUMMARY_FIELDS)
         .order('created_at', { ascending: false })
-        .range(0, limit - 1),
+        .range(0, fetchRange - 1),
       4000
     );
 
@@ -144,16 +148,16 @@ export async function getInitialProducts(limit: number = 36): Promise<Product[]>
 
       const existingIds = new Set(clean.map((p: any) => p.id));
       const missingFlash = FLASH_SALE_PRODUCTS.filter((p) => !existingIds.has(p.id));
-      const combined = [...missingFlash, ...clean];
+      const curated = getCuratedCatalogFeed([...missingFlash, ...clean]);
 
       if (typeof window !== 'undefined') {
         try {
-          localStorage.setItem('kintesi_initial_products', JSON.stringify(combined));
+          localStorage.setItem('kintesi_initial_products', JSON.stringify(curated.slice(0, 48)));
           localStorage.removeItem('kintesi_custom_products');
         } catch {}
       }
 
-      return combined.slice(0, limit);
+      return curated.slice(0, limit);
     }
   } catch (err) {
     console.warn('Initial products fast fetch note:', err);
@@ -245,8 +249,8 @@ export async function getProductsFromDB(options: { force?: boolean; limit?: numb
         // Save lightweight initial screen items (48 products) for instant paint
         if (typeof window !== 'undefined') {
           try {
-            localStorage.setItem('kintesi_initial_products', JSON.stringify(dedupedProducts.slice(0, 48)));
-            window.dispatchEvent(new CustomEvent('kintesi_products_updated'));
+            const curatedInitial = getCuratedCatalogFeed(dedupedProducts).slice(0, 48);
+            localStorage.setItem('kintesi_initial_products', JSON.stringify(curatedInitial));
           } catch {}
         }
 

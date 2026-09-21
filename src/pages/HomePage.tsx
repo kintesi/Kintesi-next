@@ -8,9 +8,11 @@ import { FLASH_SALE_PRODUCTS } from '../data/flashSaleProducts';
 import { ProductCard } from '../components/common/ProductCard';
 import { FlashSaleBanner } from '../components/home/FlashSaleBanner';
 import { ShowcaseStrip } from '../components/home/ShowcaseStrip';
+import { RecentlyViewedShelf } from '../components/home/RecentlyViewedShelf';
 import { useSettings, ShowcaseSection, DEFAULT_SHOWCASES } from '../contexts/SettingsContext';
 import {
   getPersonalizedAndRotatedProducts,
+  getCuratedCatalogFeed,
   detectAndSaveSearchIntent,
   extractKeywords,
   getSavedSearchIntent,
@@ -261,9 +263,11 @@ export const HomePage: React.FC = () => {
     return saved && saved.length > 0 ? saved[0] : null;
   }, [location.search, intentVersion]);
 
-  // 2. Personalized & Rotated Product Feed:
-  // Recommended products (matching active search intent) are ranked 1st at the top!
-  // Followed by all remaining products gradually below.
+  const [reloadSeed] = useState<number>(() => Math.floor(Math.random() * 1000000) + 1);
+
+  // Curated, diverse mixed catalog feed:
+  // - On page reload: Fresh random seed produces a new exciting product mix
+  // - While user is on page: Seed is fixed so products NEVER change or jump unexpectedly!
   const personalizedProducts = useMemo(() => {
     const uniqueMap = new Map<string, Product>();
     for (const p of products) {
@@ -272,29 +276,8 @@ export const HomePage: React.FC = () => {
       }
     }
     const uniquePool = Array.from(uniqueMap.values());
-
-    // 1. Direct High-Priority Intent Match Guarantee:
-    // If user typed in search bar or arrived via ad/campaign (e.g. "fan", "ঘড়ি", "mouse", "watch"),
-    // all matching products are GUARANTEED to be pinned immediately to the top of the grid (#1 spot)!
-    if (activeIntentBadge && activeIntentBadge.trim()) {
-      const matching: Product[] = [];
-      const nonMatching: Product[] = [];
-      for (const p of uniquePool) {
-        if (matchesProductSearch(p, activeIntentBadge)) {
-          matching.push(p);
-        } else {
-          nonMatching.push(p);
-        }
-      }
-      if (matching.length > 0) {
-        const rotatedRest = getPersonalizedAndRotatedProducts(nonMatching, 2);
-        return [...matching, ...rotatedRest];
-      }
-    }
-
-    const activeTerms = activeIntentBadge ? [activeIntentBadge] : undefined;
-    return getPersonalizedAndRotatedProducts(uniquePool, 2, activeTerms);
-  }, [products, intentVersion, location.search, activeIntentBadge]);
+    return getCuratedCatalogFeed(uniquePool, reloadSeed);
+  }, [products, reloadSeed]);
 
   const handleClearIntent = () => {
     clearSearchIntent();
@@ -497,6 +480,11 @@ export const HomePage: React.FC = () => {
               </div>
             </>
           )}
+        </div>
+
+        {/* 6. Amazon / Daraz Style: Recently Viewed Shelf */}
+        <div className="px-3">
+          <RecentlyViewedShelf products={products} />
         </div>
 
       </div>
@@ -795,6 +783,11 @@ export const HomePage: React.FC = () => {
               </div>
             </>
           )}
+        </section>
+
+        {/* 6. Amazon / Daraz Style: Recently Viewed Shelf */}
+        <section className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
+          <RecentlyViewedShelf products={products} />
         </section>
 
       </div>
