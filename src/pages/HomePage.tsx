@@ -481,17 +481,17 @@ export const HomePage: React.FC = () => {
           <div className="flex items-center justify-between px-0.5">
             <div className="flex items-center gap-2">
               <div className="w-2.5 h-2.5 rounded-full bg-rose-500 animate-pulse" />
-              <h2 className="text-sm font-black text-gray-900 tracking-tight">সকল পণ্য (Just For You)</h2>
+              <h2 className="text-sm font-black text-gray-900 tracking-tight">Just For You</h2>
             </div>
             <button
               type="button"
               onClick={handleRefreshFeed}
               disabled={isRefreshingFeed}
               className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-rose-50 text-gray-700 hover:text-rose-600 rounded-full border border-gray-200 text-[11px] font-bold shadow-2xs active:scale-95 transition-all cursor-pointer"
-              title="নতুন পণ্য দেখুন (রিলোড)"
+              title="Fresh Mix"
             >
               <RotateCw className={`w-3 h-3 ${isRefreshingFeed ? 'animate-spin text-rose-600' : 'text-gray-500'}`} />
-              <span>নতুন পণ্য দেখুন</span>
+              <span>Fresh Mix</span>
             </button>
           </div>
 
@@ -531,7 +531,7 @@ export const HomePage: React.FC = () => {
                   personalizedProducts.length > 12 && (
                     <div className="text-center py-2 space-y-1">
                       <p className="text-[11px] font-medium text-gray-400">
-                        ✓ All {personalizedProducts.length} items loaded
+                        ✓ All products loaded
                       </p>
                     </div>
                   )
@@ -788,8 +788,8 @@ export const HomePage: React.FC = () => {
                 <Sparkles className="w-4 h-4" />
               </div>
               <div>
-                <h2 className="text-lg font-black text-gray-950 tracking-tight">সকল পণ্য (Just For You)</h2>
-                <p className="text-xs text-gray-500 font-medium">আপনার জন্য নির্বাচিত সেরা ও মানসম্মত পণ্যের সমাহার</p>
+                <h2 className="text-lg font-black text-gray-950 tracking-tight">Just For You</h2>
+                <p className="text-xs text-gray-500 font-medium">Explore curated products selected for you</p>
               </div>
             </div>
             <button
@@ -797,10 +797,10 @@ export const HomePage: React.FC = () => {
               onClick={handleRefreshFeed}
               disabled={isRefreshingFeed}
               className="group inline-flex items-center gap-2 px-4 py-2 bg-white hover:bg-rose-50 text-gray-700 hover:text-rose-600 rounded-xl border border-gray-200 hover:border-rose-200 text-xs font-bold shadow-2xs hover:shadow-xs active:scale-95 transition-all cursor-pointer"
-              title="নতুন পণ্য দেখুন (রিলোড)"
+              title="Fresh Mix"
             >
               <RotateCw className={`w-3.5 h-3.5 ${isRefreshingFeed ? 'animate-spin text-rose-600' : 'text-gray-500 group-hover:text-rose-600'}`} />
-              <span>নতুন পণ্য দেখুন</span>
+              <span>Fresh Mix</span>
             </button>
           </div>
 
@@ -841,25 +841,20 @@ export const HomePage: React.FC = () => {
               {/* Desktop Interactive Load More Section (Eliminates scroll lag and DOM freeze) */}
               <div className="w-full flex flex-col items-center justify-center pt-8 pb-4 gap-3">
                 {desktopVisibleCount < totalCatalogCount ? (
-                  <>
-                    <button
-                      type="button"
-                      onClick={() => setDesktopVisibleCount((prev) => Math.min(prev + 18, totalCatalogCount))}
-                      className="group inline-flex items-center gap-2.5 px-8 py-3.5 bg-white hover:bg-rose-600 text-gray-800 hover:text-white font-extrabold text-sm rounded-2xl border-2 border-rose-200 hover:border-rose-600 shadow-xs hover:shadow-lg hover:shadow-rose-600/20 transition-all duration-300 cursor-pointer active:scale-98"
-                    >
-                      <ShoppingBag className="w-4 h-4 text-rose-600 group-hover:text-white transition-colors" />
-                      <span>আরও পণ্য দেখুন ({Math.max(0, totalCatalogCount - desktopVisibleCount)}টি বাকি)</span>
-                      <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                    </button>
-                    <p className="text-xs text-gray-400 font-medium">
-                      Showing {Math.min(desktopVisibleCount, totalCatalogCount)} of {totalCatalogCount} items
-                    </p>
-                  </>
+                  <button
+                    type="button"
+                    onClick={() => setDesktopVisibleCount((prev) => Math.min(prev + 18, totalCatalogCount))}
+                    className="group inline-flex items-center gap-2.5 px-8 py-3.5 bg-white hover:bg-rose-600 text-gray-800 hover:text-white font-extrabold text-sm rounded-2xl border-2 border-rose-200 hover:border-rose-600 shadow-xs hover:shadow-lg hover:shadow-rose-600/20 transition-all duration-300 cursor-pointer active:scale-98"
+                  >
+                    <ShoppingBag className="w-4 h-4 text-rose-600 group-hover:text-white transition-colors" />
+                    <span>Load More Products</span>
+                    <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                  </button>
                 ) : (
                   totalCatalogCount > 0 && (
                     <div className="flex items-center gap-2 text-xs text-emerald-600 font-semibold bg-emerald-50 px-4 py-2 rounded-full border border-emerald-200/60">
                       <CheckCircle2 className="w-4 h-4" />
-                      <span>সব {totalCatalogCount}টি পণ্য লোড হয়েছে</span>
+                      <span>All products loaded</span>
                     </div>
                   )
                 )}

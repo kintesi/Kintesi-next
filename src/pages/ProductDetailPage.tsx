@@ -685,50 +685,72 @@ export const ProductDetailPage: React.FC = () => {
     <div className="bg-[#f6f7f9] sm:bg-transparent min-h-screen py-3 sm:py-8 pb-28 md:pb-12">
       <div className="max-w-[1440px] mx-auto px-2.5 sm:px-6 lg:px-8 space-y-3 sm:space-y-8">
         
-        {/* Category & Subcategory Breadcrumb: Category > Sub-category */}
-        <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-xs text-gray-500 overflow-x-auto whitespace-nowrap pb-1 no-scrollbar">
-          <span className="hidden sm:inline-flex items-center gap-1.5">
-            <Link to="/" className="hover:text-rose-600 transition">Home</Link>
-            <span className="text-gray-400">/</span>
-            <Link to="/shop" className="hover:text-rose-600 transition">Shop</Link>
-            <span className="text-gray-400">/</span>
-          </span>
-          {product.category_id && (() => {
-            let catList = INITIAL_CATEGORIES;
-            try {
-              const saved = localStorage.getItem('kintesi_custom_categories');
-              if (saved) {
-                const parsed = JSON.parse(saved);
-                if (Array.isArray(parsed) && parsed.length > 0) catList = parsed;
-              }
-            } catch {}
-            const catObj = catList.find(
-              (c) => c.slug.toLowerCase() === product.category_id.toLowerCase() || c.id.toLowerCase() === product.category_id.toLowerCase()
-            );
-            const catDisplayName = catObj?.name || product.category_id.replace(/[-_]/g, ' ');
-            return (
-              <div className="inline-flex items-center gap-1.5 text-[11px] sm:text-xs">
-                <Link
-                  to={`/shop?category=${encodeURIComponent(catObj?.slug || product.category_id)}`}
-                  className="hover:text-rose-600 font-semibold text-gray-700 transition"
-                >
-                  {catDisplayName}
-                </Link>
-                {product.sub_category && (
-                  <>
-                    <ChevronRight className="w-3 h-3 text-gray-400 shrink-0" />
-                    <Link
-                      to={`/shop?category=${encodeURIComponent(catObj?.slug || product.category_id)}&sub_category=${encodeURIComponent(product.sub_category)}`}
-                      className="text-rose-600 font-bold hover:underline"
-                    >
-                      {product.sub_category}
-                    </Link>
-                  </>
-                )}
-              </div>
-            );
-          })()}
-        </nav>
+        {/* Category & Subcategory Breadcrumb + Admin Supplier Link */}
+        <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-gray-500 pb-1">
+          <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 overflow-x-auto whitespace-nowrap no-scrollbar py-1">
+            <span className="hidden sm:inline-flex items-center gap-1.5">
+              <Link to="/" className="hover:text-rose-600 transition">Home</Link>
+              <span className="text-gray-400">/</span>
+              <Link to="/shop" className="hover:text-rose-600 transition">Shop</Link>
+              <span className="text-gray-400">/</span>
+            </span>
+            {product.category_id && (() => {
+              let catList = INITIAL_CATEGORIES;
+              try {
+                const saved = localStorage.getItem('kintesi_custom_categories');
+                if (saved) {
+                  const parsed = JSON.parse(saved);
+                  if (Array.isArray(parsed) && parsed.length > 0) catList = parsed;
+                }
+              } catch {}
+              const catObj = catList.find(
+                (c) => c.slug.toLowerCase() === product.category_id.toLowerCase() || c.id.toLowerCase() === product.category_id.toLowerCase()
+              );
+              const catDisplayName = catObj?.name || product.category_id.replace(/[-_]/g, ' ');
+              return (
+                <div className="inline-flex items-center gap-1.5 text-[11px] sm:text-xs">
+                  <Link
+                    to={`/shop?category=${encodeURIComponent(catObj?.slug || product.category_id)}`}
+                    className="hover:text-rose-600 font-semibold text-gray-700 transition"
+                  >
+                    {catDisplayName}
+                  </Link>
+                  {product.sub_category && (
+                    <>
+                      <ChevronRight className="w-3 h-3 text-gray-400 shrink-0" />
+                      <Link
+                        to={`/shop?category=${encodeURIComponent(catObj?.slug || product.category_id)}&sub_category=${encodeURIComponent(product.sub_category)}`}
+                        className="text-rose-600 font-bold hover:underline"
+                      >
+                        {product.sub_category}
+                      </Link>
+                    </>
+                  )}
+                </div>
+              );
+            })()}
+          </nav>
+
+          {/* Admin Supplier Link at Top-Right (Clean & Discrete) */}
+          {isAdmin && (activeColorObj?.dropshipping_url || product.dropshipping_url) && (
+            <a
+              href={activeColorObj?.dropshipping_url || product.dropshipping_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-rose-50 to-orange-50 hover:from-rose-100 hover:to-orange-100 text-rose-700 border border-rose-200/90 rounded-xl text-xs font-bold shadow-2xs hover:shadow-xs transition active:scale-95 shrink-0 cursor-pointer"
+              title="View Supplier Product Page (Admin Only)"
+            >
+              <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse" />
+              <span>Supplier Link (Admin)</span>
+              {activeColorObj?.name && (
+                <span className="text-[10px] px-1.5 py-0.2 rounded bg-rose-200/70 text-rose-800 font-extrabold">
+                  {activeColorObj.name}
+                </span>
+              )}
+              <ExternalLink className="w-3.5 h-3.5 ml-0.5" />
+            </a>
+          )}
+        </div>
 
         {/* Product Main Section: 2 Balanced Columns (Gallery 6 cols | Details & Delivery Buy Box 6 cols) */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 sm:gap-6 lg:gap-10 items-start">
@@ -952,37 +974,6 @@ export const ProductDetailPage: React.FC = () => {
 
             {/* Card 2: Variations (Color, Size, Custom Attributes), Quantity & Purchase Actions */}
             <div className="bg-white rounded-2xl sm:rounded-3xl border border-gray-100 p-4 sm:p-6 shadow-xs space-y-4">
-              
-              {/* Admin Supplier Link Banner */}
-              {isAdmin && (activeColorObj?.dropshipping_url || product.dropshipping_url) && (
-                <div className="p-3 bg-gradient-to-r from-rose-50 to-orange-50 dark:from-rose-950/40 dark:to-orange-950/20 border border-rose-200/80 dark:border-rose-900/60 rounded-xl flex flex-wrap items-center justify-between gap-2.5 text-xs shadow-2xs">
-                  <div className="flex items-center gap-2 min-w-0">
-                    <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse shrink-0" />
-                    <div className="flex flex-col min-w-0">
-                      <span className="font-bold text-gray-900 dark:text-gray-100 text-xs flex items-center gap-1.5">
-                        <span>সাপ্লায়ার লিংক (Admin Only)</span>
-                        {activeColorObj?.name && (
-                          <span className="text-[10px] px-1.5 py-0.2 rounded bg-rose-100 dark:bg-rose-900/60 text-rose-700 dark:text-rose-300 font-extrabold">
-                            {activeColorObj.name}
-                          </span>
-                        )}
-                      </span>
-                      <span className="text-[11px] text-gray-500 font-mono truncate max-w-[240px] sm:max-w-xs">
-                        {activeColorObj?.dropshipping_url || product.dropshipping_url}
-                      </span>
-                    </div>
-                  </div>
-                  <a
-                    href={activeColorObj?.dropshipping_url || product.dropshipping_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-lg font-bold flex items-center gap-1.5 shadow-xs transition active:scale-95 text-xs shrink-0 cursor-pointer"
-                  >
-                    <span>সাপ্লায়ার সাইটে দেখুন</span>
-                    <ExternalLink className="w-3.5 h-3.5" />
-                  </a>
-                </div>
-              )}
 
               {/* Color Selection - Modern Minimalist Round Swatches */}
               {isRealColorList && normalizedColors.length > 0 && (
