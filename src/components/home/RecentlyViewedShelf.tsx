@@ -17,8 +17,9 @@ export const RecentlyViewedShelf: React.FC<RecentlyViewedShelfProps> = ({
   subtitle = 'Easily find products you explored recently',
 }) => {
   const [version, setVersion] = useState(0);
-  const [isPaused, setIsPaused] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const isHoveredRef = useRef(false);
+  const animationFrameRef = useRef<number | null>(null);
 
   useEffect(() => {
     const handleUpdate = () => setVersion((v) => v + 1);
@@ -30,6 +31,21 @@ export const RecentlyViewedShelf: React.FC<RecentlyViewedShelfProps> = ({
     return getRecentlyViewedProducts(products, 12);
   }, [products, version]);
 
+  // Infinite duplicate list to ensure seamless 360-degree looping without any jump
+  const displayItems = useMemo(() => {
+    if (recentlyViewed.length === 0) return [];
+    if (recentlyViewed.length < 6) {
+      // Repeat enough times to fill width and wrap seamlessly
+      return [
+        ...recentlyViewed,
+        ...recentlyViewed,
+        ...recentlyViewed,
+        ...recentlyViewed,
+      ];
+    }
+    return [...recentlyViewed, ...recentlyViewed];
+  }, [recentlyViewed]);
+
   const handleClearHistory = () => {
     const profile = getUserInterestProfile();
     profile.viewedProductIds = [];
@@ -37,56 +53,71 @@ export const RecentlyViewedShelf: React.FC<RecentlyViewedShelfProps> = ({
     setVersion((v) => v + 1);
   };
 
-  const scrollLeft = useCallback(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollBy({ left: -220, behavior: 'smooth' });
-    }
-  }, []);
-
-  const scrollRight = useCallback(() => {
+  const scrollPrev = useCallback(() => {
     if (scrollRef.current) {
       const container = scrollRef.current;
-      const maxScroll = container.scrollWidth - container.clientWidth;
-      if (container.scrollLeft >= maxScroll - 15) {
-        container.scrollTo({ left: 0, behavior: 'smooth' });
-      } else {
-        container.scrollBy({ left: 220, behavior: 'smooth' });
+      const halfWidth = container.scrollWidth / 2;
+      container.scrollBy({ left: -240, behavior: 'smooth' });
+      if (container.scrollLeft <= 0 && halfWidth > 0) {
+        container.scrollLeft += halfWidth;
       }
     }
   }, []);
 
-  // Auto-scroll effect: smoothly scrolls horizontally every 2.8 seconds, pauses on hover/touch
+  const scrollNext = useCallback(() => {
+    if (scrollRef.current) {
+      const container = scrollRef.current;
+      const halfWidth = container.scrollWidth / 2;
+      container.scrollBy({ left: 240, behavior: 'smooth' });
+      if (container.scrollLeft >= halfWidth && halfWidth > 0) {
+        container.scrollLeft -= halfWidth;
+      }
+    }
+  }, []);
+
+  // Smooth continuous infinite scrolling without sudden jumps (ak dhape jump korbe na)
   useEffect(() => {
-    if (isPaused || recentlyViewed.length <= 1) return;
+    const container = scrollRef.current;
+    if (!container || recentlyViewed.length <= 1) return;
 
-    const timer = setInterval(() => {
-      const container = scrollRef.current;
-      if (!container) return;
+    let lastTime = performance.now();
+    const speed = 36; // Constant smooth gliding speed: 36px/sec
 
-      const maxScroll = container.scrollWidth - container.clientWidth;
-      if (maxScroll <= 0) return;
+    const animate = (currentTime: number) => {
+      const delta = (currentTime - lastTime) / 1000;
+      lastTime = currentTime;
 
-      if (container.scrollLeft >= maxScroll - 15) {
-        // Smoothly loop back to start
-        container.scrollTo({ left: 0, behavior: 'smooth' });
-      } else {
-        // Scroll forward by card step
-        const step = container.clientWidth > 640 ? 220 : 170;
-        container.scrollBy({ left: step, behavior: 'smooth' });
+      if (!isHoveredRef.current && container) {
+        const halfWidth = container.scrollWidth / 2;
+        if (halfWidth > 0) {
+          container.scrollLeft += speed * delta;
+          // When we pass the first duplicate segment, seamlessly offset back without any visual jump
+          if (container.scrollLeft >= halfWidth) {
+            container.scrollLeft -= halfWidth;
+          }
+        }
       }
-    }, 2800);
 
-    return () => clearInterval(timer);
-  }, [isPaused, recentlyViewed.length]);
+      animationFrameRef.current = requestAnimationFrame(animate);
+    };
+
+    animationFrameRef.current = requestAnimationFrame(animate);
+
+    return () => {
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+    };
+  }, [recentlyViewed.length, displayItems]);
 
   if (recentlyViewed.length === 0) return null;
 
   return (
     <section className="my-6 md:my-10">
       <div 
-        className="bg-white border border-gray-200/80 rounded-2xl md:rounded-3xl p-4 sm:p-6 shadow-xs transition-shadow hover:shadow-sm"
-        onMouseEnter={() => setIsPaused(true)}
-        onMouseLeave={() => setIsPaused(false)}
+        className="bg-white border border-gray-200/80 rounded-2xl md:rounded-3xl p-4 sm:p-6 shadow-xs"
+        onMouseEnter={() => { isHoveredRef.current = true; }}
+        onMouseLeave={() => { isHoveredRef.current = false; }}
       >
         {/* Header */}
         <div className="flex items-center justify-between gap-3 mb-4 md:mb-6">
@@ -105,12 +136,12 @@ export const RecentlyViewedShelf: React.FC<RecentlyViewedShelfProps> = ({
           </div>
 
           <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
-            {/* Scroll navigation arrows */}
+            {/* Manual navigation buttons */}
             {recentlyViewed.length > 2 && (
               <div className="flex items-center gap-1 mr-1">
                 <button
                   type="button"
-                  onClick={scrollLeft}
+                  onClick={scrollPrev}
                   title="Scroll Left"
                   aria-label="Scroll left"
                   className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg border border-gray-200 hover:border-gray-300 hover:bg-gray-100 flex items-center justify-center text-gray-600 hover:text-gray-900 transition cursor-pointer"
@@ -119,7 +150,7 @@ export const RecentlyViewedShelf: React.FC<RecentlyViewedShelfProps> = ({
                 </button>
                 <button
                   type="button"
-                  onClick={scrollRight}
+                  onClick={scrollNext}
                   title="Scroll Right"
                   aria-label="Scroll right"
                   className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg border border-gray-200 hover:border-gray-300 hover:bg-gray-100 flex items-center justify-center text-gray-600 hover:text-gray-900 transition cursor-pointer"
@@ -147,17 +178,25 @@ export const RecentlyViewedShelf: React.FC<RecentlyViewedShelfProps> = ({
           </div>
         </div>
 
-        {/* Horizontal scrollable row with auto-scroll */}
+        {/* Horizontal scrollable row: Seamless infinite smooth glide, NO scrollbar slider */}
         <div
           ref={scrollRef}
-          onTouchStart={() => setIsPaused(true)}
-          onTouchEnd={() => setIsPaused(false)}
-          className="flex gap-3 sm:gap-4 overflow-x-auto pb-2 scrollbar-none snap-x snap-mandatory scroll-smooth"
+          onTouchStart={() => { isHoveredRef.current = true; }}
+          onTouchEnd={() => {
+            setTimeout(() => {
+              isHoveredRef.current = false;
+            }, 800);
+          }}
+          style={{
+            scrollbarWidth: 'none',
+            msOverflowStyle: 'none',
+          }}
+          className="flex gap-3 sm:gap-4 overflow-x-auto no-scrollbar [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden py-1 select-none cursor-grab active:cursor-grabbing"
         >
-          {recentlyViewed.map((prod) => (
+          {displayItems.map((prod, idx) => (
             <div
-              key={`recent-${prod.id}`}
-              className="w-[155px] sm:w-[190px] md:w-[210px] flex-shrink-0 snap-start"
+              key={`recent-${prod.id}-${idx}`}
+              className="w-[155px] sm:w-[190px] md:w-[210px] flex-shrink-0"
             >
               <ProductCard product={prod} />
             </div>
