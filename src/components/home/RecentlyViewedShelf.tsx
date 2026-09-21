@@ -81,7 +81,7 @@ export const RecentlyViewedShelf: React.FC<RecentlyViewedShelfProps> = ({
     if (!container || recentlyViewed.length <= 1) return;
 
     let lastTime = performance.now();
-    const speed = 36; // Constant smooth gliding speed: 36px/sec
+    const speed = 16; // Gentle, slow, and elegant gliding speed: 16px/sec
 
     const animate = (currentTime: number) => {
       const delta = (currentTime - lastTime) / 1000;

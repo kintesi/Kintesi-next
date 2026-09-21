@@ -433,6 +433,7 @@ export const HomePage: React.FC = () => {
                 key={showcase.id}
                 showcase={showcase}
                 products={showProds}
+                autoSlide={true}
               />
             ))}
           </div>
@@ -718,6 +719,7 @@ export const HomePage: React.FC = () => {
                 key={showcase.id}
                 showcase={showcase}
                 products={showProds}
+                autoSlide={true}
               />
             ))}
           </section>

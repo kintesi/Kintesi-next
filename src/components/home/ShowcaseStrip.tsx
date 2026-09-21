@@ -18,17 +18,33 @@ export const ShowcaseStrip: React.FC<ShowcaseStripProps> = ({
   products,
   viewAllLink,
   icon,
-  autoSlide = false,
+  autoSlide = true,
 }) => {
   const containerRef = useRef<HTMLDivElement | null>(null);
+  const isHoveredRef = useRef(false);
+  const animationFrameRef = useRef<number | null>(null);
+
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
-  const [isPaused, setIsPaused] = useState(false);
 
   const validProducts = useMemo(() => {
     if (!products || !Array.isArray(products)) return [];
     return products.filter((p) => p && (p.id || p.slug));
   }, [products]);
+
+  // Seamless infinite repetition to ensure seamless loop with zero jump
+  const displayProducts = useMemo(() => {
+    if (validProducts.length === 0) return [];
+    if (validProducts.length < 6) {
+      return [
+        ...validProducts,
+        ...validProducts,
+        ...validProducts,
+        ...validProducts,
+      ];
+    }
+    return [...validProducts, ...validProducts];
+  }, [validProducts]);
 
   // Check scroll bounds for chevron buttons
   const checkScroll = useCallback(() => {
@@ -44,44 +60,63 @@ export const ShowcaseStrip: React.FC<ShowcaseStripProps> = ({
     return () => window.removeEventListener('resize', checkScroll);
   }, [validProducts, checkScroll]);
 
-  // Clean, flicker-free auto-slide (only when explicitly enabled)
+  // Continuous smooth infinite scrolling (no sudden jump / ak dhape samne asbe na)
   useEffect(() => {
-    if (!autoSlide || isPaused) return;
     const el = containerRef.current;
-    if (!el || el.scrollWidth <= el.clientWidth) return;
+    if (!autoSlide || !el || validProducts.length <= 1) return;
 
-    const timer = setInterval(() => {
-      if (!el) return;
-      const maxScroll = el.scrollWidth - el.clientWidth;
-      if (el.scrollLeft >= maxScroll - 10) {
-        el.scrollTo({ left: 0, behavior: 'smooth' });
-      } else {
-        const firstChild = el.children[0] as HTMLElement | undefined;
-        const secondChild = el.children[1] as HTMLElement | undefined;
-        const step = firstChild && secondChild
-          ? (secondChild.offsetLeft - firstChild.offsetLeft) * 2
-          : el.clientWidth * 0.5;
-        el.scrollBy({ left: step, behavior: 'smooth' });
+    let lastTime = performance.now();
+    const speed = 15; // Gentle, slow, and elegant gliding speed: 15px/sec
+
+    const step = (currentTime: number) => {
+      const delta = (currentTime - lastTime) / 1000;
+      lastTime = currentTime;
+
+      if (!isHoveredRef.current && el) {
+        const halfWidth = el.scrollWidth / 2;
+        if (halfWidth > 0) {
+          el.scrollLeft += speed * delta;
+          // When first half scrolls past, seamlessly shift back without any visual jump
+          if (el.scrollLeft >= halfWidth) {
+            el.scrollLeft -= halfWidth;
+          }
+        }
       }
-    }, 3800);
 
-    return () => clearInterval(timer);
-  }, [autoSlide, isPaused]);
+      animationFrameRef.current = requestAnimationFrame(step);
+    };
+
+    animationFrameRef.current = requestAnimationFrame(step);
+
+    return () => {
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+    };
+  }, [autoSlide, validProducts.length, displayProducts]);
 
   if (!showcase || validProducts.length === 0) return null;
 
   const scrollLeft = () => {
     const el = containerRef.current;
     if (!el) return;
+    const halfWidth = el.scrollWidth / 2;
     const step = el.clientWidth * 0.75;
     el.scrollBy({ left: -step, behavior: 'smooth' });
+    if (el.scrollLeft <= 0 && halfWidth > 0) {
+      el.scrollLeft += halfWidth;
+    }
   };
 
   const scrollRight = () => {
     const el = containerRef.current;
     if (!el) return;
+    const halfWidth = el.scrollWidth / 2;
     const step = el.clientWidth * 0.75;
     el.scrollBy({ left: step, behavior: 'smooth' });
+    if (el.scrollLeft >= halfWidth && halfWidth > 0) {
+      el.scrollLeft -= halfWidth;
+    }
   };
 
   // Icon mapping
@@ -104,7 +139,11 @@ export const ShowcaseStrip: React.FC<ShowcaseStripProps> = ({
   const displayIcon = icon || getIcon();
 
   return (
-    <div className="space-y-2.5">
+    <div 
+      className="space-y-2.5"
+      onMouseEnter={() => { isHoveredRef.current = true; }}
+      onMouseLeave={() => { isHoveredRef.current = false; }}
+    >
       {/* Sleek Header (Clean title, chevron controls, and View All) */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-1.5 min-w-0">
@@ -161,22 +200,28 @@ export const ShowcaseStrip: React.FC<ShowcaseStripProps> = ({
       </div>
 
       {/* Row: 4 items visible on mobile, 6 on tablet, 8 on PC
-          - Hardware accelerated smooth scrolling with snap
-          - Zero flickering, zero loop jumping */}
+          - Continuous hardware-accelerated smooth infinite glide
+          - Completely hidden scrollbar slider across all devices */}
       <div
         ref={containerRef}
         onScroll={checkScroll}
-        onMouseEnter={() => setIsPaused(true)}
-        onMouseLeave={() => setIsPaused(false)}
-        onTouchStart={() => setIsPaused(true)}
-        onTouchEnd={() => setIsPaused(false)}
-        className="flex gap-2 sm:gap-3 overflow-x-auto select-none py-1 scroll-smooth snap-x snap-mandatory scrollbar-none [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
-        style={{ WebkitOverflowScrolling: 'touch' }}
+        onTouchStart={() => { isHoveredRef.current = true; }}
+        onTouchEnd={() => {
+          setTimeout(() => {
+            isHoveredRef.current = false;
+          }, 800);
+        }}
+        style={{
+          scrollbarWidth: 'none',
+          msOverflowStyle: 'none',
+          WebkitOverflowScrolling: 'touch',
+        }}
+        className="flex gap-2 sm:gap-3 overflow-x-auto no-scrollbar [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden select-none py-1 cursor-grab active:cursor-grabbing"
       >
-        {validProducts.map((product, idx) => (
+        {displayProducts.map((product, idx) => (
           <div
-            key={`${product.id || product.slug || idx}`}
-            className="flex-shrink-0 snap-start w-[calc((100%-24px)/4)] sm:w-[calc((100%-50px)/6)] lg:w-[calc((100%-84px)/8)]"
+            key={`${product.id || product.slug || idx}-${idx}`}
+            className="flex-shrink-0 w-[calc((100%-24px)/4)] sm:w-[calc((100%-50px)/6)] lg:w-[calc((100%-84px)/8)]"
           >
             <ShowcaseItem product={product} />
           </div>
@@ -186,7 +231,7 @@ export const ShowcaseStrip: React.FC<ShowcaseStripProps> = ({
   );
 };
 
-// Pure image card with NO external text/info as strictly requested
+// Pure image card with NO external text/info
 const ShowcaseItem: React.FC<{ product: Product }> = React.memo(({ product }) => {
   if (!product) return null;
   const coverImage = product.images?.[0] || (product as any).image || '/logo.webp';
