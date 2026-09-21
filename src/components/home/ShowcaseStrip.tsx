@@ -32,19 +32,34 @@ export const ShowcaseStrip: React.FC<ShowcaseStripProps> = ({
     return products.filter((p) => p && (p.id || p.slug));
   }, [products]);
 
-  // Seamless infinite repetition to ensure seamless loop with zero jump
+  // Expand array to at least 24 items to guarantee continuous infinite runway without hitting scroll ceiling
   const displayProducts = useMemo(() => {
     if (validProducts.length === 0) return [];
-    if (validProducts.length < 6) {
-      return [
-        ...validProducts,
-        ...validProducts,
-        ...validProducts,
-        ...validProducts,
-      ];
+    let list = [...validProducts];
+    while (list.length < 24) {
+      list = [...list, ...validProducts];
     }
-    return [...validProducts, ...validProducts];
+    return list;
   }, [validProducts]);
+
+  // Safety resume listener: unpauses if touch/mouse releases anywhere
+  useEffect(() => {
+    const handleRelease = () => {
+      setTimeout(() => {
+        isHoveredRef.current = false;
+      }, 300);
+    };
+
+    window.addEventListener('pointerup', handleRelease);
+    window.addEventListener('touchend', handleRelease);
+    window.addEventListener('blur', handleRelease);
+
+    return () => {
+      window.removeEventListener('pointerup', handleRelease);
+      window.removeEventListener('touchend', handleRelease);
+      window.removeEventListener('blur', handleRelease);
+    };
+  }, []);
 
   // Check scroll bounds for chevron buttons
   const checkScroll = useCallback(() => {
@@ -60,25 +75,32 @@ export const ShowcaseStrip: React.FC<ShowcaseStripProps> = ({
     return () => window.removeEventListener('resize', checkScroll);
   }, [validProducts, checkScroll]);
 
-  // Continuous smooth infinite scrolling (no sudden jump / ak dhape samne asbe na)
+  // Continuous smooth infinite scrolling (no sudden jump / ak dhape samne asbe na / never freezes)
   useEffect(() => {
     const el = containerRef.current;
     if (!autoSlide || !el || validProducts.length <= 1) return;
 
     let lastTime = performance.now();
-    const speed = 15; // Gentle, slow, and elegant gliding speed: 15px/sec
+    const speed = 18; // Gentle, steady, readable gliding speed (18px/sec)
 
     const step = (currentTime: number) => {
-      const delta = (currentTime - lastTime) / 1000;
+      const delta = Math.min((currentTime - lastTime) / 1000, 0.1); // Cap delta to prevent jump on tab refocus
       lastTime = currentTime;
 
       if (!isHoveredRef.current && el) {
-        const halfWidth = el.scrollWidth / 2;
-        if (halfWidth > 0) {
+        // Measure exact width of one single cycle of products
+        const firstChild = el.children[0] as HTMLElement | undefined;
+        const targetChild = el.children[validProducts.length] as HTMLElement | undefined;
+        const oneCycleWidth = (targetChild && firstChild)
+          ? (targetChild.offsetLeft - firstChild.offsetLeft)
+          : (el.scrollWidth / (displayProducts.length / validProducts.length));
+
+        if (oneCycleWidth > 0) {
           el.scrollLeft += speed * delta;
-          // When first half scrolls past, seamlessly shift back without any visual jump
-          if (el.scrollLeft >= halfWidth) {
-            el.scrollLeft -= halfWidth;
+          // When 1 full original cycle has passed, wrap back by exactly that cycle's width
+          // Producing ZERO visual movement or jump
+          if (el.scrollLeft >= oneCycleWidth) {
+            el.scrollLeft -= oneCycleWidth;
           }
         }
       }
@@ -100,22 +122,30 @@ export const ShowcaseStrip: React.FC<ShowcaseStripProps> = ({
   const scrollLeft = () => {
     const el = containerRef.current;
     if (!el) return;
-    const halfWidth = el.scrollWidth / 2;
-    const step = el.clientWidth * 0.75;
-    el.scrollBy({ left: -step, behavior: 'smooth' });
-    if (el.scrollLeft <= 0 && halfWidth > 0) {
-      el.scrollLeft += halfWidth;
+    const firstChild = el.children[0] as HTMLElement | undefined;
+    const targetChild = el.children[validProducts.length] as HTMLElement | undefined;
+    const oneCycleWidth = (targetChild && firstChild)
+      ? (targetChild.offsetLeft - firstChild.offsetLeft)
+      : el.clientWidth * 0.75;
+
+    el.scrollBy({ left: -240, behavior: 'smooth' });
+    if (el.scrollLeft <= 0 && oneCycleWidth > 0) {
+      el.scrollLeft += oneCycleWidth;
     }
   };
 
   const scrollRight = () => {
     const el = containerRef.current;
     if (!el) return;
-    const halfWidth = el.scrollWidth / 2;
-    const step = el.clientWidth * 0.75;
-    el.scrollBy({ left: step, behavior: 'smooth' });
-    if (el.scrollLeft >= halfWidth && halfWidth > 0) {
-      el.scrollLeft -= halfWidth;
+    const firstChild = el.children[0] as HTMLElement | undefined;
+    const targetChild = el.children[validProducts.length] as HTMLElement | undefined;
+    const oneCycleWidth = (targetChild && firstChild)
+      ? (targetChild.offsetLeft - firstChild.offsetLeft)
+      : el.clientWidth * 0.75;
+
+    el.scrollBy({ left: 240, behavior: 'smooth' });
+    if (el.scrollLeft >= oneCycleWidth && oneCycleWidth > 0) {
+      el.scrollLeft -= oneCycleWidth;
     }
   };
 
@@ -209,7 +239,7 @@ export const ShowcaseStrip: React.FC<ShowcaseStripProps> = ({
         onTouchEnd={() => {
           setTimeout(() => {
             isHoveredRef.current = false;
-          }, 800);
+          }, 300);
         }}
         style={{
           scrollbarWidth: 'none',

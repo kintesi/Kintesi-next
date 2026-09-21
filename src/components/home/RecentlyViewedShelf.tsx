@@ -31,20 +31,34 @@ export const RecentlyViewedShelf: React.FC<RecentlyViewedShelfProps> = ({
     return getRecentlyViewedProducts(products, 12);
   }, [products, version]);
 
-  // Infinite duplicate list to ensure seamless 360-degree looping without any jump
+  // Expand array to at least 24 items to guarantee continuous infinite runway without hitting scroll ceiling
   const displayItems = useMemo(() => {
     if (recentlyViewed.length === 0) return [];
-    if (recentlyViewed.length < 6) {
-      // Repeat enough times to fill width and wrap seamlessly
-      return [
-        ...recentlyViewed,
-        ...recentlyViewed,
-        ...recentlyViewed,
-        ...recentlyViewed,
-      ];
+    let list = [...recentlyViewed];
+    while (list.length < 24) {
+      list = [...list, ...recentlyViewed];
     }
-    return [...recentlyViewed, ...recentlyViewed];
+    return list;
   }, [recentlyViewed]);
+
+  // Safety resume listener: unpauses if touch/mouse releases anywhere
+  useEffect(() => {
+    const handleRelease = () => {
+      setTimeout(() => {
+        isHoveredRef.current = false;
+      }, 300);
+    };
+
+    window.addEventListener('pointerup', handleRelease);
+    window.addEventListener('touchend', handleRelease);
+    window.addEventListener('blur', handleRelease);
+
+    return () => {
+      window.removeEventListener('pointerup', handleRelease);
+      window.removeEventListener('touchend', handleRelease);
+      window.removeEventListener('blur', handleRelease);
+    };
+  }, []);
 
   const handleClearHistory = () => {
     const profile = getUserInterestProfile();
@@ -55,45 +69,59 @@ export const RecentlyViewedShelf: React.FC<RecentlyViewedShelfProps> = ({
 
   const scrollPrev = useCallback(() => {
     if (scrollRef.current) {
-      const container = scrollRef.current;
-      const halfWidth = container.scrollWidth / 2;
-      container.scrollBy({ left: -240, behavior: 'smooth' });
-      if (container.scrollLeft <= 0 && halfWidth > 0) {
-        container.scrollLeft += halfWidth;
+      const el = scrollRef.current;
+      const firstChild = el.children[0] as HTMLElement | undefined;
+      const targetChild = el.children[recentlyViewed.length] as HTMLElement | undefined;
+      const oneCycleWidth = (targetChild && firstChild)
+        ? (targetChild.offsetLeft - firstChild.offsetLeft)
+        : el.clientWidth * 0.75;
+
+      el.scrollBy({ left: -240, behavior: 'smooth' });
+      if (el.scrollLeft <= 0 && oneCycleWidth > 0) {
+        el.scrollLeft += oneCycleWidth;
       }
     }
-  }, []);
+  }, [recentlyViewed.length]);
 
   const scrollNext = useCallback(() => {
     if (scrollRef.current) {
-      const container = scrollRef.current;
-      const halfWidth = container.scrollWidth / 2;
-      container.scrollBy({ left: 240, behavior: 'smooth' });
-      if (container.scrollLeft >= halfWidth && halfWidth > 0) {
-        container.scrollLeft -= halfWidth;
+      const el = scrollRef.current;
+      const firstChild = el.children[0] as HTMLElement | undefined;
+      const targetChild = el.children[recentlyViewed.length] as HTMLElement | undefined;
+      const oneCycleWidth = (targetChild && firstChild)
+        ? (targetChild.offsetLeft - firstChild.offsetLeft)
+        : el.clientWidth * 0.75;
+
+      el.scrollBy({ left: 240, behavior: 'smooth' });
+      if (el.scrollLeft >= oneCycleWidth && oneCycleWidth > 0) {
+        el.scrollLeft -= oneCycleWidth;
       }
     }
-  }, []);
+  }, [recentlyViewed.length]);
 
-  // Smooth continuous infinite scrolling without sudden jumps (ak dhape jump korbe na)
+  // Smooth continuous infinite scrolling (never freezes, zero jumps)
   useEffect(() => {
     const container = scrollRef.current;
     if (!container || recentlyViewed.length <= 1) return;
 
     let lastTime = performance.now();
-    const speed = 16; // Gentle, slow, and elegant gliding speed: 16px/sec
+    const speed = 18; // Gentle, steady, readable gliding speed (18px/sec)
 
     const animate = (currentTime: number) => {
-      const delta = (currentTime - lastTime) / 1000;
+      const delta = Math.min((currentTime - lastTime) / 1000, 0.1);
       lastTime = currentTime;
 
       if (!isHoveredRef.current && container) {
-        const halfWidth = container.scrollWidth / 2;
-        if (halfWidth > 0) {
+        const firstChild = container.children[0] as HTMLElement | undefined;
+        const targetChild = container.children[recentlyViewed.length] as HTMLElement | undefined;
+        const oneCycleWidth = (targetChild && firstChild)
+          ? (targetChild.offsetLeft - firstChild.offsetLeft)
+          : (container.scrollWidth / (displayItems.length / recentlyViewed.length));
+
+        if (oneCycleWidth > 0) {
           container.scrollLeft += speed * delta;
-          // When we pass the first duplicate segment, seamlessly offset back without any visual jump
-          if (container.scrollLeft >= halfWidth) {
-            container.scrollLeft -= halfWidth;
+          if (container.scrollLeft >= oneCycleWidth) {
+            container.scrollLeft -= oneCycleWidth;
           }
         }
       }
@@ -185,7 +213,7 @@ export const RecentlyViewedShelf: React.FC<RecentlyViewedShelfProps> = ({
           onTouchEnd={() => {
             setTimeout(() => {
               isHoveredRef.current = false;
-            }, 800);
+            }, 300);
           }}
           style={{
             scrollbarWidth: 'none',
