@@ -712,19 +712,44 @@ export function getSessionSeed(): number {
 export function invalidateSessionFeed() {
   _sessionLockedCatalogFeed = null;
   _sessionLockedSeed = Math.floor(Math.random() * 1000000) + 1;
+  if (typeof window !== 'undefined') {
+    try {
+      localStorage.removeItem('kintesi_initial_products');
+    } catch {}
+    window.dispatchEvent(new CustomEvent('kintesi_session_feed_refreshed'));
+  }
 }
 
 /**
  * Amazon / Daraz Style: Rich Mixed & Diverse Catalog Feed ("Just For You" / "সকল পণ্য")
- * 1. Base-title deduplication: Prevents 8 copies of the same watch or 15 copies of the same bra.
- * 2. Reload-seeded freshness: Reloading the page produces a fresh mix, but while in the app, the order is 100% frozen.
- * 3. Round-robin category interleaving: Every row has a diverse mix of all categories.
+ * 1. Product Sanity: Filters out products without real images (e.g. logo placeholder) or without descriptions.
+ * 2. Base-title deduplication: Prevents 8 copies of the same watch or 15 copies of the same bra.
+ * 3. Reload-seeded freshness: Reloading the page produces a fresh mix with rotated categories, but while in the app, the order is 100% frozen.
+ * 4. Round-robin category interleaving: Every row has a diverse mix of all categories.
  */
 export function getCuratedCatalogFeed(products: Product[], reloadSeed?: number): Product[] {
   if (!products || products.length === 0) return [];
 
+  // Filter out any product without genuine images or valid descriptions
+  const validProducts = products.filter((p) => {
+    if (!p || !p.id || !p.title) return false;
+    if (typeof p.id === 'string' && p.id.startsWith('prod-')) return false;
+    const desc = typeof p.description === 'string' ? p.description.trim() : '';
+    if (desc.length < 5) return false;
+    const imgs: string[] = Array.isArray(p.images) ? p.images : [];
+    return imgs.some(
+      (img) =>
+        typeof img === 'string' &&
+        img.trim().length > 5 &&
+        !img.includes('/logo.webp') &&
+        !img.includes('placeholder')
+    );
+  });
+
+  if (validProducts.length === 0) return [];
+
   // If already computed for full catalog for this browser session, return it immediately without any reshuffle!
-  if (_sessionLockedCatalogFeed && _sessionLockedCatalogFeed.length >= products.length) {
+  if (_sessionLockedCatalogFeed && _sessionLockedCatalogFeed.length >= validProducts.length) {
     return _sessionLockedCatalogFeed;
   }
 
@@ -745,9 +770,9 @@ export function getCuratedCatalogFeed(products: Product[], reloadSeed?: number):
 
   // 1. Group products by base title so variant duplicates (e.g. 8 colors of the same watch or 15 bras)
   // are distributed across separate layers rather than clustered together or discarded.
-  // This preserves all 2,800+ products in the catalog while ensuring 100% diversity!
+  // This preserves all catalog products while ensuring 100% diversity!
   const variantGroups = new Map<string, Product[]>();
-  for (const p of products) {
+  for (const p of validProducts) {
     if (!p || !p.id) continue;
     const base = getBaseProductTitle(p.title) || p.id;
     if (!variantGroups.has(base)) variantGroups.set(base, []);
@@ -773,7 +798,7 @@ export function getCuratedCatalogFeed(products: Product[], reloadSeed?: number):
     pass++;
   }
 
-  const CATEGORY_CYCLE = [
+  const BASE_CATEGORY_CYCLE = [
     'electronic-accessories',
     'womens-fashion',
     'home-living',
@@ -784,6 +809,13 @@ export function getCuratedCatalogFeed(products: Product[], reloadSeed?: number):
     'health-beauty',
     'tv-home-appliances',
     'automotives-motorbikes',
+  ];
+
+  // Rotate starting category on each reload seed so initial view is noticeably fresh and exciting
+  const catOffset = effectiveSeed > 0 ? effectiveSeed % BASE_CATEGORY_CYCLE.length : 0;
+  const CATEGORY_CYCLE = [
+    ...BASE_CATEGORY_CYCLE.slice(catOffset),
+    ...BASE_CATEGORY_CYCLE.slice(0, catOffset),
   ];
 
   const mixedFeed: Product[] = [];
@@ -879,7 +911,7 @@ export function getCuratedCatalogFeed(products: Product[], reloadSeed?: number):
     }
   }
 
-  if (products.length > 50) {
+  if (validProducts.length >= 100) {
     _sessionLockedCatalogFeed = mixedFeed;
   }
 

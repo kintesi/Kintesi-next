@@ -15,7 +15,7 @@ import { supabase } from './supabase';
 import { Product, Category, Order } from '../types';
 import { INITIAL_CATEGORIES } from '../data/mockData';
 import { FLASH_SALE_PRODUCTS } from '../data/flashSaleProducts';
-import { getCuratedCatalogFeed, getBaseProductTitle, invalidateSessionFeed } from './recommendationEngine';
+import { getCuratedCatalogFeed, getBaseProductTitle, invalidateSessionFeed, getSessionSeed } from './recommendationEngine';
 
 export const TOTAL_CATALOG_COUNT = 2831;
 export const TOTAL_CATALOG_COUNT_KEY = 'kintesi_total_catalog_count';
@@ -72,9 +72,30 @@ export function invalidateProductsCache() {
   }
 }
 
+export function isValidDisplayProduct(p: any): boolean {
+  if (!p || !p.id || typeof p.title !== 'string' || !p.title.trim()) return false;
+  if (typeof p.id === 'string' && p.id.startsWith('prod-')) return false;
+
+  // 1. Description must exist and be non-empty (at least 5 characters)
+  const desc = typeof p.description === 'string' ? p.description.trim() : '';
+  if (desc.length < 5) return false;
+
+  // 2. Real product image must exist (cannot be empty, cannot be only /logo.webp or placeholder)
+  const imgs: string[] = Array.isArray(p.images) ? p.images : [];
+  const hasRealImage = imgs.some(
+    (img) =>
+      typeof img === 'string' &&
+      img.trim().length > 5 &&
+      !img.includes('/logo.webp') &&
+      !img.includes('placeholder')
+  );
+
+  return hasRealImage;
+}
+
 export function getCachedProducts(): Product[] {
   if (_memoryProductsCache && _memoryProductsCache.length > 0) {
-    return _memoryProductsCache;
+    return _memoryProductsCache.filter(isValidDisplayProduct);
   }
   if (typeof window !== 'undefined') {
     try {
@@ -82,7 +103,7 @@ export function getCachedProducts(): Product[] {
       if (cached) {
         const parsed = JSON.parse(cached);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          return parsed;
+          return parsed.filter(isValidDisplayProduct);
         }
       }
     } catch {}
@@ -91,15 +112,20 @@ export function getCachedProducts(): Product[] {
 }
 
 function normalizeProductSummary(p: any): Product {
-  let imgs: string[] = Array.isArray(p.images) ? p.images.filter(Boolean) : [];
+  let imgs: string[] = Array.isArray(p.images)
+    ? p.images.filter((img: any) => typeof img === 'string' && img.trim().length > 5 && !img.includes('/logo.webp') && !img.includes('placeholder'))
+    : [];
   if (imgs.length === 0 && Array.isArray(p.colors)) {
     p.colors.forEach((c: any) => {
-      if (c.image) imgs.push(c.image);
-      if (Array.isArray(c.images)) imgs.push(...c.images.filter(Boolean));
+      if (c.image && typeof c.image === 'string' && !c.image.includes('/logo.webp') && !c.image.includes('placeholder')) imgs.push(c.image);
+      if (Array.isArray(c.images)) {
+        imgs.push(
+          ...c.images.filter((img: any) => typeof img === 'string' && img.trim().length > 5 && !img.includes('/logo.webp') && !img.includes('placeholder'))
+        );
+      }
     });
     imgs = Array.from(new Set(imgs));
   }
-  if (imgs.length === 0) imgs = ['/logo.webp'];
   
   // ⚡ Pre-computed search key for O(1) instant search and ranking without string allocations
   const tagsStr = Array.isArray(p.tags) ? p.tags.join(' ') : (p.tags || '');
@@ -121,10 +147,10 @@ function normalizeProductSummary(p: any): Product {
  */
 export async function getInitialProducts(limit: number = 36): Promise<Product[]> {
   if (_memoryProductsCache && _memoryProductsCache.length > 0) {
-    return _memoryProductsCache.slice(0, limit);
+    return _memoryProductsCache.filter(isValidDisplayProduct).slice(0, limit);
   }
 
-  const CACHE_VERSION = 'v26_accurate_brands';
+  const CACHE_VERSION = 'v27_clean_valid_feed';
   if (typeof window !== 'undefined') {
     try {
       if (localStorage.getItem('kintesi_cache_ver') !== CACHE_VERSION) {
@@ -138,9 +164,10 @@ export async function getInitialProducts(limit: number = 36): Promise<Product[]>
       if (cached) {
         const parsed = JSON.parse(cached);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          const existingIds = new Set(parsed.map((p: any) => p.id));
-          const missingFlash = FLASH_SALE_PRODUCTS.filter((p) => !existingIds.has(p.id));
-          const curated = getCuratedCatalogFeed([...missingFlash, ...parsed]);
+          const validParsed = parsed.filter(isValidDisplayProduct);
+          const existingIds = new Set(validParsed.map((p: any) => p.id));
+          const missingFlash = FLASH_SALE_PRODUCTS.filter((p) => isValidDisplayProduct(p) && !existingIds.has(p.id));
+          const curated = getCuratedCatalogFeed([...missingFlash, ...validParsed], getSessionSeed());
           return curated.slice(0, limit);
         }
       }
@@ -161,12 +188,12 @@ export async function getInitialProducts(limit: number = 36): Promise<Product[]>
 
     if (!error && data && data.length > 0) {
       const clean = data
-        .filter((p: any) => p && p.id && !p.id.startsWith('prod-'))
-        .map(normalizeProductSummary);
+        .map(normalizeProductSummary)
+        .filter(isValidDisplayProduct);
 
       const existingIds = new Set(clean.map((p: any) => p.id));
-      const missingFlash = FLASH_SALE_PRODUCTS.filter((p) => !existingIds.has(p.id));
-      const curated = getCuratedCatalogFeed([...missingFlash, ...clean]);
+      const missingFlash = FLASH_SALE_PRODUCTS.filter((p) => isValidDisplayProduct(p) && !existingIds.has(p.id));
+      const curated = getCuratedCatalogFeed([...missingFlash, ...clean], getSessionSeed());
 
       if (typeof window !== 'undefined') {
         try {
@@ -181,7 +208,7 @@ export async function getInitialProducts(limit: number = 36): Promise<Product[]>
     console.warn('Initial products fast fetch note:', err);
   }
 
-  return FLASH_SALE_PRODUCTS;
+  return FLASH_SALE_PRODUCTS.filter(isValidDisplayProduct);
 }
 
 export async function getProductsFromDB(options: { force?: boolean; limit?: number; all?: boolean; raw?: boolean } = {}): Promise<Product[]> {
@@ -249,8 +276,8 @@ export async function getProductsFromDB(options: { force?: boolean; limit?: numb
 
       if (!error && supaProducts && supaProducts.length > 0) {
         const clean = supaProducts
-          .filter((p: any) => p && p.id && !p.id.startsWith('prod-'))
-          .map(normalizeProductSummary);
+          .map(normalizeProductSummary)
+          .filter(isValidDisplayProduct);
 
         // Preserve all 2,800+ catalog products with unique ID deduplication
         const seenIds = new Set<string>();
@@ -268,7 +295,7 @@ export async function getProductsFromDB(options: { force?: boolean; limit?: numb
         if (typeof window !== 'undefined') {
           try {
             localStorage.setItem(TOTAL_CATALOG_COUNT_KEY, String(dedupedProducts.length));
-            const curatedInitial = getCuratedCatalogFeed(dedupedProducts).slice(0, 48);
+            const curatedInitial = getCuratedCatalogFeed(dedupedProducts, getSessionSeed()).slice(0, 48);
             localStorage.setItem('kintesi_initial_products', JSON.stringify(curatedInitial));
           } catch {}
         }

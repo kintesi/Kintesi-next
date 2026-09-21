@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef, useMemo } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
-import { getCategoriesFromDB, getProductsFromDB, getInitialProducts, getCachedTotalCount, getCachedProducts } from '../lib/dbService';
+import { getCategoriesFromDB, getProductsFromDB, getInitialProducts, getCachedTotalCount, getCachedProducts, isValidDisplayProduct } from '../lib/dbService';
 import { Product, Category } from '../types';
 import { INITIAL_PRODUCTS, INITIAL_CATEGORIES } from '../data/mockData';
 import { FLASH_SALE_PRODUCTS } from '../data/flashSaleProducts';
@@ -14,6 +14,7 @@ import {
   getPersonalizedAndRotatedProducts,
   getCuratedCatalogFeed,
   getSessionSeed,
+  invalidateSessionFeed,
   detectAndSaveSearchIntent,
   extractKeywords,
   getSavedSearchIntent,
@@ -28,6 +29,7 @@ import {
   ShieldCheck,
   Truck,
   RotateCcw,
+  RotateCw,
   Headphones,
   ShoppingBag,
   Home,
@@ -85,23 +87,23 @@ export const HomePage: React.FC = () => {
   const [products, setProducts] = useState<Product[]>(() => {
     // 1. In-memory cache is priority (prevents empty/reload state when returning from another page)
     const mem = getCachedProducts();
-    if (mem && mem.length > 50) return mem;
+    if (mem && mem.length > 50) return mem.filter(isValidDisplayProduct);
 
     // 2. LocalStorage initial products
     try {
       const saved = localStorage.getItem('kintesi_initial_products') || localStorage.getItem('kintesi_custom_products');
       if (saved) {
         const parsed = JSON.parse(saved);
-        const valid = parsed.filter((p: any) => p && p.id && !p.id.startsWith('prod-'));
+        const valid = parsed.filter(isValidDisplayProduct);
         if (valid.length > 0) {
           const existingIds = new Set(valid.map((p: any) => p.id));
-          const missingFlash = FLASH_SALE_PRODUCTS.filter((p) => !existingIds.has(p.id));
+          const missingFlash = FLASH_SALE_PRODUCTS.filter((p) => isValidDisplayProduct(p) && !existingIds.has(p.id));
           return [...missingFlash, ...valid];
         }
       }
-      return INITIAL_PRODUCTS;
+      return INITIAL_PRODUCTS.filter(isValidDisplayProduct);
     } catch {
-      return INITIAL_PRODUCTS;
+      return INITIAL_PRODUCTS.filter(isValidDisplayProduct);
     }
   });
 
@@ -118,6 +120,8 @@ export const HomePage: React.FC = () => {
   });
 
   const [isLoadingData, setIsLoadingData] = useState(false);
+  const [feedRefreshCount, setFeedRefreshCount] = useState(0);
+  const [isRefreshingFeed, setIsRefreshingFeed] = useState(false);
 
   // Progressive batch loading: preserves exact count when user returns from product detail or cart
   const [mobileVisibleCount, setMobileVisibleCount] = useState(() => _sessionMobileVisibleCount);
@@ -139,6 +143,22 @@ export const HomePage: React.FC = () => {
     window.addEventListener('kintesi_intent_updated', handleIntentUpdate);
     return () => window.removeEventListener('kintesi_intent_updated', handleIntentUpdate);
   }, []);
+
+  useEffect(() => {
+    const handleFeedRefresh = () => setFeedRefreshCount((c) => c + 1);
+    window.addEventListener('kintesi_session_feed_refreshed', handleFeedRefresh);
+    return () => window.removeEventListener('kintesi_session_feed_refreshed', handleFeedRefresh);
+  }, []);
+
+  const handleRefreshFeed = () => {
+    setIsRefreshingFeed(true);
+    invalidateSessionFeed();
+    setMobileVisibleCount(12);
+    setDesktopVisibleCount(18);
+    setTimeout(() => {
+      setIsRefreshingFeed(false);
+    }, 450);
+  };
 
   // Flash sale countdown timer state
   const isInfinite = banners.flashSaleDurationType === 'infinite' || banners.flashSaleInfinite === true;
@@ -287,13 +307,13 @@ export const HomePage: React.FC = () => {
   const personalizedProducts = useMemo(() => {
     const uniqueMap = new Map<string, Product>();
     for (const p of products) {
-      if (p && p.id && !uniqueMap.has(p.id)) {
+      if (p && p.id && isValidDisplayProduct(p) && !uniqueMap.has(p.id)) {
         uniqueMap.set(p.id, p);
       }
     }
     const uniquePool = Array.from(uniqueMap.values());
     return getCuratedCatalogFeed(uniquePool, getSessionSeed());
-  }, [products]);
+  }, [products, feedRefreshCount]);
 
   const totalCatalogCount = useMemo(() => {
     return Math.max(personalizedProducts.length, getCachedTotalCount());
@@ -456,7 +476,25 @@ export const HomePage: React.FC = () => {
         )}
 
         {/* 4. Product Feed with Progressive Infinite Scroll */}
-        <div className="px-3 space-y-3 pt-1">
+        <div className="px-3 space-y-3 pt-2">
+          {/* Feed Title & Fresh Mix / Reload button */}
+          <div className="flex items-center justify-between px-0.5">
+            <div className="flex items-center gap-2">
+              <div className="w-2.5 h-2.5 rounded-full bg-rose-500 animate-pulse" />
+              <h2 className="text-sm font-black text-gray-900 tracking-tight">সকল পণ্য (Just For You)</h2>
+            </div>
+            <button
+              type="button"
+              onClick={handleRefreshFeed}
+              disabled={isRefreshingFeed}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-rose-50 text-gray-700 hover:text-rose-600 rounded-full border border-gray-200 text-[11px] font-bold shadow-2xs active:scale-95 transition-all cursor-pointer"
+              title="নতুন পণ্য দেখুন (রিলোড)"
+            >
+              <RotateCw className={`w-3 h-3 ${isRefreshingFeed ? 'animate-spin text-rose-600' : 'text-gray-500'}`} />
+              <span>নতুন পণ্য দেখুন</span>
+            </button>
+          </div>
+
           {personalizedProducts.length === 0 ? (
             isLoadingData ? (
               <div className="grid grid-cols-2 gap-2.5">
@@ -742,7 +780,30 @@ export const HomePage: React.FC = () => {
         )}
 
         {/* 4. DESKTOP PRODUCT FEED */}
-        <section className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 space-y-5">
+        <section className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+          {/* Feed Title & Fresh Mix / Reload button */}
+          <div className="flex items-center justify-between pb-2 border-b border-gray-100">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center border border-rose-100 shadow-2xs">
+                <Sparkles className="w-4 h-4" />
+              </div>
+              <div>
+                <h2 className="text-lg font-black text-gray-950 tracking-tight">সকল পণ্য (Just For You)</h2>
+                <p className="text-xs text-gray-500 font-medium">আপনার জন্য নির্বাচিত সেরা ও মানসম্মত পণ্যের সমাহার</p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={handleRefreshFeed}
+              disabled={isRefreshingFeed}
+              className="group inline-flex items-center gap-2 px-4 py-2 bg-white hover:bg-rose-50 text-gray-700 hover:text-rose-600 rounded-xl border border-gray-200 hover:border-rose-200 text-xs font-bold shadow-2xs hover:shadow-xs active:scale-95 transition-all cursor-pointer"
+              title="নতুন পণ্য দেখুন (রিলোড)"
+            >
+              <RotateCw className={`w-3.5 h-3.5 ${isRefreshingFeed ? 'animate-spin text-rose-600' : 'text-gray-500 group-hover:text-rose-600'}`} />
+              <span>নতুন পণ্য দেখুন</span>
+            </button>
+          </div>
+
           {personalizedProducts.length === 0 ? (
             isLoadingData ? (
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-4 lg:gap-4.5">
