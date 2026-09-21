@@ -699,16 +699,38 @@ export function getBaseProductTitle(title?: string): string {
     .trim();
 }
 
+// Session-locked feed cache:
+// Stays strictly frozen during the entire SPA browser session as the user navigates from page to page.
+// ONLY changes when the browser window is reloaded (F5 / hard refresh)!
+let _sessionLockedCatalogFeed: Product[] | null = null;
+let _sessionLockedSeed: number = Math.floor(Math.random() * 1000000) + 1;
+
+export function getSessionSeed(): number {
+  return _sessionLockedSeed;
+}
+
+export function invalidateSessionFeed() {
+  _sessionLockedCatalogFeed = null;
+  _sessionLockedSeed = Math.floor(Math.random() * 1000000) + 1;
+}
+
 /**
  * Amazon / Daraz Style: Rich Mixed & Diverse Catalog Feed ("Just For You" / "সকল পণ্য")
  * 1. Base-title deduplication: Prevents 8 copies of the same watch or 15 copies of the same bra.
- * 2. Reload-seeded freshness: Reloading the page produces a fresh mix, but while on the page, the order is 100% frozen.
+ * 2. Reload-seeded freshness: Reloading the page produces a fresh mix, but while in the app, the order is 100% frozen.
  * 3. Round-robin category interleaving: Every row has a diverse mix of all categories.
  */
 export function getCuratedCatalogFeed(products: Product[], reloadSeed?: number): Product[] {
   if (!products || products.length === 0) return [];
 
-  // Deterministic pseudo-random shuffle using reloadSeed (changes on reload, 100% stable while on page)
+  // If already computed for full catalog for this browser session, return it immediately without any reshuffle!
+  if (_sessionLockedCatalogFeed && _sessionLockedCatalogFeed.length >= products.length) {
+    return _sessionLockedCatalogFeed;
+  }
+
+  const effectiveSeed = reloadSeed || _sessionLockedSeed;
+
+  // Deterministic pseudo-random shuffle using effectiveSeed (changes on reload, 100% stable while in app)
   function pseudoShuffle<T>(arr: T[], seed: number): T[] {
     const res = [...arr];
     let s = seed;
@@ -786,8 +808,8 @@ export function getCuratedCatalogFeed(products: Product[], reloadSeed?: number):
     const preparedBuckets = new Map<string, Product[]>();
     for (const [cat, items] of categoryBuckets.entries()) {
       let processedItems = items;
-      if (reloadSeed !== undefined && reloadSeed > 0) {
-        processedItems = pseudoShuffle(items, reloadSeed + lIdx * 19);
+      if (effectiveSeed !== undefined && effectiveSeed > 0) {
+        processedItems = pseudoShuffle(items, effectiveSeed + lIdx * 19);
       } else {
         processedItems.sort((a, b) => {
           const scoreA =
@@ -833,8 +855,8 @@ export function getCuratedCatalogFeed(products: Product[], reloadSeed?: number):
     }
 
     const preparedOther =
-      reloadSeed !== undefined && reloadSeed > 0
-        ? pseudoShuffle(otherBucket, reloadSeed + lIdx * 31)
+      effectiveSeed !== undefined && effectiveSeed > 0
+        ? pseudoShuffle(otherBucket, effectiveSeed + lIdx * 31)
         : otherBucket;
 
     const activeBuckets = CATEGORY_CYCLE.map((c) => preparedBuckets.get(c));
@@ -855,6 +877,10 @@ export function getCuratedCatalogFeed(products: Product[], reloadSeed?: number):
       }
       round++;
     }
+  }
+
+  if (products.length > 50) {
+    _sessionLockedCatalogFeed = mixedFeed;
   }
 
   return mixedFeed;

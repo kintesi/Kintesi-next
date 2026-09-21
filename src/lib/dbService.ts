@@ -15,7 +15,7 @@ import { supabase } from './supabase';
 import { Product, Category, Order } from '../types';
 import { INITIAL_CATEGORIES } from '../data/mockData';
 import { FLASH_SALE_PRODUCTS } from '../data/flashSaleProducts';
-import { getCuratedCatalogFeed, getBaseProductTitle } from './recommendationEngine';
+import { getCuratedCatalogFeed, getBaseProductTitle, invalidateSessionFeed } from './recommendationEngine';
 
 export const TOTAL_CATALOG_COUNT = 2831;
 export const TOTAL_CATALOG_COUNT_KEY = 'kintesi_total_catalog_count';
@@ -63,6 +63,7 @@ let _memoryProductsPromise: Promise<Product[]> | null = null;
 export function invalidateProductsCache() {
   _memoryProductsCache = null;
   _memoryProductsPromise = null;
+  invalidateSessionFeed();
   if (typeof window !== 'undefined') {
     try {
       localStorage.removeItem('kintesi_initial_products');

@@ -20,19 +20,22 @@ export const ShowcaseStrip: React.FC<ShowcaseStripProps> = ({
   icon,
   autoSlide = true,
 }) => {
-  const containerRef = useRef<HTMLDivElement | null>(null);
-  const isHoveredRef = useRef(false);
+  const trackRef = useRef<HTMLDivElement | null>(null);
+  const isPausedRef = useRef(false);
+  const posRef = useRef(0);
+  const lastTimeRef = useRef(performance.now());
   const animationFrameRef = useRef<number | null>(null);
 
-  const [canScrollLeft, setCanScrollLeft] = useState(false);
-  const [canScrollRight, setCanScrollRight] = useState(false);
+  const touchStartXRef = useRef(0);
+  const touchStartPosRef = useRef(0);
+  const isDraggingRef = useRef(false);
 
   const validProducts = useMemo(() => {
     if (!products || !Array.isArray(products)) return [];
     return products.filter((p) => p && (p.id || p.slug));
   }, [products]);
 
-  // Expand array to at least 24 items to guarantee continuous infinite runway without hitting scroll ceiling
+  // Expand array to ensure seamless infinite looping runway
   const displayProducts = useMemo(() => {
     if (validProducts.length === 0) return [];
     let list = [...validProducts];
@@ -42,11 +45,12 @@ export const ShowcaseStrip: React.FC<ShowcaseStripProps> = ({
     return list;
   }, [validProducts]);
 
-  // Safety resume listener: unpauses if touch/mouse releases anywhere
+  // Safety resume listener
   useEffect(() => {
     const handleRelease = () => {
+      isDraggingRef.current = false;
       setTimeout(() => {
-        isHoveredRef.current = false;
+        isPausedRef.current = false;
       }, 300);
     };
 
@@ -61,47 +65,38 @@ export const ShowcaseStrip: React.FC<ShowcaseStripProps> = ({
     };
   }, []);
 
-  // Check scroll bounds for chevron buttons
-  const checkScroll = useCallback(() => {
-    const el = containerRef.current;
-    if (!el) return;
-    setCanScrollLeft(el.scrollLeft > 4);
-    setCanScrollRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 8);
-  }, []);
+  const getCycleWidth = useCallback(() => {
+    const track = trackRef.current;
+    if (!track || validProducts.length === 0) return 0;
+    const firstChild = track.children[0] as HTMLElement | undefined;
+    const targetChild = track.children[validProducts.length] as HTMLElement | undefined;
+    if (firstChild && targetChild) {
+      return targetChild.offsetLeft - firstChild.offsetLeft;
+    }
+    return track.scrollWidth / (displayProducts.length / validProducts.length);
+  }, [validProducts.length, displayProducts.length]);
 
+  // Hardware-accelerated GPU translate3d animation for 100% buttery smooth 60fps/120fps motion
   useEffect(() => {
-    checkScroll();
-    window.addEventListener('resize', checkScroll);
-    return () => window.removeEventListener('resize', checkScroll);
-  }, [validProducts, checkScroll]);
+    const track = trackRef.current;
+    if (!autoSlide || !track || validProducts.length <= 1) return;
 
-  // Continuous smooth infinite scrolling (no sudden jump / ak dhape samne asbe na / never freezes)
-  useEffect(() => {
-    const el = containerRef.current;
-    if (!autoSlide || !el || validProducts.length <= 1) return;
-
-    let lastTime = performance.now();
-    const speed = 18; // Gentle, steady, readable gliding speed (18px/sec)
+    lastTimeRef.current = performance.now();
+    // Balanced golden speed: 28px/second (calm, steady, not too fast, not too slow)
+    const speed = 28;
 
     const step = (currentTime: number) => {
-      const delta = Math.min((currentTime - lastTime) / 1000, 0.1); // Cap delta to prevent jump on tab refocus
-      lastTime = currentTime;
+      const delta = Math.min((currentTime - lastTimeRef.current) / 1000, 0.1);
+      lastTimeRef.current = currentTime;
 
-      if (!isHoveredRef.current && el) {
-        // Measure exact width of one single cycle of products
-        const firstChild = el.children[0] as HTMLElement | undefined;
-        const targetChild = el.children[validProducts.length] as HTMLElement | undefined;
-        const oneCycleWidth = (targetChild && firstChild)
-          ? (targetChild.offsetLeft - firstChild.offsetLeft)
-          : (el.scrollWidth / (displayProducts.length / validProducts.length));
-
-        if (oneCycleWidth > 0) {
-          el.scrollLeft += speed * delta;
-          // When 1 full original cycle has passed, wrap back by exactly that cycle's width
-          // Producing ZERO visual movement or jump
-          if (el.scrollLeft >= oneCycleWidth) {
-            el.scrollLeft -= oneCycleWidth;
+      if (!isPausedRef.current && !isDraggingRef.current && track) {
+        const cycleWidth = getCycleWidth();
+        if (cycleWidth > 0) {
+          posRef.current += speed * delta;
+          if (posRef.current >= cycleWidth) {
+            posRef.current -= cycleWidth;
           }
+          track.style.transform = `translate3d(-${posRef.current}px, 0, 0)`;
         }
       }
 
@@ -115,39 +110,57 @@ export const ShowcaseStrip: React.FC<ShowcaseStripProps> = ({
         cancelAnimationFrame(animationFrameRef.current);
       }
     };
-  }, [autoSlide, validProducts.length, displayProducts]);
+  }, [autoSlide, validProducts.length, displayProducts, getCycleWidth]);
 
-  if (!showcase || validProducts.length === 0) return null;
+  const handleTouchStart = (e: React.TouchEvent) => {
+    isPausedRef.current = true;
+    isDraggingRef.current = true;
+    touchStartXRef.current = e.touches[0].clientX;
+    touchStartPosRef.current = posRef.current;
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!isDraggingRef.current || !trackRef.current) return;
+    const diff = touchStartXRef.current - e.touches[0].clientX;
+    const cycleWidth = getCycleWidth();
+    let newPos = touchStartPosRef.current + diff;
+    if (cycleWidth > 0) {
+      newPos = (newPos % cycleWidth + cycleWidth) % cycleWidth;
+    }
+    posRef.current = newPos;
+    trackRef.current.style.transform = `translate3d(-${newPos}px, 0, 0)`;
+  };
+
+  const handleTouchEnd = () => {
+    isDraggingRef.current = false;
+    setTimeout(() => {
+      isPausedRef.current = false;
+    }, 400);
+  };
 
   const scrollLeft = () => {
-    const el = containerRef.current;
-    if (!el) return;
-    const firstChild = el.children[0] as HTMLElement | undefined;
-    const targetChild = el.children[validProducts.length] as HTMLElement | undefined;
-    const oneCycleWidth = (targetChild && firstChild)
-      ? (targetChild.offsetLeft - firstChild.offsetLeft)
-      : el.clientWidth * 0.75;
-
-    el.scrollBy({ left: -240, behavior: 'smooth' });
-    if (el.scrollLeft <= 0 && oneCycleWidth > 0) {
-      el.scrollLeft += oneCycleWidth;
+    const cycleWidth = getCycleWidth();
+    posRef.current -= 240;
+    if (cycleWidth > 0 && posRef.current < 0) {
+      posRef.current += cycleWidth;
+    }
+    if (trackRef.current) {
+      trackRef.current.style.transform = `translate3d(-${posRef.current}px, 0, 0)`;
     }
   };
 
   const scrollRight = () => {
-    const el = containerRef.current;
-    if (!el) return;
-    const firstChild = el.children[0] as HTMLElement | undefined;
-    const targetChild = el.children[validProducts.length] as HTMLElement | undefined;
-    const oneCycleWidth = (targetChild && firstChild)
-      ? (targetChild.offsetLeft - firstChild.offsetLeft)
-      : el.clientWidth * 0.75;
-
-    el.scrollBy({ left: 240, behavior: 'smooth' });
-    if (el.scrollLeft >= oneCycleWidth && oneCycleWidth > 0) {
-      el.scrollLeft -= oneCycleWidth;
+    const cycleWidth = getCycleWidth();
+    posRef.current += 240;
+    if (cycleWidth > 0 && posRef.current >= cycleWidth) {
+      posRef.current -= cycleWidth;
+    }
+    if (trackRef.current) {
+      trackRef.current.style.transform = `translate3d(-${posRef.current}px, 0, 0)`;
     }
   };
+
+  if (!showcase || validProducts.length === 0) return null;
 
   // Icon mapping
   const getIcon = () => {
@@ -171,8 +184,8 @@ export const ShowcaseStrip: React.FC<ShowcaseStripProps> = ({
   return (
     <div 
       className="space-y-2.5"
-      onMouseEnter={() => { isHoveredRef.current = true; }}
-      onMouseLeave={() => { isHoveredRef.current = false; }}
+      onMouseEnter={() => { isPausedRef.current = true; }}
+      onMouseLeave={() => { isPausedRef.current = false; }}
     >
       {/* Sleek Header (Clean title, chevron controls, and View All) */}
       <div className="flex items-center justify-between">
@@ -194,12 +207,7 @@ export const ShowcaseStrip: React.FC<ShowcaseStripProps> = ({
             <button
               type="button"
               onClick={scrollLeft}
-              disabled={!canScrollLeft}
-              className={`w-6 h-6 rounded-full flex items-center justify-center border transition ${
-                canScrollLeft
-                  ? 'border-gray-200 text-gray-700 hover:bg-gray-100 hover:border-gray-300 cursor-pointer shadow-2xs'
-                  : 'border-gray-100 text-gray-300 cursor-not-allowed opacity-40'
-              }`}
+              className="w-6 h-6 rounded-full flex items-center justify-center border border-gray-200 text-gray-700 hover:bg-gray-100 hover:border-gray-300 cursor-pointer shadow-2xs transition active:scale-95"
               aria-label="Previous items"
             >
               <ChevronLeft className="w-3.5 h-3.5" />
@@ -207,12 +215,7 @@ export const ShowcaseStrip: React.FC<ShowcaseStripProps> = ({
             <button
               type="button"
               onClick={scrollRight}
-              disabled={!canScrollRight}
-              className={`w-6 h-6 rounded-full flex items-center justify-center border transition ${
-                canScrollRight
-                  ? 'border-gray-200 text-gray-700 hover:bg-gray-100 hover:border-gray-300 cursor-pointer shadow-2xs'
-                  : 'border-gray-100 text-gray-300 cursor-not-allowed opacity-40'
-              }`}
+              className="w-6 h-6 rounded-full flex items-center justify-center border border-gray-200 text-gray-700 hover:bg-gray-100 hover:border-gray-300 cursor-pointer shadow-2xs transition active:scale-95"
               aria-label="Next items"
             >
               <ChevronRight className="w-3.5 h-3.5" />
@@ -230,32 +233,31 @@ export const ShowcaseStrip: React.FC<ShowcaseStripProps> = ({
       </div>
 
       {/* Row: 4 items visible on mobile, 6 on tablet, 8 on PC
-          - Continuous hardware-accelerated smooth infinite glide
-          - Completely hidden scrollbar slider across all devices */}
+          - GPU Subpixel Translate3d for pure 60fps/120fps smoothness (no jitter, no jump)
+          - Overflow-hidden guarantees zero bottom scrollbar slider */}
       <div
-        ref={containerRef}
-        onScroll={checkScroll}
-        onTouchStart={() => { isHoveredRef.current = true; }}
-        onTouchEnd={() => {
-          setTimeout(() => {
-            isHoveredRef.current = false;
-          }, 300);
-        }}
-        style={{
-          scrollbarWidth: 'none',
-          msOverflowStyle: 'none',
-          WebkitOverflowScrolling: 'touch',
-        }}
-        className="flex gap-2 sm:gap-3 overflow-x-auto no-scrollbar [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden select-none py-1 cursor-grab active:cursor-grabbing"
+        className="w-full overflow-hidden select-none py-1 cursor-grab active:cursor-grabbing"
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
       >
-        {displayProducts.map((product, idx) => (
-          <div
-            key={`${product.id || product.slug || idx}-${idx}`}
-            className="flex-shrink-0 w-[calc((100%-24px)/4)] sm:w-[calc((100%-50px)/6)] lg:w-[calc((100%-84px)/8)]"
-          >
-            <ShowcaseItem product={product} />
-          </div>
-        ))}
+        <div
+          ref={trackRef}
+          style={{
+            willChange: 'transform',
+            transform: 'translate3d(0, 0, 0)',
+          }}
+          className="flex gap-2 sm:gap-3 transition-none"
+        >
+          {displayProducts.map((product, idx) => (
+            <div
+              key={`${product.id || product.slug || idx}-${idx}`}
+              className="flex-shrink-0 w-[calc((100vw-36px)/4)] sm:w-[calc((100vw-60px)/6)] lg:w-[130px]"
+            >
+              <ShowcaseItem product={product} />
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );

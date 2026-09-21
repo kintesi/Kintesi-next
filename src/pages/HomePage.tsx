@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef, useMemo } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
-import { getCategoriesFromDB, getProductsFromDB, getInitialProducts, getCachedTotalCount } from '../lib/dbService';
+import { getCategoriesFromDB, getProductsFromDB, getInitialProducts, getCachedTotalCount, getCachedProducts } from '../lib/dbService';
 import { Product, Category } from '../types';
 import { INITIAL_PRODUCTS, INITIAL_CATEGORIES } from '../data/mockData';
 import { FLASH_SALE_PRODUCTS } from '../data/flashSaleProducts';
@@ -13,6 +13,7 @@ import { useSettings, ShowcaseSection, DEFAULT_SHOWCASES } from '../contexts/Set
 import {
   getPersonalizedAndRotatedProducts,
   getCuratedCatalogFeed,
+  getSessionSeed,
   detectAndSaveSearchIntent,
   extractKeywords,
   getSavedSearchIntent,
@@ -72,12 +73,21 @@ const ICON_MAP: Record<string, any> = {
   Tags,
 };
 
+// Global in-memory session variables to preserve visible counts across in-app page transitions
+let _sessionMobileVisibleCount = 12;
+let _sessionDesktopVisibleCount = 18;
+
 export const HomePage: React.FC = () => {
   const location = useLocation();
   const { settings, isSettingsLoaded } = useSettings();
   const banners = settings.banners;
 
   const [products, setProducts] = useState<Product[]>(() => {
+    // 1. In-memory cache is priority (prevents empty/reload state when returning from another page)
+    const mem = getCachedProducts();
+    if (mem && mem.length > 50) return mem;
+
+    // 2. LocalStorage initial products
     try {
       const saved = localStorage.getItem('kintesi_initial_products') || localStorage.getItem('kintesi_custom_products');
       if (saved) {
@@ -109,12 +119,20 @@ export const HomePage: React.FC = () => {
 
   const [isLoadingData, setIsLoadingData] = useState(false);
 
-  // Progressive batch loading: 6 on mobile, 18 on desktop (3 complete rows of 6)
-  const [mobileVisibleCount, setMobileVisibleCount] = useState(6);
-  const [desktopVisibleCount, setDesktopVisibleCount] = useState(18);
+  // Progressive batch loading: preserves exact count when user returns from product detail or cart
+  const [mobileVisibleCount, setMobileVisibleCount] = useState(() => _sessionMobileVisibleCount);
+  const [desktopVisibleCount, setDesktopVisibleCount] = useState(() => _sessionDesktopVisibleCount);
   const [intentVersion, setIntentVersion] = useState<number>(0);
   const mobileSentinelRef = useRef<HTMLDivElement | null>(null);
   const desktopSentinelRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    _sessionMobileVisibleCount = mobileVisibleCount;
+  }, [mobileVisibleCount]);
+
+  useEffect(() => {
+    _sessionDesktopVisibleCount = desktopVisibleCount;
+  }, [desktopVisibleCount]);
 
   useEffect(() => {
     const handleIntentUpdate = () => setIntentVersion((v) => v + 1);
@@ -263,11 +281,9 @@ export const HomePage: React.FC = () => {
     return saved && saved.length > 0 ? saved[0] : null;
   }, [location.search, intentVersion]);
 
-  const [reloadSeed] = useState<number>(() => Math.floor(Math.random() * 1000000) + 1);
-
   // Curated, diverse mixed catalog feed:
-  // - On page reload: Fresh random seed produces a new exciting product mix
-  // - While user is on page: Seed is fixed so products NEVER change or jump unexpectedly!
+  // - On browser page reload: Fresh random seed produces a new exciting product mix
+  // - While user navigates pages inside the app: Seed & feed are session-locked so products NEVER change or jump!
   const personalizedProducts = useMemo(() => {
     const uniqueMap = new Map<string, Product>();
     for (const p of products) {
@@ -276,8 +292,8 @@ export const HomePage: React.FC = () => {
       }
     }
     const uniquePool = Array.from(uniqueMap.values());
-    return getCuratedCatalogFeed(uniquePool, reloadSeed);
-  }, [products, reloadSeed]);
+    return getCuratedCatalogFeed(uniquePool, getSessionSeed());
+  }, [products]);
 
   const totalCatalogCount = useMemo(() => {
     return Math.max(personalizedProducts.length, getCachedTotalCount());

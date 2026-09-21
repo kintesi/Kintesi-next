@@ -17,9 +17,15 @@ export const RecentlyViewedShelf: React.FC<RecentlyViewedShelfProps> = ({
   subtitle = 'Easily find products you explored recently',
 }) => {
   const [version, setVersion] = useState(0);
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const isHoveredRef = useRef(false);
+  const trackRef = useRef<HTMLDivElement>(null);
+  const isPausedRef = useRef(false);
+  const isDraggingRef = useRef(false);
+  const posRef = useRef(0);
+  const lastTimeRef = useRef(performance.now());
   const animationFrameRef = useRef<number | null>(null);
+
+  const touchStartXRef = useRef(0);
+  const touchStartPosRef = useRef(0);
 
   useEffect(() => {
     const handleUpdate = () => setVersion((v) => v + 1);
@@ -41,11 +47,12 @@ export const RecentlyViewedShelf: React.FC<RecentlyViewedShelfProps> = ({
     return list;
   }, [recentlyViewed]);
 
-  // Safety resume listener: unpauses if touch/mouse releases anywhere
+  // Safety resume listener
   useEffect(() => {
     const handleRelease = () => {
+      isDraggingRef.current = false;
       setTimeout(() => {
-        isHoveredRef.current = false;
+        isPausedRef.current = false;
       }, 300);
     };
 
@@ -60,6 +67,17 @@ export const RecentlyViewedShelf: React.FC<RecentlyViewedShelfProps> = ({
     };
   }, []);
 
+  const getCycleWidth = useCallback(() => {
+    const track = trackRef.current;
+    if (!track || recentlyViewed.length === 0) return 0;
+    const firstChild = track.children[0] as HTMLElement | undefined;
+    const targetChild = track.children[recentlyViewed.length] as HTMLElement | undefined;
+    if (firstChild && targetChild) {
+      return targetChild.offsetLeft - firstChild.offsetLeft;
+    }
+    return track.scrollWidth / (displayItems.length / recentlyViewed.length);
+  }, [recentlyViewed.length, displayItems.length]);
+
   const handleClearHistory = () => {
     const profile = getUserInterestProfile();
     profile.viewedProductIds = [];
@@ -67,76 +85,88 @@ export const RecentlyViewedShelf: React.FC<RecentlyViewedShelfProps> = ({
     setVersion((v) => v + 1);
   };
 
-  const scrollPrev = useCallback(() => {
-    if (scrollRef.current) {
-      const el = scrollRef.current;
-      const firstChild = el.children[0] as HTMLElement | undefined;
-      const targetChild = el.children[recentlyViewed.length] as HTMLElement | undefined;
-      const oneCycleWidth = (targetChild && firstChild)
-        ? (targetChild.offsetLeft - firstChild.offsetLeft)
-        : el.clientWidth * 0.75;
+  const handleTouchStart = (e: React.TouchEvent) => {
+    isPausedRef.current = true;
+    isDraggingRef.current = true;
+    touchStartXRef.current = e.touches[0].clientX;
+    touchStartPosRef.current = posRef.current;
+  };
 
-      el.scrollBy({ left: -240, behavior: 'smooth' });
-      if (el.scrollLeft <= 0 && oneCycleWidth > 0) {
-        el.scrollLeft += oneCycleWidth;
-      }
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!isDraggingRef.current || !trackRef.current) return;
+    const diff = touchStartXRef.current - e.touches[0].clientX;
+    const cycleWidth = getCycleWidth();
+    let newPos = touchStartPosRef.current + diff;
+    if (cycleWidth > 0) {
+      newPos = (newPos % cycleWidth + cycleWidth) % cycleWidth;
     }
-  }, [recentlyViewed.length]);
+    posRef.current = newPos;
+    trackRef.current.style.transform = `translate3d(-${newPos}px, 0, 0)`;
+  };
 
-  const scrollNext = useCallback(() => {
-    if (scrollRef.current) {
-      const el = scrollRef.current;
-      const firstChild = el.children[0] as HTMLElement | undefined;
-      const targetChild = el.children[recentlyViewed.length] as HTMLElement | undefined;
-      const oneCycleWidth = (targetChild && firstChild)
-        ? (targetChild.offsetLeft - firstChild.offsetLeft)
-        : el.clientWidth * 0.75;
+  const handleTouchEnd = () => {
+    isDraggingRef.current = false;
+    setTimeout(() => {
+      isPausedRef.current = false;
+    }, 400);
+  };
 
-      el.scrollBy({ left: 240, behavior: 'smooth' });
-      if (el.scrollLeft >= oneCycleWidth && oneCycleWidth > 0) {
-        el.scrollLeft -= oneCycleWidth;
-      }
+  const scrollPrev = () => {
+    const cycleWidth = getCycleWidth();
+    posRef.current -= 240;
+    if (cycleWidth > 0 && posRef.current < 0) {
+      posRef.current += cycleWidth;
     }
-  }, [recentlyViewed.length]);
+    if (trackRef.current) {
+      trackRef.current.style.transform = `translate3d(-${posRef.current}px, 0, 0)`;
+    }
+  };
 
-  // Smooth continuous infinite scrolling (never freezes, zero jumps)
+  const scrollNext = () => {
+    const cycleWidth = getCycleWidth();
+    posRef.current += 240;
+    if (cycleWidth > 0 && posRef.current >= cycleWidth) {
+      posRef.current -= cycleWidth;
+    }
+    if (trackRef.current) {
+      trackRef.current.style.transform = `translate3d(-${posRef.current}px, 0, 0)`;
+    }
+  };
+
+  // Hardware-accelerated GPU translate3d animation for 100% buttery smooth 60fps/120fps motion
   useEffect(() => {
-    const container = scrollRef.current;
-    if (!container || recentlyViewed.length <= 1) return;
+    const track = trackRef.current;
+    if (!track || recentlyViewed.length <= 1) return;
 
-    let lastTime = performance.now();
-    const speed = 18; // Gentle, steady, readable gliding speed (18px/sec)
+    lastTimeRef.current = performance.now();
+    const speed = 28; // Balanced golden speed (28px/sec)
 
-    const animate = (currentTime: number) => {
-      const delta = Math.min((currentTime - lastTime) / 1000, 0.1);
-      lastTime = currentTime;
+    const step = (currentTime: number) => {
+      const delta = Math.min((currentTime - lastTimeRef.current) / 1000, 0.1);
+      lastTimeRef.current = currentTime;
 
-      if (!isHoveredRef.current && container) {
-        const firstChild = container.children[0] as HTMLElement | undefined;
-        const targetChild = container.children[recentlyViewed.length] as HTMLElement | undefined;
-        const oneCycleWidth = (targetChild && firstChild)
-          ? (targetChild.offsetLeft - firstChild.offsetLeft)
-          : (container.scrollWidth / (displayItems.length / recentlyViewed.length));
-
-        if (oneCycleWidth > 0) {
-          container.scrollLeft += speed * delta;
-          if (container.scrollLeft >= oneCycleWidth) {
-            container.scrollLeft -= oneCycleWidth;
+      if (!isPausedRef.current && !isDraggingRef.current && track) {
+        const cycleWidth = getCycleWidth();
+        if (cycleWidth > 0) {
+          posRef.current += speed * delta;
+          if (posRef.current >= cycleWidth) {
+            posRef.current -= cycleWidth;
           }
+          track.style.transform = `translate3d(-${posRef.current}px, 0, 0)`;
         }
       }
 
-      animationFrameRef.current = requestAnimationFrame(animate);
+      animationFrameRef.current = requestAnimationFrame(step);
     };
 
-    animationFrameRef.current = requestAnimationFrame(animate);
+    animationFrameRef.current = requestAnimationFrame(step);
 
     return () => {
       if (animationFrameRef.current) {
         cancelAnimationFrame(animationFrameRef.current);
       }
     };
-  }, [recentlyViewed.length, displayItems]);
+  }, [recentlyViewed.length, displayItems, getCycleWidth]);
 
   if (recentlyViewed.length === 0) return null;
 
@@ -144,8 +174,8 @@ export const RecentlyViewedShelf: React.FC<RecentlyViewedShelfProps> = ({
     <section className="my-6 md:my-10">
       <div 
         className="bg-white border border-gray-200/80 rounded-2xl md:rounded-3xl p-4 sm:p-6 shadow-xs"
-        onMouseEnter={() => { isHoveredRef.current = true; }}
-        onMouseLeave={() => { isHoveredRef.current = false; }}
+        onMouseEnter={() => { isPausedRef.current = true; }}
+        onMouseLeave={() => { isPausedRef.current = false; }}
       >
         {/* Header */}
         <div className="flex items-center justify-between gap-3 mb-4 md:mb-6">
@@ -206,29 +236,30 @@ export const RecentlyViewedShelf: React.FC<RecentlyViewedShelfProps> = ({
           </div>
         </div>
 
-        {/* Horizontal scrollable row: Seamless infinite smooth glide, NO scrollbar slider */}
+        {/* Row: GPU-accelerated translate3d glide with NO bottom slider */}
         <div
-          ref={scrollRef}
-          onTouchStart={() => { isHoveredRef.current = true; }}
-          onTouchEnd={() => {
-            setTimeout(() => {
-              isHoveredRef.current = false;
-            }, 300);
-          }}
-          style={{
-            scrollbarWidth: 'none',
-            msOverflowStyle: 'none',
-          }}
-          className="flex gap-3 sm:gap-4 overflow-x-auto no-scrollbar [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden py-1 select-none cursor-grab active:cursor-grabbing"
+          className="w-full overflow-hidden select-none py-1 cursor-grab active:cursor-grabbing"
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
         >
-          {displayItems.map((prod, idx) => (
-            <div
-              key={`recent-${prod.id}-${idx}`}
-              className="w-[155px] sm:w-[190px] md:w-[210px] flex-shrink-0"
-            >
-              <ProductCard product={prod} />
-            </div>
-          ))}
+          <div
+            ref={trackRef}
+            style={{
+              willChange: 'transform',
+              transform: 'translate3d(0, 0, 0)',
+            }}
+            className="flex gap-3 sm:gap-4 transition-none"
+          >
+            {displayItems.map((prod, idx) => (
+              <div
+                key={`recent-${prod.id}-${idx}`}
+                className="w-[155px] sm:w-[190px] md:w-[210px] flex-shrink-0"
+              >
+                <ProductCard product={prod} />
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </section>
