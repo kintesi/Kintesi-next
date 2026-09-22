@@ -54,7 +54,7 @@ function withTimeout<T>(promise: PromiseLike<T>, ms: number = 3500): Promise<T> 
 // Explicitly omits massive fields (raw description HTML, specifications, embedding vectors)
 // Reducing payload from 10.6MB to under 2MB for full catalog, and ~40KB for initial screen!
 export const PRODUCT_SUMMARY_FIELDS =
-  'id, title, slug, price, discount_price, category_id, stock, images, rating, review_count, is_featured, is_trending, brand, sku, tags, sizes, colors, dropshipping_url, created_at';
+  'id, title, slug, description, price, discount_price, category_id, stock, images, rating, review_count, is_featured, is_trending, brand, sku, tags, sizes, colors, dropshipping_url, created_at';
 
 // In-memory cache & Promise deduplication for instant 0ms access and zero duplicate requests
 let _memoryProductsCache: Product[] | null = null;
@@ -144,6 +144,7 @@ function normalizeProductSummary(p: any): Product {
 
   return {
     ...p,
+    description: typeof p.description === 'string' ? p.description.trim() : (p.description || ''),
     rating: Number(p.rating) || 0,
     review_count: Number(p.review_count) || 0,
     images: imgs,
@@ -163,7 +164,7 @@ export async function getInitialProducts(limit: number = 36): Promise<Product[]>
     return _memoryProductsCache.filter(isValidDisplayProduct).slice(0, limit);
   }
 
-  const CACHE_VERSION = 'v29_catalog_restore';
+  const CACHE_VERSION = 'v30_with_descriptions';
   if (typeof window !== 'undefined') {
     try {
       if (localStorage.getItem('kintesi_cache_ver') !== CACHE_VERSION) {
