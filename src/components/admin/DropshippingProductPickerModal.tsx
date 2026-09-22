@@ -125,7 +125,21 @@ export const DropshippingProductPickerModal: React.FC<DropshippingProductPickerM
     }
   };
 
+  const validateDropProd = (dropProd: DropshippingProduct): boolean => {
+    const hasDesc = Boolean(dropProd.details && dropProd.details.trim().length >= 5);
+    const hasImg = Boolean(
+      (dropProd.thumbnail_img && dropProd.thumbnail_img.trim().length > 5 && !dropProd.thumbnail_img.includes('/logo.webp') && !dropProd.thumbnail_img.includes('placeholder')) ||
+      (Array.isArray(dropProd.product_images) && dropProd.product_images.some(img => img?.product_image && img.product_image.trim().length > 5 && !img.product_image.includes('/logo.webp') && !img.product_image.includes('placeholder')))
+    );
+    if (!hasDesc || !hasImg) {
+      toast.error('এই প্রোডাক্টটিতে প্রয়োজনীয় আসল ছবি বা বিবরণ (Description) নেই, তাই যোগ করা যাবে না');
+      return false;
+    }
+    return true;
+  };
+
   const handleSelect = (dropProd: DropshippingProduct) => {
+    if (!validateDropProd(dropProd)) return;
     const converted = convertDropshippingToKintesiProduct(dropProd);
     onSelectProduct(converted, dropProd);
     toast.success(`"${dropProd.name.slice(0, 30)}..." ফর্মটিতে অটোফিল করা হয়েছে!`);
@@ -134,6 +148,7 @@ export const DropshippingProductPickerModal: React.FC<DropshippingProductPickerM
 
   const handleQuickImport = async (dropProd: DropshippingProduct) => {
     if (!onDirectImport) return;
+    if (!validateDropProd(dropProd)) return;
     setDirectImportingId(dropProd.id);
     try {
       const converted = convertDropshippingToKintesiProduct(dropProd);

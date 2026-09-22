@@ -153,6 +153,7 @@ export const HomePage: React.FC = () => {
   const handleRefreshFeed = () => {
     setIsRefreshingFeed(true);
     invalidateSessionFeed();
+    setFeedRefreshCount((c) => c + 1);
     setMobileVisibleCount(12);
     setDesktopVisibleCount(18);
     setTimeout(() => {

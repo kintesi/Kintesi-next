@@ -1135,6 +1135,14 @@ export const AdminProducts: React.FC = () => {
       return;
     }
 
+    // 3. Validate Description (must have at least 5 characters)
+    const cleanDesc = String(formData.description || '').trim();
+    if (!cleanDesc || cleanDesc.length < 5) {
+      toast.error('প্রোডাক্ট বিবরণ (Description) আবশ্যক (কমপক্ষে ৫ অক্ষর হতে হবে)');
+      setActiveModalTab('general');
+      return;
+    }
+
     setIsSavingProduct(true);
     const toastId = toast.loading(editingProduct ? 'Saving changes...' : 'Creating product...');
 
@@ -1194,6 +1202,17 @@ export const AdminProducts: React.FC = () => {
             allImages.push(trimmed);
           }
         });
+      }
+
+      const hasValidImage = allImages.some(
+        (img) => img && img.trim().length > 5 && !img.includes('/logo.webp') && !img.includes('placeholder')
+      );
+      if (!hasValidImage) {
+        toast.dismiss(toastId);
+        setIsSavingProduct(false);
+        toast.error('প্রোডাক্টে কমপক্ষে একটি আসল ছবি থাকা আবশ্যক');
+        setActiveModalTab('general');
+        return;
       }
 
       // Extract color variants with individual 4 photos, custom price, discount & stock

@@ -76,19 +76,30 @@ export function isValidDisplayProduct(p: any): boolean {
   if (!p || !p.id || typeof p.title !== 'string' || !p.title.trim()) return false;
   if (typeof p.id === 'string' && p.id.startsWith('prod-')) return false;
 
-  // 1. Description must exist and be non-empty (at least 5 characters)
-  const desc = typeof p.description === 'string' ? p.description.trim() : '';
-  if (desc.length < 5) return false;
+  // 1. Description: When present, description must be valid (at least 5 characters)
+  // Note: Card/feed summary queries intentionally omit large HTML descriptions for performance.
+  if (p.description !== undefined && p.description !== null) {
+    const desc = typeof p.description === 'string' ? p.description.trim() : '';
+    if (desc.length < 5) return false;
+  }
 
   // 2. Real product image must exist (cannot be empty, cannot be only /logo.webp or placeholder)
   const imgs: string[] = Array.isArray(p.images) ? p.images : [];
-  const hasRealImage = imgs.some(
+  let hasRealImage = imgs.some(
     (img) =>
       typeof img === 'string' &&
       img.trim().length > 5 &&
       !img.includes('/logo.webp') &&
       !img.includes('placeholder')
   );
+
+  if (!hasRealImage && Array.isArray(p.colors)) {
+    hasRealImage = p.colors.some(
+      (c: any) =>
+        (c.image && typeof c.image === 'string' && c.image.trim().length > 5 && !c.image.includes('/logo.webp') && !c.image.includes('placeholder')) ||
+        (Array.isArray(c.images) && c.images.some((img: any) => typeof img === 'string' && img.trim().length > 5 && !img.includes('/logo.webp') && !img.includes('placeholder')))
+    );
+  }
 
   return hasRealImage;
 }
@@ -152,7 +163,7 @@ export async function getInitialProducts(limit: number = 36): Promise<Product[]>
     return _memoryProductsCache.filter(isValidDisplayProduct).slice(0, limit);
   }
 
-  const CACHE_VERSION = 'v28_zero_fake_ratings';
+  const CACHE_VERSION = 'v29_catalog_restore';
   if (typeof window !== 'undefined') {
     try {
       if (localStorage.getItem('kintesi_cache_ver') !== CACHE_VERSION) {
@@ -167,10 +178,12 @@ export async function getInitialProducts(limit: number = 36): Promise<Product[]>
         const parsed = JSON.parse(cached);
         if (Array.isArray(parsed) && parsed.length > 0) {
           const validParsed = parsed.filter(isValidDisplayProduct);
-          const existingIds = new Set(validParsed.map((p: any) => p.id));
-          const missingFlash = FLASH_SALE_PRODUCTS.filter((p) => isValidDisplayProduct(p) && !existingIds.has(p.id));
-          const curated = getCuratedCatalogFeed([...missingFlash, ...validParsed], getSessionSeed());
-          return curated.slice(0, limit);
+          if (validParsed.length > 0) {
+            const existingIds = new Set(validParsed.map((p: any) => p.id));
+            const missingFlash = FLASH_SALE_PRODUCTS.filter((p) => isValidDisplayProduct(p) && !existingIds.has(p.id));
+            const curated = getCuratedCatalogFeed([...missingFlash, ...validParsed], getSessionSeed());
+            return curated.slice(0, limit);
+          }
         }
       }
     } catch {}

@@ -734,16 +734,26 @@ export function getCuratedCatalogFeed(products: Product[], reloadSeed?: number):
   const validProducts = products.filter((p) => {
     if (!p || !p.id || !p.title) return false;
     if (typeof p.id === 'string' && p.id.startsWith('prod-')) return false;
-    const desc = typeof p.description === 'string' ? p.description.trim() : '';
-    if (desc.length < 5) return false;
+    if (p.description !== undefined && p.description !== null) {
+      const desc = typeof p.description === 'string' ? p.description.trim() : '';
+      if (desc.length < 5) return false;
+    }
     const imgs: string[] = Array.isArray(p.images) ? p.images : [];
-    return imgs.some(
+    let hasRealImage = imgs.some(
       (img) =>
         typeof img === 'string' &&
         img.trim().length > 5 &&
         !img.includes('/logo.webp') &&
         !img.includes('placeholder')
     );
+    if (!hasRealImage && Array.isArray(p.colors)) {
+      hasRealImage = p.colors.some(
+        (c: any) =>
+          (c.image && typeof c.image === 'string' && c.image.trim().length > 5 && !c.image.includes('/logo.webp') && !c.image.includes('placeholder')) ||
+          (Array.isArray(c.images) && c.images.some((img: any) => typeof img === 'string' && img.trim().length > 5 && !img.includes('/logo.webp') && !img.includes('placeholder')))
+      );
+    }
+    return hasRealImage;
   });
 
   if (validProducts.length === 0) return [];
