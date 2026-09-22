@@ -46,7 +46,7 @@ import {
 import { toast } from 'sonner';
 import { useLanguage } from '../contexts/LanguageContext';
 import { FormattedProductDescription } from '../components/product/FormattedProductDescription';
-import { isSpecKeyValid, isSpecValueValid, getProductGenderInfo, extractCleanSpecsFromDescription } from '../lib/productSpecUtils';
+import { isSpecKeyValid, isSpecValueValid, getProductGenderInfo, extractCleanSpecsFromDescription, extractSizeMeasurementsMap } from '../lib/productSpecUtils';
 
 export const ProductDetailPage: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -557,6 +557,10 @@ export const ProductDetailPage: React.FC = () => {
     return list;
   }, [product?.sizes]);
 
+  const sizeMeasurementsMap = useMemo(() => {
+    return extractSizeMeasurementsMap(product?.description);
+  }, [product?.description]);
+
   const activeVariantImage = activeColorObj?.image || product?.images?.[0] || '/logo.webp';
   const activeStock = typeof activeColorObj?.stock === 'number' ? activeColorObj.stock : (product ? (product.stock ?? 0) : 0);
 
@@ -1056,13 +1060,24 @@ export const ProductDetailPage: React.FC = () => {
                   const options = rawOptions as any[];
                   const selectedOptName = selectedCustomAttributes[attrName] || (options[0]?.name ?? '');
                   const activeOption = options.find((o) => o.name === selectedOptName);
+                  const isSizeAttr = attrName.toLowerCase() === 'size' || attrName.toLowerCase() === 'sizes' || attrName === 'সাইজ';
+                  const activeMeasurement = isSizeAttr
+                    ? sizeMeasurementsMap[selectedOptName.toLowerCase()] ||
+                      sizeMeasurementsMap[selectedOptName.replace(/\s*years?/i, '').trim()] ||
+                      sizeMeasurementsMap[selectedOptName.toUpperCase()]
+                    : null;
 
                   return (
                     <div key={attrName} className="space-y-2.5">
                       <div className="flex items-center justify-between text-xs font-bold">
                         <span className="text-gray-500 uppercase tracking-wider text-[11px]">{attrName}:</span>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 flex-wrap">
                           <span className="text-gray-900 font-extrabold">{selectedOptName}</span>
+                          {activeMeasurement && (
+                            <span className="text-[11px] font-bold text-rose-600 bg-rose-50 px-2 py-0.5 rounded-md border border-rose-200">
+                              ({activeMeasurement})
+                            </span>
+                          )}
                           {activeOption && typeof activeOption.price === 'number' && activeOption.price > 0 && (
                             <span className="text-xs font-black text-rose-600 bg-rose-50 px-2 py-0.5 rounded-full border border-rose-200">
                               {formatPrice(activeOption.price)}
@@ -1073,18 +1088,29 @@ export const ProductDetailPage: React.FC = () => {
                       <div className="flex flex-wrap gap-2">
                         {options.map((opt: any) => {
                           const isSelected = selectedOptName === opt.name;
+                          const optMeasurement = isSizeAttr
+                            ? sizeMeasurementsMap[opt.name.toLowerCase()] ||
+                              sizeMeasurementsMap[opt.name.replace(/\s*years?/i, '').trim()] ||
+                              sizeMeasurementsMap[opt.name.toUpperCase()]
+                            : null;
+
                           return (
                             <button
                               key={opt.id || opt.name}
                               type="button"
                               onClick={() => handleSelectCustomAttr(attrName, opt)}
-                              className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition cursor-pointer flex items-center gap-1.5 ${
+                              className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition cursor-pointer flex flex-col items-center justify-center gap-0.5 ${
                                 isSelected
                                   ? 'border-emerald-600 bg-emerald-600 text-white shadow-xs'
                                   : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300'
                               }`}
                             >
                               <span>{opt.name}</span>
+                              {optMeasurement && (
+                                <span className={`text-[9.5px] font-medium leading-tight ${isSelected ? 'text-emerald-100' : 'text-gray-500'}`}>
+                                  {optMeasurement.slice(0, 32)}
+                                </span>
+                              )}
                               {typeof opt.price === 'number' && opt.price > 0 && (
                                 <span className={`text-[10px] ${isSelected ? 'text-emerald-100' : 'text-rose-600 font-extrabold'}`}>
                                   ({formatPrice(opt.price)})
@@ -1106,28 +1132,49 @@ export const ProductDetailPage: React.FC = () => {
                 if (hasCustomSizeAttr || deduplicatedSizes.length === 0) return null;
 
                 const currentActiveSize = selectedSize || deduplicatedSizes[0];
+                const activeMeasurement =
+                  sizeMeasurementsMap[currentActiveSize.toLowerCase()] ||
+                  sizeMeasurementsMap[currentActiveSize.replace(/\s*years?/i, '').trim()] ||
+                  sizeMeasurementsMap[currentActiveSize.toUpperCase()];
 
                 return (
                   <div className="space-y-2">
                     <div className="flex items-center justify-between text-xs font-bold">
                       <span className="text-gray-500 uppercase tracking-wider text-[11px]">Size:</span>
-                      <span className="text-gray-900 font-extrabold">{currentActiveSize}</span>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-gray-900 font-extrabold">{currentActiveSize}</span>
+                        {activeMeasurement && (
+                          <span className="text-[11px] font-bold text-rose-600 bg-rose-50 px-2 py-0.5 rounded-md border border-rose-200">
+                            ({activeMeasurement})
+                          </span>
+                        )}
+                      </div>
                     </div>
                     <div className="flex flex-wrap gap-2">
                       {deduplicatedSizes.map((sz) => {
                         const isSelected = currentActiveSize === sz;
+                        const szMeasurement =
+                          sizeMeasurementsMap[sz.toLowerCase()] ||
+                          sizeMeasurementsMap[sz.replace(/\s*years?/i, '').trim()] ||
+                          sizeMeasurementsMap[sz.toUpperCase()];
+
                         return (
                           <button
                             key={sz}
                             type="button"
                             onClick={() => setSelectedSize(sz)}
-                            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold border transition cursor-pointer ${
+                            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold border transition cursor-pointer flex flex-col items-center justify-center gap-0.5 ${
                               isSelected
                                 ? 'border-emerald-600 bg-emerald-600 text-white shadow-xs'
                                 : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300'
                             }`}
                           >
-                            {sz}
+                            <span>{sz}</span>
+                            {szMeasurement && (
+                              <span className={`text-[9.5px] font-medium leading-tight ${isSelected ? 'text-emerald-100' : 'text-gray-500'}`}>
+                                {szMeasurement.slice(0, 32)}
+                              </span>
+                            )}
                           </button>
                         );
                       })}
@@ -1498,8 +1545,10 @@ export const ProductDetailPage: React.FC = () => {
 
         const genderInfo = getProductGenderInfo(product);
 
-        // Check if there is any genuine specification to show for this specific mode
-        const shouldShow = isGadget
+        // Never show synthetic specifications card for fashion products
+        const shouldShow = isFashion
+          ? false
+          : isGadget
           ? Boolean(isSpecValueValid(product.warranty) || (isSpecValueValid(product.origin) && !product.origin.toLowerCase().includes('bangladesh')) || hasHardwareSpecs || hasExtractedSpecs)
           : isGroceries
           ? Boolean(
@@ -1508,17 +1557,6 @@ export const ProductDetailPage: React.FC = () => {
               isSpecValueValid(product.origin) ||
               isSpecValueValid(product.care_instructions) ||
               isSpecValueValid(product.fit_type) ||
-              hasHardwareSpecs ||
-              hasExtractedSpecs
-            )
-          : isFashion
-          ? Boolean(
-              deduplicatedSizes.length > 0 ||
-              isSpecValueValid(product.fabric) ||
-              isSpecValueValid(product.fit_type) ||
-              genderInfo !== null ||
-              isSpecValueValid(product.origin) ||
-              isSpecValueValid(product.care_instructions) ||
               hasHardwareSpecs ||
               hasExtractedSpecs
             )
@@ -1534,33 +1572,25 @@ export const ProductDetailPage: React.FC = () => {
                   className={`w-7 h-7 sm:w-9 sm:h-9 rounded-lg sm:rounded-xl flex items-center justify-center shrink-0 ${
                     isGadget
                       ? 'bg-cyan-50 text-cyan-600'
-                      : isGroceries
-                      ? 'bg-emerald-50 text-emerald-600'
-                      : 'bg-pink-50 text-pink-600'
+                      : 'bg-emerald-50 text-emerald-600'
                   }`}
                 >
                   {isGadget ? (
                     <Cpu className="w-4 h-4" />
-                  ) : isGroceries ? (
-                    <Sparkles className="w-4 h-4" />
                   ) : (
-                    <Shirt className="w-4 h-4" />
+                    <Sparkles className="w-4 h-4" />
                   )}
                 </div>
                 <div>
                   <h3 className="text-xs sm:text-base font-black text-gray-900 leading-tight">
                     {isGadget
                       ? 'Technical Specifications & Hardware Details'
-                      : isGroceries
-                      ? 'Food & Grocery Specifications (খাদ্য ও পুষ্টি বিবরণ)'
-                      : 'Specifications & Material Details (পোশাক ও ফ্যাশন বিবরণ)'}
+                      : 'Food & Grocery Specifications (খাদ্য ও পুষ্টি বিবরণ)'}
                   </h3>
                   <p className="text-[10px] sm:text-xs text-gray-500 mt-0.5">
                     {isGadget
                       ? 'Hardware performance, connectivity & official warranty'
-                      : isGroceries
-                      ? 'Net weight, shelf life, storage & origin'
-                      : 'Fabric craftsmanship, fit type & care instructions'}
+                      : 'Net weight, shelf life, storage & origin'}
                   </p>
                 </div>
               </div>
@@ -1584,66 +1614,6 @@ export const ProductDetailPage: React.FC = () => {
                 {Object.entries(extractedSpecs).map(([key, val]) => (
                   <div key={`ext-${key}`} className="p-2 sm:p-2.5 bg-cyan-50/30 rounded-lg sm:rounded-xl space-y-0.5 border border-cyan-100/60">
                     <span className="text-cyan-700 font-bold uppercase text-[8.5px] sm:text-[9.5px] tracking-wider block">{key}</span>
-                    <p className="font-bold text-gray-900 text-[11px] sm:text-xs truncate">{val}</p>
-                  </div>
-                ))}
-                {validSpecs.map(([key, val]) => (
-                  <div key={key} className="p-2 sm:p-2.5 bg-gray-50/80 rounded-lg sm:rounded-xl space-y-0.5 border border-gray-100/80">
-                    <span className="text-gray-400 font-bold uppercase text-[8.5px] sm:text-[9.5px] tracking-wider block">{key.replace(/_/g, ' ')}</span>
-                    <p className="font-bold text-gray-900 text-[11px] sm:text-xs truncate">{typeof val === 'object' ? JSON.stringify(val) : String(val)}</p>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {/* 2. FASHION & APPAREL DETAILS ONLY */}
-            {isFashion && (
-              <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-1.5 sm:gap-2.5 text-xs">
-                {deduplicatedSizes.length > 0 && (
-                  <div className="p-2 sm:p-2.5 bg-rose-50/60 rounded-lg sm:rounded-xl space-y-0.5 border border-rose-100/70">
-                    <span className="text-rose-700 font-bold uppercase text-[8.5px] sm:text-[9.5px] tracking-wider block">
-                      {language === 'bn' ? 'উপলব্ধ সাইজ' : 'Available Sizes'}
-                    </span>
-                    <p className="font-bold text-gray-900 text-[11px] sm:text-xs">
-                      {deduplicatedSizes.join(', ')}
-                    </p>
-                  </div>
-                )}
-                {isSpecValueValid(product.fabric) && (
-                  <div className="p-2 sm:p-2.5 bg-gray-50/80 rounded-lg sm:rounded-xl space-y-0.5 border border-gray-100/80">
-                    <span className="text-gray-400 font-bold uppercase text-[8.5px] sm:text-[9.5px] tracking-wider block">Fabric / Material</span>
-                    <p className="font-bold text-gray-900 text-[11px] sm:text-xs truncate">{String(product.fabric)}</p>
-                  </div>
-                )}
-                {isSpecValueValid(product.fit_type) && (
-                  <div className="p-2 sm:p-2.5 bg-gray-50/80 rounded-lg sm:rounded-xl space-y-0.5 border border-gray-100/80">
-                    <span className="text-gray-400 font-bold uppercase text-[8.5px] sm:text-[9.5px] tracking-wider block">Fit Type</span>
-                    <p className="font-bold text-gray-900 text-[11px] sm:text-xs truncate">{String(product.fit_type)}</p>
-                  </div>
-                )}
-                {genderInfo && (
-                  <div className="p-2 sm:p-2.5 bg-gray-50/80 rounded-lg sm:rounded-xl space-y-0.5 border border-gray-100/80">
-                    <span className="text-gray-400 font-bold uppercase text-[8.5px] sm:text-[9.5px] tracking-wider block">Department</span>
-                    <p className="font-bold text-gray-900 text-[11px] sm:text-xs truncate">
-                      {language === 'bn' ? genderInfo.textBn : genderInfo.label}
-                    </p>
-                  </div>
-                )}
-                {isSpecValueValid(product.origin) && (
-                  <div className="p-2 sm:p-2.5 bg-gray-50/80 rounded-lg sm:rounded-xl space-y-0.5 border border-gray-100/80">
-                    <span className="text-gray-400 font-bold uppercase text-[8.5px] sm:text-[9.5px] tracking-wider block">Origin</span>
-                    <p className="font-bold text-gray-900 text-[11px] sm:text-xs truncate">{String(product.origin)}</p>
-                  </div>
-                )}
-                {isSpecValueValid(product.care_instructions) && (
-                  <div className="p-2 sm:p-2.5 bg-gray-50/80 rounded-lg sm:rounded-xl space-y-0.5 border border-gray-100/80 col-span-2">
-                    <span className="text-gray-400 font-bold uppercase text-[8.5px] sm:text-[9.5px] tracking-wider block">Care Instructions</span>
-                    <p className="font-semibold text-gray-800 text-[11px] sm:text-xs leading-relaxed">{String(product.care_instructions)}</p>
-                  </div>
-                )}
-                {Object.entries(extractedSpecs).map(([key, val]) => (
-                  <div key={`ext-${key}`} className="p-2 sm:p-2.5 bg-gray-50/80 rounded-lg sm:rounded-xl space-y-0.5 border border-gray-100/80">
-                    <span className="text-gray-400 font-bold uppercase text-[8.5px] sm:text-[9.5px] tracking-wider block">{key}</span>
                     <p className="font-bold text-gray-900 text-[11px] sm:text-xs truncate">{val}</p>
                   </div>
                 ))}

@@ -253,3 +253,111 @@ export function extractCleanSpecsFromDescription(description?: string): Record<s
 
   return cleanSpecs;
 }
+
+/**
+ * Cleanly formats dropshipping supplier description text to match Dropshipping BD's exact native layout:
+ * - Proper paragraphs
+ * - Distinct emoji bullet sections (👉, ✨, etc.)
+ * - Line-by-line age and size measurements (never smushed together)
+ * - Line-by-line product attributes (Material, Fabrics, GSM, etc.)
+ */
+export function formatDescriptionDropshippingStyle(text?: string): string {
+  if (!text || !text.trim()) return '';
+
+  let clean = text
+    .replace(/https?:\/\/(?:mohasagor|dropshipping)\S+/gi, '')
+    .replace(/\r\n/g, '\n')
+    .replace(/\r/g, '\n');
+
+  // Fix glued dot hashtags like .#babys.#hoodies.
+  clean = clean.replace(/\.+#/g, ' #');
+
+  // Emojis at beginning of sections
+  clean = clean.replace(/([^\n])\s*(👉|⚡|✨|🔥|🌟|📦|🌸|💨|💡|📌|🌼)/g, '$1\n\n$2 ');
+
+  // Sentence ends (Bengali Dari or English period followed immediately by capital letter or Bengali word)
+  clean = clean.replace(/([।!?])\s*(?=[A-Za-z\u0980-\u09ff])/g, '$1\n\n');
+
+  // Unglue parenthesis-based size specs like (*M:* লেন্থ ২৮", বক্ষ ৩৯")(*L:*...)
+  clean = clean.replace(/\)\s*\(\s*(?=[*A-Za-z0-9\u0980-\u09ff]+[:=])/g, ')\n• ');
+  clean = clean.replace(/(?:[-–—:*]\s*)?\(\s*(?=[*A-Za-z0-9\u0980-\u09ff]+[:=])/g, '\n• ');
+
+  // Unglue letter size specs like "M = length 28", chest 39"L= length 29"..." or "XXLM = length"
+  clean = clean.replace(/([0-9"”\'\.\,])\s*(?=\b(?:XXXL|XXL|XL|L|M|S|XS)\s*[:=]\s*(?:length|chest|body|লেন্থ|বক্ষ|বডি|লম্বা))/gi, '$1\n• ');
+
+  // Unglue age/year size specifications (English & Bengali):
+  // e.g. Chest-27"8 yrs- or ৩২"১২ বছর - or 30.10yrs- or :-6 yrs-
+  clean = clean.replace(/([^\d\n])\s*[-–—]?\s*(?=(?:[1-9]|1[0-9]|[১-৯]|[১-৯][০-৯])\s*(?:yrs|years|y|yr|বছর)\s*[-–—:]*\s*(?:Lenth|Length|দৈর্ঘ্য|বুক|Chest|Body))/gi, '$1\n• ');
+
+  // Standardize first bullet after "সাইজের বিবরণ" or "Size measurements"
+  clean = clean.replace(/(সাইজের বিবরণ[^\n:]*[:：][-–—]*)\s*[-–—]?\s*(?=(?:[1-9]|1[0-9]|[১-৯]|[১-৯][০-৯])\s*(?:yrs|years|y|yr|বছর))/gi, '$1\n• ');
+  clean = clean.replace(/(Size measurements?[^\n:]*[:：][-–—]*)\s*[-–—]?\s*(?=(?:[1-9]|1[0-9]|[১-৯]|[১-৯][০-৯])\s*(?:yrs|years|y|yr|বছর))/gi, '$1\n• ');
+
+  // English spec headers
+  const specHeaders = [
+    'Product Type', 'Material', 'Export Quality Hoodie', 'Export Quality', 'Fabrics', 'Fabric & Print Color Guaranteed',
+    'Fabric', 'Fabrication', 'GSMFabric', 'Size measurements', 'Size measurement', 'Size Measurement', 'Size',
+    'Package included', 'Package includes', 'Specification', 'Specifications', 'Color', 'Colors', 'Brand', 'Warranty', 'Origin'
+  ];
+  for (const h of specHeaders) {
+    const regex = new RegExp('([^\\n])\\s*(?=' + h.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\s*[:：])', 'gi');
+    clean = clean.replace(regex, '$1\n');
+  }
+
+  // Common glued phrases in BD dropshipping descriptions
+  clean = clean.replace(/([a-z0-9"”\'.])\s*(?=(?:Export Quality|Fabric & Print|Fabrication|GSMFabric|GSM|Size:))/gi, '$1\n');
+
+  // Unglue dashed bullets like "- স্টাইলিশ ও আরামদায়ক।- দীর্ঘস্থায়ী এবং টেকসই।"
+  clean = clean.replace(/([।!?.:：\n])\s*[-–—]\s*(?=[A-Za-z\u0980-\u09ff])/g, '$1\n• ');
+
+  // Hashtags separated
+  clean = clean.replace(/([^\n])\s*(?=#[\w\u0980-\u09ff]+)/g, '$1\n\n');
+  clean = clean.replace(/(#[\w\u0980-\u09ff]+)\s*(?=[A-Z\u0980-\u09ff])/g, '$1\n\n');
+
+  // Double space cleanup
+  clean = clean.replace(/[ \t]+/g, ' ');
+
+  return clean.trim();
+}
+
+/**
+ * Maps size names (e.g. "6 Years", "8 Years", "M", "XL") to their exact measurement string
+ * extracted from description (e.g. "Length: 17.5\", Chest: 27\"").
+ */
+export function extractSizeMeasurementsMap(desc?: string): Record<string, string> {
+  if (!desc) return {};
+  const formatted = formatDescriptionDropshippingStyle(desc);
+  const map: Record<string, string> = {};
+
+  const lines = formatted.split('\n').map((l) => l.trim()).filter(Boolean);
+
+  for (const line of lines) {
+    // 1. Year based: e.g. "• 6 yrs- Lenth-17.5", Chest-27"" or "• ৬ বছর - দৈর্ঘ্য: ১৮", বুক: ২৮""
+    const yrMatch = line.match(/^•?\s*([1-9]|1[0-9]|[১-৯]|[১-৯][০-৯])\s*(?:yrs|years|y|yr|বছর)\b\s*[-–—:]*\s*(.*)$/i);
+    if (yrMatch) {
+      const rawNum = yrMatch[1];
+      const enNum = rawNum.replace(/[০-৯]/g, (d) => String('০১২৩৪৫৬৭৮৯'.indexOf(d)));
+      const details = yrMatch[2].replace(/^[-–—:,]+/, '').replace(/[*)]+$/g, '').trim();
+      if (details) {
+        map[`${enNum} years`] = details;
+        map[`${enNum} yrs`] = details;
+        map[`${enNum}y`] = details;
+        map[`${enNum}`] = details;
+        map[`${rawNum} বছর`] = details;
+      }
+      continue;
+    }
+
+    // 2. Letter based: e.g. "• *M:* লেন্থ ২৮", বক্ষ ৩৯"" or "• M = length 28", chest 39""
+    const letterMatch = line.match(/^•?\s*\*?(XXXL|XXL|XL|L|M|S|XS)\*?\s*[:=]\s*(.*)$/i);
+    if (letterMatch) {
+      const sz = letterMatch[1].toUpperCase();
+      const details = letterMatch[2].replace(/^[-–—:,]+/, '').replace(/[*)]+$/g, '').trim();
+      if (details) {
+        map[sz] = details;
+      }
+    }
+  }
+
+  return map;
+}
