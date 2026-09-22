@@ -409,7 +409,7 @@ export async function getProductBySlugOrId(slugOrId: string): Promise<Product | 
       : supabase.from('products').select('*').eq('slug', target).limit(1));
 
     if ((!data || data.length === 0) && !isUUID) {
-      const cleanTarget = target.replace(/^ds-/i, '');
+      const cleanTarget = target.replace(/^(?:ds|kt)[-\s]?/i, '');
       const skuQuery = await supabase
         .from('products')
         .select('*')

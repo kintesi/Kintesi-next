@@ -82,7 +82,7 @@ export const WishlistPage: React.FC = () => {
                       <div className="flex items-center justify-between gap-1 text-[10px] text-gray-400 font-medium">
                         <span className="truncate">{product.brand || 'No Brand'}</span>
                         <span className="font-mono shrink-0 bg-gray-100 text-gray-600 px-1.5 py-0.2 rounded text-[9px]">
-                          {(product.sku || ('KT-' + product.id.slice(0, 5).toUpperCase())).replace(/^DS-/i, 'KT-')}
+                          {product.sku || ('KT-' + product.id.slice(0, 5).toUpperCase())}
                         </span>
                       </div>
 

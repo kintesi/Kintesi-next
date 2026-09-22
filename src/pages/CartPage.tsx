@@ -496,7 +496,7 @@ export const CartPage: React.FC = () => {
                       <div className="flex items-center gap-2 text-[10px] text-gray-400 font-medium">
                         <span className="uppercase font-bold">{item.product.brand || 'No Brand'}</span>
                         <span className="font-mono bg-gray-100 text-gray-600 px-1 py-0.2 rounded text-[9px]">
-                          {(item.product.sku || ('KT-' + item.product.id.slice(0, 5).toUpperCase())).replace(/^DS-/i, 'KT-')}
+                          {item.product.sku || ('KT-' + item.product.id.slice(0, 5).toUpperCase())}
                         </span>
                       </div>
 

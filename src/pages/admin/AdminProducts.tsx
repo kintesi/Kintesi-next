@@ -45,6 +45,7 @@ import {
   ChevronsLeft,
   ChevronsRight,
   FileText,
+  FileSpreadsheet,
   Eye,
   AlertTriangle,
 } from 'lucide-react';
@@ -104,11 +105,17 @@ export const AdminProducts: React.FC = () => {
   const filteredTemplateProducts = useMemo(() => {
     const q = templateSearchQuery.trim().toLowerCase();
     if (!q) return products;
-    return products.filter((p) =>
-      [p.title, p.sku, p.brand, p.category_id].some((val) =>
-        val?.toLowerCase().includes(q)
-      )
-    );
+    const cleanQ = q.replace(/^(?:ds|kt)[-\s]?/i, '');
+    return products.filter((p) => {
+      const pSku = (p.sku || '').toLowerCase();
+      const pSkuClean = pSku.replace(/^(?:ds|kt)[-\s]?/i, '');
+      return (
+        [p.title, p.brand, p.category_id, p.sub_category].some((val) =>
+          val?.toLowerCase().includes(q)
+        ) ||
+        (pSku && (pSku.includes(q) || (cleanQ && pSkuClean.includes(cleanQ))))
+      );
+    });
   }, [products, templateSearchQuery]);
 
   const getCategorySpecMode = (catId: string): 'gadgets' | 'fashion' | 'groceries' => {
@@ -1466,12 +1473,17 @@ export const AdminProducts: React.FC = () => {
   const filteredProducts = useMemo(() => {
     return products.filter((p) => {
       const q = searchQuery.toLowerCase().trim();
+      const cleanQ = q.replace(/^(?:ds|kt)[-\s]?/i, '');
+      const pSku = (p.sku || '').toLowerCase();
+      const pSkuClean = pSku.replace(/^(?:ds|kt)[-\s]?/i, '');
+
       const matchesSearch =
         !q ||
         p.title.toLowerCase().includes(q) ||
         (p.brand && p.brand.toLowerCase().includes(q)) ||
-        (p.sku && p.sku.toLowerCase().includes(q)) ||
-        (p.category_id && p.category_id.toLowerCase().includes(q));
+        (pSku && (pSku.includes(q) || (cleanQ && pSkuClean.includes(cleanQ)))) ||
+        (p.category_id && p.category_id.toLowerCase().includes(q)) ||
+        (p.sub_category && p.sub_category.toLowerCase().includes(q));
 
       const matchesCategory =
         selectedCategoryFilter === 'all' ||
@@ -1493,6 +1505,61 @@ export const AdminProducts: React.FC = () => {
       return matchesSearch && matchesCategory && matchesStock;
     });
   }, [products, searchQuery, selectedCategoryFilter, selectedStockFilter]);
+
+  const handleExportToExcel = async () => {
+    try {
+      toast.info('Exporting products to Excel...');
+      const XLSX = await import('xlsx');
+      const rows = products.map((p, index) => {
+        const sizesStr = Array.isArray(p.sizes) ? p.sizes.join(', ') : (p.sizes || '');
+        const colorsStr = Array.isArray(p.colors)
+          ? p.colors.map((c: any) => (typeof c === 'string' ? c : c?.name || '')).filter(Boolean).join(', ')
+          : '';
+        const primaryImage = Array.isArray(p.images) && p.images.length > 0 ? p.images[0] : '';
+        const regularPrice = Number(p.price) || 0;
+        const discountPrice = Number(p.discount_price) || regularPrice;
+        const stockNum = Number(p.stock) || 0;
+
+        return {
+          SL: index + 1,
+          'Product ID': p.id || '',
+          SKU: p.sku || '',
+          'Product Title': p.title || '',
+          'Category ID': p.category_id || '',
+          'Sub Category': p.sub_category || '',
+          Brand: p.brand || '',
+          'Regular Price (BDT)': regularPrice,
+          'Discount Price (BDT)': discountPrice,
+          Stock: stockNum,
+          Sizes: sizesStr,
+          Colors: colorsStr,
+          'Dropshipping Supplier URL': p.dropshipping_url || '',
+          'Storefront URL': `https://kintesi.com/product/${p.slug}`,
+          'Local Dev URL': `http://localhost:5173/product/${p.slug}`,
+          'Primary Image URL': primaryImage,
+          Rating: Number(p.rating) || 5,
+          Reviews: Number(p.review_count) || 0,
+          'Is Featured': p.is_featured ? 'Yes' : 'No',
+          'Is Trending': p.is_trending ? 'Yes' : 'No',
+        };
+      });
+
+      const worksheet = XLSX.utils.json_to_sheet(rows);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'All Products Catalog');
+      XLSX.writeFile(workbook, `kintesi_all_products_catalog_${new Date().toISOString().slice(0, 10)}.xlsx`);
+      toast.success('Excel catalog downloaded successfully!');
+    } catch (err: any) {
+      console.error('Export error:', err);
+      const link = document.createElement('a');
+      link.href = '/kintesi_all_products_catalog.xlsx';
+      link.download = 'kintesi_all_products_catalog.xlsx';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      toast.success('Downloaded static Excel catalog!');
+    }
+  };
 
   // High-performance pagination for admin catalog (smooth UI, no DOM overload)
   const [currentPage, setCurrentPage] = useState(1);
@@ -1538,7 +1605,20 @@ export const AdminProducts: React.FC = () => {
             প্রোডাক্ট ক্যাটালগ, স্টক ইনভেন্টরি, ডিসকাউন্ট ও ভ্যারিয়েন্ট ম্যানেজমেন্ট
           </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
+          <button
+            type="button"
+            onClick={handleExportToExcel}
+            className={`px-4 py-2.5 rounded-2xl font-bold transition flex items-center gap-1.5 text-xs cursor-pointer shadow-xs ${
+              isLight
+                ? 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200'
+                : 'bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/20'
+            }`}
+            title="Export all products to an Excel spreadsheet (.xlsx)"
+          >
+            <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
+            <span>Export to Excel</span>
+          </button>
           <button
             type="button"
             onClick={handleClearDemoCache}

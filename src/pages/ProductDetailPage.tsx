@@ -903,7 +903,7 @@ export const ProductDetailPage: React.FC = () => {
 
                 <div className="shrink-0 flex items-center">
                   <span className="inline-flex items-center px-2 py-0.5 sm:px-2.5 sm:py-1 bg-gray-100 text-gray-600 border border-gray-200/80 rounded-lg text-[10px] sm:text-xs font-bold font-mono tracking-wide">
-                    SKU: {((activeColorObj?.sku || product.sku || 'KT-' + product.id.slice(0, 6).toUpperCase())).replace(/^DS-/i, 'KT-')}
+                    SKU: {activeColorObj?.sku || product.sku || ('KT-' + product.id.slice(0, 6).toUpperCase())}
                   </span>
                 </div>
               </div>
