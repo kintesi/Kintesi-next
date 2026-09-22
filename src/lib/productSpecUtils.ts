@@ -285,13 +285,21 @@ export function formatDescriptionDropshippingStyle(text?: string): string {
   // Unglue letter size specs like "M = length 28", chest 39"L= length 29"..." or "XXLM = length"
   clean = clean.replace(/([0-9"”\'\.\,])\s*(?=\b(?:XXXL|XXL|XL|L|M|S|XS)\s*[:=]\s*(?:length|chest|body|লেন্থ|বক্ষ|বডি|লম্বা))/gi, '$1\n• ');
 
-  // Unglue age/year size specifications (English & Bengali):
-  // e.g. Chest-27"8 yrs- or ৩২"১২ বছর - or 30.10yrs- or :-6 yrs-
-  clean = clean.replace(/([^\d\n])\s*[-–—]?\s*(?=(?:[1-9]|1[0-9]|[১-৯]|[১-৯][০-৯])\s*(?:yrs|years|y|yr|বছর)\s*[-–—:]*\s*(?:Lenth|Length|দৈর্ঘ্য|বুক|Chest|Body))/gi, '$1\n• ');
+  // Unglue "মাপ:" or "সাইজ:"
+  clean = clean.replace(/([^\n])\s*(?=(?:মাপ|সাইজ|সাইজের বিবরণ|Size measurements?)\s*[:：])/gi, '$1\n\n');
+  clean = clean.replace(/(?:মাপ|সাইজ|সাইজের বিবরণ|Size measurements?)\s*[:：]\s*(?=(?:1[0-9]|[1-9]|[১-৯][০-৯]|[১-৯]))/gi, 'মাপ:\n• ');
 
-  // Standardize first bullet after "সাইজের বিবরণ" or "Size measurements"
-  clean = clean.replace(/(সাইজের বিবরণ[^\n:]*[:：][-–—]*)\s*[-–—]?\s*(?=(?:[1-9]|1[0-9]|[১-৯]|[১-৯][০-৯])\s*(?:yrs|years|y|yr|বছর))/gi, '$1\n• ');
-  clean = clean.replace(/(Size measurements?[^\n:]*[:：][-–—]*)\s*[-–—]?\s*(?=(?:[1-9]|1[0-9]|[১-৯]|[১-৯][০-৯])\s*(?:yrs|years|y|yr|বছর))/gi, '$1\n• ');
+  // Unglue range size specs like 12"3-4: or 14" 5-6: or বুক ১৩" 5-6:
+  clean = clean.replace(/([^0-9\n])\s*(?=(?:1[0-9]|[1-9]|[১-৯][০-৯]|[১-৯])\s*[-–]\s*(?:1[0-9]|[1-9]|[১-৯][০-৯]|[১-৯])\s*(?:yrs|years|y|yr|বছর)?\s*[:=-])/gi, '$1\n• ');
+
+  // Unglue single year specs
+  clean = clean.replace(/([^\d\n])\s*[-–—]?\s*(?=(?:1[0-9]|[1-9]|[১-৯][০-৯]|[১-৯])\s*(?:yrs|years|y|yr|বছর)\s*[-–—:]*\s*(?:Lenth|Length|দৈর্ঘ্য|বুক|Chest|Body|লম্বা))/gi, '$1\n• ');
+
+  // Unglue letter size specs like "M = length 28"
+  clean = clean.replace(/([0-9"”\'\.\,])\s*(?=\b(?:XXXL|XXL|XL|L|M|S|XS)\s*[:=]\s*(?:length|chest|body|লেন্থ|বক্ষ|বডি|লম্বা))/gi, '$1\n• ');
+
+  // Unglue numeric sizes like 38: or 40: for panjabi/shirts
+  clean = clean.replace(/([^0-9\n])\s*(?=(?:2[6-9]|[3-5][0-9])\s*[:=-]\s*(?:chest|length|body|বডি|বুক|ঝুল|লম্বা))/gi, '$1\n• ');
 
   // English spec headers
   const specHeaders = [
@@ -320,9 +328,24 @@ export function formatDescriptionDropshippingStyle(text?: string): string {
   return clean.trim();
 }
 
+export function cleanMeasurementText(val?: string | null): string {
+  if (!val) return '';
+  return val
+    .replace(/\blenth\b/gi, 'Length')
+    .replace(/\bchest\b/gi, 'Chest')
+    .replace(/\bwaist\b/gi, 'Waist')
+    .replace(/(?:লম্বা|দৈর্ঘ্য|ঝুল)\s*[:：-]?\s*/gi, 'Length: ')
+    .replace(/(?:বুক|বক্ষ|বডি)\s*[:：-]?\s*/gi, 'Chest: ')
+    .replace(/(?:কোমর)\s*[:：-]?\s*/gi, 'Waist: ')
+    .replace(/\b(Length|Chest|Waist)\s*[-–—:]\s*/gi, '$1: ')
+    .replace(/\s*,\s*/g, ', ')
+    .replace(/([0-9.]+["”])\s+(chest)/gi, '$1, $2')
+    .trim();
+}
+
 /**
- * Maps size names (e.g. "6 Years", "8 Years", "M", "XL") to their exact measurement string
- * extracted from description (e.g. "Length: 17.5\", Chest: 27\"").
+ * Maps size names (e.g. "1-2 Years", "6 Years", "M", "XL", "40") to their exact measurement string
+ * extracted from description (e.g. "Length: 17\", Chest: 12\"").
  */
 export function extractSizeMeasurementsMap(desc?: string): Record<string, string> {
   if (!desc) return {};
@@ -332,12 +355,31 @@ export function extractSizeMeasurementsMap(desc?: string): Record<string, string
   const lines = formatted.split('\n').map((l) => l.trim()).filter(Boolean);
 
   for (const line of lines) {
-    // 1. Year based: e.g. "• 6 yrs- Lenth-17.5", Chest-27"" or "• ৬ বছর - দৈর্ঘ্য: ১৮", বুক: ২৮""
-    const yrMatch = line.match(/^•?\s*([1-9]|1[0-9]|[১-৯]|[১-৯][০-৯])\s*(?:yrs|years|y|yr|বছর)\b\s*[-–—:]*\s*(.*)$/i);
+    // 1. Year range based: e.g. "• 1-2: লম্বা ১৭", বুক ১২"" or "• 1-2 Yrs - Lenth-17.5", Chest-27""
+    const rangeMatch = line.match(/^•?\s*([0-9]{1,2}|[১-৯][০-৯]|[১-৯])\s*[-–]\s*([0-9]{1,2}|[১-৯][০-৯]|[১-৯])\s*(?:yrs|years|y|yr|বছর)?\b\s*[-–—:]*\s*(.*)$/i);
+    if (rangeMatch) {
+      const num1 = rangeMatch[1].replace(/[০-৯]/g, (d) => String('০১২৩৪৫৬৭৮৯'.indexOf(d)));
+      const num2 = rangeMatch[2].replace(/[০-৯]/g, (d) => String('০১২৩৪৫৬৭৮৯'.indexOf(d)));
+      const rawDetails = rangeMatch[3].replace(/^[-–—:,]+/, '').replace(/[*)]+$/g, '').trim();
+      const details = cleanMeasurementText(rawDetails);
+      if (details) {
+        const key = `${num1}-${num2}`;
+        map[`${key} years`] = details;
+        map[`${key} yrs`] = details;
+        map[`${key}y`] = details;
+        map[`${key}`] = details;
+        map[`${rangeMatch[1]}-${rangeMatch[2]} বছর`] = details;
+      }
+      continue;
+    }
+
+    // 2. Single Year based: e.g. "• 6 yrs- Lenth-17.5", Chest-27"" or "• ৬ বছর - দৈর্ঘ্য: ১৮", বুক: ২৮""
+    const yrMatch = line.match(/^•?\s*([0-9]{1,2}|[১-৯][০-৯]|[১-৯])\s*(?:yrs|years|y|yr|বছর)\b\s*[-–—:]*\s*(.*)$/i);
     if (yrMatch) {
       const rawNum = yrMatch[1];
       const enNum = rawNum.replace(/[০-৯]/g, (d) => String('০১২৩৪৫৬৭৮৯'.indexOf(d)));
-      const details = yrMatch[2].replace(/^[-–—:,]+/, '').replace(/[*)]+$/g, '').trim();
+      const rawDetails = yrMatch[2].replace(/^[-–—:,]+/, '').replace(/[*)]+$/g, '').trim();
+      const details = cleanMeasurementText(rawDetails);
       if (details) {
         map[`${enNum} years`] = details;
         map[`${enNum} yrs`] = details;
@@ -348,11 +390,24 @@ export function extractSizeMeasurementsMap(desc?: string): Record<string, string
       continue;
     }
 
-    // 2. Letter based: e.g. "• *M:* লেন্থ ২৮", বক্ষ ৩৯"" or "• M = length 28", chest 39""
+    // 3. Letter based: e.g. "• *M:* লেন্থ ২৮", বক্ষ ৩৯"" or "• M = length 28", chest 39""
     const letterMatch = line.match(/^•?\s*\*?(XXXL|XXL|XL|L|M|S|XS)\*?\s*[:=]\s*(.*)$/i);
     if (letterMatch) {
       const sz = letterMatch[1].toUpperCase();
-      const details = letterMatch[2].replace(/^[-–—:,]+/, '').replace(/[*)]+$/g, '').trim();
+      const rawDetails = letterMatch[2].replace(/^[-–—:,]+/, '').replace(/[*)]+$/g, '').trim();
+      const details = cleanMeasurementText(rawDetails);
+      if (details) {
+        map[sz] = details;
+      }
+      continue;
+    }
+
+    // 4. Numeric size based (Panjabi, Shirts, Pants): e.g. "• 40: Chest 40, Length 42"
+    const numMatch = line.match(/^•?\s*(2[6-9]|[3-5][0-9])\s*[:=-]\s*(.*)$/i);
+    if (numMatch) {
+      const sz = numMatch[1];
+      const rawDetails = numMatch[2].replace(/^[-–—:,]+/, '').replace(/[*)]+$/g, '').trim();
+      const details = cleanMeasurementText(rawDetails);
       if (details) {
         map[sz] = details;
       }

@@ -42,11 +42,12 @@ import {
   AlertTriangle,
   Cpu,
   ExternalLink,
+  Ruler,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useLanguage } from '../contexts/LanguageContext';
 import { FormattedProductDescription } from '../components/product/FormattedProductDescription';
-import { isSpecKeyValid, isSpecValueValid, getProductGenderInfo, extractCleanSpecsFromDescription, extractSizeMeasurementsMap } from '../lib/productSpecUtils';
+import { isSpecKeyValid, isSpecValueValid, getProductGenderInfo, extractCleanSpecsFromDescription, extractSizeMeasurementsMap, cleanMeasurementText } from '../lib/productSpecUtils';
 
 export const ProductDetailPage: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -1012,7 +1013,8 @@ export const ProductDetailPage: React.FC = () => {
             </div>
 
             {/* Card 2: Variations (Color, Size, Custom Attributes), Quantity & Purchase Actions */}
-            <div className="bg-white rounded-2xl sm:rounded-3xl border border-gray-100 p-4 sm:p-6 shadow-xs space-y-4">
+            <div className="bg-white rounded-2xl sm:rounded-3xl border border-gray-100 p-3.5 sm:p-6 shadow-xs space-y-4 overflow-hidden">
+
 
               {/* Color Selection - Modern Minimalist Round Swatches */}
               {isRealColorList && normalizedColors.length > 0 && (
@@ -1061,58 +1063,80 @@ export const ProductDetailPage: React.FC = () => {
                   const selectedOptName = selectedCustomAttributes[attrName] || (options[0]?.name ?? '');
                   const activeOption = options.find((o) => o.name === selectedOptName);
                   const isSizeAttr = attrName.toLowerCase() === 'size' || attrName.toLowerCase() === 'sizes' || attrName === 'সাইজ';
-                  const activeMeasurement = isSizeAttr
+                  const activeRawMeasurement = isSizeAttr
                     ? sizeMeasurementsMap[selectedOptName.toLowerCase()] ||
                       sizeMeasurementsMap[selectedOptName.replace(/\s*years?/i, '').trim()] ||
                       sizeMeasurementsMap[selectedOptName.toUpperCase()]
                     : null;
+                  const activeMeasurement = cleanMeasurementText(activeRawMeasurement);
+
+                  const hasAnyMeasurement = isSizeAttr && options.some((opt: any) => {
+                    const m = sizeMeasurementsMap[opt.name.toLowerCase()] ||
+                      sizeMeasurementsMap[opt.name.replace(/\s*years?/i, '').trim()] ||
+                      sizeMeasurementsMap[opt.name.toUpperCase()];
+                    return Boolean(m);
+                  });
 
                   return (
-                    <div key={attrName} className="space-y-2.5">
+                    <div key={attrName} className="space-y-2">
                       <div className="flex items-center justify-between text-xs font-bold">
-                        <span className="text-gray-500 uppercase tracking-wider text-[11px]">{attrName}:</span>
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span className="text-gray-900 font-extrabold">{selectedOptName}</span>
-                          {activeMeasurement && (
-                            <span className="text-[11px] font-bold text-rose-600 bg-rose-50 px-2 py-0.5 rounded-md border border-rose-200">
-                              ({activeMeasurement})
-                            </span>
-                          )}
-                          {activeOption && typeof activeOption.price === 'number' && activeOption.price > 0 && (
-                            <span className="text-xs font-black text-rose-600 bg-rose-50 px-2 py-0.5 rounded-full border border-rose-200">
-                              {formatPrice(activeOption.price)}
-                            </span>
-                          )}
+                        <div className="flex items-center gap-1.5 min-w-0">
+                          <span className="text-gray-500 uppercase tracking-wider text-[11px] shrink-0">{attrName}:</span>
+                          <span className="text-gray-900 font-extrabold text-xs sm:text-sm truncate">{selectedOptName}</span>
                         </div>
+                        {activeOption && typeof activeOption.price === 'number' && activeOption.price > 0 && (
+                          <span className="text-xs font-black text-rose-600 bg-rose-50 px-2 py-0.5 rounded-full border border-rose-200 shrink-0">
+                            {formatPrice(activeOption.price)}
+                          </span>
+                        )}
                       </div>
-                      <div className="flex flex-wrap gap-2">
+
+                      {/* Selected Size Measurement Banner (Clear, un-clipped banner) */}
+                      {activeMeasurement && (
+                        <div className="flex items-center gap-1.5 px-3 py-1.5 bg-rose-50/90 border border-rose-200/80 rounded-xl text-rose-800 text-xs">
+                          <Ruler className="w-3.5 h-3.5 text-rose-600 shrink-0" />
+                          <span className="text-[11px] font-bold text-rose-950 shrink-0">সাইজ বিবরণ:</span>
+                          <span className="text-[11px] font-semibold text-rose-700 truncate">{activeMeasurement}</span>
+                        </div>
+                      )}
+
+                      <div className={hasAnyMeasurement ? "grid grid-cols-2 sm:grid-cols-4 gap-2 w-full" : "flex flex-wrap gap-2"}>
                         {options.map((opt: any) => {
                           const isSelected = selectedOptName === opt.name;
-                          const optMeasurement = isSizeAttr
+                          const rawOptMeasurement = isSizeAttr
                             ? sizeMeasurementsMap[opt.name.toLowerCase()] ||
                               sizeMeasurementsMap[opt.name.replace(/\s*years?/i, '').trim()] ||
                               sizeMeasurementsMap[opt.name.toUpperCase()]
                             : null;
+                          const optMeasurement = cleanMeasurementText(rawOptMeasurement);
 
                           return (
                             <button
                               key={opt.id || opt.name}
                               type="button"
                               onClick={() => handleSelectCustomAttr(attrName, opt)}
-                              className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition cursor-pointer flex flex-col items-center justify-center gap-0.5 ${
+                              className={`transition-all duration-150 cursor-pointer flex flex-col items-center justify-center rounded-xl border text-center ${
+                                hasAnyMeasurement
+                                  ? 'w-full min-w-0 py-2 px-2 min-h-[48px] gap-0.5'
+                                  : 'px-3.5 py-1.5 text-xs font-bold gap-0.5'
+                              } ${
                                 isSelected
-                                  ? 'border-emerald-600 bg-emerald-600 text-white shadow-xs'
-                                  : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300'
+                                  ? 'border-rose-600 bg-rose-600 text-white shadow-xs ring-2 ring-rose-600/20'
+                                  : 'border-gray-200 bg-white text-gray-800 hover:border-rose-300 hover:bg-rose-50/20'
                               }`}
                             >
-                              <span>{opt.name}</span>
+                              <span className={`text-xs font-bold leading-tight ${isSelected ? 'text-white' : 'text-gray-900'}`}>
+                                {opt.name}
+                              </span>
                               {optMeasurement && (
-                                <span className={`text-[9.5px] font-medium leading-tight ${isSelected ? 'text-emerald-100' : 'text-gray-500'}`}>
-                                  {optMeasurement.slice(0, 32)}
+                                <span className={`text-[10px] font-medium leading-tight truncate w-full block text-center ${
+                                  isSelected ? 'text-rose-100' : 'text-gray-500'
+                                }`}>
+                                  {optMeasurement}
                                 </span>
                               )}
                               {typeof opt.price === 'number' && opt.price > 0 && (
-                                <span className={`text-[10px] ${isSelected ? 'text-emerald-100' : 'text-rose-600 font-extrabold'}`}>
+                                <span className={`text-[10px] font-extrabold ${isSelected ? 'text-rose-100' : 'text-rose-600'}`}>
                                   ({formatPrice(opt.price)})
                                 </span>
                               )}
@@ -1132,47 +1156,69 @@ export const ProductDetailPage: React.FC = () => {
                 if (hasCustomSizeAttr || deduplicatedSizes.length === 0) return null;
 
                 const currentActiveSize = selectedSize || deduplicatedSizes[0];
-                const activeMeasurement =
+                const activeRawMeasurement =
                   sizeMeasurementsMap[currentActiveSize.toLowerCase()] ||
                   sizeMeasurementsMap[currentActiveSize.replace(/\s*years?/i, '').trim()] ||
                   sizeMeasurementsMap[currentActiveSize.toUpperCase()];
+                const activeMeasurement = cleanMeasurementText(activeRawMeasurement);
+
+                const hasAnyMeasurement = deduplicatedSizes.some((sz) => {
+                  const m = sizeMeasurementsMap[sz.toLowerCase()] ||
+                    sizeMeasurementsMap[sz.replace(/\s*years?/i, '').trim()] ||
+                    sizeMeasurementsMap[sz.toUpperCase()];
+                  return Boolean(m);
+                });
 
                 return (
                   <div className="space-y-2">
                     <div className="flex items-center justify-between text-xs font-bold">
-                      <span className="text-gray-500 uppercase tracking-wider text-[11px]">Size:</span>
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-gray-900 font-extrabold">{currentActiveSize}</span>
-                        {activeMeasurement && (
-                          <span className="text-[11px] font-bold text-rose-600 bg-rose-50 px-2 py-0.5 rounded-md border border-rose-200">
-                            ({activeMeasurement})
-                          </span>
-                        )}
+                      <div className="flex items-center gap-1.5 min-w-0">
+                        <span className="text-gray-500 uppercase tracking-wider text-[11px] shrink-0">Size:</span>
+                        <span className="text-gray-900 font-extrabold text-xs sm:text-sm truncate">{currentActiveSize}</span>
                       </div>
                     </div>
-                    <div className="flex flex-wrap gap-2">
+
+                    {/* Selected Size Measurement Banner */}
+                    {activeMeasurement && (
+                      <div className="flex items-center gap-1.5 px-3 py-1.5 bg-rose-50/90 border border-rose-200/80 rounded-xl text-rose-800 text-xs">
+                        <Ruler className="w-3.5 h-3.5 text-rose-600 shrink-0" />
+                        <span className="text-[11px] font-bold text-rose-950 shrink-0">সাইজ বিবরণ:</span>
+                        <span className="text-[11px] font-semibold text-rose-700 truncate">{activeMeasurement}</span>
+                      </div>
+                    )}
+
+                    <div className={hasAnyMeasurement ? "grid grid-cols-2 sm:grid-cols-4 gap-2 w-full" : "flex flex-wrap gap-2"}>
                       {deduplicatedSizes.map((sz) => {
                         const isSelected = currentActiveSize === sz;
-                        const szMeasurement =
+                        const rawSzMeasurement =
                           sizeMeasurementsMap[sz.toLowerCase()] ||
                           sizeMeasurementsMap[sz.replace(/\s*years?/i, '').trim()] ||
                           sizeMeasurementsMap[sz.toUpperCase()];
+                        const szMeasurement = cleanMeasurementText(rawSzMeasurement);
 
                         return (
                           <button
                             key={sz}
                             type="button"
                             onClick={() => setSelectedSize(sz)}
-                            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold border transition cursor-pointer flex flex-col items-center justify-center gap-0.5 ${
+                            className={`transition-all duration-150 cursor-pointer flex flex-col items-center justify-center rounded-xl border text-center ${
+                              hasAnyMeasurement
+                                ? 'w-full min-w-0 py-2 px-2 min-h-[48px] gap-0.5'
+                                : 'px-3.5 py-1.5 text-xs font-bold gap-0.5'
+                            } ${
                               isSelected
-                                ? 'border-emerald-600 bg-emerald-600 text-white shadow-xs'
-                                : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300'
+                                ? 'border-rose-600 bg-rose-600 text-white shadow-xs ring-2 ring-rose-600/20'
+                                : 'border-gray-200 bg-white text-gray-800 hover:border-rose-300 hover:bg-rose-50/20'
                             }`}
                           >
-                            <span>{sz}</span>
+                            <span className={`text-xs font-bold leading-tight ${isSelected ? 'text-white' : 'text-gray-900'}`}>
+                              {sz}
+                            </span>
                             {szMeasurement && (
-                              <span className={`text-[9.5px] font-medium leading-tight ${isSelected ? 'text-emerald-100' : 'text-gray-500'}`}>
-                                {szMeasurement.slice(0, 32)}
+                              <span className={`text-[10px] font-medium leading-tight truncate w-full block text-center ${
+                                isSelected ? 'text-rose-100' : 'text-gray-500'
+                              }`}>
+                                {szMeasurement}
                               </span>
                             )}
                           </button>
@@ -1186,24 +1232,24 @@ export const ProductDetailPage: React.FC = () => {
               {/* Buy Actions Block (Quantity, Stock & Purchase Buttons) */}
               <div ref={buyActionsRef} className="space-y-4">
                 {/* Quantity Selector & Stock Availability */}
-                <div className="flex items-center justify-between gap-4 pt-1">
-                  <div className="space-y-1">
+                <div className="flex items-center justify-between gap-3 pt-1 w-full min-w-0">
+                  <div className="space-y-1 shrink-0">
                     <span className="text-[11px] font-bold uppercase tracking-wider text-gray-500 block">Quantity</span>
-                    <div className="flex items-center border border-gray-200 rounded-xl bg-white shadow-xs overflow-hidden">
+                    <div className="flex items-center border border-gray-200 rounded-xl bg-white shadow-xs overflow-hidden h-9">
                       <button
                         type="button"
                         onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                        className="p-2 hover:bg-gray-100 text-gray-600 transition cursor-pointer"
+                        className="px-2.5 h-full hover:bg-gray-100 text-gray-600 transition cursor-pointer flex items-center justify-center"
                         aria-label="Decrease quantity"
                       >
                         <Minus className="w-3.5 h-3.5" />
                       </button>
-                      <span className="px-3.5 text-xs font-bold text-gray-800">{quantity}</span>
+                      <span className="px-3 text-xs font-bold text-gray-800 min-w-[28px] text-center">{quantity}</span>
                       <button
                         type="button"
                         onClick={() => setQuantity(Math.min(activeStock, quantity + 1))}
                         disabled={quantity >= activeStock}
-                        className="p-2 hover:bg-gray-100 text-gray-600 transition cursor-pointer disabled:opacity-30"
+                        className="px-2.5 h-full hover:bg-gray-100 text-gray-600 transition cursor-pointer disabled:opacity-30 flex items-center justify-center"
                         aria-label="Increase quantity"
                       >
                         <Plus className="w-3.5 h-3.5" />
@@ -1211,12 +1257,12 @@ export const ProductDetailPage: React.FC = () => {
                     </div>
                   </div>
 
-                  <div className="text-right">
+                  <div className="text-right shrink-0 min-w-0">
                     <span className="text-[11px] font-bold uppercase tracking-wider text-gray-500 block">Availability</span>
                     {activeStock > 0 ? (
-                      <span className="text-xs font-bold text-emerald-700 flex items-center gap-1.5 justify-end mt-1">
-                        <span className="w-2 h-2 bg-emerald-500 rounded-full inline-block" />
-                        <span>In Stock ({activeStock} units)</span>
+                      <span className="text-xs font-bold text-emerald-700 inline-flex items-center gap-1.5 justify-end mt-1">
+                        <span className="w-2 h-2 bg-emerald-500 rounded-full shrink-0" />
+                        <span className="truncate">In Stock ({activeStock} units)</span>
                       </span>
                     ) : (
                       <span className="text-xs font-bold text-rose-600 mt-1 block">Out of Stock</span>
