@@ -133,6 +133,8 @@ function normalizeProductSummary(p: any): Product {
 
   return {
     ...p,
+    rating: Number(p.rating) || 0,
+    review_count: Number(p.review_count) || 0,
     images: imgs,
     spec_mode: p.spec_mode || p.specifications?.spec_mode || 'auto',
     sub_category: p.sub_category || p.specifications?.sub_category || '',
@@ -150,7 +152,7 @@ export async function getInitialProducts(limit: number = 36): Promise<Product[]>
     return _memoryProductsCache.filter(isValidDisplayProduct).slice(0, limit);
   }
 
-  const CACHE_VERSION = 'v27_clean_valid_feed';
+  const CACHE_VERSION = 'v28_zero_fake_ratings';
   if (typeof window !== 'undefined') {
     try {
       if (localStorage.getItem('kintesi_cache_ver') !== CACHE_VERSION) {

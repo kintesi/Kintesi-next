@@ -303,8 +303,8 @@ export const INITIAL_PRODUCTS: Product[] = [
     "images": [
       "https://res.cloudinary.com/dv8woouru/image/upload/v1789950367/4BQ47gb7HC1anqjNVtyUAhgBukNWBFcYKXCXDIyj.png"
     ],
-    "rating": 4.8,
-    "review_count": 12,
+    "rating": 0,
+    "review_count": 0,
     "is_featured": true,
     "is_trending": true,
     "brand": "Kintesi",
@@ -334,8 +334,8 @@ export const INITIAL_PRODUCTS: Product[] = [
     "images": [
       "https://res.cloudinary.com/dv8woouru/image/upload/v1789977507/GseLlSOFjGdTdRJk7KvAKcVMyWL0aGio8Q2jD1N2.webp"
     ],
-    "rating": 4.8,
-    "review_count": 12,
+    "rating": 0,
+    "review_count": 0,
     "is_featured": true,
     "is_trending": false,
     "brand": "Kintesi",
@@ -365,8 +365,8 @@ export const INITIAL_PRODUCTS: Product[] = [
     "images": [
       "https://res.cloudinary.com/dv8woouru/image/upload/v1789977507/PdEfSErWKhtCdOdd2Q2GcLmBzrlIGTlX3rKDoKof.webp"
     ],
-    "rating": 4.8,
-    "review_count": 12,
+    "rating": 0,
+    "review_count": 0,
     "is_featured": true,
     "is_trending": false,
     "brand": "Kintesi",
@@ -396,8 +396,8 @@ export const INITIAL_PRODUCTS: Product[] = [
     "images": [
       "https://res.cloudinary.com/dv8woouru/image/upload/v1789977507/ZASB51oXpZpUBguxcKN1AZXUOnfhBhpbHK8ccsij.webp"
     ],
-    "rating": 4.8,
-    "review_count": 12,
+    "rating": 0,
+    "review_count": 0,
     "is_featured": true,
     "is_trending": false,
     "brand": "Kintesi",
@@ -427,8 +427,8 @@ export const INITIAL_PRODUCTS: Product[] = [
     "images": [
       "https://res.cloudinary.com/dv8woouru/image/upload/v1789977507/bjRBtSU8DuVgoeK8FOUMK2Y47u7Q6FJQZk12goff.webp"
     ],
-    "rating": 4.8,
-    "review_count": 12,
+    "rating": 0,
+    "review_count": 0,
     "is_featured": true,
     "is_trending": false,
     "brand": "Kintesi",
@@ -458,8 +458,8 @@ export const INITIAL_PRODUCTS: Product[] = [
     "images": [
       "https://res.cloudinary.com/dv8woouru/image/upload/v1789977554/cd9xlIbQrp0NpkroAt0bkEkdOUHRQIWZvi38l8G8.webp"
     ],
-    "rating": 4.8,
-    "review_count": 12,
+    "rating": 0,
+    "review_count": 0,
     "is_featured": true,
     "is_trending": false,
     "brand": "Kintesi",
@@ -489,8 +489,8 @@ export const INITIAL_PRODUCTS: Product[] = [
     "images": [
       "https://res.cloudinary.com/dv8woouru/image/upload/v1789977553/l4mQu1nruNUikkD6cEMKKPF8jHw6xX48qmufJOqu.webp"
     ],
-    "rating": 4.8,
-    "review_count": 12,
+    "rating": 0,
+    "review_count": 0,
     "is_featured": true,
     "is_trending": false,
     "brand": "Kintesi",
@@ -520,8 +520,8 @@ export const INITIAL_PRODUCTS: Product[] = [
     "images": [
       "https://res.cloudinary.com/dv8woouru/image/upload/v1789977554/Pe5PuuhVK7nbnIN1jDNWOUExmRziYaoCNrI99xd4.webp"
     ],
-    "rating": 4.8,
-    "review_count": 12,
+    "rating": 0,
+    "review_count": 0,
     "is_featured": true,
     "is_trending": false,
     "brand": "Kintesi",
@@ -551,8 +551,8 @@ export const INITIAL_PRODUCTS: Product[] = [
     "images": [
       "https://res.cloudinary.com/dv8woouru/image/upload/v1789977553/O2ApzXor0ES6xzlS7JQl96GEJrX7pXsbEgfGMIHm.webp"
     ],
-    "rating": 4.8,
-    "review_count": 12,
+    "rating": 0,
+    "review_count": 0,
     "is_featured": true,
     "is_trending": false,
     "brand": "Kintesi",
@@ -582,8 +582,8 @@ export const INITIAL_PRODUCTS: Product[] = [
     "images": [
       "https://res.cloudinary.com/dv8woouru/image/upload/v1789977554/bLNIKDQTeHuX0GpoEzcryJKFdlgM3zO7te9qUKIH.webp"
     ],
-    "rating": 4.8,
-    "review_count": 12,
+    "rating": 0,
+    "review_count": 0,
     "is_featured": true,
     "is_trending": false,
     "brand": "Kintesi",
@@ -613,8 +613,8 @@ export const INITIAL_PRODUCTS: Product[] = [
     "images": [
       "https://res.cloudinary.com/dv8woouru/image/upload/v1789977554/Qtl3w4LH2dQ1eQTN69DxVQP6uk7Gz9Gg0APK6m55.webp"
     ],
-    "rating": 4.8,
-    "review_count": 12,
+    "rating": 0,
+    "review_count": 0,
     "is_featured": true,
     "is_trending": true,
     "brand": "Kintesi",
@@ -644,8 +644,8 @@ export const INITIAL_PRODUCTS: Product[] = [
     "images": [
       "https://res.cloudinary.com/dv8woouru/image/upload/v1789977554/pmOa6Stx0vb74Tc9hKO5TbKniWOJpJP4EuxMnMrM.webp"
     ],
-    "rating": 4.8,
-    "review_count": 12,
+    "rating": 0,
+    "review_count": 0,
     "is_featured": true,
     "is_trending": false,
     "brand": "Kintesi",
@@ -675,8 +675,8 @@ export const INITIAL_PRODUCTS: Product[] = [
     "images": [
       "https://res.cloudinary.com/dv8woouru/image/upload/v1789977554/K51TYNWv1zy4KmlKKwXSlZAWKWef6ELqEP1qer18.webp"
     ],
-    "rating": 4.8,
-    "review_count": 12,
+    "rating": 0,
+    "review_count": 0,
     "is_featured": true,
     "is_trending": false,
     "brand": "Kintesi",
@@ -706,8 +706,8 @@ export const INITIAL_PRODUCTS: Product[] = [
     "images": [
       "https://res.cloudinary.com/dv8woouru/image/upload/v1789977554/pXeM9GSVqwlLtXGKS6ar52fINBgVZNwnDbJ26b0p.webp"
     ],
-    "rating": 4.8,
-    "review_count": 12,
+    "rating": 0,
+    "review_count": 0,
     "is_featured": true,
     "is_trending": false,
     "brand": "Kintesi",
@@ -737,8 +737,8 @@ export const INITIAL_PRODUCTS: Product[] = [
     "images": [
       "https://res.cloudinary.com/dv8woouru/image/upload/v1789977554/585Dsq7WYvxgItsVtdRTu4v5htZZnJtzZewMplVP.webp"
     ],
-    "rating": 4.8,
-    "review_count": 12,
+    "rating": 0,
+    "review_count": 0,
     "is_featured": true,
     "is_trending": false,
     "brand": "Kintesi",
@@ -768,8 +768,8 @@ export const INITIAL_PRODUCTS: Product[] = [
     "images": [
       "https://res.cloudinary.com/dv8woouru/image/upload/v1789977554/SMso1qHQ5pgUItWQoIAj7JKGWAGlvw1oeemBuRyz.webp"
     ],
-    "rating": 4.8,
-    "review_count": 12,
+    "rating": 0,
+    "review_count": 0,
     "is_featured": true,
     "is_trending": false,
     "brand": "Kintesi",
@@ -799,8 +799,8 @@ export const INITIAL_PRODUCTS: Product[] = [
     "images": [
       "https://res.cloudinary.com/dv8woouru/image/upload/v1789977554/UpG8zJxrUofDm6wzCVE1WUVWvoxz7nNdIiFk8xoK.webp"
     ],
-    "rating": 4.8,
-    "review_count": 12,
+    "rating": 0,
+    "review_count": 0,
     "is_featured": true,
     "is_trending": false,
     "brand": "Kintesi",
@@ -829,8 +829,8 @@ export const INITIAL_PRODUCTS: Product[] = [
     "images": [
       "https://res.cloudinary.com/dv8woouru/image/upload/v1789977555/POHCnr8h5y2xcNxEk4q342OMXee6qMLvvFkpmJxa.webp"
     ],
-    "rating": 4.8,
-    "review_count": 12,
+    "rating": 0,
+    "review_count": 0,
     "is_featured": true,
     "is_trending": false,
     "brand": "Kintesi",
@@ -860,8 +860,8 @@ export const INITIAL_PRODUCTS: Product[] = [
     "images": [
       "https://res.cloudinary.com/dv8woouru/image/upload/v1789977555/Uc5I4LEMoKs0Q6fzZ01czazkgaZ8Io5PoSzawDf5.webp"
     ],
-    "rating": 4.8,
-    "review_count": 12,
+    "rating": 0,
+    "review_count": 0,
     "is_featured": true,
     "is_trending": false,
     "brand": "Kintesi",
@@ -891,8 +891,8 @@ export const INITIAL_PRODUCTS: Product[] = [
     "images": [
       "https://res.cloudinary.com/dv8woouru/image/upload/v1789977555/WYUnHFJjlOnP9YYsWsOLMgeWewG9WaYDIUEJ6jzk.webp"
     ],
-    "rating": 4.8,
-    "review_count": 12,
+    "rating": 0,
+    "review_count": 0,
     "is_featured": true,
     "is_trending": false,
     "brand": "Kintesi",
@@ -922,8 +922,8 @@ export const INITIAL_PRODUCTS: Product[] = [
     "images": [
       "https://res.cloudinary.com/dv8woouru/image/upload/v1789977555/i6GE7SeEv96oOWvdezV4IoxWgT2SUd4Syzk6PhwY.webp"
     ],
-    "rating": 4.8,
-    "review_count": 12,
+    "rating": 0,
+    "review_count": 0,
     "is_featured": true,
     "is_trending": true,
     "brand": "Kintesi",
@@ -953,8 +953,8 @@ export const INITIAL_PRODUCTS: Product[] = [
     "images": [
       "https://res.cloudinary.com/dv8woouru/image/upload/v1789977555/iZN2WstREjkxhAU9PMEkJU1iVMk98wa6theV7vSd.webp"
     ],
-    "rating": 4.8,
-    "review_count": 12,
+    "rating": 0,
+    "review_count": 0,
     "is_featured": true,
     "is_trending": false,
     "brand": "Kintesi",
@@ -984,8 +984,8 @@ export const INITIAL_PRODUCTS: Product[] = [
     "images": [
       "https://res.cloudinary.com/dv8woouru/image/upload/v1789977555/Xl8qDDlWPpBlzYKEnh3EVag1ym56XZp2EnChG3J4.webp"
     ],
-    "rating": 4.8,
-    "review_count": 12,
+    "rating": 0,
+    "review_count": 0,
     "is_featured": true,
     "is_trending": false,
     "brand": "Kintesi",
@@ -1015,8 +1015,8 @@ export const INITIAL_PRODUCTS: Product[] = [
     "images": [
       "https://res.cloudinary.com/dv8woouru/image/upload/v1789977555/oEyRoL5B7qb9D4N5KDGwXVaDr0RTNYr1SCJYzdmy.webp"
     ],
-    "rating": 4.8,
-    "review_count": 12,
+    "rating": 0,
+    "review_count": 0,
     "is_featured": true,
     "is_trending": false,
     "brand": "Kintesi",

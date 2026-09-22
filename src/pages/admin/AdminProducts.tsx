@@ -500,7 +500,7 @@ export const AdminProducts: React.FC = () => {
         is_trending: false,
         is_affiliate_enabled: false,
         affiliate_commission_rate: 0,
-        rating: 5,
+        rating: 0,
         review_count: 0,
         created_at: new Date().toISOString(),
       };

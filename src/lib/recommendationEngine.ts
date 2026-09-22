@@ -610,8 +610,8 @@ export function getRecommendedForYou(allProducts: Product[], limit = 12): Produc
   const topPicks = [...allProducts]
     .filter((p) => p.is_trending || p.is_featured || (p.rating && p.rating >= 4.5))
     .sort((a, b) => {
-      const scoreA = (a.rating || 4.5) * 10 + (a.is_trending ? 15 : 0) + (a.is_featured ? 10 : 0);
-      const scoreB = (b.rating || 4.5) * 10 + (b.is_trending ? 15 : 0) + (b.is_featured ? 10 : 0);
+      const scoreA = (a.rating || 0) * 10 + (a.is_trending ? 15 : 0) + (a.is_featured ? 10 : 0);
+      const scoreB = (b.rating || 0) * 10 + (b.is_trending ? 15 : 0) + (b.is_featured ? 10 : 0);
       return scoreB - scoreA || a.id.localeCompare(b.id);
     });
 
