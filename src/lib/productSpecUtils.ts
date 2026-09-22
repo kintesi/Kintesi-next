@@ -218,3 +218,38 @@ export function getProductGenderInfo(product: {
   // If unisex, neutral, or non-gendered, return null (never show "Unisex" label)
   return null;
 }
+
+/**
+ * Parses description text to extract clean technical & sizing specifications
+ * that dropshipping suppliers frequently embed in unstructured text.
+ */
+export function extractCleanSpecsFromDescription(description?: string): Record<string, string> {
+  if (!description || typeof description !== 'string') return {};
+
+  const cleanSpecs: Record<string, string> = {};
+
+  const SPEC_PATTERNS = [
+    { label: 'Product Size', regex: /(?:Product\s*size|Dimensions?|সাইজ|পরিমাপ)\s*[:：]\s*([^\r\n,;।]{2,60})/i },
+    { label: 'Length', regex: /(?:Available\s*Length|Length|লং|দৈর্ঘ্য)\s*[:：]\s*([^\r\n,;।]{1,60})/i },
+    { label: 'Body / Chest', regex: /(?:Body\s*[\/&]\s*Chest|Chest|বডি)\s*[:：]\s*([^\r\n,;।]{1,60})/i },
+    { label: 'Flair / Gher', regex: /(?:Flair|Gher|ঘের)\s*[:：]\s*([^\r\n,;।]{1,60})/i },
+    { label: 'Hijab Size', regex: /(?:Hijab\s*Size|হিজাব\s*সাইজ)\s*[:：]\s*([^\r\n,;।]{1,60})/i },
+    { label: 'Material', regex: /(?:Material|উপাদান|মেটেরিয়াল|মেটেরিয়াল)\s*[:：]\s*([^\r\n,;।]{2,60})/i },
+    { label: 'Battery Capacity', regex: /(?:Battery\s*capacity|Battery|ব্যাটারি\s*ক্ষমতা|ব্যাটারি)\s*[:：]\s*([^\r\n,;।]{2,60})/i },
+    { label: 'Charging Method', regex: /(?:Charging\s*method|চার্জিং\s*সিস্টেম|চার্জিং\s*মেথড)\s*[:：]\s*([^\r\n,;।]{2,60})/i },
+    { label: 'Weight', regex: /(?:Net\s*Weight|Weight|ওজন)\s*[:：]\s*([^\r\n,;।]{2,60})/i },
+    { label: 'Voltage / Power', regex: /(?:Voltage|Power|Watt|ভোল্টেজ|পাওয়ার)\s*[:：]\s*([^\r\n,;।]{2,60})/i },
+  ];
+
+  for (const item of SPEC_PATTERNS) {
+    const match = description.match(item.regex);
+    if (match && match[1]) {
+      const val = match[1].trim();
+      if (val && !val.toLowerCase().includes('http') && val.length > 1) {
+        cleanSpecs[item.label] = val;
+      }
+    }
+  }
+
+  return cleanSpecs;
+}

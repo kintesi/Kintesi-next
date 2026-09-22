@@ -618,9 +618,10 @@ export const AdminProducts: React.FC = () => {
         c.id.toLowerCase() === (prod.category_id || '').toLowerCase()
     );
     const availableSubs = currentCatObj?.subcategories || [];
+    const subCat = prod.sub_category || (prod.specifications as any)?.sub_category || '';
     const isCustomSub = Boolean(
-      prod.sub_category &&
-      !availableSubs.some((s) => s.toLowerCase() === (prod.sub_category || '').toLowerCase())
+      subCat &&
+      !availableSubs.some((s) => s.toLowerCase() === subCat.toLowerCase())
     );
     setIsCustomSubCategory(isCustomSub);
 
@@ -631,7 +632,7 @@ export const AdminProducts: React.FC = () => {
       price: prod.price ? prod.price.toString() : '',
       discount_percent: existingPercent > 0 ? existingPercent.toString() : '',
       category_id: prod.category_id || categories[0]?.slug || 'mens-fashion',
-      sub_category: prod.sub_category || '',
+      sub_category: subCat,
       stock: prod.stock ? prod.stock.toString() : '0',
       sku: prod.sku || 'KT-' + prod.id.slice(0, 6).toUpperCase(),
       brand: prod.brand || '',
@@ -814,9 +815,10 @@ export const AdminProducts: React.FC = () => {
         c.id.toLowerCase() === (prod.category_id || '').toLowerCase()
     );
     const availableSubs = currentCatObj?.subcategories || [];
+    const subCat = prod.sub_category || (prod.specifications as any)?.sub_category || '';
     const isCustomSub = Boolean(
-      prod.sub_category &&
-      !availableSubs.some((s) => s.toLowerCase() === (prod.sub_category || '').toLowerCase())
+      subCat &&
+      !availableSubs.some((s) => s.toLowerCase() === subCat.toLowerCase())
     );
     setIsCustomSubCategory(isCustomSub);
 
@@ -827,7 +829,7 @@ export const AdminProducts: React.FC = () => {
       price: prod.price ? prod.price.toString() : '',
       discount_percent: existingPercent > 0 ? existingPercent.toString() : '',
       category_id: prod.category_id || categories[0]?.slug || 'mens-fashion',
-      sub_category: prod.sub_category || '',
+      sub_category: subCat,
       stock: prod.stock ? prod.stock.toString() : '0',
       sku: newSku,
       brand: prod.brand || '',

@@ -19,13 +19,47 @@ export const FormattedProductDescription: React.FC<FormattedProductDescriptionPr
       .replace(/https?:\/\/(?:mohasagor|dropshipping)\S+/gi, '')
       .trim();
 
-    // 2. Normalize line breaks: ensure headings and bullet points have proper spacing
+    // 2. Normalize emojis and section headings with clean double line break
     cleanText = cleanText
-      .replace(/([^\n])(👉|⚡|✨|🔥|🌟|📦|🌸|💨|💡|📌)/g, '$1\n\n$2')
-      .replace(/([।!?.\n])(?=[১-৯\d]\.\s+)/g, '$1\n')
-      .replace(/([^\n])(?=[১-৯\d]\.\s+[^\n:।!?]+[:：])/g, '$1\n')
-      .replace(/([^\n])(?=(?:#[\w\u0980-\u09ff]+))/g, '$1\n')
-      .replace(/([^\n])(?=(?:Color|Material|Function|Battery capacity|Charging method|Product size)\s*[:：])/gi, '$1\n');
+      .replace(/([^\n])\s*(👉|⚡|✨|🔥|🌟|📦|🌸|💨|💡|📌|🌼)/g, '$1\n\n$2 ')
+      .replace(/(👉[^\n:]+[:：][-–—]*)\s*(?=[১-৯\d]\.|\-|\—|\•)/g, '$1\n');
+
+    // 3. Sentence boundary ungluing (Bengali Dari or exclamation followed immediately by text)
+    cleanText = cleanText
+      .replace(/([।!?])(?=[A-Za-z\u0980-\u09ff])/g, '$1\n\n');
+
+    // 4. Numbered list items glued together (e.g. '1. ', '2. ', '১. ')
+    cleanText = cleanText
+      .replace(/([^\n])\s*(?=[১-৯\d]+\.\s*)/g, '$1\n')
+      .replace(/([^\n])(?=[১-৯\d]+\.(?=[A-Za-z\u0980-\u09ff]))/g, '$1\n');
+
+    // 5. Dash / bullet items glued
+    cleanText = cleanText
+      .replace(/([।!?.:：\n])\s*[-–—]+\s*(?=[-–—•*]\s*)/g, '$1\n')
+      .replace(/([।!?])\s*(?=[-–—•*]\s+)/g, '$1\n');
+
+    // 6. Hashtags
+    cleanText = cleanText
+      .replace(/([^\n])\s*(?=#[\w\u0980-\u09ff])/g, '$1\n\n')
+      .replace(/(#[\w\u0980-\u09ff.]+)\s*(?=[A-Za-z\u0980-\u09ff])/g, '$1\n\n');
+
+    // 7. Comprehensive spec keys ungluing (Product size, Dimensions, Length, Chest, Material, Battery, etc.)
+    const SPEC_KEYS = [
+      'Product size', 'Product Size', 'Size', 'Sizes', 'Dimension', 'Dimensions',
+      'Available Length', 'Length', 'Body / Chest', 'Body/Chest', 'Body', 'Chest', 'Flair', 'Gher', 'Hijab Size',
+      'Material', 'Fabric', 'Color', 'Colors', 'Function', 'Count', 'Voltage', 'Power', 'Speed', 'Capacity', 'Model',
+      'Band Wide', 'Band Width', 'Strap', 'Weight', 'Net Weight',
+      'Battery capacity', 'Battery Capacity', 'Battery', 'Charging method', 'Charging Method', 'Charging time', 'Working time',
+      'Warranty', 'Origin', 'Package included', 'Package includes', 'Package Content',
+      'রঙের অপশন', 'রং', 'কালার', 'উপাদান', 'ফেব্রিক', 'মেটেরিয়াল', 'মেটেরিয়াল', 'ব্যাটারি ক্ষমতা', 'ব্যাটারি',
+      'চার্জিং সিস্টেম', 'চার্জিং মেথড', 'সাইজ', 'দৈর্ঘ্য', 'লং', 'বডি', 'ঘের', 'ওজন', 'ওয়ারেন্টি'
+    ];
+    const specKeyPattern = SPEC_KEYS.map((k) => k.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')).join('|');
+    const specRegex = new RegExp('([^\\n])\\s*(?:\\b|(?<=[a-z0-9\\u0980-\\u09ff)\\]!.?।]))(' + specKeyPattern + ')\\s*[:：]', 'gi');
+    cleanText = cleanText.replace(specRegex, (match, p1, p2) => `${p1}\n${p2}: `);
+
+    // 8. Semicolon lists in English instructions
+    cleanText = cleanText.replace(/;\s*(?=[A-Z])/g, ';\n');
 
     // 3. Split into paragraphs by double newlines or single newlines
     const rawParagraphs = cleanText.split(/\n\s*\n+/).map((p) => p.trim()).filter(Boolean);

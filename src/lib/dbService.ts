@@ -54,7 +54,7 @@ function withTimeout<T>(promise: PromiseLike<T>, ms: number = 3500): Promise<T> 
 // Explicitly omits massive fields (raw description HTML, specifications, embedding vectors)
 // Reducing payload from 10.6MB to under 2MB for full catalog, and ~40KB for initial screen!
 export const PRODUCT_SUMMARY_FIELDS =
-  'id, title, slug, description, price, discount_price, category_id, stock, images, rating, review_count, is_featured, is_trending, brand, sku, tags, sizes, colors, dropshipping_url, created_at';
+  'id, title, slug, description, price, discount_price, category_id, stock, images, rating, review_count, is_featured, is_trending, brand, sku, tags, sizes, colors, custom_attributes, specifications, dropshipping_url, created_at';
 
 // In-memory cache & Promise deduplication for instant 0ms access and zero duplicate requests
 let _memoryProductsCache: Product[] | null = null;
@@ -138,9 +138,43 @@ function normalizeProductSummary(p: any): Product {
     imgs = Array.from(new Set(imgs));
   }
   
+  const specs = (p.specifications && typeof p.specifications === 'object') ? p.specifications : {};
+  const subCategory = p.sub_category || specs.sub_category || '';
+
+  // Clean and deduplicate apparel sizes - ensure no duplicates (e.g. '6 Years' vs '6 years')
+  let cleanSizes: string[] = [];
+  if (Array.isArray(p.sizes) && p.sizes.length > 0) {
+    const seen = new Set<string>();
+    p.sizes.forEach((s: any) => {
+      if (typeof s === 'string' && s.trim()) {
+        const trimmed = s.trim();
+        const lower = trimmed.toLowerCase();
+        if (!seen.has(lower)) {
+          seen.add(lower);
+          cleanSizes.push(trimmed);
+        }
+      }
+    });
+  }
+
+  // Deduplicate custom_attributes
+  let cleanAttrs: any[] = [];
+  if (Array.isArray(p.custom_attributes) && p.custom_attributes.length > 0) {
+    const seen = new Set<string>();
+    p.custom_attributes.forEach((a: any) => {
+      if (a && (a.name || a.variant)) {
+        const attrKey = ((a.attribute || a.attributeName || '') + '___' + (a.name || a.variant || '')).trim().toLowerCase();
+        if (!seen.has(attrKey)) {
+          seen.add(attrKey);
+          cleanAttrs.push(a);
+        }
+      }
+    });
+  }
+
   // ⚡ Pre-computed search key for O(1) instant search and ranking without string allocations
   const tagsStr = Array.isArray(p.tags) ? p.tags.join(' ') : (p.tags || '');
-  const searchKey = `${p.title || ''} ${p.sub_category || ''} ${p.category_id || ''} ${p.brand || ''} ${p.sku || ''} ${tagsStr}`.toLowerCase();
+  const searchKey = `${p.title || ''} ${subCategory} ${p.category_id || ''} ${p.brand || ''} ${p.sku || ''} ${tagsStr}`.toLowerCase();
 
   return {
     ...p,
@@ -148,8 +182,11 @@ function normalizeProductSummary(p: any): Product {
     rating: Number(p.rating) || 0,
     review_count: Number(p.review_count) || 0,
     images: imgs,
-    spec_mode: p.spec_mode || p.specifications?.spec_mode || 'auto',
-    sub_category: p.sub_category || p.specifications?.sub_category || '',
+    sizes: cleanSizes,
+    custom_attributes: cleanAttrs.length > 0 ? cleanAttrs : p.custom_attributes,
+    specifications: specs,
+    spec_mode: p.spec_mode || specs.spec_mode || 'auto',
+    sub_category: subCategory,
     _searchKey: searchKey,
   };
 }
@@ -164,7 +201,7 @@ export async function getInitialProducts(limit: number = 36): Promise<Product[]>
     return _memoryProductsCache.filter(isValidDisplayProduct).slice(0, limit);
   }
 
-  const CACHE_VERSION = 'v30_with_descriptions';
+  const CACHE_VERSION = 'v31_clean_subcategories_and_sizes';
   if (typeof window !== 'undefined') {
     try {
       if (localStorage.getItem('kintesi_cache_ver') !== CACHE_VERSION) {

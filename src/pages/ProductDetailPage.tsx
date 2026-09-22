@@ -46,7 +46,7 @@ import {
 import { toast } from 'sonner';
 import { useLanguage } from '../contexts/LanguageContext';
 import { FormattedProductDescription } from '../components/product/FormattedProductDescription';
-import { isSpecKeyValid, isSpecValueValid, getProductGenderInfo } from '../lib/productSpecUtils';
+import { isSpecKeyValid, isSpecValueValid, getProductGenderInfo, extractCleanSpecsFromDescription } from '../lib/productSpecUtils';
 
 export const ProductDetailPage: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -514,15 +514,48 @@ export const ProductDetailPage: React.FC = () => {
     const groups: Record<string, any[]> = {};
     if (Array.isArray(attrs)) {
       attrs.forEach((a) => {
-        if (!a || !a.attributeName || !String(a.attributeName).trim()) return;
-        if (!a.name || !String(a.name).trim()) return;
-        const attrName = String(a.attributeName).trim();
+        if (!a) return;
+        const attrRaw = a.attributeName || a.attribute || '';
+        if (!attrRaw || !String(attrRaw).trim()) return;
+        const nameRaw = a.name || a.variant || '';
+        if (!nameRaw || !String(nameRaw).trim()) return;
+
+        const attrName = String(attrRaw).trim();
         if (!groups[attrName]) groups[attrName] = [];
-        groups[attrName].push(a);
+
+        // Deduplicate option name case-insensitively so that '6 Years' and '6 years' never duplicate
+        const optName = String(nameRaw).trim();
+        const exists = groups[attrName].some(
+          (opt) => (opt.name || opt.variant || '').toLowerCase().trim() === optName.toLowerCase()
+        );
+        if (!exists) {
+          groups[attrName].push({
+            ...a,
+            name: optName,
+          });
+        }
       });
     }
     return groups;
   }, [product]);
+
+  // Clean deduplicated sizes array (prevent '6 Years' vs '6 years' or duplicate buttons)
+  const deduplicatedSizes = useMemo(() => {
+    if (!product?.sizes || !Array.isArray(product.sizes)) return [];
+    const seen = new Set<string>();
+    const list: string[] = [];
+    product.sizes.forEach((sz: any) => {
+      if (typeof sz === 'string' && sz.trim()) {
+        const trimmed = sz.trim();
+        const lower = trimmed.toLowerCase();
+        if (!seen.has(lower)) {
+          seen.add(lower);
+          list.push(trimmed);
+        }
+      }
+    });
+    return list;
+  }, [product?.sizes]);
 
   const activeVariantImage = activeColorObj?.image || product?.images?.[0] || '/logo.webp';
   const activeStock = typeof activeColorObj?.stock === 'number' ? activeColorObj.stock : (product ? (product.stock ?? 0) : 0);
@@ -1065,34 +1098,43 @@ export const ProductDetailPage: React.FC = () => {
                   );
                 })}
 
-              {/* Size Selection (From standard sizes array if present and not already in custom attributes) */}
-              {product.sizes && product.sizes.length > 0 && !customAttrGroups['Size'] && (
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between text-xs font-bold">
-                    <span className="text-gray-500 uppercase tracking-wider text-[11px]">Size:</span>
-                    <span className="text-gray-900 font-extrabold">{selectedSize}</span>
+              {/* Size Selection (From deduplicated sizes array if present and not already in custom attributes) */}
+              {(() => {
+                const hasCustomSizeAttr = Object.keys(customAttrGroups).some(
+                  (k) => k.toLowerCase() === 'size' || k.toLowerCase() === 'sizes' || k === 'সাইজ'
+                );
+                if (hasCustomSizeAttr || deduplicatedSizes.length === 0) return null;
+
+                const currentActiveSize = selectedSize || deduplicatedSizes[0];
+
+                return (
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between text-xs font-bold">
+                      <span className="text-gray-500 uppercase tracking-wider text-[11px]">Size:</span>
+                      <span className="text-gray-900 font-extrabold">{currentActiveSize}</span>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {deduplicatedSizes.map((sz) => {
+                        const isSelected = currentActiveSize === sz;
+                        return (
+                          <button
+                            key={sz}
+                            type="button"
+                            onClick={() => setSelectedSize(sz)}
+                            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold border transition cursor-pointer ${
+                              isSelected
+                                ? 'border-emerald-600 bg-emerald-600 text-white shadow-xs'
+                                : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300'
+                            }`}
+                          >
+                            {sz}
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
-                  <div className="flex flex-wrap gap-2">
-                    {product.sizes.map((sz) => {
-                      const isSelected = selectedSize === sz;
-                      return (
-                        <button
-                          key={sz}
-                          type="button"
-                          onClick={() => setSelectedSize(sz)}
-                          className={`px-3.5 py-1.5 rounded-xl text-xs font-bold border transition cursor-pointer ${
-                            isSelected
-                              ? 'border-emerald-600 bg-emerald-600 text-white shadow-xs'
-                              : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300'
-                          }`}
-                        >
-                          {sz}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
+                );
+              })()}
 
               {/* Buy Actions Block (Quantity, Stock & Purchase Buttons) */}
               <div ref={buyActionsRef} className="space-y-4">
@@ -1419,6 +1461,8 @@ export const ProductDetailPage: React.FC = () => {
           ([key, val]) => isSpecKeyValid(key) && isSpecValueValid(val)
         );
         const hasHardwareSpecs = validSpecs.length > 0;
+        const extractedSpecs = extractCleanSpecsFromDescription(product.description);
+        const hasExtractedSpecs = Object.keys(extractedSpecs).length > 0;
 
         const isGadget = effectiveSpecMode === 'gadgets' || (effectiveSpecMode === 'auto' && Boolean(
           hasHardwareSpecs ||
@@ -1447,6 +1491,7 @@ export const ProductDetailPage: React.FC = () => {
           cat.includes('saree') ||
           cat.includes('kurti') ||
           cat.includes('shoes') ||
+          deduplicatedSizes.length > 0 ||
           isSpecValueValid(product.fabric) ||
           isSpecValueValid(product.fit_type)
         )));
@@ -1455,7 +1500,7 @@ export const ProductDetailPage: React.FC = () => {
 
         // Check if there is any genuine specification to show for this specific mode
         const shouldShow = isGadget
-          ? Boolean(isSpecValueValid(product.warranty) || (isSpecValueValid(product.origin) && !product.origin.toLowerCase().includes('bangladesh')) || hasHardwareSpecs)
+          ? Boolean(isSpecValueValid(product.warranty) || (isSpecValueValid(product.origin) && !product.origin.toLowerCase().includes('bangladesh')) || hasHardwareSpecs || hasExtractedSpecs)
           : isGroceries
           ? Boolean(
               isSpecValueValid(product.fabric) ||
@@ -1463,16 +1508,19 @@ export const ProductDetailPage: React.FC = () => {
               isSpecValueValid(product.origin) ||
               isSpecValueValid(product.care_instructions) ||
               isSpecValueValid(product.fit_type) ||
-              hasHardwareSpecs
+              hasHardwareSpecs ||
+              hasExtractedSpecs
             )
           : isFashion
           ? Boolean(
+              deduplicatedSizes.length > 0 ||
               isSpecValueValid(product.fabric) ||
               isSpecValueValid(product.fit_type) ||
               genderInfo !== null ||
               isSpecValueValid(product.origin) ||
               isSpecValueValid(product.care_instructions) ||
-              hasHardwareSpecs
+              hasHardwareSpecs ||
+              hasExtractedSpecs
             )
           : false;
 
@@ -1533,6 +1581,12 @@ export const ProductDetailPage: React.FC = () => {
                     <p className="font-bold text-gray-900 text-[11px] sm:text-xs truncate">{String(product.origin)}</p>
                   </div>
                 )}
+                {Object.entries(extractedSpecs).map(([key, val]) => (
+                  <div key={`ext-${key}`} className="p-2 sm:p-2.5 bg-cyan-50/30 rounded-lg sm:rounded-xl space-y-0.5 border border-cyan-100/60">
+                    <span className="text-cyan-700 font-bold uppercase text-[8.5px] sm:text-[9.5px] tracking-wider block">{key}</span>
+                    <p className="font-bold text-gray-900 text-[11px] sm:text-xs truncate">{val}</p>
+                  </div>
+                ))}
                 {validSpecs.map(([key, val]) => (
                   <div key={key} className="p-2 sm:p-2.5 bg-gray-50/80 rounded-lg sm:rounded-xl space-y-0.5 border border-gray-100/80">
                     <span className="text-gray-400 font-bold uppercase text-[8.5px] sm:text-[9.5px] tracking-wider block">{key.replace(/_/g, ' ')}</span>
@@ -1545,6 +1599,16 @@ export const ProductDetailPage: React.FC = () => {
             {/* 2. FASHION & APPAREL DETAILS ONLY */}
             {isFashion && (
               <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-1.5 sm:gap-2.5 text-xs">
+                {deduplicatedSizes.length > 0 && (
+                  <div className="p-2 sm:p-2.5 bg-rose-50/60 rounded-lg sm:rounded-xl space-y-0.5 border border-rose-100/70">
+                    <span className="text-rose-700 font-bold uppercase text-[8.5px] sm:text-[9.5px] tracking-wider block">
+                      {language === 'bn' ? 'উপলব্ধ সাইজ' : 'Available Sizes'}
+                    </span>
+                    <p className="font-bold text-gray-900 text-[11px] sm:text-xs">
+                      {deduplicatedSizes.join(', ')}
+                    </p>
+                  </div>
+                )}
                 {isSpecValueValid(product.fabric) && (
                   <div className="p-2 sm:p-2.5 bg-gray-50/80 rounded-lg sm:rounded-xl space-y-0.5 border border-gray-100/80">
                     <span className="text-gray-400 font-bold uppercase text-[8.5px] sm:text-[9.5px] tracking-wider block">Fabric / Material</span>
@@ -1577,6 +1641,12 @@ export const ProductDetailPage: React.FC = () => {
                     <p className="font-semibold text-gray-800 text-[11px] sm:text-xs leading-relaxed">{String(product.care_instructions)}</p>
                   </div>
                 )}
+                {Object.entries(extractedSpecs).map(([key, val]) => (
+                  <div key={`ext-${key}`} className="p-2 sm:p-2.5 bg-gray-50/80 rounded-lg sm:rounded-xl space-y-0.5 border border-gray-100/80">
+                    <span className="text-gray-400 font-bold uppercase text-[8.5px] sm:text-[9.5px] tracking-wider block">{key}</span>
+                    <p className="font-bold text-gray-900 text-[11px] sm:text-xs truncate">{val}</p>
+                  </div>
+                ))}
                 {validSpecs.map(([key, val]) => (
                   <div key={key} className="p-2 sm:p-2.5 bg-gray-50/80 rounded-lg sm:rounded-xl space-y-0.5 border border-gray-100/80">
                     <span className="text-gray-400 font-bold uppercase text-[8.5px] sm:text-[9.5px] tracking-wider block">{key.replace(/_/g, ' ')}</span>

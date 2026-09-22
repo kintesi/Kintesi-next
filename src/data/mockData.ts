@@ -70,6 +70,7 @@ export const INITIAL_CATEGORIES: Category[] = [
     image_url: '',
     icon: 'Home',
     subcategories: [
+      'Home & Kitchen Essentials',
       'Bedding, Sheets & Blankets',
       'Cookware & Non-Stick Pans',
       'Kitchen Storage & Containers',
@@ -130,6 +131,7 @@ export const INITIAL_CATEGORIES: Category[] = [
     image_url: '',
     icon: 'Home',
     subcategories: [
+      'Home & Kitchen Appliances',
       'Smart TVs & Android TV',
       'Refrigerators & Freezers',
       'Air Conditioners & Inverters',
@@ -170,6 +172,7 @@ export const INITIAL_CATEGORIES: Category[] = [
     image_url: '',
     icon: 'Headphones',
     subcategories: [
+      'Smart Gadgets & Accessories',
       'Wireless Earbuds & TWS',
       'Over-Ear Headphones',
       'Bluetooth Speakers',
@@ -230,6 +233,8 @@ export const INITIAL_CATEGORIES: Category[] = [
     image_url: '',
     icon: 'Sparkles',
     subcategories: [
+      'Kids Clothing & Fashion',
+      'Baby Clothing & Rompers',
       'Baby Diapers & Wipes',
       'Baby Food & Formula Milk',
       'Feeding Bottles & Teethers',
@@ -250,6 +255,7 @@ export const INITIAL_CATEGORIES: Category[] = [
     image_url: '',
     icon: 'Footprints',
     subcategories: [
+      'Car & Bike Accessories',
       'Helmets & Riding Gear',
       'Bike Lights & LED Indicators',
       'Engine Oils, Lubricants & Fluids',
