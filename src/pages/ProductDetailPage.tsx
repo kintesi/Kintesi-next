@@ -45,6 +45,8 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useLanguage } from '../contexts/LanguageContext';
+import { FormattedProductDescription } from '../components/product/FormattedProductDescription';
+import { isSpecKeyValid, isSpecValueValid, getProductGenderInfo } from '../lib/productSpecUtils';
 
 export const ProductDetailPage: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -911,18 +913,18 @@ export const ProductDetailPage: React.FC = () => {
                     </>
                   )}
 
-                  {product.gender && product.gender.trim() && (
-                    <>
-                      <span className="text-gray-200 hidden sm:inline">•</span>
-                      <span className={`text-[11px] font-bold px-2 py-0.5 rounded border hidden sm:inline-flex items-center gap-1 ${
-                        product.gender.toLowerCase() === 'women'
-                          ? 'text-pink-700 bg-pink-50 border-pink-200/60'
-                          : 'text-indigo-700 bg-indigo-50 border-indigo-200/60'
-                      }`}>
-                        <span>{product.gender}</span>
-                      </span>
-                    </>
-                  )}
+                  {(() => {
+                    const genderInfo = getProductGenderInfo(product);
+                    if (!genderInfo) return null;
+                    return (
+                      <>
+                        <span className="text-gray-200 hidden sm:inline">•</span>
+                        <span className={`text-[11px] font-bold px-2 py-0.5 rounded border hidden sm:inline-flex items-center gap-1 ${genderInfo.colorClass}`}>
+                          <span>{language === 'bn' ? genderInfo.textBn : genderInfo.label}</span>
+                        </span>
+                      </>
+                    );
+                  })()}
                 </div>
 
                 <div className="flex items-center gap-1">
@@ -1408,29 +1410,13 @@ export const ProductDetailPage: React.FC = () => {
       {/* Section 1: Comprehensive Specifications & Technical Details Card (Strictly Isolated by Category Mode) */}
       {(() => {
         const cat = (product.category_id || '').toLowerCase();
-        const isKeyValid = (key: string) => {
-          if (!key) return false;
-          const k = key.toLowerCase().trim();
-          return k !== 'custom_attributes' && k !== 'customattributes' && k !== 'custom_attribute';
-        };
-
-        const isValueNonEmpty = (val: any) => {
-          if (val === null || val === undefined) return false;
-          if (typeof val === 'object') {
-            if (Array.isArray(val)) return val.length > 0;
-            return Object.keys(val).length > 0;
-          }
-          const s = String(val).trim();
-          return s !== '' && s !== 'null' && s !== 'undefined' && s !== '[]' && s !== '{}' && s !== '-';
-        };
-
         const effectiveSpecMode = product.spec_mode || (product.specifications as any)?.spec_mode || 'auto';
         if (effectiveSpecMode === 'none' || effectiveSpecMode === 'skip') {
           return null;
         }
 
         const validSpecs = Object.entries(product.specifications || {}).filter(
-          ([key, val]) => isKeyValid(key) && isValueNonEmpty(val) && key !== 'spec_mode' && key !== 'sub_category'
+          ([key, val]) => isSpecKeyValid(key) && isSpecValueValid(val)
         );
         const hasHardwareSpecs = validSpecs.length > 0;
 
@@ -1461,29 +1447,31 @@ export const ProductDetailPage: React.FC = () => {
           cat.includes('saree') ||
           cat.includes('kurti') ||
           cat.includes('shoes') ||
-          isValueNonEmpty(product.fabric) ||
-          isValueNonEmpty(product.fit_type)
+          isSpecValueValid(product.fabric) ||
+          isSpecValueValid(product.fit_type)
         )));
+
+        const genderInfo = getProductGenderInfo(product);
 
         // Check if there is any genuine specification to show for this specific mode
         const shouldShow = isGadget
-          ? Boolean(isValueNonEmpty(product.warranty) || isValueNonEmpty(product.origin) || hasHardwareSpecs)
+          ? Boolean(isSpecValueValid(product.warranty) || (isSpecValueValid(product.origin) && !product.origin.toLowerCase().includes('bangladesh')) || hasHardwareSpecs)
           : isGroceries
           ? Boolean(
-              isValueNonEmpty(product.fabric) ||
-              isValueNonEmpty(product.warranty) ||
-              isValueNonEmpty(product.origin) ||
-              isValueNonEmpty(product.care_instructions) ||
-              isValueNonEmpty(product.fit_type) ||
+              isSpecValueValid(product.fabric) ||
+              isSpecValueValid(product.warranty) ||
+              isSpecValueValid(product.origin) ||
+              isSpecValueValid(product.care_instructions) ||
+              isSpecValueValid(product.fit_type) ||
               hasHardwareSpecs
             )
           : isFashion
           ? Boolean(
-              isValueNonEmpty(product.fabric) ||
-              isValueNonEmpty(product.fit_type) ||
-              (isValueNonEmpty(product.gender) && product.gender !== 'Unisex') ||
-              isValueNonEmpty(product.origin) ||
-              isValueNonEmpty(product.care_instructions) ||
+              isSpecValueValid(product.fabric) ||
+              isSpecValueValid(product.fit_type) ||
+              genderInfo !== null ||
+              isSpecValueValid(product.origin) ||
+              isSpecValueValid(product.care_instructions) ||
               hasHardwareSpecs
             )
           : false;
@@ -1533,13 +1521,13 @@ export const ProductDetailPage: React.FC = () => {
             {/* 1. GADGET & HARDWARE DETAILS ONLY */}
             {isGadget && (
               <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-1.5 sm:gap-2.5 text-xs">
-                {isValueNonEmpty(product.warranty) && (
+                {isSpecValueValid(product.warranty) && (
                   <div className="p-2 sm:p-2.5 bg-cyan-50/40 rounded-lg sm:rounded-xl space-y-0.5 border border-cyan-100/70">
                     <span className="text-cyan-700 font-bold uppercase text-[8.5px] sm:text-[9.5px] tracking-wider block">Official Warranty</span>
                     <p className="font-bold text-gray-900 text-[11px] sm:text-xs truncate">{String(product.warranty)}</p>
                   </div>
                 )}
-                {isValueNonEmpty(product.origin) && (
+                {isSpecValueValid(product.origin) && !product.origin.toLowerCase().includes('bangladesh') && (
                   <div className="p-2 sm:p-2.5 bg-gray-50/80 rounded-lg sm:rounded-xl space-y-0.5 border border-gray-100/80">
                     <span className="text-gray-400 font-bold uppercase text-[8.5px] sm:text-[9.5px] tracking-wider block">Device Origin</span>
                     <p className="font-bold text-gray-900 text-[11px] sm:text-xs truncate">{String(product.origin)}</p>
@@ -1557,31 +1545,33 @@ export const ProductDetailPage: React.FC = () => {
             {/* 2. FASHION & APPAREL DETAILS ONLY */}
             {isFashion && (
               <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-1.5 sm:gap-2.5 text-xs">
-                {isValueNonEmpty(product.fabric) && (
+                {isSpecValueValid(product.fabric) && (
                   <div className="p-2 sm:p-2.5 bg-gray-50/80 rounded-lg sm:rounded-xl space-y-0.5 border border-gray-100/80">
                     <span className="text-gray-400 font-bold uppercase text-[8.5px] sm:text-[9.5px] tracking-wider block">Fabric / Material</span>
                     <p className="font-bold text-gray-900 text-[11px] sm:text-xs truncate">{String(product.fabric)}</p>
                   </div>
                 )}
-                {isValueNonEmpty(product.fit_type) && (
+                {isSpecValueValid(product.fit_type) && (
                   <div className="p-2 sm:p-2.5 bg-gray-50/80 rounded-lg sm:rounded-xl space-y-0.5 border border-gray-100/80">
                     <span className="text-gray-400 font-bold uppercase text-[8.5px] sm:text-[9.5px] tracking-wider block">Fit Type</span>
                     <p className="font-bold text-gray-900 text-[11px] sm:text-xs truncate">{String(product.fit_type)}</p>
                   </div>
                 )}
-                {isValueNonEmpty(product.gender) && (
+                {genderInfo && (
                   <div className="p-2 sm:p-2.5 bg-gray-50/80 rounded-lg sm:rounded-xl space-y-0.5 border border-gray-100/80">
                     <span className="text-gray-400 font-bold uppercase text-[8.5px] sm:text-[9.5px] tracking-wider block">Department</span>
-                    <p className="font-bold text-gray-900 text-[11px] sm:text-xs truncate">{String(product.gender)}</p>
+                    <p className="font-bold text-gray-900 text-[11px] sm:text-xs truncate">
+                      {language === 'bn' ? genderInfo.textBn : genderInfo.label}
+                    </p>
                   </div>
                 )}
-                {isValueNonEmpty(product.origin) && (
+                {isSpecValueValid(product.origin) && (
                   <div className="p-2 sm:p-2.5 bg-gray-50/80 rounded-lg sm:rounded-xl space-y-0.5 border border-gray-100/80">
                     <span className="text-gray-400 font-bold uppercase text-[8.5px] sm:text-[9.5px] tracking-wider block">Origin</span>
                     <p className="font-bold text-gray-900 text-[11px] sm:text-xs truncate">{String(product.origin)}</p>
                   </div>
                 )}
-                {isValueNonEmpty(product.care_instructions) && (
+                {isSpecValueValid(product.care_instructions) && (
                   <div className="p-2 sm:p-2.5 bg-gray-50/80 rounded-lg sm:rounded-xl space-y-0.5 border border-gray-100/80 col-span-2">
                     <span className="text-gray-400 font-bold uppercase text-[8.5px] sm:text-[9.5px] tracking-wider block">Care Instructions</span>
                     <p className="font-semibold text-gray-800 text-[11px] sm:text-xs leading-relaxed">{String(product.care_instructions)}</p>
@@ -1599,31 +1589,31 @@ export const ProductDetailPage: React.FC = () => {
             {/* 3. GROCERIES & FOOD DETAILS ONLY */}
             {isGroceries && (
               <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-1.5 sm:gap-2.5 text-xs">
-                {isValueNonEmpty(product.fabric) && (
+                {isSpecValueValid(product.fabric) && (
                   <div className="p-2 sm:p-2.5 bg-emerald-50/40 rounded-lg sm:rounded-xl space-y-0.5 border border-emerald-100/70">
                     <span className="text-emerald-700 font-bold uppercase text-[8.5px] sm:text-[9.5px] tracking-wider block">Net Weight / Vol</span>
                     <p className="font-bold text-gray-900 text-[11px] sm:text-xs truncate">{String(product.fabric)}</p>
                   </div>
                 )}
-                {isValueNonEmpty(product.warranty) && (
+                {isSpecValueValid(product.warranty) && (
                   <div className="p-2 sm:p-2.5 bg-gray-50/80 rounded-lg sm:rounded-xl space-y-0.5 border border-gray-100/80">
                     <span className="text-gray-400 font-bold uppercase text-[8.5px] sm:text-[9.5px] tracking-wider block">Shelf Life / Expiry</span>
                     <p className="font-bold text-gray-900 text-[11px] sm:text-xs truncate">{String(product.warranty)}</p>
                   </div>
                 )}
-                {isValueNonEmpty(product.origin) && (
+                {isSpecValueValid(product.origin) && (
                   <div className="p-2 sm:p-2.5 bg-gray-50/80 rounded-lg sm:rounded-xl space-y-0.5 border border-gray-100/80">
                     <span className="text-gray-400 font-bold uppercase text-[8.5px] sm:text-[9.5px] tracking-wider block">Origin</span>
                     <p className="font-bold text-gray-900 text-[11px] sm:text-xs truncate">{String(product.origin)}</p>
                   </div>
                 )}
-                {isValueNonEmpty(product.fit_type) && (
+                {isSpecValueValid(product.fit_type) && (
                   <div className="p-2 sm:p-2.5 bg-gray-50/80 rounded-lg sm:rounded-xl space-y-0.5 border border-gray-100/80">
                     <span className="text-gray-400 font-bold uppercase text-[8.5px] sm:text-[9.5px] tracking-wider block">Quality / Cert</span>
                     <p className="font-bold text-gray-900 text-[11px] sm:text-xs truncate">{String(product.fit_type)}</p>
                   </div>
                 )}
-                {isValueNonEmpty(product.care_instructions) && (
+                {isSpecValueValid(product.care_instructions) && (
                   <div className="p-2 sm:p-2.5 bg-gray-50/80 rounded-lg sm:rounded-xl space-y-0.5 border border-gray-100/80 col-span-2">
                     <span className="text-gray-400 font-bold uppercase text-[8.5px] sm:text-[9.5px] tracking-wider block">Storage Instructions</span>
                     <p className="font-semibold text-gray-800 text-[11px] sm:text-xs leading-relaxed">{String(product.care_instructions)}</p>
@@ -1652,11 +1642,9 @@ export const ProductDetailPage: React.FC = () => {
         </div>
 
         <div className="space-y-6">
-          {/* Main Description */}
+          {/* Main Formatted Structured Description */}
           {product.description && (
-            <div className="text-sm text-gray-700 leading-relaxed space-y-3 whitespace-pre-line bg-gray-50/50 p-6 rounded-2xl border border-gray-100">
-              <p>{product.description}</p>
-            </div>
+            <FormattedProductDescription description={product.description} />
           )}
 
           {/* Key Bullet Highlights */}

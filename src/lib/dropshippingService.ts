@@ -333,14 +333,7 @@ export function convertDropshippingToKintesiProduct(dropProd: DropshippingProduc
     is_featured: false,
     dropshipping_url: `${DROPSHIPPING_CONFIG.FALLBACK_STORE_URL}/product/${dropProd.slug}`,
     custom_attributes: customAttributes,
-    specifications: {
-      source: 'Dropshipping BD',
-      product_code: dropProd.product_code,
-      original_category: dropProd.category,
-      supplier_wholesale_price: wholesalePrice,
-      suggested_retail_price: regularPrice,
-      supplier_status: dropProd.status || dropProd.stock_status,
-    },
+    specifications: {},
     brand: detectDropshippingBrand(dropProd.name, dropProd.details),
     tags: [
       'Dropshipping',
