@@ -542,11 +542,6 @@ export const HomePage: React.FC = () => {
           )}
         </div>
 
-        {/* 6. Amazon / Daraz Style: Recently Viewed Shelf */}
-        <div className="px-3">
-          <RecentlyViewedShelf products={products} />
-        </div>
-
       </div>
 
       {/* ========================================================

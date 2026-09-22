@@ -249,19 +249,6 @@ export const ShopPage: React.FC = () => {
     return filtered;
   }, [products, selectedCategory, selectedSubCategory, searchQuery, appliedMinPrice, appliedMaxPrice, onlyInStock, sortBy, searchParams, intentVersion]);
 
-  const isDefaultCatalogView =
-    selectedCategory === 'all' &&
-    selectedSubCategory === 'all' &&
-    !searchQuery.trim() &&
-    appliedMinPrice === null &&
-    appliedMaxPrice === null &&
-    !onlyInStock;
-
-  const totalCatalogCount = getCachedTotalCount();
-  const totalItemCount = isDefaultCatalogView
-    ? Math.max(filteredProducts.length, totalCatalogCount)
-    : filteredProducts.length;
-
   // Progressive batch rendering: 6 on mobile (auto infinite scroll), 18 on desktop with interactive Load More
   const getInitialDisplayCount = () => (typeof window !== 'undefined' && window.innerWidth < 768 ? 6 : 18);
   const [displayCount, setDisplayCount] = useState<number>(getInitialDisplayCount);
@@ -450,9 +437,6 @@ export const ShopPage: React.FC = () => {
           <h1 className="text-sm sm:text-base font-extrabold text-gray-900 truncate">
             {selectedCategory !== 'all' ? (currentCategoryObj?.name || selectedCategory) : 'All Products'}
           </h1>
-          <span className="text-[11px] font-semibold text-gray-400 shrink-0">
-            ({totalItemCount})
-          </span>
         </div>
 
         <div className="flex items-center gap-2 shrink-0">
@@ -509,7 +493,6 @@ export const ShopPage: React.FC = () => {
           </div>
           <h1 className="text-2xl font-black text-gray-900 tracking-tight flex items-center gap-2">
             <span>{selectedCategory !== 'all' ? (currentCategoryObj?.name || 'All Products') : 'All Products'}</span>
-            <span className="text-sm font-semibold text-gray-400">({totalItemCount} items)</span>
           </h1>
         </div>
 
@@ -654,10 +637,8 @@ export const ShopPage: React.FC = () => {
                     }`}
                   >
                     <span>All Categories</span>
-                    <span>{isDefaultCatalogView ? totalItemCount : products.length}</span>
                   </button>
                   {categories.map((cat) => {
-                    const count = products.filter((p) => isCategoryMatch(p.category_id, cat.slug)).length;
                     return (
                       <button
                         key={cat.slug || cat.id}
@@ -669,7 +650,6 @@ export const ShopPage: React.FC = () => {
                         }`}
                       >
                         <span className="truncate pr-2">{cat.name}</span>
-                        <span className="text-gray-400 font-normal shrink-0">{count}</span>
                       </button>
                     );
                   })}
@@ -812,7 +792,7 @@ export const ShopPage: React.FC = () => {
               </div>
 
               {/* Load More section */}
-              {displayCount < totalItemCount ? (
+              {displayCount < filteredProducts.length ? (
                 <div className="flex flex-col items-center justify-center pt-8 pb-4 gap-3">
                   {/* Mobile Sentinel (hidden on desktop) */}
                   <div ref={loadMoreSentinelRef} className="h-2 w-full md:hidden" />
@@ -824,19 +804,16 @@ export const ShopPage: React.FC = () => {
                     className="group inline-flex items-center gap-2.5 px-8 py-3.5 bg-white hover:bg-rose-600 text-gray-800 hover:text-white font-extrabold text-sm rounded-2xl border-2 border-rose-200 hover:border-rose-600 shadow-xs hover:shadow-lg hover:shadow-rose-600/20 transition-all duration-300 cursor-pointer active:scale-98"
                   >
                     <ShoppingBag className="w-4 h-4 text-rose-600 group-hover:text-white transition-colors" />
-                    <span>আরও পণ্য দেখুন ({Math.max(0, totalItemCount - displayCount)}টি বাকি)</span>
+                    <span>আরও পণ্য দেখুন</span>
                     <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                   </button>
-                  <p className="text-xs text-gray-400 font-medium">
-                    Showing {Math.min(displayCount, totalItemCount)} of {totalItemCount} products
-                  </p>
                 </div>
               ) : (
-                totalItemCount > 0 && (
+                filteredProducts.length > 0 && (
                   <div className="flex items-center justify-center pt-8 pb-4">
                     <div className="flex items-center gap-2 text-xs text-emerald-600 font-semibold bg-emerald-50 px-4 py-2 rounded-full border border-emerald-200/60">
                       <CheckCircle2 className="w-4 h-4" />
-                      <span>সব {totalItemCount}টি পণ্য লোড হয়েছে</span>
+                      <span>সব পণ্য লোড হয়েছে</span>
                     </div>
                   </div>
                 )
@@ -995,10 +972,8 @@ export const ShopPage: React.FC = () => {
                     }`}
                   >
                     <span>All Categories</span>
-                    <span>{isDefaultCatalogView ? totalItemCount : products.length}</span>
                   </button>
                   {categories.map((cat) => {
-                    const count = products.filter((p) => isCategoryMatch(p.category_id, cat.slug)).length;
                     return (
                       <button
                         key={cat.slug || cat.id}
@@ -1014,7 +989,6 @@ export const ShopPage: React.FC = () => {
                         }`}
                       >
                         <span className="truncate pr-2">{cat.name}</span>
-                        <span className="text-gray-400 font-normal shrink-0">{count}</span>
                       </button>
                     );
                   })}
@@ -1074,7 +1048,7 @@ export const ShopPage: React.FC = () => {
                 onClick={applyDraftFilters}
                 className="w-2/3 py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl text-xs transition shadow-xs flex items-center justify-center gap-1.5 cursor-pointer active:scale-95"
               >
-                <span>Apply Filters ({draftMatchCount})</span>
+                <span>Apply Filters</span>
               </button>
             </div>
 

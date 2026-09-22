@@ -255,9 +255,6 @@ export const ShowcasePage: React.FC<ShowcasePageProps> = ({ showcaseType }) => {
             <h1 className="text-xl sm:text-2xl font-black text-gray-950 tracking-tight">
               {currentShowcase.title}
             </h1>
-            <span className="text-xs font-bold text-gray-500 bg-white border border-gray-200/80 px-2.5 py-0.5 rounded-full shadow-2xs">
-              {isLoading ? '...' : `${finalProducts.length} items`}
-            </span>
           </div>
 
           <div className="flex items-center gap-2">

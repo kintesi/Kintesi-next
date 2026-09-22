@@ -171,7 +171,7 @@ export const RecentlyViewedShelf: React.FC<RecentlyViewedShelfProps> = ({
   if (recentlyViewed.length === 0) return null;
 
   return (
-    <section className="my-6 md:my-10">
+    <section className="hidden md:block my-6 md:my-10">
       <div 
         className="bg-white border border-gray-200/80 rounded-2xl md:rounded-3xl p-4 sm:p-6 shadow-xs"
         onMouseEnter={() => { isPausedRef.current = true; }}
