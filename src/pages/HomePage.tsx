@@ -478,6 +478,7 @@ export const HomePage: React.FC = () => {
                 showcase={showcase}
                 products={showProds}
                 autoSlide={true}
+                timeLeft={timeLeft}
               />
             ))}
           </div>
@@ -485,22 +486,15 @@ export const HomePage: React.FC = () => {
 
         {/* 4. Product Feed with Progressive Infinite Scroll */}
         <div className="px-3 space-y-3 pt-2">
-          {/* Feed Title & Fresh Mix / Reload button */}
+          {/* Feed Title */}
           <div className="flex items-center justify-between px-0.5">
             <div className="flex items-center gap-2">
-              <div className="w-2.5 h-2.5 rounded-full bg-rose-500 animate-pulse" />
+              <div className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
               <h2 className="text-sm font-black text-gray-900 tracking-tight">Just For You</h2>
             </div>
-            <button
-              type="button"
-              onClick={handleRefreshFeed}
-              disabled={isRefreshingFeed}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-rose-50 text-gray-700 hover:text-rose-600 rounded-full border border-gray-200 text-[11px] font-bold shadow-2xs active:scale-95 transition-all cursor-pointer"
-              title="Fresh Mix"
-            >
-              <RotateCw className={`w-3 h-3 ${isRefreshingFeed ? 'animate-spin text-rose-600' : 'text-gray-500'}`} />
-              <span>Fresh Mix</span>
-            </button>
+            <span className="text-[10px] font-bold text-rose-600 bg-rose-50 px-2 py-0.5 rounded-full border border-rose-100">
+              Curated Picks
+            </span>
           </div>
 
           {personalizedProducts.length === 0 ? (

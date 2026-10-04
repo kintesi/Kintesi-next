@@ -2,8 +2,8 @@ import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react'
 import { Link } from 'react-router-dom';
 import { Product } from '../../types';
 import { ShowcaseSection } from '../../contexts/SettingsContext';
-import { Flame, Star, Sparkles, Zap, ChevronRight, ChevronLeft } from 'lucide-react';
-import { optimizeImageUrl } from '../../lib/utils';
+import { Flame, Star, Sparkles, Zap, ChevronRight, ChevronLeft, Timer } from 'lucide-react';
+import { optimizeImageUrl, formatPrice } from '../../lib/utils';
 
 interface ShowcaseStripProps {
   showcase: ShowcaseSection;
@@ -11,6 +11,7 @@ interface ShowcaseStripProps {
   viewAllLink?: string;
   icon?: React.ReactNode;
   autoSlide?: boolean;
+  timeLeft?: { hours: number; minutes: number; seconds: number };
 }
 
 export const ShowcaseStrip: React.FC<ShowcaseStripProps> = ({
@@ -19,6 +20,7 @@ export const ShowcaseStrip: React.FC<ShowcaseStripProps> = ({
   viewAllLink,
   icon,
   autoSlide = true,
+  timeLeft,
 }) => {
   const trackRef = useRef<HTMLDivElement | null>(null);
   const isPausedRef = useRef(false);
@@ -160,6 +162,28 @@ export const ShowcaseStrip: React.FC<ShowcaseStripProps> = ({
     }
   };
 
+  // Countdown timer logic for Flash Sale
+  const [internalTime, setInternalTime] = useState({ hours: 3, minutes: 24, seconds: 45 });
+
+  useEffect(() => {
+    if (showcase.type !== 'flash_sale' && !showcase.title.toLowerCase().includes('flash')) return;
+
+    const tick = () => {
+      const now = new Date();
+      const h = 3 - (now.getHours() % 4);
+      const m = 59 - now.getMinutes();
+      const s = 59 - now.getSeconds();
+      setInternalTime({ hours: h, minutes: m, seconds: s });
+    };
+
+    tick();
+    const interval = setInterval(tick, 1000);
+    return () => clearInterval(interval);
+  }, [showcase.type, showcase.title]);
+
+  const timerState = timeLeft || internalTime;
+  const isFlash = showcase.type === 'flash_sale' || showcase.title.toLowerCase().includes('flash');
+
   if (!showcase || validProducts.length === 0) return null;
 
   // Icon mapping
@@ -187,14 +211,29 @@ export const ShowcaseStrip: React.FC<ShowcaseStripProps> = ({
       onMouseEnter={() => { isPausedRef.current = true; }}
       onMouseLeave={() => { isPausedRef.current = false; }}
     >
-      {/* Sleek Header (Clean title, chevron controls, and View All) */}
+      {/* Sleek Header (Clean title, countdown timer, chevron controls, and View All) */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-1.5 min-w-0">
-          {displayIcon}
-          <h3 className="text-sm font-extrabold text-gray-950 tracking-tight truncate">
-            {showcase.title}
-          </h3>
-          {showcase.subtitle && (
+        <div className="flex items-center gap-2 min-w-0">
+          <div className="flex items-center gap-1.5 shrink-0">
+            {displayIcon}
+            <h3 className="text-sm font-black text-gray-950 tracking-tight truncate">
+              {showcase.title}
+            </h3>
+          </div>
+
+          {/* Live Flash Countdown Timer requested by user */}
+          {isFlash && (
+            <div className="inline-flex items-center gap-1 bg-gradient-to-r from-slate-950 to-gray-900 text-white px-2 py-0.5 rounded-lg shadow-xs font-mono font-bold text-[10px] border border-slate-800">
+              <Timer className="w-3 h-3 text-rose-500 animate-pulse shrink-0" />
+              <span>{String(timerState.hours).padStart(2, '0')}</span>
+              <span className="text-slate-400 font-sans">:</span>
+              <span>{String(timerState.minutes).padStart(2, '0')}</span>
+              <span className="text-slate-400 font-sans">:</span>
+              <span className="text-rose-400">{String(timerState.seconds).padStart(2, '0')}</span>
+            </div>
+          )}
+
+          {showcase.subtitle && !isFlash && (
             <span className="hidden sm:inline text-[11px] text-gray-400 font-normal ml-1 truncate">
               • {showcase.subtitle}
             </span>
@@ -254,7 +293,7 @@ export const ShowcaseStrip: React.FC<ShowcaseStripProps> = ({
               key={`${product.id || product.slug || idx}-${idx}`}
               className="flex-shrink-0 w-[calc((100vw-36px)/4)] sm:w-[calc((100vw-60px)/6)] lg:w-[130px]"
             >
-              <ShowcaseItem product={product} />
+              <ShowcaseItem product={product} isFlash={isFlash} />
             </div>
           ))}
         </div>
@@ -263,32 +302,58 @@ export const ShowcaseStrip: React.FC<ShowcaseStripProps> = ({
   );
 };
 
-// Pure image card with NO external text/info
-const ShowcaseItem: React.FC<{ product: Product }> = React.memo(({ product }) => {
+// Ultra-premium card with floating glass price pill & discount badge
+const ShowcaseItem: React.FC<{ product: Product; isFlash?: boolean }> = React.memo(({ product, isFlash }) => {
   if (!product) return null;
   const coverImage = product.images?.[0] || (product as any).image || '/logo.webp';
   const targetUrl = `/product/${product.slug || product.id || ''}`;
+  const price = product.discount_price || product.price;
+  const originalPrice = product.price;
+  const hasDiscount = originalPrice && product.discount_price && Number(originalPrice) > Number(product.discount_price);
+  const discountPercent = hasDiscount ? Math.round(((Number(originalPrice) - Number(product.discount_price)) / Number(originalPrice)) * 100) : 0;
 
   return (
     <Link
       to={targetUrl}
-      className="block relative aspect-square w-full rounded-2xl bg-white border border-gray-100 shadow-2xs hover:shadow-md transition-all duration-200 overflow-hidden group cursor-pointer"
+      className="block relative aspect-square w-full rounded-2xl bg-gradient-to-b from-white via-white to-rose-50/30 border border-rose-100/90 shadow-[0_2px_10px_rgba(225,29,72,0.04)] hover:shadow-md hover:border-rose-300 transition-all duration-300 overflow-hidden group cursor-pointer"
       title={product.title || ''}
     >
-      <div className="w-full h-full p-1 sm:p-2 flex items-center justify-center bg-gray-50/50">
+      {/* Top Discount Tag */}
+      {hasDiscount && discountPercent > 0 && (
+        <span className="absolute top-1 left-1 z-10 bg-rose-600 text-white text-[8px] font-black px-1.5 py-0.5 rounded-md shadow-xs uppercase tracking-tight">
+          {discountPercent}% OFF
+        </span>
+      )}
+
+      {/* Product Image Stage */}
+      <div className="w-full h-full p-2 flex items-center justify-center">
         <img
           src={optimizeImageUrl(coverImage, 350)}
           alt={product.title || 'Product'}
           decoding="async"
           loading="eager"
           fetchPriority="high"
-          className="w-full h-full object-contain rounded-xl group-hover:scale-105 transition-transform duration-300 pointer-events-none"
+          className="w-full h-full object-contain rounded-xl group-hover:scale-108 transition-transform duration-300 pointer-events-none"
           onError={(e) => {
             e.currentTarget.onerror = null;
             e.currentTarget.src = '/logo.webp';
           }}
         />
       </div>
+
+      {/* Floating Bottom Price Tag for Premium Vibe */}
+      {price && (
+        <div className="absolute bottom-1 inset-x-1 z-10 flex items-center justify-between pointer-events-none">
+          <span className="bg-gray-950/85 backdrop-blur-md text-white text-[9px] font-black px-1.5 py-0.5 rounded-md shadow-xs leading-none">
+            {formatPrice(price)}
+          </span>
+          {hasDiscount && (
+            <span className="text-gray-400 text-[8px] font-bold line-through">
+              {formatPrice(originalPrice)}
+            </span>
+          )}
+        </div>
+      )}
     </Link>
   );
 });
