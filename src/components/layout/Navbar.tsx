@@ -259,35 +259,50 @@ export const Navbar: React.FC = () => {
   return (
     <>
       <div className={`sticky top-0 z-40 w-full bg-white ${location.pathname === '/checkout' ? 'hidden md:block' : ''}`}>
-        {/* Top Announcement Bar matching Stitch Mockup */}
-        {!location.pathname.startsWith('/product/') && (
-          <div
-            className={`bg-slate-950 text-white text-[10px] sm:text-[11px] font-semibold border-b border-slate-900 shadow-xs transition-all duration-300 overflow-hidden ${
-              isScrolled ? 'max-h-0 py-0 opacity-0 border-none pointer-events-none' : 'max-h-12 py-1.5 px-4 sm:px-6 lg:px-8 opacity-100'
-            } flex items-center justify-between`}
-          >
-            <div className="flex items-center gap-2 truncate">
-              <span className="text-slate-300">
-                🚀 Express Delivery across Bangladesh | COD Available | 100% Authentic
+        {/* Top Announcement Bar */}
+        {showAnnouncement && !location.pathname.startsWith('/product/') && (
+          <>
+            {/* Mobile Announcement Bar (Centered with Sparkles - Exactly as before) */}
+            <div
+              className={`md:hidden bg-gradient-to-r from-gray-950 via-rose-950 to-gray-950 text-white text-[10px] sm:text-[11px] font-semibold text-center items-center justify-center gap-1.5 sm:gap-2 border-b border-rose-900/40 shadow-xs transition-all duration-300 overflow-hidden ${
+                isScrolled ? 'max-h-0 py-0 opacity-0 border-none pointer-events-none' : 'max-h-12 py-1.5 px-3 sm:px-4 opacity-100'
+              } flex`}
+            >
+              <Sparkles className="w-3 h-3 flex-shrink-0 animate-pulse text-amber-300" />
+              <span className="truncate sm:overflow-visible">
+                {renderAnnouncementText(settings?.banners?.topAnnouncementText)}
               </span>
             </div>
-            <div className="hidden sm:flex items-center gap-4 text-slate-300 text-[11px]">
-              <a
-                href="https://wa.me/8801902013300"
-                target="_blank"
-                rel="noreferrer"
-                className="hover:text-emerald-400 flex items-center gap-1 transition"
-              >
-                <span>WhatsApp: +8801902013300</span>
-              </a>
-              <span className="text-slate-700">|</span>
-              <Link to="/orders" className="hover:text-rose-400 flex items-center gap-1 transition">
-                <span>Track Order</span>
-              </Link>
-              <span className="text-slate-700">|</span>
-              <span className="text-slate-400 font-bold">BDT ৳</span>
+
+            {/* Desktop Announcement Bar */}
+            <div
+              className={`hidden md:flex bg-slate-950 text-white text-[10px] sm:text-[11px] font-semibold border-b border-slate-900 shadow-xs transition-all duration-300 overflow-hidden ${
+                isScrolled ? 'max-h-0 py-0 opacity-0 border-none pointer-events-none' : 'max-h-12 py-1.5 px-4 sm:px-6 lg:px-8 opacity-100'
+              } items-center justify-between`}
+            >
+              <div className="flex items-center gap-2 truncate">
+                <span className="text-slate-300">
+                  🚀 Express Delivery across Bangladesh | COD Available | 100% Authentic
+                </span>
+              </div>
+              <div className="hidden sm:flex items-center gap-4 text-slate-300 text-[11px]">
+                <a
+                  href="https://wa.me/8801902013300"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="hover:text-emerald-400 flex items-center gap-1 transition"
+                >
+                  <span>WhatsApp: +8801902013300</span>
+                </a>
+                <span className="text-slate-700">|</span>
+                <Link to="/orders" className="hover:text-rose-400 flex items-center gap-1 transition">
+                  <span>Track Order</span>
+                </Link>
+                <span className="text-slate-700">|</span>
+                <span className="text-slate-400 font-bold">BDT ৳</span>
+              </div>
             </div>
-          </div>
+          </>
         )}
 
         <header className="bg-white border-b border-rose-100 shadow-[0_2px_12px_rgba(225,29,72,0.03)] w-full">

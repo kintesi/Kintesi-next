@@ -359,12 +359,98 @@ export const HomePage: React.FC = () => {
   }, [totalCatalogCount]);
 
   return (
-    <div className="pb-20 space-y-4 sm:space-y-6">
-      {/* 1. Top Banner Slider (Mobile + Desktop Responsive) */}
-      {isFlashSaleActive && (
-        <section className="max-w-[1440px] mx-auto px-3 sm:px-6 lg:px-8 pt-2">
-          {/* Mobile view */}
-          <div className="block md:hidden">
+    <div className="pb-20">
+      
+      {/* ========================================================
+          📱 MOBILE VIEW: Clean & Authentic E-Commerce (All Devices - Unchanged)
+         ======================================================== */}
+      <div className="block md:hidden bg-white min-h-screen space-y-5 pb-28 pt-2.5">
+        
+        {/* 1. Mobile Hero Banner (Controlled by showHeroSection & heroShowOnMobile) */}
+        {isSettingsLoaded && banners.showHeroSection === true && banners.heroShowOnMobile !== false && (
+          <div className="px-3">
+            <div className="relative rounded-2xl bg-gradient-to-br from-rose-50/70 via-white to-rose-50/40 border border-rose-100/90 p-4 shadow-[0_2px_12px_rgba(225,29,72,0.03)] space-y-2.5">
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white border border-rose-200/80 text-rose-700 text-[10px] font-bold">
+                <span className="w-1.5 h-1.5 rounded-full bg-rose-600 animate-pulse" />
+                <span>{(banners.heroBadge || 'OFFICIAL MARKETPLACE').replace(/•?\s*kintesi\.com/gi, '').trim()}</span>
+              </div>
+              <h2 className="text-xl font-black tracking-tight text-gray-950 leading-tight">
+                {banners.heroTitle}{' '}
+                <span className="text-rose-600">{banners.heroHighlightText}</span>
+              </h2>
+              <p className="text-[11px] text-gray-600 leading-relaxed">
+                {banners.heroSubtitle}
+              </p>
+              <div className="flex items-center gap-2 pt-1">
+                <Link
+                  to="/shop"
+                  className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 shadow-xs active:scale-95 transition"
+                >
+                  <span>Explore Shop</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </Link>
+                <Link
+                  to="/shop"
+                  className="px-3.5 py-2 bg-white text-gray-800 font-semibold rounded-xl border border-rose-200/80 text-xs active:scale-95 transition"
+                >
+                  Categories
+                </Link>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 1b. Mobile Spotlight Promo Card (Controlled by showSpotlight & spotlightShowOnMobile) */}
+        {hasValidSpotlight && banners.spotlightShowOnMobile !== false && (
+          <div className="px-3">
+            <div className="bg-white rounded-2xl p-3 border border-rose-100/90 shadow-2xs flex items-center gap-3">
+              <div className="w-20 h-20 rounded-xl bg-gray-50 border border-gray-100 overflow-hidden flex-shrink-0 relative flex items-center justify-center">
+                {banners.spotlightImage ? (
+                  <img
+                    src={banners.spotlightImage}
+                    alt={banners.spotlightTitle}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full bg-rose-50 flex items-center justify-center text-rose-500">
+                    <Package className="w-6 h-6" />
+                  </div>
+                )}
+                {banners.spotlightSavingsText && (
+                  <span className="absolute bottom-1 left-1 bg-rose-600 text-white text-[8px] font-black px-1.5 py-0.5 rounded shadow">
+                    {banners.spotlightSavingsText}
+                  </span>
+                )}
+              </div>
+              <div className="flex-1 min-w-0 space-y-1">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[9px] font-black text-rose-600 bg-rose-50 px-1.5 py-0.5 rounded uppercase">
+                    {banners.spotlightBadge || 'Deal of the Day'}
+                  </span>
+                  <span className="text-[10px] text-gray-400 truncate">{banners.spotlightBrand || 'Exclusive'}</span>
+                </div>
+                <h4 className="text-xs font-bold text-gray-900 truncate">
+                  {banners.spotlightTitle}
+                </h4>
+                <div className="flex items-center justify-between pt-0.5">
+                  <span className="text-sm font-black text-rose-600">
+                    {formatPrice(banners.spotlightDiscountPrice || banners.spotlightPrice)}
+                  </span>
+                  <Link
+                    to={banners.spotlightBtnLink || '/shop'}
+                    className="px-3 py-1 bg-gray-950 text-white font-bold rounded-lg text-[10px] active:scale-95 shadow-xs"
+                  >
+                    Buy Now
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 2. Mobile Flash Sale Countdown Banner */}
+        {isFlashSaleActive && (
+          <div className="px-3">
             <FlashSaleBanner
               slides={banners.flashSaleSlides}
               defaultTag={banners.flashSaleTag}
@@ -381,9 +467,98 @@ export const HomePage: React.FC = () => {
               showTimer={banners.flashSaleShowTimer === true}
             />
           </div>
+        )}
 
-          {/* Desktop view */}
-          <div className="hidden md:block">
+        {/* 3. SHOWCASE STRIPS (Trending, Featured, New Arrival, Flash Sale - 4 per row with auto-slide) */}
+        {activeShowcases.length > 0 && (
+          <div className="px-3 space-y-4 pt-1">
+            {activeShowcases.map(({ showcase, products: showProds }) => (
+              <ShowcaseStrip
+                key={showcase.id}
+                showcase={showcase}
+                products={showProds}
+                autoSlide={true}
+              />
+            ))}
+          </div>
+        )}
+
+        {/* 4. Product Feed with Progressive Infinite Scroll */}
+        <div className="px-3 space-y-3 pt-2">
+          {/* Feed Title & Fresh Mix / Reload button */}
+          <div className="flex items-center justify-between px-0.5">
+            <div className="flex items-center gap-2">
+              <div className="w-2.5 h-2.5 rounded-full bg-rose-500 animate-pulse" />
+              <h2 className="text-sm font-black text-gray-900 tracking-tight">Just For You</h2>
+            </div>
+            <button
+              type="button"
+              onClick={handleRefreshFeed}
+              disabled={isRefreshingFeed}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-rose-50 text-gray-700 hover:text-rose-600 rounded-full border border-gray-200 text-[11px] font-bold shadow-2xs active:scale-95 transition-all cursor-pointer"
+              title="Fresh Mix"
+            >
+              <RotateCw className={`w-3 h-3 ${isRefreshingFeed ? 'animate-spin text-rose-600' : 'text-gray-500'}`} />
+              <span>Fresh Mix</span>
+            </button>
+          </div>
+
+          {personalizedProducts.length === 0 ? (
+            isLoadingData ? (
+              <div className="grid grid-cols-2 gap-2.5">
+                {[1, 2, 3, 4].map((n) => (
+                  <ProductSkeleton key={n} />
+                ))}
+              </div>
+            ) : (
+              <div className="bg-white rounded-2xl p-6 text-center space-y-2 border border-gray-100 shadow-xs">
+                <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center mx-auto">
+                  <Package className="w-5 h-5" />
+                </div>
+                <p className="text-xs font-bold text-gray-800">No Products Yet</p>
+                <p className="text-[10px] text-gray-400">Add products from your Admin Panel</p>
+              </div>
+            )
+          ) : (
+            <>
+              {/* Product Grid Loaded in Progressive Batches */}
+              <div className="grid grid-cols-2 gap-2.5">
+                {personalizedProducts.slice(0, mobileVisibleCount).map((product, idx) => (
+                  <ProductCard key={product.id} product={product} priority={idx < 4} />
+                ))}
+              </div>
+
+              {/* Mobile Infinite Scroll Sentinel & Indicator */}
+              <div ref={mobileSentinelRef} className="w-full flex items-center justify-center py-4">
+                {mobileVisibleCount < personalizedProducts.length ? (
+                  <div className="flex items-center gap-2 text-xs text-gray-500 bg-gray-50 px-4 py-2 rounded-full border border-gray-200/60 shadow-2xs">
+                    <div className="w-3.5 h-3.5 rounded-full border-2 border-rose-500 border-t-transparent animate-spin" />
+                    <span>Loading more products...</span>
+                  </div>
+                ) : (
+                  personalizedProducts.length > 12 && (
+                    <div className="text-center py-2 space-y-1">
+                      <p className="text-[11px] font-medium text-gray-400">
+                        ✓ All products loaded
+                      </p>
+                    </div>
+                  )
+                )}
+              </div>
+            </>
+          )}
+        </div>
+
+      </div>
+
+      {/* ========================================================
+          💻 DESKTOP VIEW: High-Conversion E-Commerce Marketplace
+         ======================================================== */}
+      <div className="hidden md:block space-y-6 pt-2 pb-12">
+        
+        {/* 1. Top Banner Slider (At top where requested) */}
+        {isFlashSaleActive && (
+          <section className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
             <FlashSaleBanner
               slides={banners.flashSaleSlides}
               defaultTag={banners.flashSaleTag}
@@ -399,85 +574,86 @@ export const HomePage: React.FC = () => {
               bannerType={banners.flashSaleBannerType}
               showTimer={banners.flashSaleShowTimer === true}
             />
-          </div>
-        </section>
-      )}
+          </section>
+        )}
 
-      {/* Optional Bento Hero Grid (Only if explicitly enabled) */}
-      {banners.showBentoHero === true && (
-        <HeroBentoGrid
-          mainBadge={banners.bentoMainBadge}
-          mainTitle={banners.bentoMainTitle}
-          mainSubtitle={banners.bentoMainSubtitle}
-          mainTag1={banners.bentoMainTag1}
-          mainTag2={banners.bentoMainTag2}
-          mainTag3={banners.bentoMainTag3}
-          mainPrice={banners.bentoMainPrice}
-          mainOriginalPrice={banners.bentoMainOriginalPrice}
-          mainSavings={banners.bentoMainSavings}
-          mainClaimedText={banners.bentoMainClaimedText}
-          mainImage={banners.bentoMainImage}
-          mainLink={banners.bentoMainLink}
-          topBadge={banners.bentoTopBadge}
-          topTitle={banners.bentoTopTitle}
-          topSubtitle={banners.bentoTopSubtitle}
-          topLink={banners.bentoTopLink}
-          topPrice={banners.bentoTopPrice}
-          topImage={banners.bentoTopImage}
-          bottomBadge={banners.bentoBottomBadge}
-          bottomTitle={banners.bentoBottomTitle}
-          bottomSubtitle={banners.bentoBottomSubtitle}
-          bottomLink={banners.bentoBottomLink}
-          bottomPrice={banners.bentoBottomPrice}
-          bottomImage={banners.bentoBottomImage}
+        {/* Optional Bento Hero Grid (Only if explicitly enabled) */}
+        {banners.showBentoHero === true && (
+          <HeroBentoGrid
+            mainBadge={banners.bentoMainBadge}
+            mainTitle={banners.bentoMainTitle}
+            mainSubtitle={banners.bentoMainSubtitle}
+            mainTag1={banners.bentoMainTag1}
+            mainTag2={banners.bentoMainTag2}
+            mainTag3={banners.bentoMainTag3}
+            mainPrice={banners.bentoMainPrice}
+            mainOriginalPrice={banners.bentoMainOriginalPrice}
+            mainSavings={banners.bentoMainSavings}
+            mainClaimedText={banners.bentoMainClaimedText}
+            mainImage={banners.bentoMainImage}
+            mainLink={banners.bentoMainLink}
+            topBadge={banners.bentoTopBadge}
+            topTitle={banners.bentoTopTitle}
+            topSubtitle={banners.bentoTopSubtitle}
+            topLink={banners.bentoTopLink}
+            topPrice={banners.bentoTopPrice}
+            topImage={banners.bentoTopImage}
+            bottomBadge={banners.bentoBottomBadge}
+            bottomTitle={banners.bentoBottomTitle}
+            bottomSubtitle={banners.bentoBottomSubtitle}
+            bottomLink={banners.bentoBottomLink}
+            bottomPrice={banners.bentoBottomPrice}
+            bottomImage={banners.bentoBottomImage}
+          />
+        )}
+
+        {/* 2. Trust Pillars Bar (64 Districts, 100% Genuine, 7-Day Free Replacement, 24/7 Care) */}
+        <TrustFeaturesBar />
+
+        {/* 3. Explore by Category (8 Pastel Circles + View All) */}
+        <ExploreCategoryRow categories={categories} />
+
+        {/* 4. Flash Sale Grid with Countdown Timer & Claim Deal CTAs */}
+        {isFlashSaleActive && (
+          <FlashSaleGrid
+            products={FLASH_SALE_PRODUCTS.length > 0 ? FLASH_SALE_PRODUCTS : products}
+            endsAt={banners.flashSaleEndsAt}
+          />
+        )}
+
+        {/* 5. Active Showcase Strips (Trending, Featured, New Arrival) */}
+        {activeShowcases.length > 0 && (
+          <section className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+            {activeShowcases.map(({ showcase, products: showProds }) => (
+              <ShowcaseStrip
+                key={showcase.id}
+                showcase={showcase}
+                products={showProds}
+                autoSlide={true}
+              />
+            ))}
+          </section>
+        )}
+
+        {/* 6. "Just For You" Curated Feed with Interactive Recommendation Filters */}
+        <JustForYouSection
+          products={personalizedProducts}
+          onRefreshFeed={handleRefreshFeed}
+          isRefreshingFeed={isRefreshingFeed}
         />
-      )}
 
-      {/* 2. Trust Pillars Bar (64 Districts, 100% Genuine, 7-Day Free Replacement, 24/7 Care) */}
-      <TrustFeaturesBar />
+        {/* 7. Newsletter / Voucher Subscription Banner (৳100 OFF Lead Magnet) */}
+        <VoucherSubscription />
 
-      {/* 3. Explore by Category (8 Pastel Circles + View All) */}
-      <ExploreCategoryRow categories={categories} />
+        {/* 8. Secondary Trust Features */}
+        <SecondaryTrustRow />
 
-      {/* 4. Flash Sale Grid with Countdown Timer & Claim Deal CTAs */}
-      {isFlashSaleActive && (
-        <FlashSaleGrid
-          products={FLASH_SALE_PRODUCTS.length > 0 ? FLASH_SALE_PRODUCTS : products}
-          endsAt={banners.flashSaleEndsAt}
-        />
-      )}
-
-      {/* 5. Active Showcase Strips (Trending, Featured, New Arrival) */}
-      {activeShowcases.length > 0 && (
-        <section className="max-w-[1440px] mx-auto px-3 sm:px-6 lg:px-8 space-y-6">
-          {activeShowcases.map(({ showcase, products: showProds }) => (
-            <ShowcaseStrip
-              key={showcase.id}
-              showcase={showcase}
-              products={showProds}
-              autoSlide={true}
-            />
-          ))}
+        {/* 9. Recently Viewed Products Shelf */}
+        <section className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
+          <RecentlyViewedShelf products={products} />
         </section>
-      )}
+      </div>
 
-      {/* 6. "Just For You" Curated Feed with Interactive Recommendation Filters */}
-      <JustForYouSection
-        products={personalizedProducts}
-        onRefreshFeed={handleRefreshFeed}
-        isRefreshingFeed={isRefreshingFeed}
-      />
-
-      {/* 7. Newsletter / Voucher Subscription Banner (৳100 OFF Lead Magnet) */}
-      <VoucherSubscription />
-
-      {/* 8. Secondary Trust Features */}
-      <SecondaryTrustRow />
-
-      {/* 9. Recently Viewed Products Shelf */}
-      <section className="max-w-[1440px] mx-auto px-3 sm:px-6 lg:px-8">
-        <RecentlyViewedShelf products={products} />
-      </section>
     </div>
   );
 };
