@@ -209,65 +209,49 @@ export const ShowcaseStrip: React.FC<ShowcaseStripProps> = ({
     <div 
       className={`transition-all ${
         isFlash 
-          ? 'bg-gradient-to-b from-rose-500/[0.08] via-amber-500/[0.04] to-rose-500/[0.05] border border-rose-300/80 rounded-2xl sm:rounded-3xl p-3 sm:p-4 shadow-[0_4px_25px_rgba(244,63,94,0.08)] relative overflow-hidden space-y-3' 
+          ? 'bg-white rounded-2xl sm:rounded-3xl p-3 sm:p-4 border border-rose-100/90 shadow-[0_2px_12px_rgba(225,29,72,0.03)] space-y-2.5' 
           : 'space-y-2.5'
       }`}
       onMouseEnter={() => { isPausedRef.current = true; }}
       onMouseLeave={() => { isPausedRef.current = false; }}
     >
-      {/* Decorative ambient flares when isFlash */}
-      {isFlash && (
-        <>
-          <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-red-600 via-rose-500 to-amber-400" />
-          <div className="absolute -top-12 -right-12 w-32 h-32 bg-rose-500/10 rounded-full blur-2xl pointer-events-none" />
-          <div className="absolute -bottom-10 -left-10 w-28 h-28 bg-amber-500/10 rounded-full blur-xl pointer-events-none" />
-        </>
-      )}
-
-      {/* Sleek Header (Clean title, countdown timer, chevron controls, and View All) */}
+      {/* Refined Header */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2 min-w-0 flex-wrap">
-          {isFlash ? (
-            <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
-              {/* Fiery Flash Sale Badge */}
-              <div className="inline-flex items-center gap-1.5 bg-gradient-to-r from-red-600 via-rose-600 to-amber-500 text-white font-black text-xs sm:text-sm px-2.5 py-1 rounded-xl shadow-xs uppercase tracking-wider">
-                <Zap className="w-3.5 h-3.5 fill-amber-300 text-amber-300 animate-pulse shrink-0" />
-                <span>{showcase.title || 'Flash Sale'}</span>
-              </div>
-
-              {/* Digital Countdown Timer */}
-              <div className="inline-flex items-center gap-1 bg-gray-950 text-white px-2 py-0.5 rounded-lg shadow-xs font-mono font-bold text-[11px] border border-gray-800">
-                <Timer className="w-3 h-3 text-amber-400 animate-pulse shrink-0" />
-                <span className="bg-gray-800/90 px-1 py-0.5 rounded text-white font-black">{String(timerState.hours).padStart(2, '0')}</span>
-                <span className="text-amber-400 font-bold">:</span>
-                <span className="bg-gray-800/90 px-1 py-0.5 rounded text-white font-black">{String(timerState.minutes).padStart(2, '0')}</span>
-                <span className="text-amber-400 font-bold">:</span>
-                <span className="bg-rose-600 px-1 py-0.5 rounded text-white font-black animate-pulse">{String(timerState.seconds).padStart(2, '0')}</span>
-              </div>
-
-              {/* Live Urgency Tag */}
-              <span className="hidden xs:inline-flex items-center gap-1 text-[10px] font-black text-rose-600 bg-rose-100/90 border border-rose-200 px-2 py-0.5 rounded-full uppercase tracking-tight">
-                <Flame className="w-3 h-3 fill-rose-600 text-rose-600 shrink-0" />
-                Limited Deals
+        <div className="flex items-center gap-2 min-w-0">
+          <div className="flex items-center gap-1.5 shrink-0">
+            {isFlash ? (
+              <span className="flex items-center justify-center w-5 h-5 rounded-md bg-rose-50 text-rose-600 border border-rose-100">
+                <Zap className="w-3.5 h-3.5 fill-rose-600 text-rose-600" />
               </span>
+            ) : (
+              displayIcon
+            )}
+            <h3 className="text-sm font-extrabold text-gray-950 tracking-tight truncate">
+              {showcase.title}
+            </h3>
+          </div>
+
+          {/* Clean, Refined Luxury Timer (No black blocks) */}
+          {isFlash && (
+            <div className="inline-flex items-center gap-1 bg-rose-50 text-rose-600 border border-rose-100/80 px-2 py-0.5 rounded-full font-mono text-[11px] font-bold shadow-2xs">
+              <Timer className="w-3 h-3 text-rose-500 shrink-0" />
+              <span>{String(timerState.hours).padStart(2, '0')}</span>
+              <span className="text-rose-300 font-sans">:</span>
+              <span>{String(timerState.minutes).padStart(2, '0')}</span>
+              <span className="text-rose-300 font-sans">:</span>
+              <span className="text-rose-700 font-black">{String(timerState.seconds).padStart(2, '0')}</span>
             </div>
-          ) : (
-            <div className="flex items-center gap-1.5 shrink-0">
-              {displayIcon}
-              <h3 className="text-sm font-black text-gray-950 tracking-tight truncate">
-                {showcase.title}
-              </h3>
-              {showcase.subtitle && (
-                <span className="hidden sm:inline text-[11px] text-gray-400 font-normal ml-1 truncate">
-                  • {showcase.subtitle}
-                </span>
-              )}
-            </div>
+          )}
+
+          {showcase.subtitle && !isFlash && (
+            <span className="hidden sm:inline text-[11px] text-gray-400 font-normal ml-1 truncate">
+              • {showcase.subtitle}
+            </span>
           )}
         </div>
 
         <div className="flex items-center gap-2 shrink-0">
-          {/* Subtle desktop navigation chevrons */}
+          {/* Desktop navigation chevrons */}
           <div className="hidden sm:flex items-center gap-1">
             <button
               type="button"
@@ -289,11 +273,7 @@ export const ShowcaseStrip: React.FC<ShowcaseStripProps> = ({
 
           <Link
             to={linkTarget}
-            className={
-              isFlash
-                ? "bg-rose-600 hover:bg-rose-700 text-white text-[11px] font-bold px-2.5 py-1 rounded-full shadow-xs flex items-center gap-0.5 transition active:scale-95"
-                : "text-xs text-rose-600 hover:text-rose-700 font-bold flex items-center gap-0.5 transition"
-            }
+            className="text-xs text-rose-600 hover:text-rose-700 font-bold flex items-center gap-0.5 transition active:scale-95"
           >
             <span>View All</span>
             <ChevronRight className="w-3.5 h-3.5" />
@@ -301,9 +281,7 @@ export const ShowcaseStrip: React.FC<ShowcaseStripProps> = ({
         </div>
       </div>
 
-      {/* Row: 4 items visible on mobile, 6 on tablet, 8 on PC
-          - GPU Subpixel Translate3d for pure 60fps/120fps smoothness (no jitter, no jump)
-          - Overflow-hidden guarantees zero bottom scrollbar slider */}
+      {/* Row: 4 items visible on mobile, 6 on tablet, 8 on PC */}
       <div
         className="w-full overflow-hidden select-none py-1 cursor-grab active:cursor-grabbing"
         onTouchStart={handleTouchStart}
@@ -323,7 +301,7 @@ export const ShowcaseStrip: React.FC<ShowcaseStripProps> = ({
               key={`${product.id || product.slug || idx}-${idx}`}
               className="flex-shrink-0 w-[calc((100vw-36px)/4)] sm:w-[calc((100vw-60px)/6)] lg:w-[130px]"
             >
-              <ShowcaseItem product={product} isFlash={isFlash} />
+              <ShowcaseItem product={product} />
             </div>
           ))}
         </div>
@@ -332,8 +310,8 @@ export const ShowcaseStrip: React.FC<ShowcaseStripProps> = ({
   );
 };
 
-// Ultra-premium card with floating glass price pill & discount badge
-const ShowcaseItem: React.FC<{ product: Product; isFlash?: boolean }> = React.memo(({ product, isFlash }) => {
+// Ultra-clean, refined product card with pristine image & elegant light floating price tag
+const ShowcaseItem: React.FC<{ product: Product }> = React.memo(({ product }) => {
   if (!product) return null;
   const coverImage = product.images?.[0] || (product as any).image || '/logo.webp';
   const targetUrl = `/product/${product.slug || product.id || ''}`;
@@ -342,87 +320,21 @@ const ShowcaseItem: React.FC<{ product: Product; isFlash?: boolean }> = React.me
   const hasDiscount = originalPrice && product.discount_price && Number(originalPrice) > Number(product.discount_price);
   const discountPercent = hasDiscount ? Math.round(((Number(originalPrice) - Number(product.discount_price)) / Number(originalPrice)) * 100) : 0;
 
-  // Calculate simulated claimed percentage (72% - 93%) to induce high-converting flash sale urgency
-  const claimPercent = useMemo(() => {
-    if (!product.id) return 82;
-    const charSum = String(product.id).split('').reduce((acc, c) => acc + c.charCodeAt(0), 0);
-    return 72 + (charSum % 22);
-  }, [product.id]);
-
-  if (isFlash) {
-    return (
-      <Link
-        to={targetUrl}
-        className="block relative aspect-[1/1.22] w-full rounded-2xl bg-white border-2 border-rose-200/90 hover:border-rose-500 shadow-[0_2px_8px_rgba(225,29,72,0.08)] hover:shadow-lg transition-all duration-300 overflow-hidden group cursor-pointer"
-        title={product.title || ''}
-      >
-        {/* Deal Discount Badge */}
-        <span className="absolute top-1 left-1 z-10 bg-gradient-to-r from-red-600 to-amber-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded-md shadow-xs uppercase tracking-tight flex items-center gap-0.5">
-          <Zap className="w-2.5 h-2.5 fill-white shrink-0" />
-          {discountPercent > 0 ? `${discountPercent}% OFF` : 'DEAL'}
-        </span>
-
-        {/* Product Image */}
-        <div className="w-full h-[62%] p-1.5 flex items-center justify-center bg-gray-50/40">
-          <img
-            src={optimizeImageUrl(coverImage, 350)}
-            alt={product.title || 'Product'}
-            decoding="async"
-            loading="eager"
-            fetchPriority="high"
-            className="w-full h-full object-contain rounded-lg group-hover:scale-110 transition-transform duration-300 pointer-events-none"
-            onError={(e) => {
-              e.currentTarget.onerror = null;
-              e.currentTarget.src = '/logo.webp';
-            }}
-          />
-        </div>
-
-        {/* Dedicated Flash Deal Bottom Panel */}
-        <div className="absolute bottom-0 inset-x-0 h-[38%] bg-gradient-to-t from-gray-950 via-gray-950/95 to-gray-900 text-white px-1.5 py-1 flex flex-col justify-between">
-          <div className="flex items-baseline justify-between gap-1 leading-none">
-            <span className="text-[10px] sm:text-[11px] font-black text-amber-300">
-              {formatPrice(price)}
-            </span>
-            {hasDiscount && (
-              <span className="text-[7.5px] text-gray-400 line-through">
-                {formatPrice(originalPrice)}
-              </span>
-            )}
-          </div>
-          {/* Urgency Progress Bar */}
-          <div className="w-full">
-            <div className="w-full bg-white/20 h-1 rounded-full overflow-hidden">
-              <div 
-                className="bg-gradient-to-r from-amber-400 via-rose-500 to-red-500 h-full rounded-full"
-                style={{ width: `${claimPercent}%` }}
-              />
-            </div>
-            <div className="flex items-center justify-between text-[7px] text-rose-300 font-bold uppercase tracking-tighter leading-none mt-0.5">
-              <span>Fast Selling</span>
-              <span>{claimPercent}%</span>
-            </div>
-          </div>
-        </div>
-      </Link>
-    );
-  }
-
   return (
     <Link
       to={targetUrl}
-      className="block relative aspect-square w-full rounded-2xl bg-gradient-to-b from-white via-white to-rose-50/30 border border-rose-100/90 shadow-[0_2px_10px_rgba(225,29,72,0.04)] hover:shadow-md hover:border-rose-300 transition-all duration-300 overflow-hidden group cursor-pointer"
+      className="block relative aspect-square w-full rounded-2xl bg-white border border-gray-100 hover:border-rose-200 shadow-2xs hover:shadow-md transition-all duration-300 overflow-hidden group cursor-pointer"
       title={product.title || ''}
     >
       {/* Top Discount Tag */}
       {hasDiscount && discountPercent > 0 && (
-        <span className="absolute top-1 left-1 z-10 bg-rose-600 text-white text-[8px] font-black px-1.5 py-0.5 rounded-md shadow-xs uppercase tracking-tight">
+        <span className="absolute top-1 left-1 z-10 bg-rose-600 text-white text-[8px] font-black px-1.5 py-0.5 rounded-md shadow-2xs uppercase tracking-tight">
           {discountPercent}% OFF
         </span>
       )}
 
       {/* Product Image Stage */}
-      <div className="w-full h-full p-2 flex items-center justify-center">
+      <div className="w-full h-full p-2 flex items-center justify-center bg-gray-50/40">
         <img
           src={optimizeImageUrl(coverImage, 350)}
           alt={product.title || 'Product'}
@@ -437,14 +349,14 @@ const ShowcaseItem: React.FC<{ product: Product; isFlash?: boolean }> = React.me
         />
       </div>
 
-      {/* Floating Bottom Price Tag for Premium Vibe */}
+      {/* Floating Bottom Light Frosted Glass Price Tag (No black blocks) */}
       {price && (
         <div className="absolute bottom-1 inset-x-1 z-10 flex items-center justify-between pointer-events-none">
-          <span className="bg-gray-950/85 backdrop-blur-md text-white text-[9px] font-black px-1.5 py-0.5 rounded-md shadow-xs leading-none">
+          <span className="bg-white/95 backdrop-blur-md text-gray-900 border border-gray-100 text-[9px] font-black px-1.5 py-0.5 rounded-md shadow-xs leading-none">
             {formatPrice(price)}
           </span>
           {hasDiscount && (
-            <span className="text-gray-400 text-[8px] font-bold line-through">
+            <span className="text-gray-400 text-[8px] font-bold line-through px-0.5">
               {formatPrice(originalPrice)}
             </span>
           )}
