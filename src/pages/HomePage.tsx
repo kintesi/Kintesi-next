@@ -360,8 +360,51 @@ export const HomePage: React.FC = () => {
 
   return (
     <div className="pb-20 space-y-4 sm:space-y-6">
-      {/* 1. Hero Bento Grid matching Stitch Mockup */}
-      {banners.showBentoHero !== false && (
+      {/* 1. Top Banner Slider (Mobile + Desktop Responsive) */}
+      {isFlashSaleActive && (
+        <section className="max-w-[1440px] mx-auto px-3 sm:px-6 lg:px-8 pt-2">
+          {/* Mobile view */}
+          <div className="block md:hidden">
+            <FlashSaleBanner
+              slides={banners.flashSaleSlides}
+              defaultTag={banners.flashSaleTag}
+              defaultTitle={banners.flashSaleTitle}
+              defaultSubtitle={banners.flashSaleSubtitle}
+              defaultBgImage={banners.flashSaleBgImage}
+              defaultDesktopImage={banners.flashSaleDesktopImage}
+              defaultMobileImage={banners.flashSaleMobileImage}
+              defaultLink={banners.flashSaleLink || '/showcase/flash_sale'}
+              theme={banners.flashSaleTheme}
+              timeLeft={timeLeft}
+              isMobile={true}
+              bannerType={banners.flashSaleBannerType}
+              showTimer={banners.flashSaleShowTimer === true}
+            />
+          </div>
+
+          {/* Desktop view */}
+          <div className="hidden md:block">
+            <FlashSaleBanner
+              slides={banners.flashSaleSlides}
+              defaultTag={banners.flashSaleTag}
+              defaultTitle={banners.flashSaleTitle}
+              defaultSubtitle={banners.flashSaleSubtitle}
+              defaultBgImage={banners.flashSaleBgImage}
+              defaultDesktopImage={banners.flashSaleDesktopImage}
+              defaultMobileImage={banners.flashSaleMobileImage}
+              defaultLink={banners.flashSaleLink || '/showcase/flash_sale'}
+              theme={banners.flashSaleTheme}
+              timeLeft={timeLeft}
+              isMobile={false}
+              bannerType={banners.flashSaleBannerType}
+              showTimer={banners.flashSaleShowTimer === true}
+            />
+          </div>
+        </section>
+      )}
+
+      {/* Optional Bento Hero Grid (Only if explicitly enabled) */}
+      {banners.showBentoHero === true && (
         <HeroBentoGrid
           mainBadge={banners.bentoMainBadge}
           mainTitle={banners.bentoMainTitle}
@@ -402,27 +445,6 @@ export const HomePage: React.FC = () => {
           products={FLASH_SALE_PRODUCTS.length > 0 ? FLASH_SALE_PRODUCTS : products}
           endsAt={banners.flashSaleEndsAt}
         />
-      )}
-
-      {/* 4b. Optional Custom Slider Banner if configured in Admin */}
-      {isFlashSaleActive && banners.flashSaleSlides && banners.flashSaleSlides.length > 1 && (
-        <section className="max-w-[1440px] mx-auto px-3 sm:px-6 lg:px-8">
-          <FlashSaleBanner
-            slides={banners.flashSaleSlides}
-            defaultTag={banners.flashSaleTag}
-            defaultTitle={banners.flashSaleTitle}
-            defaultSubtitle={banners.flashSaleSubtitle}
-            defaultBgImage={banners.flashSaleBgImage}
-            defaultDesktopImage={banners.flashSaleDesktopImage}
-            defaultMobileImage={banners.flashSaleMobileImage}
-            defaultLink={banners.flashSaleLink || '/showcase/flash_sale'}
-            theme={banners.flashSaleTheme}
-            timeLeft={timeLeft}
-            isMobile={false}
-            bannerType={banners.flashSaleBannerType}
-            showTimer={banners.flashSaleShowTimer === true}
-          />
-        </section>
       )}
 
       {/* 5. Active Showcase Strips (Trending, Featured, New Arrival) */}

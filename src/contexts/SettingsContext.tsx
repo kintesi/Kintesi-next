@@ -300,8 +300,8 @@ export const DEFAULT_BANNERS: BannerSettings = {
   featuredProductsTitle: 'Featured',
   featuredProductsSubtitle: 'Hand-picked selections for you',
 
-  // Bento Hero defaults matching Stitch mockup
-  showBentoHero: true,
+  // Bento Hero defaults
+  showBentoHero: false,
   bentoMainBadge: '⚡ Summer Hot Deal • 15% OFF',
   bentoMainTitle: 'High-Velocity Turbo Jet Fan',
   bentoMainSubtitle: 'Ultra-quiet brushless airflow with 5000mAh extended battery. Beat the summer humidity wherever you commute.',
