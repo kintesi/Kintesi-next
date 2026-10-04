@@ -20,6 +20,8 @@ import {
   Grid,
   Settings,
   ArrowLeft,
+  Zap,
+  Headphones,
 } from 'lucide-react';
 import { INITIAL_PRODUCTS, INITIAL_CATEGORIES } from '../../data/mockData';
 import { formatPrice, getProductUrl } from '../../lib/utils';
@@ -42,6 +44,7 @@ export const Navbar: React.FC = () => {
   const [isDepartmentMenuOpen, setIsDepartmentMenuOpen] = useState(false);
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedSearchCategory, setSelectedSearchCategory] = useState('');
   const [showSearchResults, setShowSearchResults] = useState(false);
   const [liveProducts, setLiveProducts] = useState<Product[]>(() => {
     const cached = getCachedProducts();
@@ -243,27 +246,47 @@ export const Navbar: React.FC = () => {
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (searchQuery.trim()) {
-      trackSearchQuery(searchQuery.trim());
+    if (searchQuery.trim() || selectedSearchCategory) {
+      if (searchQuery.trim()) trackSearchQuery(searchQuery.trim());
       setShowSearchResults(false);
-      navigate(`/shop?search=${encodeURIComponent(searchQuery.trim())}`);
+      const params = new URLSearchParams();
+      if (searchQuery.trim()) params.set('search', searchQuery.trim());
+      if (selectedSearchCategory) params.set('category', selectedSearchCategory);
+      navigate(`/shop?${params.toString()}`);
     }
   };
 
   return (
     <>
       <div className={`sticky top-0 z-40 w-full bg-white ${location.pathname === '/checkout' ? 'hidden md:block' : ''}`}>
-        {/* Top Announcement Bar (Collapses on downward scroll; Hidden on product pages) */}
-        {showAnnouncement && !location.pathname.startsWith('/product/') && (
+        {/* Top Announcement Bar matching Stitch Mockup */}
+        {!location.pathname.startsWith('/product/') && (
           <div
-            className={`bg-gradient-to-r from-gray-950 via-rose-950 to-gray-950 text-white text-[10px] sm:text-[11px] font-semibold text-center items-center justify-center gap-1.5 sm:gap-2 border-b border-rose-900/40 shadow-xs transition-all duration-300 overflow-hidden ${
-              isScrolled ? 'max-h-0 py-0 opacity-0 border-none pointer-events-none' : 'max-h-12 py-1.5 px-3 sm:px-4 opacity-100'
-            } flex`}
+            className={`bg-slate-950 text-white text-[10px] sm:text-[11px] font-semibold border-b border-slate-900 shadow-xs transition-all duration-300 overflow-hidden ${
+              isScrolled ? 'max-h-0 py-0 opacity-0 border-none pointer-events-none' : 'max-h-12 py-1.5 px-4 sm:px-6 lg:px-8 opacity-100'
+            } flex items-center justify-between`}
           >
-            <Sparkles className="w-3 h-3 flex-shrink-0 animate-pulse text-amber-300" />
-            <span className="truncate sm:overflow-visible">
-              {renderAnnouncementText(settings?.banners?.topAnnouncementText)}
-            </span>
+            <div className="flex items-center gap-2 truncate">
+              <span className="text-slate-300">
+                🚀 Express Delivery across Bangladesh | COD Available | 100% Authentic
+              </span>
+            </div>
+            <div className="hidden sm:flex items-center gap-4 text-slate-300 text-[11px]">
+              <a
+                href="https://wa.me/8801902013300"
+                target="_blank"
+                rel="noreferrer"
+                className="hover:text-emerald-400 flex items-center gap-1 transition"
+              >
+                <span>WhatsApp: +8801902013300</span>
+              </a>
+              <span className="text-slate-700">|</span>
+              <Link to="/orders" className="hover:text-rose-400 flex items-center gap-1 transition">
+                <span>Track Order</span>
+              </Link>
+              <span className="text-slate-700">|</span>
+              <span className="text-slate-400 font-bold">BDT ৳</span>
+            </div>
           </div>
         )}
 
@@ -410,27 +433,46 @@ export const Navbar: React.FC = () => {
               />
             </Link>
 
-            {/* Search Bar - Sleek & Balanced */}
-            <div ref={searchRef} className="flex-1 max-w-xl relative">
-              <form onSubmit={handleSearchSubmit} className="w-full relative">
-                <input
-                  type="text"
-                  placeholder={t('nav.searchPlaceholder')}
-                  value={searchQuery}
-                  onChange={(e) => {
-                    setSearchQuery(e.target.value);
-                    setShowSearchResults(true);
-                  }}
-                  onFocus={() => setShowSearchResults(true)}
-                  className="w-full pl-10 pr-22 py-2 bg-gray-50/80 hover:bg-gray-50 focus:bg-white border border-rose-100 focus:border-rose-500 rounded-full text-xs transition focus:outline-none focus:ring-3 focus:ring-rose-500/15"
-                />
-                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            {/* Search Bar - Sleek Capsule with Category Selector matching Stitch Mockup */}
+            <div ref={searchRef} className="flex-1 max-w-2xl relative">
+              <form onSubmit={handleSearchSubmit} className="w-full relative flex items-center bg-gray-50/90 hover:bg-gray-50 focus-within:bg-white border border-rose-200/90 focus-within:border-rose-600 rounded-full transition-all shadow-xs focus-within:shadow-md focus-within:ring-2 focus-within:ring-rose-500/15 overflow-hidden p-0.5">
+                {/* Category select dropdown pill */}
+                <div className="relative shrink-0 border-r border-gray-200/80">
+                  <select
+                    value={selectedSearchCategory}
+                    onChange={(e) => setSelectedSearchCategory(e.target.value)}
+                    className="bg-transparent pl-3 pr-7 py-2 text-xs font-semibold text-gray-700 hover:text-rose-600 focus:outline-none cursor-pointer appearance-none"
+                  >
+                    <option value="">All Categories</option>
+                    {categories.map((cat) => (
+                      <option key={cat.slug || cat.id} value={cat.slug}>
+                        {cat.name}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown className="w-3.5 h-3.5 text-gray-400 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
+                </div>
+
+                <div className="relative flex-1">
+                  <input
+                    type="text"
+                    placeholder="Search 50,000+ authentic lifestyle products..."
+                    value={searchQuery}
+                    onChange={(e) => {
+                      setSearchQuery(e.target.value);
+                      setShowSearchResults(true);
+                    }}
+                    onFocus={() => setShowSearchResults(true)}
+                    className="w-full pl-3 pr-4 py-2 bg-transparent text-xs text-gray-900 placeholder:text-gray-400 focus:outline-none"
+                  />
+                </div>
+
                 <button
                   type="submit"
-                  style={{ height: '32px' }}
-                  className="absolute right-1 top-1/2 -translate-y-1/2 h-8 px-4 bg-rose-600 hover:bg-rose-700 text-white rounded-full text-xs font-semibold tracking-normal shadow-xs hover:shadow-rose-500/25 transition-all cursor-pointer active:scale-95 flex items-center justify-center"
+                  className="shrink-0 h-8 px-5 bg-rose-600 hover:bg-rose-700 text-white rounded-full text-xs font-bold shadow-xs hover:shadow-rose-600/30 transition-all cursor-pointer active:scale-95 flex items-center gap-1.5"
                 >
-                  {language === 'bn' ? 'খুঁজুন' : 'Search'}
+                  <Search className="w-3.5 h-3.5" />
+                  <span>{language === 'bn' ? 'খুঁজুন' : 'Search'}</span>
                 </button>
               </form>
 
@@ -479,6 +521,16 @@ export const Navbar: React.FC = () => {
             {/* Right Action Icons & Profile */}
             <div className="flex items-center gap-3">
               
+              {/* Track Orders */}
+              <Link
+                to="/orders"
+                className="hidden xl:flex items-center gap-1.5 px-3 py-1.5 text-gray-700 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition text-xs font-bold"
+                title="Track Orders"
+              >
+                <Package className="w-4 h-4 text-gray-500" />
+                <span>Track Orders</span>
+              </Link>
+
               {/* Wishlist */}
               <Link
                 to="/wishlist"
@@ -496,18 +548,21 @@ export const Navbar: React.FC = () => {
               {/* Cart Button */}
               <Link
                 to="/cart"
-                className="relative h-9 px-3.5 bg-gray-950 hover:bg-rose-600 text-white rounded-xl font-bold text-xs transition-all flex items-center gap-2 shadow-xs active:scale-95 cursor-pointer"
+                className="relative h-9 px-3.5 bg-gray-950 hover:bg-rose-600 text-white rounded-xl font-bold text-xs transition-all flex items-center gap-2.5 shadow-xs active:scale-95 cursor-pointer"
                 title={t('cart.title')}
               >
                 <div className="relative">
                   <ShoppingCart className="w-4 h-4" />
                   {totalItemCount > 0 && (
-                    <span className="absolute -top-2 -right-2 w-3.5 h-3.5 bg-rose-600 text-white rounded-full text-[8px] font-black flex items-center justify-center">
+                    <span className="absolute -top-2 -right-2.5 w-4 h-4 bg-rose-600 text-white rounded-full text-[9px] font-black flex items-center justify-center border-2 border-gray-950">
                       {totalItemCount}
                     </span>
                   )}
                 </div>
-                <span>{subtotal > 0 ? formatPrice(subtotal) : t('nav.cart')}</span>
+                <div className="flex flex-col text-left leading-none">
+                  <span className="text-[10px] text-gray-400 font-medium">Cart</span>
+                  <span className="text-xs font-black text-white">{subtotal > 0 ? formatPrice(subtotal) : '৳ 0'}</span>
+                </div>
               </Link>
 
               {/* User Account / Profile */}
@@ -625,17 +680,17 @@ export const Navbar: React.FC = () => {
             </div>
           </div>
 
-          {/* Sleek Category Navigation Strip (Desktop only - Compact h-9) */}
-          <nav className="hidden md:flex items-center justify-between border-t border-rose-100/70 py-1.5 text-xs text-gray-600 font-medium">
-            <div className="flex items-center gap-5">
+          {/* Sleek Category Navigation Strip matching Stitch Mockup (Desktop only) */}
+          <nav className="hidden md:flex items-center justify-between border-t border-rose-100/70 py-1.5 text-xs text-gray-700 font-medium">
+            <div className="flex items-center gap-3">
               <div ref={deptRef} className="relative">
                 <button
                   onClick={() => setIsDepartmentMenuOpen(!isDepartmentMenuOpen)}
-                  className="flex items-center gap-1.5 px-3 py-1 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-xs font-bold transition shadow-xs cursor-pointer"
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-950 hover:bg-rose-600 text-white rounded-lg text-xs font-bold transition shadow-xs cursor-pointer"
                 >
-                  <Grid className="w-3 h-3" />
+                  <Grid className="w-3.5 h-3.5" />
                   <span>{t('nav.departments')}</span>
-                  <ChevronDown className="w-3 h-3 ml-0.5" />
+                  <ChevronDown className="w-3.5 h-3.5 ml-0.5" />
                 </button>
 
                 {isDepartmentMenuOpen && (
@@ -655,48 +710,43 @@ export const Navbar: React.FC = () => {
                 )}
               </div>
 
+              {/* Active Home Pill */}
+              <Link
+                to="/"
+                className="px-3.5 py-1 bg-rose-600 text-white rounded-lg font-bold text-xs shadow-xs hover:bg-rose-700 transition"
+              >
+                Home
+              </Link>
+
               {categories.slice(0, 6).map((cat) => (
                 <Link
                   key={cat.slug || cat.id}
                   to={`/shop?category=${cat.slug}`}
-                  className="hover:text-rose-600 transition font-semibold truncate max-w-[140px]"
+                  className="hover:text-rose-600 transition font-semibold truncate max-w-[150px] px-2 py-1 rounded-md hover:bg-rose-50/50"
                 >
                   {cat.name}
                 </Link>
               ))}
             </div>
 
-            <div className="flex items-center gap-4 text-xs font-semibold">
-              <button
-                type="button"
-                onClick={() => {
-                  if (user) {
-                    navigate('/profile?tab=addresses');
-                  } else {
-                    setIsAuthOpen(true);
-                  }
-                }}
-                className="text-rose-700 hover:text-rose-800 flex items-center gap-1 cursor-pointer bg-transparent border-none p-0 text-xs font-semibold"
-                title={user ? t('profile.addresses') : t('product.loginRequired')}
+            <div className="flex items-center gap-3 text-xs font-bold">
+              <Link
+                to="/showcase/flash_sale"
+                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-50 text-rose-700 hover:bg-rose-100 transition border border-rose-200/80 font-black text-[11px]"
               >
-                <MapPin className="w-3 h-3" />
-                <span>{t('profile.addresses')}</span>
-              </button>
-              <span className="text-rose-200">•</span>
-              <button
-                type="button"
-                onClick={() => {
-                  if (user) {
-                    navigate('/orders');
-                  } else {
-                    setIsAuthOpen(true);
-                  }
-                }}
-                className="text-gray-500 hover:text-gray-800 flex items-center gap-1 cursor-pointer bg-transparent border-none p-0 text-xs font-semibold"
-                title={user ? t('profile.orders') : t('product.loginRequired')}
+                <Zap className="w-3.5 h-3.5 fill-rose-600 text-rose-600" />
+                <span>⚡ Flash Deals</span>
+              </Link>
+
+              <a
+                href="https://wa.me/8801902013300"
+                target="_blank"
+                rel="noreferrer"
+                className="text-gray-600 hover:text-rose-600 flex items-center gap-1.5 transition px-2 py-1"
               >
-                <span>{language === 'bn' ? 'অর্ডার ট্র্যাক' : 'Track Order'}</span>
-              </button>
+                <Headphones className="w-3.5 h-3.5 text-gray-400" />
+                <span>Customer Support</span>
+              </a>
             </div>
           </nav>
 

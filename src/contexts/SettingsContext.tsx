@@ -89,6 +89,35 @@ export interface BannerSettings {
   // Showcase Sections (Trending, Featured, New Arrival, Flash Sale)
   showcases?: ShowcaseSection[];
 
+  // Modern Bento Hero Grid Settings
+  showBentoHero?: boolean;
+  bentoMainBadge?: string;
+  bentoMainTitle?: string;
+  bentoMainSubtitle?: string;
+  bentoMainTag1?: string;
+  bentoMainTag2?: string;
+  bentoMainTag3?: string;
+  bentoMainPrice?: number;
+  bentoMainOriginalPrice?: number;
+  bentoMainSavings?: string;
+  bentoMainClaimedText?: string;
+  bentoMainImage?: string;
+  bentoMainLink?: string;
+
+  bentoTopBadge?: string;
+  bentoTopTitle?: string;
+  bentoTopSubtitle?: string;
+  bentoTopLink?: string;
+  bentoTopPrice?: number;
+  bentoTopImage?: string;
+
+  bentoBottomBadge?: string;
+  bentoBottomTitle?: string;
+  bentoBottomSubtitle?: string;
+  bentoBottomLink?: string;
+  bentoBottomPrice?: number;
+  bentoBottomImage?: string;
+
   // Legacy / Backward Compatibility fields
   showFeaturedProducts?: boolean;
   featuredProductsTitle?: string;
@@ -270,6 +299,35 @@ export const DEFAULT_BANNERS: BannerSettings = {
   showFeaturedProducts: false,
   featuredProductsTitle: 'Featured',
   featuredProductsSubtitle: 'Hand-picked selections for you',
+
+  // Bento Hero defaults matching Stitch mockup
+  showBentoHero: true,
+  bentoMainBadge: '⚡ Summer Hot Deal • 15% OFF',
+  bentoMainTitle: 'High-Velocity Turbo Jet Fan',
+  bentoMainSubtitle: 'Ultra-quiet brushless airflow with 5000mAh extended battery. Beat the summer humidity wherever you commute.',
+  bentoMainTag1: '100-Speed Micro Control',
+  bentoMainTag2: '3000mAh Battery',
+  bentoMainTag3: '12,000 RPM Motor',
+  bentoMainPrice: 1270,
+  bentoMainOriginalPrice: 1440,
+  bentoMainSavings: 'Save ৳ 170',
+  bentoMainClaimedText: '42 claimed this hour',
+  bentoMainImage: 'https://res.cloudinary.com/dv8woouru/image/upload/v1788954463/img_6aa13171df053_0_1788948849.png',
+  bentoMainLink: '/product/x05-handheld-turbo-fan-3000mah-rechargeable-fan-with-1-100-speed-control-digital-display-transparent-design',
+
+  bentoTopBadge: 'TOP TRENDING',
+  bentoTopTitle: 'Acoustic Audio & Wireless',
+  bentoTopSubtitle: 'Noise-cancelling headsets with lossless bass response.',
+  bentoTopLink: '/shop?search=headphone',
+  bentoTopPrice: 1150,
+  bentoTopImage: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500&auto=format&fit=crop&q=80',
+
+  bentoBottomBadge: 'FESTIVE ARRIVAL',
+  bentoBottomTitle: 'Artisan Sarees & Abayas',
+  bentoBottomSubtitle: 'Pure hand-woven silk fabrics and embroidered cuts.',
+  bentoBottomLink: '/shop?search=saree',
+  bentoBottomPrice: 1870,
+  bentoBottomImage: 'https://res.cloudinary.com/dv8woouru/image/upload/v1789531077/b71aff57-1a8e-4155-8f4d-37f8a7114a46_1789531076688.webp',
 };
 
 const DEFAULT_SETTINGS: StoreSettings = {

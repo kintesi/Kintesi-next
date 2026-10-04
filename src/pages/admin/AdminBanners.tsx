@@ -641,6 +641,98 @@ export const AdminBanners: React.FC = () => {
             </div>
           </section>
 
+          {/* Bento Hero Showcase Grid Section */}
+          <section className={`rounded-2xl border p-5 sm:p-6 ${card}`}>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-b border-slate-100 dark:border-gray-800 pb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center">
+                  <Flame className="w-4 h-4" />
+                </div>
+                <div>
+                  <h2 className="font-black text-sm sm:text-base text-gray-900 dark:text-white">
+                    Bento Hero Grid (Stitch Luxury Layout)
+                  </h2>
+                  <p className="text-xs text-slate-500">
+                    Controls the 3 high-converting hero showcase cards (Main Left Card + 2 Curated Right Cards).
+                  </p>
+                </div>
+              </div>
+              <Toggle
+                checked={form.showBentoHero !== false}
+                onChange={(value) => setValue('showBentoHero', value)}
+                label={form.showBentoHero !== false ? 'Active' : 'Disabled'}
+              />
+            </div>
+
+            {/* Sub-Card 1: Main Left Card (Turbo Jet Fan / Flagship Deal) */}
+            <div className="mt-5 p-4 rounded-xl border border-slate-200/80 dark:border-gray-800 bg-slate-50/50 dark:bg-gray-950/50 space-y-4">
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-rose-600" />
+                <h3 className="font-bold text-xs uppercase tracking-wider text-slate-800 dark:text-slate-200">
+                  Card 1: Main Flagship Showcase (Left Large)
+                </h3>
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <Field label="Badge"><input value={form.bentoMainBadge || ''} onChange={(e) => setValue('bentoMainBadge', e.target.value)} className={`w-full px-3 py-2 border text-xs ${input}`} placeholder="e.g. ⚡ Summer Hot Deal • 15% OFF" /></Field>
+                <Field label="Live Claimed Status"><input value={form.bentoMainClaimedText || ''} onChange={(e) => setValue('bentoMainClaimedText', e.target.value)} className={`w-full px-3 py-2 border text-xs ${input}`} placeholder="e.g. 42 claimed this hour" /></Field>
+                <Field label="Product Title"><input value={form.bentoMainTitle || ''} onChange={(e) => setValue('bentoMainTitle', e.target.value)} className={`w-full px-3 py-2 border text-xs ${input}`} /></Field>
+                <Field label="Product Link / Slug"><input value={form.bentoMainLink || ''} onChange={(e) => setValue('bentoMainLink', e.target.value)} className={`w-full px-3 py-2 border text-xs ${input}`} placeholder="/product/slug-or-id" /></Field>
+                <Field label="Subtitle / Specs"><textarea rows={2} value={form.bentoMainSubtitle || ''} onChange={(e) => setValue('bentoMainSubtitle', e.target.value)} className={`w-full px-3 py-2 border text-xs resize-y ${input}`} /></Field>
+                <div className="space-y-2">
+                  <Field label="Feature Tag 1"><input value={form.bentoMainTag1 || ''} onChange={(e) => setValue('bentoMainTag1', e.target.value)} className={`w-full px-3 py-1.5 border text-xs ${input}`} placeholder="100-Speed Micro Control" /></Field>
+                  <Field label="Feature Tag 2"><input value={form.bentoMainTag2 || ''} onChange={(e) => setValue('bentoMainTag2', e.target.value)} className={`w-full px-3 py-1.5 border text-xs ${input}`} placeholder="3000mAh Battery" /></Field>
+                </div>
+                <Field label="Feature Tag 3"><input value={form.bentoMainTag3 || ''} onChange={(e) => setValue('bentoMainTag3', e.target.value)} className={`w-full px-3 py-2 border text-xs ${input}`} placeholder="12,000 RPM Motor" /></Field>
+                <Field label="Savings Tag"><input value={form.bentoMainSavings || ''} onChange={(e) => setValue('bentoMainSavings', e.target.value)} className={`w-full px-3 py-2 border text-xs ${input}`} placeholder="Save ৳ 170" /></Field>
+                <Field label="Sale Price (৳)"><input type="number" value={form.bentoMainPrice || ''} onChange={(e) => setValue('bentoMainPrice', Number(e.target.value))} className={`w-full px-3 py-2 border text-xs ${input}`} /></Field>
+                <Field label="Original Price (৳)"><input type="number" value={form.bentoMainOriginalPrice || ''} onChange={(e) => setValue('bentoMainOriginalPrice', Number(e.target.value))} className={`w-full px-3 py-2 border text-xs ${input}`} /></Field>
+                <div className="sm:col-span-2">
+                  <ImageUploader label="Main Card Image" value={form.bentoMainImage || ''} onChange={(value) => setValue('bentoMainImage', value)} helpText="High-quality transparent or solid product image." />
+                </div>
+              </div>
+            </div>
+
+            {/* Sub-Card 2: Top Right Card (Top Trending) */}
+            <div className="mt-4 p-4 rounded-xl border border-slate-200/80 dark:border-gray-800 bg-slate-50/50 dark:bg-gray-950/50 space-y-4">
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-blue-500" />
+                <h3 className="font-bold text-xs uppercase tracking-wider text-slate-800 dark:text-slate-200">
+                  Card 2: Top Right Showcase (Trending Audio / Tech)
+                </h3>
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <Field label="Badge"><input value={form.bentoTopBadge || ''} onChange={(e) => setValue('bentoTopBadge', e.target.value)} className={`w-full px-3 py-2 border text-xs ${input}`} placeholder="TOP TRENDING" /></Field>
+                <Field label="Title"><input value={form.bentoTopTitle || ''} onChange={(e) => setValue('bentoTopTitle', e.target.value)} className={`w-full px-3 py-2 border text-xs ${input}`} /></Field>
+                <Field label="Subtitle"><input value={form.bentoTopSubtitle || ''} onChange={(e) => setValue('bentoTopSubtitle', e.target.value)} className={`w-full px-3 py-2 border text-xs ${input}`} /></Field>
+                <Field label="Link"><input value={form.bentoTopLink || ''} onChange={(e) => setValue('bentoTopLink', e.target.value)} className={`w-full px-3 py-2 border text-xs ${input}`} /></Field>
+                <Field label="Starting Price (৳)"><input type="number" value={form.bentoTopPrice || ''} onChange={(e) => setValue('bentoTopPrice', Number(e.target.value))} className={`w-full px-3 py-2 border text-xs ${input}`} /></Field>
+                <div className="sm:col-span-2">
+                  <ImageUploader label="Top Right Image" value={form.bentoTopImage || ''} onChange={(value) => setValue('bentoTopImage', value)} helpText="Product preview image for top card." />
+                </div>
+              </div>
+            </div>
+
+            {/* Sub-Card 3: Bottom Right Card (Festive Arrival) */}
+            <div className="mt-4 p-4 rounded-xl border border-slate-200/80 dark:border-gray-800 bg-slate-50/50 dark:bg-gray-950/50 space-y-4">
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                <h3 className="font-bold text-xs uppercase tracking-wider text-slate-800 dark:text-slate-200">
+                  Card 3: Bottom Right Showcase (Festive Fashion / Lifestyle)
+                </h3>
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <Field label="Badge"><input value={form.bentoBottomBadge || ''} onChange={(e) => setValue('bentoBottomBadge', e.target.value)} className={`w-full px-3 py-2 border text-xs ${input}`} placeholder="FESTIVE ARRIVAL" /></Field>
+                <Field label="Title"><input value={form.bentoBottomTitle || ''} onChange={(e) => setValue('bentoBottomTitle', e.target.value)} className={`w-full px-3 py-2 border text-xs ${input}`} /></Field>
+                <Field label="Subtitle"><input value={form.bentoBottomSubtitle || ''} onChange={(e) => setValue('bentoBottomSubtitle', e.target.value)} className={`w-full px-3 py-2 border text-xs ${input}`} /></Field>
+                <Field label="Link"><input value={form.bentoBottomLink || ''} onChange={(e) => setValue('bentoBottomLink', e.target.value)} className={`w-full px-3 py-2 border text-xs ${input}`} /></Field>
+                <Field label="Combo / Starting Price (৳)"><input type="number" value={form.bentoBottomPrice || ''} onChange={(e) => setValue('bentoBottomPrice', Number(e.target.value))} className={`w-full px-3 py-2 border text-xs ${input}`} /></Field>
+                <div className="sm:col-span-2">
+                  <ImageUploader label="Bottom Right Image" value={form.bentoBottomImage || ''} onChange={(value) => setValue('bentoBottomImage', value)} helpText="Product preview image for bottom card." />
+                </div>
+              </div>
+            </div>
+          </section>
+
           <section className={`rounded-2xl border p-5 sm:p-6 ${card}`}>
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-b border-slate-100 pb-4">
               <div className="flex items-center gap-3">
