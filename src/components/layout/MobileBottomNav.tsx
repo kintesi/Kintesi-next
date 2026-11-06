@@ -34,7 +34,7 @@ export const MobileBottomNav: React.FC = () => {
       {/* Mobile Navigation Dock */}
       <nav
         aria-label="Mobile Navigation Dock"
-        className="md:hidden fixed bottom-3 left-3 right-3 max-w-md mx-auto z-40 bg-white/95 backdrop-blur-xl border border-gray-200/90 shadow-[0_12px_32px_rgba(0,0,0,0.12),0_2px_6px_rgba(0,0,0,0.05)] rounded-2xl p-1.5 px-2 text-gray-900 ring-1 ring-black/[0.04] transition-all duration-300"
+        className="md:hidden fixed bottom-3 left-3.5 right-3.5 max-w-md mx-auto z-40 bg-white/95 backdrop-blur-xl border border-gray-200/90 shadow-[0_12px_32px_rgba(0,0,0,0.12),0_2px_6px_rgba(0,0,0,0.05)] rounded-full p-1.5 px-2 text-gray-900 ring-1 ring-black/[0.04] transition-all duration-300"
       >
         <div className="grid grid-cols-5 items-center h-[54px] text-center">
           
@@ -42,7 +42,7 @@ export const MobileBottomNav: React.FC = () => {
           <Link
             to="/"
             onClick={() => setIsCartOpen(false)}
-            className={`flex flex-col items-center justify-center h-full rounded-xl transition-all duration-200 active:scale-95 ${
+            className={`flex flex-col items-center justify-center h-full rounded-full transition-all duration-200 active:scale-95 ${
               isActive('/')
                 ? 'text-rose-600 bg-rose-50/90 font-bold shadow-xs'
                 : 'text-gray-500 hover:text-gray-800 font-medium'
@@ -56,7 +56,7 @@ export const MobileBottomNav: React.FC = () => {
           <Link
             to="/shop"
             onClick={() => setIsCartOpen(false)}
-            className={`flex flex-col items-center justify-center h-full rounded-xl transition-all duration-200 active:scale-95 ${
+            className={`flex flex-col items-center justify-center h-full rounded-full transition-all duration-200 active:scale-95 ${
               isActive('/shop')
                 ? 'text-rose-600 bg-rose-50/90 font-bold shadow-xs'
                 : 'text-gray-500 hover:text-gray-800 font-medium'
@@ -69,7 +69,7 @@ export const MobileBottomNav: React.FC = () => {
           {/* 3. Dedicated Cart Page Link */}
           <Link
             to="/cart"
-            className={`flex flex-col items-center justify-center h-full rounded-xl transition-all duration-200 relative cursor-pointer active:scale-95 ${
+            className={`flex flex-col items-center justify-center h-full rounded-full transition-all duration-200 relative cursor-pointer active:scale-95 ${
               isActive('/cart')
                 ? 'text-rose-600 bg-rose-50/90 font-bold shadow-xs'
                 : 'text-gray-500 hover:text-gray-800 font-medium'
@@ -91,7 +91,7 @@ export const MobileBottomNav: React.FC = () => {
           <Link
             to="/wishlist"
             onClick={() => setIsCartOpen(false)}
-            className={`flex flex-col items-center justify-center h-full rounded-xl transition-all duration-200 active:scale-95 ${
+            className={`flex flex-col items-center justify-center h-full rounded-full transition-all duration-200 active:scale-95 ${
               isActive('/wishlist')
                 ? 'text-rose-600 bg-rose-50/90 font-bold shadow-xs'
                 : 'text-gray-500 hover:text-gray-800 font-medium'
@@ -106,7 +106,7 @@ export const MobileBottomNav: React.FC = () => {
             <Link
               to="/profile"
               onClick={() => setIsCartOpen(false)}
-              className={`flex flex-col items-center justify-center h-full rounded-xl transition-all duration-200 active:scale-95 ${
+              className={`flex flex-col items-center justify-center h-full rounded-full transition-all duration-200 active:scale-95 ${
                 isActive('/profile')
                   ? 'text-rose-600 bg-rose-50/90 font-bold shadow-xs'
                   : 'text-gray-500 hover:text-gray-800 font-medium'
@@ -126,7 +126,7 @@ export const MobileBottomNav: React.FC = () => {
                 setIsCartOpen(false);
                 setIsAuthOpen(true);
               }}
-              className="flex flex-col items-center justify-center h-full rounded-xl text-gray-500 hover:text-rose-600 transition-all duration-200 font-medium cursor-pointer active:scale-95"
+              className="flex flex-col items-center justify-center h-full rounded-full text-gray-500 hover:text-rose-600 transition-all duration-200 font-medium cursor-pointer active:scale-95"
             >
               <User className="w-5 h-5 stroke-[1.8]" />
               <span className="text-[11px] mt-0.5 font-semibold tracking-tight">{t('nav.profile')}</span>
